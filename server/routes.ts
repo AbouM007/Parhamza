@@ -751,17 +751,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Routes professionnelles
 
   // Route pour vérifier un compte professionnel existant (upload document KBIS)
+
   app.post(
     "/api/professional-accounts/verify",
-    upload.single("kbis_document"),
+    // ⬅️ passe en multi-fichiers : 1 KBIS + 1 PDF CIN OU 2 images (recto/verso)
+    upload.fields([
+      { name: "kbis_document", maxCount: 1 },
+      { name: "cin_document", maxCount: 2 },
+    ]),
     async (req, res) => {
       try {
         console.log("🏢 Vérification compte professionnel...");
         console.log("📄 Données reçues:", req.body);
-        console.log(
-          "📎 Fichier reçu:",
-          req.file ? req.file.originalname : "Aucun",
-        );
 
         const {
           company_name,
@@ -773,53 +774,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description,
         } = req.body;
 
-        // Validation des champs obligatoires
+        // 1) Validations de base
         if (!company_name || !siret) {
           return res
             .status(400)
             .json({ error: "Champs obligatoires manquants" });
         }
-
-        // Validation SIRET (14 chiffres)
         if (!/^\d{14}$/.test(siret)) {
           return res
             .status(400)
             .json({ error: "SIRET invalide (14 chiffres requis)" });
         }
 
-        // Récupérer l'utilisateur actuel depuis Supabase Auth
+        // 2) Auth Supabase (identique à ton code)
         const authHeader = req.headers.authorization;
         if (!authHeader) {
           return res
             .status(401)
             .json({ error: "Token d'authentification manquant" });
         }
-
         const token = authHeader.replace("Bearer ", "");
         const {
           data: { user },
           error: authError,
         } = await supabaseServer.auth.getUser(token);
-
-        if (authError || !user) {
+        if (authError || !user)
           return res.status(401).json({ error: "Token invalide" });
-        }
 
-        // Récupérer le compte professionnel existant
-        const { data: existingAccount } = await supabaseServer
-          .from("professional_accounts")
-          .select("id, company_name, siret, company_address")
-          .eq("user_id", user.id)
-          .single();
+        // 3) Compte pro existant
+        const { data: existingAccount, error: findAccErr } =
+          await supabaseServer
+            .from("professional_accounts")
+            .select("id, company_name, siret, company_address")
+            .eq("user_id", user.id)
+            .single();
 
-        if (!existingAccount) {
+        if (findAccErr || !existingAccount) {
           return res.status(400).json({
             error:
               "Aucun compte professionnel trouvé. Créez d'abord votre compte professionnel.",
           });
         }
 
-        // Vérifier l'unicité du SIRET (exclure le compte actuel)
+        // 4) Unicité SIRET (hors soi)
         const { data: existingSiret } = await supabaseServer
           .from("professional_accounts")
           .select("id")
@@ -828,20 +825,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .single();
 
         if (existingSiret) {
-          return res.status(400).json({
-            error: "Ce numéro SIRET est déjà utilisé par un autre compte",
-          });
+          return res
+            .status(400)
+            .json({
+              error: "Ce numéro SIRET est déjà utilisé par un autre compte",
+            });
         }
 
-        // Mettre à jour les informations du compte professionnel
+        // 5) Mise à jour des infos pro (⚠️ NE MET PLUS AUCUNE COLONNE 'verification_status' ici)
         const { data: proAccount, error: proError } = await supabaseServer
           .from("professional_accounts")
           .update({
-            company_name: company_name,
-            siret: siret,
-            company_address: company_address,
-            // verification_status sera mis à 'pending' après upload de document
-            verification_status: req.file ? "pending" : "not_verified",
+            company_name,
+            siret,
+            company_address: company_address ?? null,
+            phone: phone ?? null,
+            email: email ?? null,
+            website: website ?? null,
+            // status sera mis plus bas après inspection des documents
+            updated_at: new Date().toISOString(),
           })
           .eq("id", existingAccount.id)
           .select()
@@ -849,52 +851,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (proError) {
           console.error("❌ Erreur mise à jour compte pro:", proError);
-          return res.status(500).json({
-            error: "Erreur lors de la mise à jour du compte professionnel",
-          });
+          return res
+            .status(500)
+            .json({
+              error: "Erreur lors de la mise à jour du compte professionnel",
+            });
         }
-
         console.log("✅ Compte professionnel mis à jour:", proAccount.id);
 
-        // Upload du document Kbis si présent
-        if (req.file) {
-          console.log("📤 Upload document Kbis...");
+        // 6) FICHIERS (multi)
+        const files = req.files as Record<string, Express.Multer.File[]>;
+        const kbis = files?.kbis_document?.[0];
+        const cin = files?.cin_document ?? [];
 
-          const fileName = `kbis-${proAccount.id}-${Date.now()}.${req.file.originalname.split(".").pop()}`;
-
-          // Upload vers Supabase Storage (bucket vehicle-images/documents)
-          const { data: uploadData, error: uploadError } =
-            await supabaseServer.storage
-              .from("vehicle-images")
-              .upload(`documents/${fileName}`, req.file.buffer, {
-                contentType: req.file.mimetype,
-                upsert: false,
-              });
-
-          if (uploadError) {
-            console.error("❌ Erreur upload:", uploadError);
-          } else {
-            // Créer l'enregistrement du document
-            const { data: docData, error: docError } = await supabaseServer
-              .from("verification_documents")
-              .insert({
-                professional_account_id: proAccount.id,
-                document_type: "kbis",
-                file_url: uploadData.path,
-                file_name: req.file.originalname,
-                file_size: req.file.size,
-                verification_status: "pending",
-              });
-
-            if (docError) {
-              console.error("❌ Erreur enregistrement document:", docError);
-            } else {
-              console.log("✅ Document Kbis enregistré");
-            }
-          }
+        // ✅ Validation stricte sur les fichiers
+        if (!kbis) {
+          return res.status(400).json({ error: "Le document KBIS est requis" });
+        }
+        const cinIsPdf =
+          cin.length === 1 && cin[0].mimetype === "application/pdf";
+        const cinIsImages =
+          cin.length === 2 && cin.every((f) => f.mimetype.startsWith("image/"));
+        if (!cinIsPdf && !cinIsImages) {
+          return res
+            .status(400)
+            .json({
+              error: "La CIN doit être 1 PDF ou 2 images (recto/verso)",
+            });
         }
 
-        // Créer le profil professionnel initial s'il y a une description
+        // Helper d'upload Supabase Storage (⚠️ remplace le bucket/chemin si besoin)
+        async function uploadToStorage(
+          file: Express.Multer.File,
+          proId: number,
+          kind: string,
+        ) {
+          const ext = file.originalname.includes(".")
+            ? file.originalname.split(".").pop()
+            : "bin";
+          const fileName = `${kind}-${proId}-${Date.now()}.${ext}`;
+          const { data: up, error: upErr } = await supabaseServer.storage
+            .from("vehicle-images") // <-- ton bucket actuel
+            .upload(`documents/${fileName}`, file.buffer, {
+              contentType: file.mimetype,
+              upsert: false,
+            });
+          if (upErr) throw upErr;
+          return { path: up.path, name: file.originalname, size: file.size };
+        }
+
+        // 7) Remplacement atomique des documents (supprime anciens types -> insère nouveaux)
+        // Types à remplacer selon format de la CIN
+        const typesToReplace = [
+          "kbis",
+          ...(cinIsPdf ? ["id_pdf"] : ["id_front", "id_back"]),
+        ];
+
+        // a) delete anciens docs de ces types pour ce compte pro
+        const { error: delErr } = await supabaseServer
+          .from("verification_documents")
+          .delete()
+          .eq("professional_account_id", proAccount.id)
+          .in("document_type", typesToReplace);
+        if (delErr) {
+          console.error("❌ Erreur suppression anciens documents:", delErr);
+          return res
+            .status(500)
+            .json({ error: "Erreur lors du remplacement des documents" });
+        }
+
+        // b) upload + insert des nouveaux
+        const inserts: any[] = [];
+
+        // KBIS
+        try {
+          const up = await uploadToStorage(kbis, proAccount.id, "kbis");
+          inserts.push({
+            professional_account_id: proAccount.id,
+            document_type: "kbis",
+            file_url: up.path,
+            file_name: up.name,
+            file_size: up.size,
+            verification_status: "pending",
+          });
+        } catch (e) {
+          console.error("❌ Upload KBIS:", e);
+          return res.status(500).json({ error: "Échec upload KBIS" });
+        }
+
+        // CIN
+        try {
+          if (cinIsPdf) {
+            const up = await uploadToStorage(cin[0], proAccount.id, "cin-pdf");
+            inserts.push({
+              professional_account_id: proAccount.id,
+              document_type: "id_pdf",
+              file_url: up.path,
+              file_name: up.name,
+              file_size: up.size,
+              verification_status: "pending",
+            });
+          } else {
+            const upFront = await uploadToStorage(
+              cin[0],
+              proAccount.id,
+              "cin-front",
+            );
+            const upBack = await uploadToStorage(
+              cin[1],
+              proAccount.id,
+              "cin-back",
+            );
+            inserts.push(
+              {
+                professional_account_id: proAccount.id,
+                document_type: "id_front",
+                file_url: upFront.path,
+                file_name: upFront.name,
+                file_size: upFront.size,
+                verification_status: "pending",
+              },
+              {
+                professional_account_id: proAccount.id,
+                document_type: "id_back",
+                file_url: upBack.path,
+                file_name: upBack.name,
+                file_size: upBack.size,
+                verification_status: "pending",
+              },
+            );
+          }
+        } catch (e) {
+          console.error("❌ Upload CIN:", e);
+          return res.status(500).json({ error: "Échec upload CIN" });
+        }
+
+        const { error: insErr } = await supabaseServer
+          .from("verification_documents")
+          .insert(inserts);
+        if (insErr) {
+          console.error("❌ Erreur enregistrement documents:", insErr);
+          return res
+            .status(500)
+            .json({ error: "Erreur enregistrement des documents" });
+        }
+
+        // 8) Recalcul du statut: KBIS + (CIN pdf OU recto+verso) => under_review, sinon pending_docs
+        //    (Si tu as ProfessionalStatusService en version Supabase, appelle-le ici.)
+        const { data: docs, error: docsErr } = await supabaseServer
+          .from("verification_documents")
+          .select("document_type")
+          .eq("professional_account_id", proAccount.id)
+          .in("document_type", ["kbis", "id_pdf", "id_front", "id_back"]);
+
+        if (docsErr) {
+          console.error("❌ Erreur lecture documents:", docsErr);
+          return res
+            .status(500)
+            .json({ error: "Erreur lecture des documents" });
+        }
+
+        const hasKbis = docs?.some((d) => d.document_type === "kbis");
+        const hasCinPdf = docs?.some((d) => d.document_type === "id_pdf");
+        const hasCinImgs =
+          docs?.some((d) => d.document_type === "id_front") &&
+          docs?.some((d) => d.document_type === "id_back");
+        const hasCin = !!(hasCinPdf || hasCinImgs);
+
+        const nextStatus = hasKbis && hasCin ? "under_review" : "pending_docs";
+
+        const { error: statusErr } = await supabaseServer
+          .from("professional_accounts")
+          .update({ status: nextStatus })
+          .eq("id", proAccount.id);
+        if (statusErr) {
+          console.error("❌ Erreur MAJ statut:", statusErr);
+          return res
+            .status(500)
+            .json({ error: "Erreur mise à jour du statut" });
+        }
+
+        // 9) (Optionnel) Profil pro initial si description fournie
         if (description) {
           const { error: profileError } = await supabaseServer
             .from("professional_profiles")
@@ -902,23 +1039,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
               professional_account_id: proAccount.id,
               description: description,
             });
-
           if (profileError) {
             console.error("❌ Erreur création profil:", profileError);
           }
         }
 
-        res.json({
+        return res.json({
           success: true,
-          professionalAccount: proAccount,
+          status: nextStatus,
+          completeness: { hasKbis: !!hasKbis, hasCin: !!hasCin },
+          professionalAccountId: proAccount.id,
           message:
-            "Compte professionnel créé avec succès. En attente de vérification.",
+            nextStatus === "under_review"
+              ? "Documents reçus. Votre dossier passe en revue."
+              : "Documents incomplets. Merci de fournir la CIN (PDF ou recto/verso).",
         });
       } catch (error) {
-        console.error("❌ Erreur création compte professionnel:", error);
-        res.status(500).json({
-          error: "Erreur serveur lors de la création du compte professionnel",
-        });
+        console.error("❌ Erreur vérification compte professionnel:", error);
+        return res
+          .status(500)
+          .json({ error: "Erreur serveur lors de la vérification" });
       }
     },
   );
@@ -2033,6 +2173,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const sig = req.headers["stripe-signature"];
       const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      if (!sig || !endpointSecret) {
+        return res.status(400).send("Webhook configuration error");
+      }
 
       let event;
       try {

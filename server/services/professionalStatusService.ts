@@ -1,10 +1,10 @@
 // server/services/professionalStatusService.ts
-import { db } from "@/db"; // adapte l'import à ton projet
+import { db } from "../db"; // adapte l'import à ton projet
 import {
   professionalAccounts,
   verificationDocuments,
   // si besoin: users
-} from "@/shared/schema";
+} from "../../shared/schema";
 import { eq, and, inArray } from "drizzle-orm";
 
 export type ProStatus =
@@ -26,21 +26,12 @@ function hasCinComplete(docs: { documentType: DocType }[]): boolean {
 function computeStatusFromData(params: {
   currentStatus?: ProStatus | null;
   isVerified?: boolean | null;
-  verificationProcessStatus?:
-    | "not_started"
-    | "in_progress"
-    | "completed"
-    | null;
+  verificationStatus?: "not_started" | "in_progress" | "completed" | null;
   hasKbis: boolean;
   hasCin: boolean;
 }): ProStatus {
-  const {
-    currentStatus,
-    isVerified,
-    verificationProcessStatus,
-    hasKbis,
-    hasCin,
-  } = params;
+  const { currentStatus, isVerified, verificationStatus, hasKbis, hasCin } =
+    params;
 
   // Décisions admin en priorité
   if (isVerified === true) return "verified";
@@ -52,8 +43,8 @@ function computeStatusFromData(params: {
 
   // Flux legacy (si quelqu’un utilisait encore verificationProcessStatus)
   if (
-    verificationProcessStatus === "in_progress" ||
-    verificationProcessStatus === "completed"
+    verificationStatus === "in_progress" ||
+    verificationStatus === "completed"
   ) {
     return complete ? "under_review" : "pending_docs";
   }
@@ -100,7 +91,7 @@ export class ProfessionalStatusService {
     const unifiedStatus = computeStatusFromData({
       currentStatus: account.status as ProStatus | null,
       isVerified: account.isVerified as boolean | null,
-      verificationProcessStatus: account.verificationProcessStatus as any,
+      verificationStatus: account.verificationStatus as any,
       hasKbis,
       hasCin,
     });
@@ -130,7 +121,7 @@ export class ProfessionalStatusService {
     const next = computeStatusFromData({
       currentStatus: account.status as ProStatus | null,
       isVerified: account.isVerified as boolean | null,
-      verificationProcessStatus: account.verificationProcessStatus as any,
+      verificationStatus: account.verificationStatus as any,
       hasKbis,
       hasCin,
     });
@@ -140,12 +131,12 @@ export class ProfessionalStatusService {
       .update(professionalAccounts)
       .set({
         status: next,
-        verificationProcessStatus:
+        verificationStatus:
           next === "under_review"
             ? "in_progress"
             : next === "pending_docs"
               ? "not_started"
-              : account.verificationProcessStatus, // garde tel quel sinon
+              : account.verificationStatus, // garde tel quel sinon
         isVerified:
           next === "verified"
             ? true
@@ -170,7 +161,7 @@ export class ProfessionalStatusService {
       .set({
         status: decision,
         isVerified: decision === "verified",
-        verificationProcessStatus: "completed",
+        verificationStatus: "completed",
         verifiedAt: decision === "verified" ? new Date() : null,
         rejectedReason: decision === "rejected" ? notes || null : null,
         updatedAt: new Date(),

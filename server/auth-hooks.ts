@@ -1,13 +1,13 @@
-import { supabaseServer } from './supabase';
-import { storage } from './storage';
+import { supabaseServer } from "./supabase";
+import { storage } from "./storage";
 
 /**
  * Hook automatique pour créer un utilisateur dans la table users
  * dès l'inscription dans Supabase Auth
  */
 export async function setupAuthHooks() {
-  console.log('🔧 Configuration des hooks d\'authentification...');
-  
+  console.log("🔧 Configuration des hooks d'authentification...");
+
   // Cette fonction sera appelée par un webhook Supabase ou un trigger
   // Pour l'instant, on l'appelle manuellement via l'API
 }
@@ -16,7 +16,11 @@ export async function setupAuthHooks() {
  * Crée automatiquement un utilisateur minimal dans la table users
  * basé sur les données d'authentification Supabase
  */
-export async function createUserFromAuth(authUserId: string, email: string, metadata?: any) {
+export async function createUserFromAuth(
+  authUserId: string,
+  email: string,
+  metadata?: any,
+) {
   try {
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await storage.getUser(authUserId);
@@ -30,21 +34,22 @@ export async function createUserFromAuth(authUserId: string, email: string, meta
       id: authUserId,
       email: email,
       name: extractNameFromEmail(email, metadata),
-      type: 'individual' as const, // TOUS les comptes démarrent en particulier
+      type: "individual" as const, // TOUS les comptes démarrent en particulier
       phone: metadata?.phone || null,
       whatsapp: metadata?.phone || null,
       city: metadata?.city || null,
-      postal_code: metadata?.postal_code || null,
-      email_verified: true, // Car vient de Supabase Auth (nom correct colonne DB)
+      postal_code: metadata?.postal_code || null, // ✅ snake_case
+      email_verified: true, // ✅ snake_case
       avatar: metadata?.avatar_url || metadata?.picture || null,
+      created_at: new Date().toISOString(), // ✅ obligatoire (NOT NULL)
+      profile_completed: false, // ✅ cohérence
     };
 
     const createdUser = await storage.createUser(newUser);
     console.log(`✅ Utilisateur auto-créé: ${email}`);
     return createdUser;
-
   } catch (error) {
-    console.error('❌ Erreur création utilisateur auto:', error);
+    console.error("❌ Erreur création utilisateur auto:", error);
     throw error;
   }
 }
@@ -61,20 +66,25 @@ function extractNameFromEmail(email: string, metadata?: any): string {
   if (metadata?.first_name) return metadata.first_name;
 
   // Extraction depuis l'email
-  const localPart = email.split('@')[0];
-  
+  const localPart = email.split("@")[0];
+
   // Remplacer les points et underscores par des espaces et capitaliser
-  return localPart
-    .replace(/[._]/g, ' ')
-    .split(' ')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ') || 'Utilisateur';
+  return (
+    localPart
+      .replace(/[._]/g, " ")
+      .split(" ")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(" ") || "Utilisateur"
+  );
 }
 
 /**
  * Assure qu'un utilisateur existe, le crée sinon
  */
-export async function ensureUserExists(authUserId: string, fallbackEmail?: string): Promise<boolean> {
+export async function ensureUserExists(
+  authUserId: string,
+  fallbackEmail?: string,
+): Promise<boolean> {
   try {
     const existingUser = await storage.getUser(authUserId);
     if (existingUser) return true;
@@ -88,7 +98,7 @@ export async function ensureUserExists(authUserId: string, fallbackEmail?: strin
 
     return false;
   } catch (error) {
-    console.error('❌ Erreur vérification utilisateur:', error);
+    console.error("❌ Erreur vérification utilisateur:", error);
     return false;
   }
 }

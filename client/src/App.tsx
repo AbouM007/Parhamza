@@ -25,7 +25,6 @@ import { PrivacyPage } from "./pages/PrivacyPage";
 import { LegalPage } from "./pages/LegalPage";
 import { HelpPage } from "./pages/HelpPage";
 import { SafetyTipsPage } from "./pages/SafetyTipsPage";
-import { AdminDashboard } from "./components/AdminDashboard";
 import { AdminDashboardClean } from "./components/AdminDashboardClean";
 import { AdminLogin } from "./components/AdminLogin";
 import { AdminTest } from "./components/AdminTest";
@@ -84,9 +83,12 @@ function AppContent() {
     if (isLoading) return;
 
     // Si l'utilisateur est connecté mais n'a pas complété son profil
-    if (isAuthenticated && dbUser && !dbUser.profile_completed) {
-      console.log("🔧 ÉTAPE 1 - Profil incomplet détecté pour:", dbUser.email);
-      console.log("🔧 profile_completed:", dbUser.profile_completed);
+    if (isAuthenticated && (!dbUser || !dbUser?.profile_completed)) {
+      console.log(
+        "🔧 ÉTAPE 1 - Profil incomplet ou inexistant détecté pour:",
+        dbUser?.email || "utilisateur non synchronisé",
+      );
+      console.log("🔧 profile_completed:", dbUser?.profile_completed ?? "N/A");
       setShowProfileSetup(true);
     }
   }, [isAuthenticated, dbUser, isLoading]);
