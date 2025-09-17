@@ -1,4 +1,16 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real, json, uuid } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  real,
+  json,
+  uuid,
+  pgEnum,
+  numeric,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,7 +21,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   phone: text("phone"),
   whatsapp: text("whatsapp"),
-  type: text("type").notNull().default('individual'),
+  type: text("type").notNull().default("individual"),
   companyName: text("company_name"),
   companyLogo: text("company_logo"),
   address: text("address"),
@@ -30,7 +42,9 @@ export const users = pgTable("users", {
 
 export const annonces = pgTable("annonces", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => users.id).notNull(),
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
@@ -40,7 +54,7 @@ export const annonces = pgTable("annonces", {
   mileage: integer("mileage"),
   fuelType: text("fuel_type"),
   condition: text("condition").notNull(),
-  price: real("price").notNull(),
+  price: numeric("price", { precision: 12, scale: 2 }).notNull(),
   location: text("location").notNull(),
   images: json("images").$type<string[]>().default([]),
   features: json("features").$type<string[]>().default([]),
@@ -49,7 +63,7 @@ export const annonces = pgTable("annonces", {
   premiumExpiresAt: timestamp("premium_expires_at"),
   views: integer("views").default(0),
   favorites: integer("favorites").default(0),
-  status: text("status").default("approved"),
+  status: text("status").default("draft"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   listingType: text("listing_type").notNull().default("sale"),
@@ -62,13 +76,19 @@ export const annonces = pgTable("annonces", {
   deletionReason: text("deletion_reason"),
   deletionComment: text("deletion_comment"),
   priorityScore: integer("priority_score").default(0),
-  professionalAccountId: integer("professional_account_id").references(() => professionalAccounts.id),
+  professionalAccountId: integer("professional_account_id").references(
+    () => professionalAccounts.id,
+  ),
 });
 
 export const messages = pgTable("messages", {
-  id: text("id").primaryKey(),
-  fromUserId: text("from_user_id").references(() => users.id).notNull(),
-  toUserId: text("to_user_id").references(() => users.id).notNull(),
+  id: serial("id").primaryKey(),
+  fromUserId: text("from_user_id")
+    .references(() => users.id)
+    .notNull(),
+  toUserId: text("to_user_id")
+    .references(() => users.id)
+    .notNull(),
   vehicleId: text("vehicle_id").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -78,7 +98,9 @@ export const messages = pgTable("messages", {
 // Wishlist table for favorite vehicles
 export const wishlist = pgTable("wishlist", {
   id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id).notNull(),
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull(),
   vehicleId: text("vehicle_id").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -127,24 +149,28 @@ export const adminLogs = pgTable("admin_logs", {
 // Saved searches table for alerts
 export const savedSearches = pgTable("saved_searches", {
   id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id).notNull(),
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull(),
   name: text("name").notNull(), // User-given name for the search
-  filters: json("filters").$type<{
-    category?: string;
-    subcategory?: string;
-    brand?: string;
-    model?: string;
-    yearFrom?: number;
-    yearTo?: number;
-    mileageFrom?: number;
-    mileageTo?: number;
-    priceFrom?: number;
-    priceTo?: number;
-    fuelType?: string;
-    condition?: string;
-    location?: string;
-    searchTerm?: string;
-  }>().notNull(),
+  filters: json("filters")
+    .$type<{
+      category?: string;
+      subcategory?: string;
+      brand?: string;
+      model?: string;
+      yearFrom?: number;
+      yearTo?: number;
+      mileageFrom?: number;
+      mileageTo?: number;
+      priceFrom?: number;
+      priceTo?: number;
+      fuelType?: string;
+      condition?: string;
+      location?: string;
+      searchTerm?: string;
+    }>()
+    .notNull(),
   alertsEnabled: boolean("alerts_enabled").default(false),
   lastChecked: timestamp("last_checked"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -165,24 +191,43 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const proStatusEnum = pgEnum("pro_status", [
+  "pending_docs",
+  "under_review",
+  "verified",
+  "rejected",
+]);
+
 export const professionalAccounts = pgTable("professional_accounts", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => users.id).notNull().unique(), // Contrainte unique : 1 compte pro par utilisateur
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull()
+    .unique(), // Contrainte unique : 1 compte pro par utilisateur
   companyName: text("company_name").notNull(),
   siret: text("siret").unique(),
   companyAddress: text("company_address"),
   phone: text("phone"),
   email: text("email"),
   website: text("website"),
-  membership: text("membership").$type<'free' | 'paid' | 'canceled'>().default('free'),
+  membership: text("membership")
+    .$type<"free" | "paid" | "canceled">()
+    .default("free"),
+  // ✅ Nouveau statut canonique
+  status: proStatusEnum("status").default("pending_docs"),
+
+  // ♻️ Legacy (on conserve pour compat)
   isVerified: boolean("is_verified").default(false),
-  verificationProcessStatus: text("verification_process_status").$type<'not_started' | 'in_progress' | 'completed'>().default('not_started'),
+  verificationStatus: text("verification_status"),
   verifiedAt: timestamp("verified_at"),
   rejectedReason: text("rejected_reason"),
   // Champs de personnalisation pour la boutique
   companyLogo: text("company_logo"),
   bannerImage: text("banner_image"),
-  brandColors: json("brand_colors").$type<{primary: string; secondary: string}>(),
+  brandColors: json("brand_colors").$type<{
+    primary: string;
+    secondary: string;
+  }>(),
   description: text("description"),
   specialties: json("specialties").$type<string[]>().default([]),
   certifications: json("certifications").$type<string[]>().default([]),
@@ -195,7 +240,9 @@ export const subscriptions = pgTable("subscriptions", {
   professional_account_id: integer("professional_account_id"),
   plan_id: text("plan_id").notNull(),
   stripe_subscription_id: text("stripe_subscription_id").unique(),
-  status: text("status").$type<'active' | 'cancelled' | 'expired' | 'pending'>().default('pending'),
+  status: text("status")
+    .$type<"active" | "cancelled" | "expired" | "pending">()
+    .default("pending"),
   current_period_start: timestamp("current_period_start"),
   current_period_end: timestamp("current_period_end"),
   cancel_at_period_end: boolean("cancel_at_period_end"),
@@ -209,24 +256,40 @@ export const stripeEventsProcessed = pgTable("stripe_events_processed", {
   processedAt: timestamp("processed_at").defaultNow().notNull(),
 });
 
+export const verificationDocumentType = pgEnum("verification_document_type", [
+  "kbis",
+  "id_pdf",
+  "id_front",
+  "id_back",
+  "other",
+]);
+
 export const verificationDocuments = pgTable("verification_documents", {
   id: serial("id").primaryKey(),
-  professionalAccountId: integer("professional_account_id").references(() => professionalAccounts.id).notNull(),
-  documentType: text("document_type").$type<'kbis' | 'siret' | 'other'>().notNull(),
+  professionalAccountId: integer("professional_account_id")
+    .references(() => professionalAccounts.id)
+    .notNull(),
+  documentType: verificationDocumentType("document_type").notNull(),
   fileUrl: text("file_url"),
   fileName: text("file_name"),
   fileSize: integer("file_size"),
   uploadDate: timestamp("upload_date").defaultNow().notNull(),
-  verificationStatus: text("verification_status").$type<'pending' | 'approved' | 'rejected'>().default('pending'),
+  verificationStatus: text("verification_status")
+    .$type<"pending" | "approved" | "rejected">()
+    .default("pending"),
   adminNotes: text("admin_notes"),
 });
 
 export const professionalProfiles = pgTable("professional_profiles", {
   id: serial("id").primaryKey(),
-  professionalAccountId: integer("professional_account_id").references(() => professionalAccounts.id).notNull(),
+  professionalAccountId: integer("professional_account_id")
+    .references(() => professionalAccounts.id)
+    .notNull(),
   logoUrl: text("logo_url"),
   description: text("description"),
-  openingHours: json("opening_hours").$type<Record<string, string>>().default({}),
+  openingHours: json("opening_hours")
+    .$type<Record<string, string>>()
+    .default({}),
   whatsappNumber: text("whatsapp_number"),
   facebookUrl: text("facebook_url"),
   instagramUrl: text("instagram_url"),
@@ -248,8 +311,12 @@ export const boostPlans = pgTable("boost_plans", {
 
 export const annonceBoosts = pgTable("annonce_boosts", {
   id: serial("id").primaryKey(),
-  annonceId: integer("annonce_id").references(() => annonces.id).notNull(),
-  planId: integer("plan_id").references(() => boostPlans.id).notNull(),
+  annonceId: integer("annonce_id")
+    .references(() => annonces.id)
+    .notNull(),
+  planId: integer("plan_id")
+    .references(() => boostPlans.id)
+    .notNull(),
   stripeSessionId: text("stripe_session_id").unique(),
   isActive: boolean("is_active").default(true),
   startAt: timestamp("start_at").defaultNow().notNull(),
@@ -259,16 +326,30 @@ export const annonceBoosts = pgTable("annonce_boosts", {
 
 // Schémas d'insertion
 export const insertUserSchema = createInsertSchema(users);
-export const insertVehicleSchema = createInsertSchema(annonces).omit({ id: true });
+export const insertVehicleSchema = createInsertSchema(annonces).omit({
+  id: true,
+});
 export const insertMessageSchema = createInsertSchema(messages);
 export const insertWishlistSchema = createInsertSchema(wishlist);
 export const insertSavedSearchSchema = createInsertSchema(savedSearches);
-export const insertProfessionalAccountSchema = createInsertSchema(professionalAccounts).omit({ id: true });
-export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true });
-export const insertVerificationDocumentSchema = createInsertSchema(verificationDocuments).omit({ id: true });
-export const insertProfessionalProfileSchema = createInsertSchema(professionalProfiles).omit({ id: true });
-export const insertBoostPlanSchema = createInsertSchema(boostPlans).omit({ id: true });
-export const insertAnnonceBoostSchema = createInsertSchema(annonceBoosts).omit({ id: true });
+export const insertProfessionalAccountSchema = createInsertSchema(
+  professionalAccounts,
+).omit({ id: true });
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+});
+export const insertVerificationDocumentSchema = createInsertSchema(
+  verificationDocuments,
+).omit({ id: true });
+export const insertProfessionalProfileSchema = createInsertSchema(
+  professionalProfiles,
+).omit({ id: true });
+export const insertBoostPlanSchema = createInsertSchema(boostPlans).omit({
+  id: true,
+});
+export const insertAnnonceBoostSchema = createInsertSchema(annonceBoosts).omit({
+  id: true,
+});
 
 // Types d'insertion
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -276,10 +357,16 @@ export type InsertVehicle = z.infer<typeof insertVehicleSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertWishlist = z.infer<typeof insertWishlistSchema>;
 export type InsertSavedSearch = z.infer<typeof insertSavedSearchSchema>;
-export type InsertProfessionalAccount = z.infer<typeof insertProfessionalAccountSchema>;
+export type InsertProfessionalAccount = z.infer<
+  typeof insertProfessionalAccountSchema
+>;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
-export type InsertVerificationDocument = z.infer<typeof insertVerificationDocumentSchema>;
-export type InsertProfessionalProfile = z.infer<typeof insertProfessionalProfileSchema>;
+export type InsertVerificationDocument = z.infer<
+  typeof insertVerificationDocumentSchema
+>;
+export type InsertProfessionalProfile = z.infer<
+  typeof insertProfessionalProfileSchema
+>;
 export type InsertBoostPlan = z.infer<typeof insertBoostPlanSchema>;
 export type InsertAnnonceBoost = z.infer<typeof insertAnnonceBoostSchema>;
 
