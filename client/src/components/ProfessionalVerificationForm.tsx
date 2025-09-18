@@ -94,7 +94,7 @@ export const ProfessionalVerificationForm: React.FC = () => {
         // ✅ Message inline de succès (tu peux aussi rediriger si tu veux)
         setErrors(null);
         alert(
-          "✅ Votre demande est envoyée. Elle sera examinée dans les 24-48 heures.",
+          "✅ Votre demande de vérification sera examinée par nos équipes en moins de 24 heures.",
         );
         window.location.href = "/dashboard";
       } else {

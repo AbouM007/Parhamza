@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface SubscriptionStepProps {
-  onNext: (plan: any) => void; // ✅ appelé quand un plan est choisi
-  onBack: () => void; // ✅ retour en arrière
+  onBack: () => void;
+  onComplete: () => void;
 }
 
 export const SubscriptionStep: React.FC<SubscriptionStepProps> = ({
-  onNext,
   onBack,
+  onComplete,
 }) => {
   const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
@@ -33,53 +34,82 @@ export const SubscriptionStep: React.FC<SubscriptionStepProps> = ({
     loadSubscriptionPlans();
   }, []);
 
-  // Sélection d’un plan
-  const handlePlanSelection = (plan: any) => {
+  // Sélectionner un plan → Stripe
+  const handlePlanSelection = async (plan: any) => {
     setIsCreatingCheckout(true);
     try {
-      onNext(plan); // ✅ transmet au OnboardingRouter
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user?.email) throw new Error("Email utilisateur manquant");
+
+      const response = await fetch(
+        "/api/subscriptions/create-checkout-session",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planId: plan.id,
+            userEmail: session.user.email,
+          }),
+        },
+      );
+
+      if (!response.ok) throw new Error("Erreur création session Stripe");
+
+      const { sessionUrl } = await response.json();
+      window.location.href = sessionUrl; // ✅ redirection immédiate
+      onComplete();
+    } catch (error) {
+      console.error("❌ Erreur checkout Stripe:", error);
+      alert("Erreur lors de la création de la session Stripe");
     } finally {
       setIsCreatingCheckout(false);
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-xl font-semibold">Étape 2 : Choisir un abonnement</h2>
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Choisissez un abonnement</h2>
 
       {isLoadingPlans ? (
         <p>Chargement des plans...</p>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {subscriptionPlans.map((plan) => (
             <div
               key={plan.id}
-              className="border rounded-lg p-4 hover:shadow-lg transition"
+              className="border p-4 rounded-lg shadow hover:shadow-lg transition"
             >
-              <h3 className="font-bold text-lg">{plan.name}</h3>
-              <p className="text-green-600 font-semibold">
+              <h3 className="text-lg font-bold">{plan.name}</h3>
+              <p className="text-2xl font-semibold text-green-600">
                 {plan.price_monthly} €/mois
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                {plan.max_listings
+                  ? `${plan.max_listings} annonces/mois`
+                  : "Annonces illimitées"}
               </p>
               <button
                 onClick={() => handlePlanSelection(plan)}
                 disabled={isCreatingCheckout}
-                className="mt-4 w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                className="w-full bg-green-600 text-white py-2 px-4 mt-4 rounded hover:bg-green-700 disabled:opacity-50"
               >
-                {isCreatingCheckout ? "Redirection..." : "Choisir ce plan"}
+                {isCreatingCheckout
+                  ? "Redirection..."
+                  : "Choisir ce plan et payer"}
               </button>
             </div>
           ))}
         </div>
       )}
 
-      <div className="flex justify-between items-center pt-6 border-t">
-        <button
-          onClick={onBack}
-          className="px-6 py-2 text-gray-600 hover:text-gray-800"
-        >
-          ← Retour
-        </button>
-      </div>
+      <button
+        onClick={onBack}
+        className="mt-6 px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
+      >
+        Retour
+      </button>
     </div>
   );
 };

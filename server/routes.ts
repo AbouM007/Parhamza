@@ -825,11 +825,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .single();
 
         if (existingSiret) {
-          return res
-            .status(400)
-            .json({
-              error: "Ce numéro SIRET est déjà utilisé par un autre compte",
-            });
+          return res.status(400).json({
+            error: "Ce numéro SIRET est déjà utilisé par un autre compte",
+          });
         }
 
         // 5) Mise à jour des infos pro (⚠️ NE MET PLUS AUCUNE COLONNE 'verification_status' ici)
@@ -851,11 +849,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (proError) {
           console.error("❌ Erreur mise à jour compte pro:", proError);
-          return res
-            .status(500)
-            .json({
-              error: "Erreur lors de la mise à jour du compte professionnel",
-            });
+          return res.status(500).json({
+            error: "Erreur lors de la mise à jour du compte professionnel",
+          });
         }
         console.log("✅ Compte professionnel mis à jour:", proAccount.id);
 
@@ -873,11 +869,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const cinIsImages =
           cin.length === 2 && cin.every((f) => f.mimetype.startsWith("image/"));
         if (!cinIsPdf && !cinIsImages) {
-          return res
-            .status(400)
-            .json({
-              error: "La CIN doit être 1 PDF ou 2 images (recto/verso)",
-            });
+          return res.status(400).json({
+            error: "La CIN doit être 1 PDF ou 2 images (recto/verso)",
+          });
         }
 
         // Helper d'upload Supabase Storage (⚠️ remplace le bucket/chemin si besoin)
@@ -1022,7 +1016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const { error: statusErr } = await supabaseServer
           .from("professional_accounts")
-          .update({ status: nextStatus })
+          .update({ verification_status: "pending" })
           .eq("id", proAccount.id);
         if (statusErr) {
           console.error("❌ Erreur MAJ statut:", statusErr);
@@ -1931,7 +1925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ ${allUsers.length} utilisateurs auth récupérés`);
       console.log(
-        "📧 Emails trouvés:",
+        "📧 Emails trouv �s:",
         allUsers.map((u) => u.email),
       );
       console.log(
