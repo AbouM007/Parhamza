@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { User as DbUser } from '@shared/schema'
+import { User as DbUser } from '../shared/schema'
 
 export interface AuthState {
   user: User | null

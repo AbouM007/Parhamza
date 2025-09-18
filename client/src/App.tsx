@@ -1,8 +1,9 @@
+import { OnboardingRouter } from "./components/onboarding/OnboardingRouter";
 import React, { useState, useCallback } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { AppProvider, useApp } from "./contexts/AppContext";
-import { Router, Route, useRoute, Switch, useLocation } from "wouter";
+import { Router, Route, Switch, useLocation } from "wouter";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
@@ -11,7 +12,6 @@ import { VehicleDetail } from "./components/VehicleDetail";
 import { UnifiedAuthModal } from "./components/UnifiedAuthModal";
 import { ProfileSetupModal } from "./components/ProfileSetupModal";
 import { PersonalProfileForm } from "./components/PersonalProfileForm";
-import { ProfessionalProfileForm } from "./components/ProfessionalProfileForm";
 import StripeSuccess from "./pages/StripeSuccess";
 import { Dashboard } from "./components/Dashboard";
 import { CreateListingForm } from "./components/CreateListingForm";
@@ -36,7 +36,6 @@ import { AuthCallback } from "./pages/AuthCallback";
 import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
 import { useAuth } from "./hooks/useAuth";
-// import CreateProAccount from './pages/CreateProAccount';
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,17 +50,14 @@ function AppContent() {
   const { selectedVehicle, setSelectedVehicle, setSearchFilters } = useApp();
   const { isAuthenticated, dbUser, isLoading, refreshDbUser } = useAuth();
 
-  // Utiliser useLocation pour obtenir et modifier l'URL actuelle
   const [location, setLocation] = useLocation();
 
-  // Fonction pour convertir l'URL en format "currentView" pour la compatibilité
   const getCurrentView = useCallback(() => {
     if (location === "/") return "home";
     if (location.startsWith("/pro/")) return "pro-shop";
-    return location.slice(1); // Enlever le "/" au début
+    return location.slice(1);
   }, [location]);
 
-  // Fonction pour convertir "currentView" en URL
   const setCurrentView = useCallback(
     (view: string) => {
       setLocation(view === "home" ? "/" : `/${view}`);
@@ -77,60 +73,43 @@ function AppContent() {
     [setLocation],
   );
 
-  // Effet pour détecter si le profil est incomplet - ÉTAPE 1
+  // Détection onboarding
   React.useEffect(() => {
-    // Attendre que l'authentification soit chargée
     if (isLoading) return;
-
-    // Si l'utilisateur est connecté mais n'a pas complété son profil
     if (isAuthenticated && (!dbUser || !dbUser?.profile_completed)) {
       console.log(
-        "🔧 ÉTAPE 1 - Profil incomplet ou inexistant détecté pour:",
+        "🔧 Onboarding détecté pour:",
         dbUser?.email || "utilisateur non synchronisé",
       );
-      console.log("🔧 profile_completed:", dbUser?.profile_completed ?? "N/A");
       setShowProfileSetup(true);
     }
   }, [isAuthenticated, dbUser, isLoading]);
 
-  // Auto-sélection d'un véhicule depuis les paramètres URL (pour l'admin)
+  // Auto-sélection véhicule via URL (admin)
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const vehicleId = urlParams.get("vehicle");
-
     if (vehicleId && !selectedVehicle) {
-      // Rechercher le véhicule par ID et le sélectionner
       fetch("/api/vehicles")
         .then((res) => res.json())
         .then((vehicles) => {
           const vehicle = vehicles.find((v: any) => v.id === vehicleId);
-          if (vehicle) {
-            setSelectedVehicle(vehicle);
-            console.log(
-              `🎯 Véhicule auto-sélectionné depuis URL:`,
-              vehicle.title,
-            );
-          }
+          if (vehicle) setSelectedVehicle(vehicle);
         })
-        .catch((err) =>
-          console.error("❌ Erreur auto-sélection véhicule:", err),
-        );
+        .catch((err) => console.error("❌ Erreur auto-sélection:", err));
     }
   }, [location, selectedVehicle, setSelectedVehicle]);
 
-  // Gestion de l'ouverture du modal pour /create-listing
+  // Modal création annonce
   React.useEffect(() => {
     if (location === "/create-listing") {
       setShowCreateListingModal(true);
-      setLocation("/"); // Rediriger vers la page d'accueil pour éviter la réouverture
+      setLocation("/");
     }
   }, [location, setLocation]);
 
-  // Scroll to top when location changes
   React.useEffect(() => {
-    if (!selectedVehicle) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (!selectedVehicle) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location, selectedVehicle]);
 
   const handleBack = useCallback(() => {
@@ -139,18 +118,14 @@ function AppContent() {
 
   const handleBreadcrumbNavigation = useCallback(
     (path: string) => {
-      setSelectedVehicle(null); // Fermer le détail du véhicule
-
-      // Navigation basée sur le chemin du breadcrumb
+      setSelectedVehicle(null);
       if (path === "home") {
         setLocation("/");
       } else if (path.includes("/")) {
-        // Navigation vers une marque spécifique (ex: "car/bmw")
         const [category, brand] = path.split("/");
         setSearchFilters({ category, brand });
         setLocation("/listings");
       } else {
-        // Navigation vers une catégorie
         const categoryMap: { [key: string]: string } = {
           "car-utility": "car",
           "moto-quad": "motorcycle",
@@ -164,7 +139,6 @@ function AppContent() {
           jetski: "jetski",
           aircraft: "aircraft",
         };
-
         const filterCategory = categoryMap[path];
         if (filterCategory) {
           setSearchFilters({ category: filterCategory });
@@ -177,17 +151,14 @@ function AppContent() {
     [setSelectedVehicle, setLocation, setSearchFilters],
   );
 
-  // Nous n'utilisons plus renderContent(), car nous utilisons un système de routes
   const handleCreateListing = useCallback(() => {
     setShowCreateListingModal(true);
   }, []);
 
-  // Vérifier si on est sur une route admin
   const isAdminRoute = location.startsWith("/admin");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Masquer Header pour les routes admin */}
       {!isAdminRoute && (
         <Header
           currentView={getCurrentView()}
@@ -209,9 +180,8 @@ function AppContent() {
         />
       ) : (
         <>
-          {/* Utiliser des routes au lieu d'un switch sur currentView */}
           <Switch>
-            <Route path="/pro/:shopId">{(params) => <ProShop />}</Route>
+            <Route path="/pro/:shopId">{() => <ProShop />}</Route>
             <Route path="/professional/:id">
               <ProfessionalProfile />
             </Route>
@@ -316,9 +286,7 @@ function AppContent() {
             <Route path="/create-pro-account">
               <div className="p-8 text-center">
                 <h2 className="text-2xl font-bold">Compte Professionnel</h2>
-                <p className="mt-4">
-                  Page de création de compte professionnel en développement...
-                </p>
+                <p className="mt-4">Page en développement...</p>
               </div>
             </Route>
             <Route path="/auth/callback">
@@ -331,13 +299,13 @@ function AppContent() {
               <Hero setCurrentView={setCurrentView} />
             </Route>
           </Switch>
-          {/* Masquer Footer pour les routes admin */}
           {!isAdminRoute && <Footer setCurrentView={setCurrentView} />}
         </>
       )}
+
       <UnifiedAuthModal />
 
-      {/* Modal de configuration du profil - ÉTAPE 3: Navigation complète */}
+      {/* Modal choix type de compte */}
       <ProfileSetupModal
         isOpen={showProfileSetup && onboardingStep === "choice"}
         onClose={() => {
@@ -345,11 +313,9 @@ function AppContent() {
           setOnboardingStep("choice");
         }}
         onPersonalAccount={() => {
-          console.log("🔧 Choix: Compte Personnel");
           setOnboardingStep("personal");
         }}
         onProfessionalAccount={() => {
-          console.log("🔧 Choix: Compte Professionnel");
           setOnboardingStep("professional");
         }}
       />
@@ -361,42 +327,23 @@ function AppContent() {
           setOnboardingStep("choice");
         }}
         onComplete={async () => {
-          console.log("✅ Onboarding personnel terminé!");
           setShowProfileSetup(false);
           setOnboardingStep("choice");
-          // Recharger les données utilisateur pour mettre à jour profile_completed
-          if (refreshDbUser) {
-            await refreshDbUser();
-          }
+          if (refreshDbUser) await refreshDbUser();
         }}
-        initialData={{
-          name: dbUser?.name,
-          email: dbUser?.email,
-        }}
+        initialData={{ name: dbUser?.name, email: dbUser?.email }}
       />
 
-      {/* Formulaire compte professionnel */}
-      <ProfessionalProfileForm
-        isOpen={showProfileSetup && onboardingStep === "professional"}
-        onClose={() => {
-          setOnboardingStep("choice");
-        }}
-        onComplete={async () => {
-          console.log("✅ Onboarding professionnel terminé!");
-          setShowProfileSetup(false);
-          setOnboardingStep("choice");
-          // Recharger les données utilisateur pour mettre à jour profile_completed
-          if (refreshDbUser) {
-            await refreshDbUser();
-          }
-        }}
-        initialData={{
-          name: dbUser?.name,
-          email: dbUser?.email,
-        }}
-      />
+      {/* Onboarding pro multi-étapes */}
+      {showProfileSetup && onboardingStep === "professional" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+            <OnboardingRouter setShowProfileSetup={setShowProfileSetup} />
+          </div>
+        </div>
+      )}
 
-      {/* Modal de création d'annonce déplaçable */}
+      {/* Modal création annonce */}
       <DraggableModal
         isOpen={showCreateListingModal}
         onClose={() => setShowCreateListingModal(false)}
@@ -407,7 +354,7 @@ function AppContent() {
             setShowCreateListingModal(false);
             setLocation("/dashboard");
             setDashboardTab("listings");
-            setRefreshVehicles((prev) => !prev); // Déclencher le rafraîchissement des annonces
+            setRefreshVehicles((prev) => !prev);
           }}
         />
       </DraggableModal>
@@ -421,8 +368,6 @@ function App() {
       <AuthProvider>
         <AppProvider>
           <Router>
-            {/* Suppression de la route spécifique /pro/:shopId qui cause la duplication */}
-            {/* Ne garder qu'une seule route qui englobe tout */}
             <Route component={AppContent} />
           </Router>
         </AppProvider>

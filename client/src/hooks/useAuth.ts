@@ -57,7 +57,7 @@ export function useAuth(): AuthState {
       const cachedUser = userCacheRef.current.get(email);
       if (cachedUser !== undefined) {
         setDbUser(cachedUser);
-        console.log("📋 Utilisateur récupéré du cache:", email);
+        //console.log("📋 Utilisateur récupéré du cache:", email);
         return;
       }
     }
@@ -72,11 +72,11 @@ export function useAuth(): AuthState {
         // Mettre en cache
         userCacheRef.current.set(email, userData);
         lastFetchTimeRef.current.set(email, now);
-        console.log(
+        /*console.log(
           "✅ Utilisateur trouvé dans BD (et mis en cache):",
           userData.name,
           `(${userData.type})`,
-        );
+        );*/
       } else if (response.status === 404) {
         console.log(
           "🔄 Utilisateur inexistant, synchronisation automatique...",
