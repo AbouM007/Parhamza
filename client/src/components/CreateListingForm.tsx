@@ -10,8 +10,8 @@ import { PublishSuccessModal } from './PublishSuccessModal';
 import { AddressInput } from './AddressInput';
 import { PREMIUM_PACKS } from '@/types/premium';
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from '../hooks/useAuth';
-import { useQuota } from '../hooks/useQuota';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuota } from '@/hooks/useQuota';
 // Temporairement commenté pour éviter l'erreur d'import
 // import { useToast } from '../../hooks/use-toast';
 import { getBrandsBySubcategory, fuelTypes, carModelsByBrand } from '../utils/mockData';

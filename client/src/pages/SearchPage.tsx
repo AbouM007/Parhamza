@@ -3,8 +3,8 @@ import { Search, MapPin, Filter, X, SlidersHorizontal, Grid, List, ChevronDown, 
 import { useApp } from "@/contexts/AppContext";
 import { VehicleCard } from '@/components/VehicleCard';
 import { brandsByVehicleType, getBrandsBySubcategory } from '../utils/mockData';
-import { useSavedSearches } from '../hooks/useSavedSearches';
-import { useAuth } from '../hooks/useAuth';
+import { useSavedSearches } from '@/hooks/useSavedSearches';
+import { useAuth } from '@/hooks/useAuth';
 import type { SearchFilters } from '../types';
 
 export const SearchPage: React.FC = () => {

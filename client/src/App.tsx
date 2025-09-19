@@ -35,7 +35,7 @@ import SubscriptionPurchase from "./pages/SubscriptionPurchase";
 import { AuthCallback } from "./pages/AuthCallback";
 import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
-import { useAuth } from "./hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

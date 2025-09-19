@@ -1,5 +1,5 @@
 import { Heart } from "lucide-react";
-import { useFavorites } from "../hooks/useFavorites";
+import { useFavorites } from "@/hooks/useFavorites";
 
 function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");

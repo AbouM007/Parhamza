@@ -21,7 +21,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { CategorySection } from "./CategorySection";
 import voituresImage from "@assets/voiture-2_1752056602701.png";
 import motosImage from "@assets/motos-scooters_1752057126122.png";

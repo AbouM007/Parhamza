@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, TrendingUp, Clock, Euro, Crown, Zap, Check } from 'lucide-react';
-import { useBoostPlans } from '../hooks/useBoostPlans';
+import { useBoostPlans } from '@/hooks/useBoostPlans';
 import { BoostPlan } from '@shared/schema';
 
 interface BoostModalProps {

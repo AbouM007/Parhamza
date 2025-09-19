@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, Send, User, ArrowLeft, Clock } from "lucide-react";
-import { useMessaging } from "../hooks/useMessaging";
-import { useAuth } from "../hooks/useAuth";
+import { useMessaging } from "@/hooks/useMessaging";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Conversation {
   id: string;
