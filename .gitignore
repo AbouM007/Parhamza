@@ -1,13 +1,26 @@
+# 🌱 Environnements
 .env
 .env.*
-node_modules
-dist
-.DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
-*.md
+
+# 📦 Dépendances & builds
+node_modules/
+dist/
+.cache/
+.config/
 .local/
-attached_assets/Pasted-**.bak
-*.bak
-@back
+.upm/
+
+# 🖼️ OS / IDE
+.DS_Store
+
+# 🚀 Supabase/Drizzle/Express
+server/public/
+
+# 📑 Archives / Temp files
+*.tar.gz
+
+# 🗂️ Sauvegardes et legacy
+@back/
+
+# ⚡ Logs & divers
+*.log
