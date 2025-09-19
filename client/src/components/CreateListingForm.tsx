@@ -9,7 +9,7 @@ import { PremiumPayment } from './PremiumPayment';
 import { PublishSuccessModal } from './PublishSuccessModal';
 import { AddressInput } from './AddressInput';
 import { PREMIUM_PACKS } from '@/types/premium';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from "@/contexts/AppContext";
 import { useAuth } from '../hooks/useAuth';
 import { useQuota } from '../hooks/useQuota';
 // Temporairement commenté pour éviter l'erreur d'import

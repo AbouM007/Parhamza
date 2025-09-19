@@ -1,5 +1,5 @@
 import React from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from "@/contexts/AppContext";
 
 interface FooterProps {
   setCurrentView: (view: string) => void;

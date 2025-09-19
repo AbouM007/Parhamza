@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Filter, Grid, List, SortAsc, X } from "lucide-react";
-import { useApp } from "../contexts/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { VehicleCard } from "./VehicleCard";
 import { SearchFilters } from "./SearchFilters";
 import { VehicleDetail } from "./VehicleDetail";

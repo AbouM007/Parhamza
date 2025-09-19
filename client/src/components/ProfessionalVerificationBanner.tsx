@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, CheckCircle, Clock, X, ArrowRight } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfessionalAccount {
   id: number;

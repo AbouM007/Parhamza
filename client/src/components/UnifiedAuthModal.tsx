@@ -8,8 +8,8 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { useApp } from "../contexts/AppContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAuthService } from "../services/AuthService";
 import { signIn, signUp, resetPassword } from "../lib/supabase";
 

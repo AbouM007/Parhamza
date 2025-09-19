@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from "@/contexts/AppContext";
 import { supabase, signIn as supabaseSignIn, signUp as supabaseSignUp, signInWithOAuth as supabaseSignInWithOAuth, signInWithMagicLink as supabaseSignInWithMagicLink, signOut as supabaseSignOut } from '@/lib/supabase';
 
 type AuthCallback = () => void;

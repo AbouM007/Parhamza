@@ -11,7 +11,7 @@ import {
   Settings,
   Car,
 } from "lucide-react";
-import { useApp } from "../contexts/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "../hooks/useAuth";
 import { useUnreadMessages } from "../hooks/useUnreadMessages";
 import { useAuthService } from "../services/AuthService";

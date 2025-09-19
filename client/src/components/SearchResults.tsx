@@ -1,4 +1,4 @@
-import { useApp } from '../contexts/AppContext';
+import { useApp } from "@/contexts/AppContext";
 import { Vehicle } from '../types';
 import { VehicleCard } from './VehicleCard';
 import { ArrowLeft, Search } from 'lucide-react';

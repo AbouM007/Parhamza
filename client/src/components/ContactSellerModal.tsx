@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Send, MessageCircle, Phone, X } from 'lucide-react';
 import { useMessaging } from '../hooks/useMessaging';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from '../lib/supabase';
 
 interface ContactSellerModalProps {
