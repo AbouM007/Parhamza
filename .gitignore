@@ -9,3 +9,4 @@ vite.config.ts.*
 *.md
 .local/
 attached_assets/Pasted-**.bak
+*.bak
