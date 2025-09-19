@@ -40,7 +40,7 @@ import { ArrowLeft } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { Vehicle } from "@/types";
-import brandIcon from "@assets/Brand_1752260033631.png";
+import brandIcon from "@/assets/Brand_1752260033631.png";
 import { DeletionQuestionnaireModal } from "./DeletionQuestionnaireModal";
 import { ProfessionalVerificationBanner } from "./ProfessionalVerificationBanner";
 import { ProfessionalVerificationBadge } from "./ProfessionalVerificationBadge";

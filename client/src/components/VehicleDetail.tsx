@@ -25,7 +25,7 @@ import { Footer } from "./Footer";
 import { ContactSellerModal } from "./ContactSellerModal";
 import { ShareModal } from "./ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
-import brandIcon from "@assets/Brand_1752260033631.png";
+import brandIcon from "@/assets/Brand_1752260033631.png";
 
 interface VehicleDetailProps {
   vehicle: Vehicle;

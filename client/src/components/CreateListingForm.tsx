@@ -16,33 +16,33 @@ import { useQuota } from '@/hooks/useQuota';
 // import { useToast } from '../../hooks/use-toast';
 import { getBrandsBySubcategory, fuelTypes, carModelsByBrand } from '@/utils/mockData';
 // Nouvelles images des catégories principales
-import voitureImage from '@assets/voiture-2_1752244968736.png';
-import motosImage from '@assets/motos-scooters_1752244968742.png';
-import piecesImage from '@assets/pieces-detachees_1752244968743.png';
-import servicesImage from '@assets/services-entretien_1752244968744.png';
+import voitureImage from '@/assets/voiture-2_1752244968736.png';
+import motosImage from '@/assets/motos-scooters_1752244968742.png';
+import piecesImage from '@/assets/pieces-detachees_1752244968743.png';
+import servicesImage from '@/assets/services-entretien_1752244968744.png';
 
 // Images des sous-catégories voitures-utilitaires
-import voitureIcon from '@assets/voiture-_1752249166092.png';
-import utilitaireIcon from '@assets/utilitaire_1752249166091.png';
-import remorqueIcon from '@assets/remorque_1752249166090.png';
-import caravaneIcon from '@assets/caravane_1752249166091.png';
+import voitureIcon from '@/assets/voiture-_1752249166092.png';
+import utilitaireIcon from '@/assets/utilitaire_1752249166091.png';
+import remorqueIcon from '@/assets/remorque_1752249166090.png';
+import caravaneIcon from '@/assets/caravane_1752249166091.png';
 // Images des sous-catégories motos-quad-marine
-import motosIcon from '@assets/motos-scooters_1752244968742.png'; // Utiliser l'image de la catégorie principale
-import scooterIcon from '@assets/scooter_1752088210843.png';
-import quadIcon from '@assets/Quad_1752249742337.png';
-import jetskiIcon from '@assets/Jetski_1752249742334.png';
-import bateauIcon from '@assets/bateau_1752249742336.png';
-import aerienIcon from '@assets/aerien_1753810777764.png';
+import motosIcon from '@/assets/motos-scooters_1752244968742.png'; // Utiliser l'image de la catégorie principale
+import scooterIcon from '@/assets/scooter_1752088210843.png';
+import quadIcon from '@/assets/Quad_1752249742337.png';
+import jetskiIcon from '@/assets/Jetski_1752249742334.png';
+import bateauIcon from '@/assets/bateau_1752249742336.png';
+import aerienIcon from '@/assets/aerien_1753810777764.png';
 
 // Images des sous-catégories services
-import reparationIcon from '@assets/reparation_1752251142655.png';
-import remorquageIcon from '@assets/remorquage_1752251142654.png';
-import entretienIcon from '@assets/entretien_1752251142651.png';
-import autreServiceIcon from '@assets/autre_1752251142652.png';
+import reparationIcon from '@/assets/reparation_1752251142655.png';
+import remorquageIcon from '@/assets/remorquage_1752251142654.png';
+import entretienIcon from '@/assets/entretien_1752251142651.png';
+import autreServiceIcon from '@/assets/autre_1752251142652.png';
 
 // Images pour les boutons "Je vends" et "Je cherche"
-import vendreIcon from '@assets/vendre_1752258100618.png';
-import chercherIcon from '@assets/chercher_1752258100621.png';
+import vendreIcon from '@/assets/vendre_1752258100618.png';
+import chercherIcon from '@/assets/chercher_1752258100621.png';
 
 interface FormData {
   // Étape 1: Type d'annonce

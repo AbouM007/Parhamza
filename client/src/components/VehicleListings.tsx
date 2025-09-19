@@ -5,7 +5,7 @@ import { VehicleCard } from "./VehicleCard";
 import { SearchFilters } from "./SearchFilters";
 import { VehicleDetail } from "./VehicleDetail";
 import { DamagedVehiclesTabs } from "./DamagedVehiclesTabs";
-import brandIcon from "@assets/Brand_1752260033631.png";
+import brandIcon from "@/assets/Brand_1752260033631.png";
 
 export const VehicleListings: React.FC = () => {
   const {

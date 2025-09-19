@@ -23,15 +23,15 @@ import {
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/hooks/useAuth";
 import { CategorySection } from "./CategorySection";
-import voituresImage from "@assets/voiture-2_1752056602701.png";
-import motosImage from "@assets/motos-scooters_1752057126122.png";
-import entretienImage from "@assets/services-entretien_1752056958533.png";
-import piecesImage from "@assets/pieces-detachees_1752056832597.png";
-import bateauImage from "@assets/bateau_1752249742336.png";
-import appMobileImage from "@assets/mockups-mobile_1752062665109.webp";
-import appStoreIcon from "@assets/AppStore_1752058292770.png";
-import googlePlayIcon from "@assets/googlePlay_1752058332269.png";
-import brandIcon from "@assets/Brand_1752260033631.png";
+import voituresImage from "@/assets/voiture-2_1752056602701.png";
+import motosImage from "@/assets/motos-scooters_1752057126122.png";
+import entretienImage from "@/assets/services-entretien_1752056958533.png";
+import piecesImage from "@/assets/pieces-detachees_1752056832597.png";
+import bateauImage from "@/assets/bateau_1752249742336.png";
+import appMobileImage from "@/assets/mockups-mobile_1752062665109.webp";
+import appStoreIcon from "@/assets/AppStore_1752058292770.png";
+import googlePlayIcon from "@/assets/googlePlay_1752058332269.png";
+import brandIcon from "@/assets/Brand_1752260033631.png";
 
 interface HeroProps {
   setCurrentView: (view: string) => void;
