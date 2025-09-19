@@ -5,7 +5,7 @@ import CreateListingPage from '@/app/create-listing/page';
 import DashboardPage from '@/app/dashboard/page';
 import { ProfessionalVerification } from './pages/ProfessionalVerification';
 import { ClientLayout } from '@/components/ClientLayout';
-import AuthCallback from './components/auth/AuthCallback';
+import AuthCallback from '@/components/auth/AuthCallback';
 
 export function AppRouter() {
   return (

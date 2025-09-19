@@ -1,5 +1,5 @@
 import React from "react";
-import { ProfessionalVerificationModal } from "../components/ProfessionalVerificationModal";
+import { ProfessionalVerificationModal } from "@/components/ProfessionalVerificationModal";
 
 const ProfessionalVerificationPage: React.FC = () => {
   return <ProfessionalVerificationModal isOpen={true} />;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { PasswordResetForm } from "../components/PasswordResetForm";
+import { PasswordResetForm } from "@/components/PasswordResetForm";
 
 // Page de callback pour OAuth (Google, Apple, Facebook)
 export const AuthCallback: React.FC = () => {
