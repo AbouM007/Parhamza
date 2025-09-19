@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User as SupabaseUser, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
-import { User } from '@/types'
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { User } from '@/types';
+import { log } from "@/lib/logger";
 
 interface AuthContextType {
   user: SupabaseUser | null
@@ -60,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id)
+        log('Auth state changed:', event, session?.user?.id)
 
         setSession(session)
         setUser(session?.user ?? null)
