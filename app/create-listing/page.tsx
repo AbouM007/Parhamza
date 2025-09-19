@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
-import { CreateListingForm } from "@/components/client-components/CreateListingForm";
-import { Footer } from "@/components/client-components/Footer";
+import { CreateListingForm } from '@/components/CreateListingForm";
+import { Footer } from '@/components/Footer";
 import { useState } from "react";
 
 export default function CreateListingPage() {

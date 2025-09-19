@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
-import { Dashboard } from "@/components/client-components/Dashboard";
-import { Footer } from "@/components/client-components/Footer";
+import { Dashboard } from '@/components/Dashboard";
+import { Footer } from '@/components/Footer";
 import { useState } from "react";
 
 export default function DashboardPage() {
