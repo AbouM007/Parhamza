@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuota } from '@/hooks/useQuota';
 // Temporairement commenté pour éviter l'erreur d'import
 // import { useToast } from '../../hooks/use-toast';
-import { getBrandsBySubcategory, fuelTypes, carModelsByBrand } from '../utils/mockData';
+import { getBrandsBySubcategory, fuelTypes, carModelsByBrand } from '@/utils/mockData';
 // Nouvelles images des catégories principales
 import voitureImage from '@assets/voiture-2_1752244968736.png';
 import motosImage from '@assets/motos-scooters_1752244968742.png';

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Filter, X, ChevronDown, RotateCcw } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { brands, fuelTypes, conditions, categories } from "../utils/mockData";
+import { brands, fuelTypes, conditions, categories } from "@/utils/mockData";
 
 interface SearchFiltersProps {
   isOpen: boolean;

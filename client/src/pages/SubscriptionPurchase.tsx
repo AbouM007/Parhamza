@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 // Plus besoin des imports Stripe Elements car on utilise Stripe Checkout
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
 // Plus besoin d'initialiser Stripe côté client

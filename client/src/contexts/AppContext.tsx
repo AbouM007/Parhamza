@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Vehicle, Message, SearchFilters } from '../types';
+import { User, Vehicle, Message, SearchFilters } from '@/types';
 
 interface AppContextType {
   currentUser: User | null;
@@ -64,7 +64,7 @@ const fetchVehicles = async (): Promise<Vehicle[]> => {
     console.error('❌ ERREUR CRITIQUE - Échec du chargement Supabase:', error);
     console.error('❌ ATTENTION: Utilisation des données mock en fallback');
     // Import dynamically to avoid circular dependency
-    const { mockVehicles } = await import('../utils/mockData');
+    const { mockVehicles } = await import('@/utils/mockData');
     console.error('❌ MOCK DATA LOADED - NOT FROM SUPABASE!');
     return mockVehicles;
   }

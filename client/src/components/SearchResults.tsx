@@ -1,5 +1,5 @@
 import { useApp } from "@/contexts/AppContext";
-import { Vehicle } from '../types';
+import { Vehicle } from '@/types';
 import { VehicleCard } from './VehicleCard';
 import { ArrowLeft, Search } from 'lucide-react';
 import { useMemo } from 'react';

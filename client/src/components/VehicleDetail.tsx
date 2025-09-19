@@ -16,7 +16,7 @@ import {
   Send,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
-import { Vehicle } from "../types";
+import { Vehicle } from "@/types";
 import { WhatsAppContact } from "./WhatsAppContact";
 import { VehicleCard } from "./VehicleCard";
 import { Breadcrumb } from "./Breadcrumb";

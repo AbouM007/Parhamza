@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./useAuth";
-import { Vehicle } from "../types";
+import { Vehicle } from "@/types";
 
 export function useFavorites() {
   const [favorites, setFavorites] = useState<Vehicle[]>([]);

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Vehicle } from "../types";
+import { Vehicle } from "@/types";
 
 interface DamagedVehiclesTabsProps {
   vehicles: Vehicle[];

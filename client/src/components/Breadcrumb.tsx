@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, Home } from 'lucide-react';
-import { Vehicle } from '../types';
+import { Vehicle } from '@/types';
 
 interface BreadcrumbItem {
   label: string;

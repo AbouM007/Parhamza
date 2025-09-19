@@ -1,4 +1,4 @@
-import { User, Vehicle, PremiumOption } from '../types';
+import { User, Vehicle, PremiumOption } from '@/types';
 
 export const mockUsers: User[] = [
   {

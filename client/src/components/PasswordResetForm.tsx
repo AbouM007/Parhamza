@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { updatePassword } from '../lib/supabase';
+import { updatePassword } from '@/lib/supabase';
 
 interface PasswordResetFormProps {
   onSuccess: () => void;
