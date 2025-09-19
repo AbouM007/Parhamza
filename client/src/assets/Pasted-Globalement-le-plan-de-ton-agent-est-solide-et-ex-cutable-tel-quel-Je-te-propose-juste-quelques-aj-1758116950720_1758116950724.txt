@@ -1,0 +1,133 @@
+Globalement, le plan de ton agent est solide et exécutable tel quel.
+Je te propose juste quelques ajustements et ajouts pour éviter les pièges, plus un mini checklist par étape.
+
+Mon verdict rapide
+
+✅ Bonne décomposition (API multi-fichiers avant l’UX front, StatusService centralisé).
+
+✅ Compatible avec ce que tu as déjà fait (ENUMs, service).
+
+🔧 À peaufiner : contraintes DB/RLS, idempotence des uploads, et la centralisation (étape 5) à sécuriser pour ne pas casser l’affichage.
+
+6 améliorations concrètes
+
+Intégrer le StatusService dès l’étape 3 (API)
+Au lieu d’attendre l’étape 6, appelle déjà updateStatusAfterUpload() dans /verify. Ça garantit que le statut est “source de vérité” dès les premiers tests.
+
+Idempotence & unicité documents
+Ajoute une contrainte unique pour éviter les doublons si l’utilisateur renvoie plusieurs fois :
+
+unique (professional_account_id, document_type)
+
+et côté code : upsert (delete-then-insert si l’ORM ne fait pas d’upsert).
+
+RLS & storage
+
+Vérifie les policies sur verification_documents (owner en lecture/écriture) + rôle admin.
+
+Vérifie que la bucket est privée et que l’admin utilise des URL signées.
+
+Centralisation (étape 5) sans douleur
+Deux options sûres :
+
+A. Transition douce : pendant 1 sprint, écris dans users et professional_accounts (legacy) → lis toujours depuis users (activé via un petit flag/const).
+
+B. View SQL : crée une view pro_company_view qui expose company_name/siret depuis users pour les lectures legacy → zéro changement côté front/queries existantes.
+
+Indexes utiles
+
+verification_documents (professional_account_id, document_type)
+
+professional_accounts (user_id) si absent.
+
+UX validations claires
+
+Step 2 : bloquer submit si KBIS manquant ou CIN incomplète (1 PDF ou recto+verso).
+
+Toast/message côté front qui explique quoi manque.
+
+Ordre proposé (léger tweak)
+
+Étape 1 (LSP) ✅
+
+Étape 3 (API multi-fichiers + StatusService direct) ✅
+
+Étape 2 (pré-paiement simplifié)
+
+Étape 4 (post-paiement complet + uploads)
+
+Étape 6 (remplacer lectures par StatusService partout) → tu en auras déjà une partie via l’étape 3
+
+Étape 5 (centralisation users) → fais A (double-write) ou B (view)
+
+Étape 7 (UX admin)
+
+Checklists rapides par étape
+
+Étape 3 – API
+
+ upload.fields([{ name:'kbis_document', maxCount:1 }, { name:'cin_document', maxCount:2 }])
+
+ Détection : 1 PDF → id_pdf ; 2 images → id_front + id_back
+
+ upsert dans verification_documents (unicité par (pro_account_id, doc_type))
+
+ ProfessionalStatusService.updateStatusAfterUpload(proAccountId)
+
+ Retour JSON : { ok:true, status, completeness }
+
+Étape 2 & 4 – Front
+
+ Step 1 = name + phone seulement (update users, set type=professional/pending)
+
+ Step 2 = companyName, siret + uploads kbis + cin (1 ou 2 fichiers)
+
+ Validation stricte + messages clairs
+
+ Loader et évitement double submit
+
+Étape 5 – Centralisation
+
+ Écriture company_name/siret dans users
+
+ (Option A) Double-write aussi dans professional_accounts pour compat
+
+ (Option B) View SQL pour les lectures legacy
+
+ Remplacer progressivement les lectures par users
+
+Étape 6 – StatusService partout
+
+ Remplacer isVerified/verificationProcessStatus par getCompleteStatus()
+
+ Côté création d’annonce : si status !== 'verified' → annonces.status = 'pending'
+
+Étape 7 – Admin
+
+ Grouper id_front + id_back → “CIN (recto/verso)”
+
+ Bouton “Valider la demande” → setAdminDecision('verified'|'rejected')
+
+ Lien “ouvrir” via URL signée
+
+Petits risques à surveiller
+
+Multer en mémoire vs disque : garantit la stabilité pour fichiers 20 MB+.
+
+Ré-upload : décide si tu remplaces (delete + insert) ou si tu versionnes (colonne version).
+
+Régressions front : mets un feature flag (READ_COMPANY_FROM_USERS = true) pour basculer proprement.
+
+Exemples de messages de commit (courts)
+
+feat(api): support multi-file verify (kbis+cin) + status service call
+
+feat(front): pro step1 simplified to name+phone only
+
+feat(front): pro step2 adds company fields + CIN upload + strict validation
+
+chore(db): add unique idx on verification_documents (pro_id, doc_type)
+
+refactor(status): replace legacy checks with ProfessionalStatusService
+
+feat(data): double-write company_name/siret to users (transition phase)

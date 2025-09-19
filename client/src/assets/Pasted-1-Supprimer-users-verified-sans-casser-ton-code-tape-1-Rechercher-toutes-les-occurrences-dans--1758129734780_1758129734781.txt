@@ -1,0 +1,81 @@
+1️⃣ Supprimer users.verified sans casser ton code
+
+Étape 1 : Rechercher toutes les occurrences dans ton code (backend + frontend).
+
+Exemple : grep -R "verified" client/src server/src
+
+Étape 2 : Vérifier le contexte :
+
+Si c’est dans users.verified → tu remplaces par professional_accounts.is_verified (si c’est lié aux pros).
+
+Si c’est juste un check global → probablement inutile → tu supprimes.
+
+Étape 3 : Quand tu es sûr que plus rien n’y fait référence → tu supprimes la colonne de la DB.
+
+⚠️ Ne supprime pas directement dans la DB avant d’avoir fait le scan, sinon tu risques un crash.
+
+2️⃣ users.profile_completed – quand passe-t-il à true ?
+
+Idée : ce champ doit juste indiquer si l’utilisateur a fini l’onboarding de base.
+
+Pour un particulier :
+
+Il complète son profil minimal (nom, ville, téléphone, etc.).
+
+→ À la validation → profile_completed = true.
+
+Pour un pro :
+
+Dès qu’il finit le formulaire d’infos d’entreprise (avant paiement/vérification).
+
+→ Tu mets profile_completed = true.
+
+Le reste (paiement + vérif) est géré dans professional_accounts.
+
+👉 Ça évite que le modal d’onboarding réapparaisse sans cesse.
+
+3️⃣ Dans professional_accounts : is_verified / verification_status / status
+
+is_verified (boolean)
+→ C’est la validation finale (admin a approuvé).
+
+true = compte pro validé.
+
+false = pas encore validé.
+
+verification_status (enum/string)
+→ Ça décrit le workflow de vérification.
+Exemple typique :
+
+not_started
+
+pending_docs
+
+under_review
+
+rejected
+
+approved
+
+status (champ supplémentaire, par défaut under_review)
+→ Ça sent le doublon avec verification_status.
+
+Si tu n’as pas de logique spécifique qui dépend de status, tu peux soit :
+
+Le supprimer (recommandé pour simplification).
+
+Soit le renommer clairement (subscription_status, account_status) si c’était pour autre chose (genre suivi du paiement).
+
+✅ Résumé clair
+
+Dans users :
+
+Garder uniquement profile_completed.
+
+Supprimer verified.
+
+Dans professional_accounts :
+
+Garder is_verified + verification_status.
+
+Clarifier ou supprimer status.

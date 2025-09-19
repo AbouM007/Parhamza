@@ -1,0 +1,86 @@
+(auto-création de l’utilisateur dans public.users) se fait directement ici, dans authenticateUser.
+
+Aujourd’hui, ton code fait ça :
+
+if (userError || !dbUser) {
+  return res.status(401).json({ error: 'Utilisateur non trouvé' });
+}
+
+
+➡️ Du coup, si l’utilisateur n’existe pas encore dans public.users, tu prends un 401.
+
+🔧 Ce qu’il faut modifier
+
+À la place de renvoyer 401 direct, tu crées automatiquement la ligne dans users avec les infos de auth.users.
+
+✅ Version corrigée de authenticateUser
+
+Tu peux remplacer ton bloc complet par celui-ci :
+
+export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Token d'authentification manquant" });
+    }
+
+    const token = authHeader.substring(7);
+
+    // Vérifier le token auprès de Supabase
+    const { data: { user }, error } = await supabaseServer.auth.getUser(token);
+
+    if (error || !user) {
+      return res.status(401).json({ error: "Token invalide" });
+    }
+
+    // Vérifier si l'utilisateur existe déjà dans notre table users
+    let { data: dbUser, error: userError } = await supabaseServer
+      .from("users")
+      .select("id, email, type, name")
+      .eq("id", user.id)
+      .single();
+
+    // ✅ Auto-créer l'utilisateur s'il n'existe pas
+    if (userError || !dbUser) {
+      const { data: newUser, error: insertError } = await supabaseServer
+        .from("users")
+        .insert({
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email,
+          type: "individual", // par défaut
+          profile_completed: false,
+          created_at: new Date().toISOString(),
+        })
+        .select("id, email, type, name")
+        .single();
+
+      if (insertError) {
+        console.error("❌ Erreur création user:", insertError);
+        return res.status(500).json({ error: "Impossible de créer l'utilisateur" });
+      }
+
+      dbUser = newUser;
+    }
+
+    // Attacher l'utilisateur à la requête
+    req.user = {
+      id: dbUser.id,
+      email: dbUser.email,
+      type: dbUser.type,
+    };
+
+    next();
+  } catch (error) {
+    console.error("❌ Erreur authentification:", error);
+    return res.status(500).json({ error: "Erreur serveur authentification" });
+  }
+};
+
+🚀 Résultat
+
+Nouvel utilisateur : il est créé automatiquement dans public.users dès le premier appel API.
+
+Utilisateur existant : récupéré normalement.
+
+Plus de 401 Unauthorized bloquant lors du premier onboarding.

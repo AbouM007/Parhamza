@@ -1,0 +1,134 @@
+le plan de ton agent est bon. Je te conseille d’y aller en Option A (modif complète de l’endpoint existant), en ajoutant 3 garde-fous : validation stricte, remplacement atomique (transaction) et contrainte d’unicité côté DB pour éviter les doublons.
+
+Voici un patch concis que tu peux intégrer dans ton server/routes.ts à l’endpoint /api/professional-accounts/verify (ou le fichier route dédié si tu en as un). Il reprend exactement la logique proposée + appelle ton ProfessionalStatusService.
+
+Patch route /verify (multipart, multi-fichiers, remplacement atomique)
+import multer from "multer";
+import { and, eq, inArray } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  professionalAccounts,
+  verificationDocuments,
+} from "@/shared/schema";
+import { ProfessionalStatusService } from "@/server/services/professionalStatusService";
+
+const upload = multer({ limits: { fileSize: 20 * 1024 * 1024 } }); // 20MB
+
+// POST /api/professional-accounts/verify
+router.post(
+  "/api/professional-accounts/verify",
+  upload.fields([
+    { name: "kbis_document", maxCount: 1 },
+    { name: "cin_document",  maxCount: 2 }, // 1 PDF OU 2 images
+  ]),
+  async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || req.body.userId; // adapte à ton auth
+      const pro = await db.select().from(professionalAccounts)
+        .where(eq(professionalAccounts.userId, userId)).limit(1);
+      if (!pro?.[0]) return res.status(404).json({ error: "Professional account not found" });
+      const proId = pro[0].id;
+
+      const files = req.files as Record<string, Express.Multer.File[]>;
+      const kbis = files?.kbis_document?.[0];
+      const cin  = files?.cin_document ?? [];
+
+      // ✅ Validation stricte
+      if (!kbis) return res.status(400).json({ error: "KBIS is required" });
+      const cinIsPdf    = cin.length === 1 && cin[0].mimetype === "application/pdf";
+      const cinIsImages = cin.length === 2 && cin.every(f => f.mimetype.startsWith("image/"));
+      if (!cinIsPdf && !cinIsImages) {
+        return res.status(400).json({ error: "CIN must be a single PDF or two images (front/back)" });
+      }
+
+      // Helper d'upload (à implémenter selon Supabase/S3)
+      async function uploadToStorage(file: Express.Multer.File, userId: string) {
+        // retourne { url } d'accès privé (les admins liront via URL signée)
+        return { url: `/private/${userId}/${Date.now()}-${file.originalname}` };
+      }
+
+      // 💾 Remplacement atomique (transaction)
+      await db.transaction(async (tx) => {
+        const typesToReplace = ["kbis", ...(cinIsPdf ? ["id_pdf"] : ["id_front", "id_back"])] as const;
+
+        // delete anciens documents de ces types
+        await tx.delete(verificationDocuments).where(
+          and(
+            eq(verificationDocuments.professionalAccountId, proId),
+            inArray(verificationDocuments.documentType, typesToReplace as any)
+          )
+        );
+
+        // upload + insert nouveaux documents
+        const toInsert: Array<{
+          professionalAccountId: number;
+          documentType: "kbis" | "id_pdf" | "id_front" | "id_back" | "other";
+          fileUrl: string;
+          fileName: string | null;
+          fileSize: number | null;
+        }> = [];
+
+        const put = async (file: Express.Multer.File, type: any) => {
+          const { url } = await uploadToStorage(file, userId);
+          toInsert.push({
+            professionalAccountId: proId,
+            documentType: type,
+            fileUrl: url,
+            fileName: file.originalname ?? null,
+            fileSize: file.size ?? null,
+          });
+        };
+
+        if (kbis) await put(kbis, "kbis");
+        if (cinIsPdf) {
+          await put(cin[0], "id_pdf");
+        } else {
+          await put(cin[0], "id_front");
+          await put(cin[1], "id_back");
+        }
+
+        if (toInsert.length) {
+          await tx.insert(verificationDocuments).values(toInsert);
+        }
+      });
+
+      // 🔄 Recalcul du statut unifié
+      const next = await ProfessionalStatusService.updateStatusAfterUpload(proId);
+      const full = await ProfessionalStatusService.getCompleteStatus(proId);
+
+      return res.json({ ok: true, status: next, completeness: full.completeness });
+    } catch (e: any) {
+      console.error("verify upload error:", e);
+      return res.status(500).json({ error: "Upload/verification failed" });
+    }
+  }
+);
+
+Endpoint statut (front/admin)
+router.get("/api/professional-accounts/status/:professionalAccountId", async (req, res) => {
+  const id = Number(req.params.professionalAccountId);
+  if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+  try {
+    const status = await ProfessionalStatusService.getCompleteStatus(id);
+    res.json(status);
+  } catch (e: any) {
+    res.status(404).json({ error: e.message || "Not found" });
+  }
+});
+
+Contrainte DB anti-doublon (fortement recommandé)
+-- Un seul document par (compte, type)
+create unique index if not exists ux_verifdocs_unique
+on public.verification_documents (professional_account_id, document_type);
+
+-- Accélérer la lecture par compte
+create index if not exists idx_verifdocs_proacc
+on public.verification_documents (professional_account_id);
+
+Réponses à tes questions
+
+J’en pense quoi ?
+👍 C’est le bon plan. Fais la modif complète de l’endpoint comme ci-dessus, avec validation stricte, transaction, et contrainte d’unicité. Ça élimine 95% des edge cases.
+
+Tu veux que j’aie accès aux fichiers ?
+Pas nécessaire si tu appliques le patch. Si tu préfères, envoie juste le bloc actuel de la route (autour de la ligne mentionnée par ton agent) + ton helper d’upload (s’il existe), et je te fais le diff exact sur ton code.
