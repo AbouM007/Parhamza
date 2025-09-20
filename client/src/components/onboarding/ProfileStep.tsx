@@ -52,8 +52,10 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          ...data,
-          type: "professional",
+          companyName: data.companyName,
+          siret: data.siret,
+          phone: data.phone,
+          type: "professional", // 👈 important
         }),
       });
 

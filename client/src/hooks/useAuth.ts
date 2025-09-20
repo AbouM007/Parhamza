@@ -222,7 +222,7 @@ export function useAuth(): AuthState {
         options: {
           data: {
             name: metadata.name,
-            type: metadata.type || "individual",
+            type: metadata.type || "pending",
             phone: metadata.phone,
             companyName: metadata.companyName,
           },
