@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ProfileStep, ProfessionalProfileData } from "./ProfileStep";
+import { VerificationStep } from "./VerificationStep"; // ✅ ajout
 import { SubscriptionStep } from "./SubscriptionStep";
 
 interface OnboardingRouterProps {
@@ -12,13 +13,18 @@ export const OnboardingRouter: React.FC<OnboardingRouterProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [savedFormData, setSavedFormData] = useState<any>({});
 
-  // Étape 1 → Étape 2
+  // Étape 1 → Étape 2 (ProfileStep → VerificationStep)
   const handleProfileNext = (data: ProfessionalProfileData) => {
     setSavedFormData(data);
     setCurrentStep(2);
   };
 
-  // Étape 2 → Fin (Stripe redirection se fait dans SubscriptionStep)
+  // Étape 2 → Étape 3 (VerificationStep → SubscriptionStep)
+  const handleVerificationComplete = () => {
+    setCurrentStep(3);
+  };
+
+  // Étape 3 → Fin (Stripe redirection se fait dans SubscriptionStep)
   const handleSubscriptionComplete = () => {
     setShowProfileSetup(false); // ferme le modal après paiement
   };
@@ -33,8 +39,15 @@ export const OnboardingRouter: React.FC<OnboardingRouterProps> = ({
       )}
 
       {currentStep === 2 && (
-        <SubscriptionStep
+        <VerificationStep
           onBack={() => setCurrentStep(1)}
+          onComplete={handleVerificationComplete}
+        />
+      )}
+
+      {currentStep === 3 && (
+        <SubscriptionStep
+          onBack={() => setCurrentStep(2)}
           onComplete={handleSubscriptionComplete}
         />
       )}
