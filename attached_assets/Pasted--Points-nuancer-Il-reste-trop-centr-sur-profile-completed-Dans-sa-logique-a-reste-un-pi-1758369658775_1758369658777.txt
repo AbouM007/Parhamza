@@ -1,0 +1,259 @@
+⚠️ Points à nuancer
+Il reste trop centré sur profile_completed
+
+
+Dans sa logique, ça reste un pivot trop fort.
+
+
+Or, comme on l’a vu ensemble, il vaut mieux s’appuyer aussi sur :
+
+
+professional_accounts.verification_status
+
+
+subscriptions.status
+
+
+Donc son detectOnboardingState(user) doit absolument interroger plusieurs tables/statuts (pas seulement users).
+
+
+Validation admin après paiement
+
+
+Il demande ta validation de l’ordre Profil → Docs → Paiement → Validation.
+
+
+Toi et moi, on a décidé que c’est le bon flow (paiement avant validation admin).
+
+
+Donc ici, je dirais ✅ tu peux confirmer, mais en insistant sur le fait que l’utilisateur peut naviguer et créer des annonces en attente après paiement, même si la validation admin n’est pas faite.
+
+
+Unification auth
+
+
+Il demande si tu veux privilégier AuthContext ou useAuth.
+
+
+Je te conseille de choisir AuthContext (plus extensible pour stocker le user, proAccount, et l’état onboarding).
+
+
+
+🎯 Mon avis global
+Son diagnostic est juste et pertinent : il a bien trouvé pourquoi le popup réapparaît.
+
+
+Son plan d’ajouter onboardingDetector.ts est une excellente idée et une bonne base technique.
+
+
+Mais il doit :
+
+
+élargir sa logique à plusieurs statuts DB (pas juste profile_completed),
+
+
+et intégrer notre décision business : paiement avant validation admin, annonces en attente.
+
+
+
+👉 Ce que je ferais si j’étais toi :
+Lui répondre oui pour la création d’un utilitaire onboardingDetector.ts.
+
+
+Confirmer l’ordre des étapes Profil → Docs → Paiement → Validation.
+
+
+Préciser que :
+
+
+Il doit s’appuyer sur profile_completed + verification_status + subscriptions.status.
+
+
+On veut que l’utilisateur puisse déjà créer des annonces (status = pending_verification) après paiement.
+
+
+Et choisir AuthContext comme source unique d’auth.
+
+
+📢 Message pour l’agent IA
+Merci pour ton analyse détaillée 🙏
+ Ton diagnostic sur le popup et la logique d’onboarding est très juste, et ton idée de créer un utilitaire onboardingDetector.ts est excellente.
+👉 Voici les points à valider/ajuster avant que tu passes à l’implémentation :
+Source de vérité pour l’onboarding
+
+
+On ne doit plus se baser uniquement sur users.profile_completed.
+
+
+La logique doit combiner plusieurs statuts :
+
+
+users.profile_completed → profil rempli ou non
+
+
+professional_accounts.verification_status → not_started | pending | approved | rejected
+
+
+subscriptions.status → pending | active | canceled | expired
+
+
+Ordre des étapes (Pro)
+
+
+Profil → Documents → Paiement → Validation admin
+
+
+✅ Paiement doit bien se faire avant la validation admin.
+
+
+Après paiement, l’utilisateur doit pouvoir naviguer dans la plateforme et créer des annonces, mais elles restent en statut pending_verification tant que l’admin n’a pas validé ses documents.
+
+
+Particuliers
+
+
+Flux simplifié : profil → accès direct.
+
+
+Par défaut, chaque particulier a 5 annonces gratuites.
+
+
+Ensuite, il peut acheter un pack d’annonces pour obtenir le badge Passionné.
+
+
+Utilitaire à créer : onboardingDetector.ts
+
+
+Doit renvoyer l’étape exacte où l’utilisateur doit être redirigé (profil, docs, paiement, validation, ou completed).
+
+
+C’est lui qui remplace la logique simpliste actuelle dans App.tsx.
+
+
+Auth
+
+
+On choisit AuthContext comme système unique d’authentification.
+
+
+Merci de supprimer les doublons avec useAuth pour uniformiser tout le code.
+
+
+
+🎯 En résumé :
+Oui pour ta proposition de onboardingDetector.ts.
+
+
+Oui pour corriger la logique dans App.tsx.
+
+
+Ordre confirmé : Profil → Docs → Paiement → Validation admin.
+
+
+Important : après paiement, le pro peut créer des annonces qui restent en attente.
+
+
+Merci d’utiliser AuthContext comme base unique d’auth.
+
+
+
+IMPORTANT 😡
+1️⃣ Cas possibles pour un professionnel non complété
+On peut raisonner avec 3 sources (profil, docs, paiement).
+Cas A – Juste inscrit
+users.profile_completed = false
+
+
+professional_accounts.verification_status = not_started
+
+
+subscriptions.status = null
+ 👉 Étape attendue : Profil
+
+
+Cas B – Profil rempli, pas encore de docs
+users.profile_completed = true
+
+
+professional_accounts.verification_status = not_started
+
+
+subscriptions.status = null
+ 👉 Étape attendue : Documents
+
+
+Cas C – Profil + docs envoyés, pas payé
+users.profile_completed = true
+
+
+professional_accounts.verification_status = pending
+
+
+subscriptions.status = null
+ 👉 Étape attendue : Paiement
+
+
+Cas D – Profil + docs envoyés + paiement fait, en attente admin
+users.profile_completed = true
+
+
+professional_accounts.verification_status = pending
+
+
+subscriptions.status = active
+ 👉 Étape attendue : Validation admin
+
+
+Cas E – Profil + docs validés + paiement fait
+users.profile_completed = true
+
+
+professional_accounts.verification_status = approved
+
+
+subscriptions.status = active
+ 👉 Étape attendue : Completed / Dashboard
+
+
+⚠️ Cas spécial : si verification_status = rejected → rediriger vers Documents avec message d’erreur.
+
+2️⃣ Ordre des étapes (Docs avant paiement)
+Tu veux que l’admin ne valide les documents qu’après paiement.
+ Donc on aura :
+Étape 1 : Profil → enregistre dans users.
+
+
+Étape 2 : Docs → enregistre dans verification_documents + professional_accounts.verification_status = pending.
+
+
+Étape 3 : Paiement → déclenche Stripe Checkout.
+
+
+Étape 4 : Après paiement → notifier l’admin de vérifier les docs (donc la demande arrive après paiement).
+
+
+Impact sur la DB
+Aucun gros changement → on a déjà verification_status.
+
+
+Peut-être ajouter un flag ready_for_review = true uniquement une fois le paiement confirmé.
+
+
+Impact sur les API
+/api/professional-accounts/verify : n’envoie plus la notif admin directement → juste enregistre les docs.
+
+
+Webhook Stripe (paiement validé) : met ready_for_review = true et notifie l’admin.
+
+
+
+3️⃣ Particuliers
+👌 Pas de changement à court terme.
+Simple : profil → completed.
+
+
+On garde l’idée des 5 annonces gratuites pour plus tard.
+
+
+Proposition de utilitaire effectué dans client/src/utils/onboardingDetector.ts
+
