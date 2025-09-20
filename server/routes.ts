@@ -843,7 +843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: email || null,
             website: website || null,
             description: description || null,
-            membership: "basic",
+            membership: "free",
             verification_status: "not_started",
             created_at: new Date().toISOString(),
           })
@@ -1948,7 +1948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ ${allUsers.length} utilisateurs auth récupérés`);
       console.log(
-        "📧 Emails trouv �s:",
+        "📧 Emails trouv  ��s:",
         allUsers.map((u) => u.email),
       );
       console.log(
