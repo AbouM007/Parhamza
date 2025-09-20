@@ -843,6 +843,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: email || null,
             website: website || null,
             description: description || null,
+            membership: "basic",
             verification_status: "not_started",
             created_at: new Date().toISOString(),
           })
