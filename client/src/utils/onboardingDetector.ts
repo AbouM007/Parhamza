@@ -144,6 +144,22 @@ export function detectOnboardingState(
           shouldShowPopup: false,
         };
       }
+
+      // Détecter si on vient de Stripe Success
+      const isFromStripeSuccess =
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/success" ||
+          window.location.search.includes("session_id"));
+
+      if (isFromStripeSuccess) {
+        return {
+          step: "completed",
+          reason: "stripe_success_detected",
+          canPost: true,
+          shouldShowPopup: false, // 🚫 Pas de popup après paiement
+        };
+      }
+
       // Cas rare: validé mais pas payé → renvoyer vers paiement
       return {
         step: "payment",

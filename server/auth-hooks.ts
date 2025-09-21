@@ -34,7 +34,7 @@ export async function createUserFromAuth(
       id: authUserId,
       email: email,
       name: extractNameFromEmail(email, metadata),
-      type: "individual" as const, // TOUS les comptes démarrent en particulier
+      type: "pending" as const, // TOUS les comptes démarrent en particulier
       phone: metadata?.phone || null,
       whatsapp: metadata?.phone || null,
       city: metadata?.city || null,

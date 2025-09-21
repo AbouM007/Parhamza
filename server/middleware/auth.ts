@@ -57,7 +57,7 @@ export const authenticateUser = async (
           id: user.id,
           email: user.email,
           name: "", // vide par défaut → sera complété par onboarding
-          type: "individual", // valeur safe par défaut
+          type: "pending", // valeur safe par défaut
           profile_completed: false,
           created_at: new Date().toISOString(),
         })

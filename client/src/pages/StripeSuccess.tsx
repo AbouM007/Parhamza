@@ -45,14 +45,15 @@ const StripeSuccess: React.FC = () => {
 
   // Décompte + redirection
   useEffect(() => {
-    if (status === "success" && dbUser?.type === "professional") {
+    //    if (status === "success" && dbUser?.type === "professional") {
+    if (status === "success") {
       const interval = setInterval(() => {
         setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
 
       const timer = setTimeout(() => {
-        window.location.href = "/professional-verification";
-      }, 5000);
+        window.location.href = "/dashboard";
+      }, 500);
 
       return () => {
         clearInterval(interval);
@@ -77,8 +78,7 @@ const StripeSuccess: React.FC = () => {
           Erreur lors du paiement
         </h2>
         <p className="text-red-600 mt-2">
-          Une erreur est survenue. Veuillez contacter le support si le problème
-          persiste.
+          Une erreur technique est survenue. Veuillez patienter puis réssayer.
         </p>
       </div>
     );
@@ -97,7 +97,7 @@ const StripeSuccess: React.FC = () => {
         <p className="text-gray-600">
           Merci pour votre abonnement.
           <br />
-          Vous allez être redirigé vers la vérification de votre compte dans{" "}
+          Vous allez être redirigé dans{" "}
           <span className="font-semibold text-gray-900">{countdown}</span>{" "}
           seconde
           {countdown > 1 ? "s" : ""}.

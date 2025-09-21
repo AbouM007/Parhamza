@@ -455,12 +455,10 @@ router.post("/webhook", async (req, res) => {
     }
 
     // Marquer l'événement comme traité
-    await supabaseServer
-      .from("stripe_events_processed")
-      .insert({
-        stripe_event_id: event.id,
-        processed_at: new Date().toISOString(),
-      });
+    await supabaseServer.from("stripe_events_processed").insert({
+      stripe_event_id: event.id,
+      processed_at: new Date().toISOString(),
+    });
   } catch (error) {
     console.error("❌ Erreur traitement webhook:", error);
     return res.status(500).json({ error: "Webhook processing error" });
@@ -692,6 +690,24 @@ router.post("/handle-success", async (req, res) => {
     }
 
     console.log("✅ Profil utilisateur marqué comme complété");
+
+    // ➕ NOUVELLE LOGIQUE :
+    // Mettre à jour le type utilisateur vers "professional" après paiement réussi
+    if (user!.type !== "professional") {
+      console.log(
+        `🔄 Mise à jour type utilisateur: ${user!.type} -> professional...`,
+      );
+      const { error: typeError } = await supabaseServer
+        .from("users")
+        .update({ type: "professional" })
+        .eq("id", user!.id);
+
+      if (typeError) {
+        console.error("⚠️ Erreur mise à jour type (non critique):", typeError);
+      } else {
+        console.log("✅ Type utilisateur mis à jour: professional");
+      }
+    }
 
     // Réponse avec les détails pour l'interface
     res.json({

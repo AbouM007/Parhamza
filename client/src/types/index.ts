@@ -4,7 +4,7 @@ export interface User {
   name: string;
   phone?: string;
   whatsapp?: string;
-  type: "individual" | "professional";
+  type: "pending" | "individual" | "professional";
   companyName?: string;
   companyLogo?: string;
   address?: string;
