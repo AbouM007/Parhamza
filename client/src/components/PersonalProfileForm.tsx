@@ -12,13 +12,16 @@ const personalProfileSchema = z.object({
   phone: z
     .string()
     .regex(/^[0-9]{10}$/, "Le téléphone doit contenir exactement 10 chiffres"), // ✅ Exactement 10 chiffres
-  whatsapp: z
+  /* whatsapp: z
     .string()
     .regex(/^[0-9]{10}$/, "WhatsApp doit contenir exactement 10 chiffres")
     .optional()
-    .or(z.literal("")), // ✅ Optionnel mais si rempli, doit être 10 chiffres
-  city: z.string().min(2, "La ville est requise"),
-  postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
+    .or(z.literal("")), // ✅ Optionnel mais si rempli, doit être 10 chiffres*/
+  city: z.string().min(2, "La ville est requise").optional(),
+  postalCode: z
+    .string()
+    .min(5, "Le code postal doit contenir 5 chiffres")
+    .optional(),
 });
 
 type PersonalProfileData = z.infer<typeof personalProfileSchema>;
@@ -122,16 +125,16 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
             </p>
             <p className="text-sm text-gray-500 mt-2">
               Vous pouvez choisir un nom d'affichage public ou Votre Prénom/Nom
-              privée
+              privé
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Nom */}
-            <div className="md:col-span-2">
+            {/* Nom + Téléphone côte à côte */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <User className="inline h-4 w-4 mr-2" />
-                Nom Pénom ou Pseudo*
+                Nom Prénom ou Pseudo public *
               </label>
               <input
                 {...form.register("name")}
@@ -146,7 +149,6 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
               )}
             </div>
 
-            {/* Téléphone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Phone className="inline h-4 w-4 mr-2" />
@@ -166,49 +168,10 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
               )}
             </div>
 
-            {/* WhatsApp */}
+            {/* Code postal avant Ville */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MessageCircle className="inline h-4 w-4 mr-2" />
-                WhatsApp (optionnel)
-              </label>
-              <input
-                {...form.register("whatsapp")}
-                type="tel"
-                maxLength={10} // ✅ Limite à 10 caractères
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="0612345678"
-              />
-              {form.formState.errors.whatsapp && (
-                <p className="mt-1 text-sm text-red-600">
-                  {form.formState.errors.whatsapp.message}
-                </p>
-              )}
-            </div>
-
-            {/* Ville */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="inline h-4 w-4 mr-2" />
-                Ville *
-              </label>
-              <input
-                {...form.register("city")}
-                type="text"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Paris, Lyon, Marseille..."
-              />
-              {form.formState.errors.city && (
-                <p className="mt-1 text-sm text-red-600">
-                  {form.formState.errors.city.message}
-                </p>
-              )}
-            </div>
-
-            {/* Code postal */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Code postal *
+                Code postal
               </label>
               <input
                 {...form.register("postalCode")}
@@ -220,6 +183,24 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
               {form.formState.errors.postalCode && (
                 <p className="mt-1 text-sm text-red-600">
                   {form.formState.errors.postalCode.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <MapPin className="inline h-4 w-4 mr-2" />
+                Ville
+              </label>
+              <input
+                {...form.register("city")}
+                type="text"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Paris, Lyon, Marseille..."
+              />
+              {form.formState.errors.city && (
+                <p className="mt-1 text-sm text-red-600">
+                  {form.formState.errors.city.message}
                 </p>
               )}
             </div>
