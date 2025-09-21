@@ -13,7 +13,7 @@ import { UnifiedAuthModal } from "@/components/UnifiedAuthModal";
 import { ProfileSetupModal } from "@/components/ProfileSetupModal";
 import { PersonalProfileForm } from "@/components/PersonalProfileForm";
 import StripeSuccess from "./pages/StripeSuccess";
-import { Dashboard } from "@/components/Dashboard";
+import { Dashboard } from "@/components/dashboard";
 import { CreateListingForm } from "@/components/CreateListingForm";
 import { DraggableModal } from "@/components/DraggableModal";
 import { Conseils } from "@/components/Conseils";
