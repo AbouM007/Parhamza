@@ -780,7 +780,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         siret,
         companyAddress,
         phone,
-        email,
         website,
         description,
         name,
@@ -795,13 +794,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (companyName && siret) {
         console.log("🏢 Détection compte professionnel");
 
+        // Vérification SIRET
         if (!/^\d{14}$/.test(siret)) {
           return res
             .status(400)
             .json({ error: "SIRET invalide (14 chiffres requis)" });
         }
 
-        // Vérifier si un compte existe déjà
+        // 1) Mettre à jour les infos communes dans users
+        const { data: updatedUser, error: userErr } = await supabaseServer
+          .from("users")
+          .update({
+            name, // ✅ forcé par celui saisi par l'utilisateur
+            phone: phone || null,
+            website: website || null,
+            city: city && city.trim() !== "" ? city : null,
+            postal_code:
+              postalCode && postalCode.trim() !== "" ? postalCode : null,
+            whatsapp: whatsapp || null,
+            profile_completed: true, // ✅ évite le retour au choix de compte
+            type: "professional", // ✅ marque comme pro
+          })
+          .eq("id", user.id)
+          .select()
+          .single();
+
+        if (userErr) {
+          console.error("❌ Erreur update user (pro):", userErr);
+          return res
+            .status(500)
+            .json({ error: "Erreur mise à jour utilisateur (pro)" });
+        }
+
+        // 2) Vérifier si un compte pro existe déjà
         const { data: existing, error: existingErr } = await supabaseServer
           .from("professional_accounts")
           .select("id")
@@ -815,36 +840,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ error: "Erreur recherche compte professionnel" });
         }
 
+        // 3) Insert ou Update professional_accounts
         let query;
         if (existing) {
-          // Mise à jour
           query = supabaseServer
             .from("professional_accounts")
             .update({
               company_name: companyName,
-              siret,
               company_address: companyAddress || null,
-              phone: phone || null,
-              email: email || null,
-              website: website || null,
+              siret, // ✅ reste dans la table pro
               description: description || null,
-              //updated_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
             })
             .eq("id", existing.id)
             .select()
             .single();
         } else {
-          // Création
           query = supabaseServer
             .from("professional_accounts")
             .insert({
               user_id: user.id,
               company_name: companyName,
-              siret,
               company_address: companyAddress || null,
-              phone: phone || null,
-              email: email || null,
-              website: website || null,
+              siret, // ✅ stocké uniquement ici
               description: description || null,
               membership: "free",
               verification_status: "not_started",
@@ -866,7 +884,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({
           success: true,
           type: "professional",
-          professionalAccount: proAccount,
+          user: updatedUser, // ✅ infos communes
+          professionalAccount: proAccount, // ✅ infos pro
           message: existing ? "Compte pro mis à jour" : "Compte pro créé",
         });
       }
@@ -883,14 +902,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { data: personal, error: personalErr } = await supabaseServer
         .from("users")
         .update({
-          name,
+          name, // ✅ forcé par celui saisi par l'utilisateur
           phone,
           city: city && city.trim() !== "" ? city : null,
           postal_code:
             postalCode && postalCode.trim() !== "" ? postalCode : null,
-          profile_completed: true,
+          whatsapp: whatsapp || null,
+          profile_completed: true, // ✅ évite le retour au choix de compte
           type: "individual",
-          //updated_at: new Date().toISOString(),
         })
         .eq("id", user.id)
         .select()
