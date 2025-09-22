@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, TrendingUp, Clock, Euro, Crown, Zap, Check } from 'lucide-react';
-import { useBoostPlans } from '@/hooks/useBoostPlans';
-import { BoostPlan } from '@shared/schema';
+import React, { useState } from "react";
+import { X, TrendingUp, Clock, Euro, Crown, Zap, Check } from "lucide-react";
+import { useBoostPlans } from "@/hooks/useBoostPlans";
+import { BoostPlan } from "../../../shared/schema";
 
 interface BoostModalProps {
   isOpen: boolean;
@@ -23,13 +23,13 @@ export const BoostModal: React.FC<BoostModalProps> = ({
   if (!isOpen) return null;
 
   const formatPrice = (priceCents: number) => {
-    return (priceCents / 100).toFixed(2) + ' €';
+    return (priceCents / 100).toFixed(2) + " €";
   };
 
   const getDurationText = (days: number) => {
-    if (days === 1) return '1 jour';
-    if (days === 7) return '1 semaine';
-    if (days === 30) return '1 mois';
+    if (days === 1) return "1 jour";
+    if (days === 7) return "1 semaine";
+    if (days === 30) return "1 mois";
     return `${days} jours`;
   };
 
@@ -38,10 +38,10 @@ export const BoostModal: React.FC<BoostModalProps> = ({
 
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/boost/checkout', {
-        method: 'POST',
+      const response = await fetch("/api/boost/checkout", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           annonceId: parseInt(annonceId),
@@ -55,12 +55,15 @@ export const BoostModal: React.FC<BoostModalProps> = ({
         window.location.href = url;
       } else {
         const errorData = await response.json();
-        console.error('Erreur lors de la création de la session Stripe:', errorData);
-        alert('Erreur lors de la création du paiement. Veuillez réessayer.');
+        console.error(
+          "Erreur lors de la création de la session Stripe:",
+          errorData,
+        );
+        alert("Erreur lors de la création du paiement. Veuillez réessayer.");
       }
     } catch (error) {
-      console.error('Erreur réseau:', error);
-      alert('Erreur de connexion. Veuillez réessayer.');
+      console.error("Erreur réseau:", error);
+      alert("Erreur de connexion. Veuillez réessayer.");
     } finally {
       setIsProcessing(false);
     }
@@ -104,7 +107,9 @@ export const BoostModal: React.FC<BoostModalProps> = ({
                 <div className="bg-orange-100 p-2 rounded-full">
                   <TrendingUp className="h-4 w-4 text-orange-600" />
                 </div>
-                <span className="text-gray-700">Apparition en tête de liste</span>
+                <span className="text-gray-700">
+                  Apparition en tête de liste
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="bg-orange-100 p-2 rounded-full">
@@ -135,19 +140,23 @@ export const BoostModal: React.FC<BoostModalProps> = ({
             </div>
           ) : error ? (
             <div className="text-center py-8">
-              <p className="text-red-600">Erreur lors du chargement des plans boost</p>
+              <p className="text-red-600">
+                Erreur lors du chargement des plans boost
+              </p>
             </div>
           ) : (
             <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Choisissez votre durée de boost</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">
+                Choisissez votre durée de boost
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {boostPlans?.map((plan) => (
                   <div
                     key={plan.id}
                     className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
                       selectedPlan?.id === plan.id
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                        ? "border-orange-500 bg-orange-50"
+                        : "border-gray-200 hover:border-orange-300 hover:bg-orange-25"
                     }`}
                     onClick={() => setSelectedPlan(plan)}
                     data-testid={`plan-option-${plan.id}`}
@@ -155,9 +164,13 @@ export const BoostModal: React.FC<BoostModalProps> = ({
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-2">
                         <Clock className="h-5 w-5 text-orange-500 mr-2" />
-                        <span className="font-semibold text-gray-900">{plan.name}</span>
+                        <span className="font-semibold text-gray-900">
+                          {plan.name}
+                        </span>
                       </div>
-                      <p className="text-gray-600 text-sm mb-2">{getDurationText(plan.durationDays)}</p>
+                      <p className="text-gray-600 text-sm mb-2">
+                        {getDurationText(plan.durationDays)}
+                      </p>
                       <div className="text-2xl font-bold text-orange-600 flex items-center justify-center">
                         <Euro className="h-5 w-5 mr-1" />
                         {formatPrice(plan.priceCents)}
@@ -190,8 +203,8 @@ export const BoostModal: React.FC<BoostModalProps> = ({
               disabled={!selectedPlan || isProcessing}
               className={`flex-1 px-6 py-3 rounded-xl font-medium transition-colors ${
                 selectedPlan && !isProcessing
-                  ? 'bg-orange-500 text-white hover:bg-orange-600'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? "bg-orange-500 text-white hover:bg-orange-600"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
               data-testid="button-confirm-boost"
             >
@@ -201,7 +214,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
                   <span>Redirection...</span>
                 </div>
               ) : (
-                `Booster pour ${selectedPlan ? formatPrice(selectedPlan.priceCents) : '--'}`
+                `Booster pour ${selectedPlan ? formatPrice(selectedPlan.priceCents) : "--"}`
               )}
             </button>
           </div>

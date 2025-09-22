@@ -37,6 +37,7 @@ import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { detectOnboardingState } from "@/utils/onboardingDetector";
+import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -356,6 +357,9 @@ function AppContent() {
             </Route>
             <Route path="/success">
               <StripeSuccess />
+            </Route>
+            <Route path="/success-boost">
+              <StripeSuccessBoost />
             </Route>
             <Route path="/admin-login">
               <AdminLogin

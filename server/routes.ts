@@ -2156,226 +2156,258 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================
-  // BOOST APIs
-  // ==========================================
+   // BOOST APIs
+   // ==========================================
 
-  // Get all boost plans
-  app.get("/api/boost/plans", async (req, res) => {
+   // Get all boost plans
+   app.get("/api/boost/plans", async (req, res) => {
+     try {
+       const plans = await storage.getAllBoostPlans();
+       res.json(plans);
+     } catch (error) {
+       console.error("Error fetching boost plans:", error);
+       res.status(500).json({ error: "Failed to fetch boost plans" });
+     }
+   });
+
+   // Create Stripe checkout session for boost
+   app.post("/api/boost/checkout", async (req, res) => {
+     try {
+       const { annonceId, planId } = req.body;
+
+       if (!annonceId || !planId) {
+         return res
+           .status(400)
+           .json({ error: "annonceId and planId are required" });
+       }
+
+       // Vérifier que l'annonce existe
+       const annonce = await storage.getVehicle(annonceId.toString());
+       if (!annonce) {
+         return res.status(404).json({ error: "Annonce not found" });
+       }
+
+       // Vérifier qu'il n'y a pas déjà un boost actif (optionnel - on permet l'empilement)
+       const isAlreadyBoosted = await storage.checkBoostAlreadyActive(
+         parseInt(annonceId),
+       );
+       if (isAlreadyBoosted) {
+         console.log(
+           `ℹ️ Annonce ${annonceId} déjà boostée, on va empiler le nouveau boost`,
+         );
+       }
+
+       // Récupérer le plan boost
+       const plan = await storage.getBoostPlan(parseInt(planId));
+       if (!plan) {
+         return res.status(404).json({ error: "Boost plan not found" });
+       }
+
+       // Créer le log d'achat (en attente de confirmation Stripe)
+       const logData = {
+         annonceId: parseInt(annonceId),
+         planId: parseInt(planId),
+         stripeSessionId: "", // Sera rempli après création de la session
+         action: "purchased",
+         amount: plan.priceCents,
+         userId: annonce.userId, // ID du propriétaire de l'annonce
+       };
+
+       // Créer la session Stripe
+       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+       const baseUrl = process.env.FRONTEND_URL || "https://" + req.get("host");
+
+       const session = await stripe.checkout.sessions.create({
+         payment_method_types: ["card"],
+         line_items: [
+           {
+             price: plan.stripePriceId,
+             quantity: 1,
+           },
+         ],
+         mode: "payment",
+//         success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&type=boost`,
+         success_url: `${baseUrl}/success-boost?session_id={CHECKOUT_SESSION_ID}`,
+
+         cancel_url: `${baseUrl}/dashboard?boost_canceled=true`,
+         metadata: {
+           type: "boost",
+           annonceId: annonceId.toString(),
+           planId: planId.toString(),
+           userId: annonce.userId,
+         },
+       });
+
+       // Créer le log avec l'ID de session
+       await storage.createBoostLog({
+         ...logData,
+         stripeSessionId: session.id,
+       });
+
+       res.json({ sessionId: session.id, url: session.url });
+     } catch (error) {
+       console.error("Error creating boost checkout:", error);
+       res.status(500).json({ error: "Failed to create boost checkout" });
+     }
+   });
+
+   // Webhook Stripe avec logique boost et abonnement
+   app.post("/api/stripe/webhook", async (req, res) => {
+     try {
+       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+       const sig = req.headers["stripe-signature"];
+       const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+       if (!sig || !endpointSecret) {
+         return res.status(400).send("Webhook configuration error");
+       }
+
+       let event;
+       try {
+         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+       } catch (err) {
+         console.error("⚠️ Webhook signature verification failed:", err.message);
+         return res.status(400).send(`Webhook Error: ${err.message}`);
+       }
+
+       console.log("🎯 Stripe webhook reçu:", event.type);
+
+       switch (event.type) {
+         case "checkout.session.completed":
+           const session = event.data.object;
+           console.log("✅ Paiement confirmé pour session:", session.id);
+           console.log("📊 Metadata:", session.metadata);
+
+           if (session.metadata?.type === "boost") {
+             // Activer le boost avec le nouveau système
+             console.log("🚀 Activation boost pour session:", session.id);
+             const success = await storage.activateBoostWithLog(session.id);
+             if (success) {
+               console.log(
+                 "✅ Boost activé avec succès - boosted_until mis à jour",
+               );
+             } else {
+               console.error("❌ Erreur activation boost");
+             }
+           } else if (session.metadata?.type === "subscription") {
+             // Logique abonnement existante (si nécessaire)
+             console.log("📋 Traitement abonnement pour session:", session.id);
+           }
+           break;
+
+         case "invoice.payment_succeeded":
+           console.log("💰 Paiement facture réussi");
+           // Logique pour les abonnements récurrents si nécessaire
+           break;
+
+         case "customer.subscription.deleted":
+           console.log("❌ Abonnement supprimé");
+           // Logique pour désactiver les abonnements si nécessaire
+           break;
+
+         default:
+           console.log(`🔔 Événement non géré: ${event.type}`);
+       }
+
+       res.status(200).json({ received: true });
+     } catch (error) {
+       console.error("❌ Erreur webhook Stripe:", error);
+       res.status(500).json({ error: "Webhook processing failed" });
+     }
+   });
+
+   // API Historique des achats utilisateur
+   app.get("/api/purchase-history/user/:userId", async (req, res) => {
+     try {
+       const { userId } = req.params;
+
+       const { data: purchaseHistory, error } =
+         await storage.getUserPurchaseHistory(userId);
+
+       if (error) {
+         console.error("Error fetching user purchase history:", error);
+         return res
+           .status(500)
+           .json({ error: "Failed to fetch purchase history" });
+       }
+
+       res.json(purchaseHistory || []);
+     } catch (error) {
+       console.error("Error in user purchase history endpoint:", error);
+       res.status(500).json({ error: "Internal server error" });
+     }
+   });
+
+   // API Historique global des achats pour admin
+   app.get("/api/admin/purchase-history", async (req, res) => {
+     try {
+       const { data: allPurchaseHistory, error } =
+         await storage.getAllPurchaseHistory();
+
+       if (error) {
+         console.error("Error fetching admin purchase history:", error);
+         return res
+           .status(500)
+           .json({ error: "Failed to fetch purchase history" });
+       }
+
+       res.json(allPurchaseHistory || []);
+     } catch (error) {
+       console.error("Error in admin purchase history endpoint:", error);
+       res.status(500).json({ error: "Internal server error" });
+     }
+   });
+
+   // API pour vérifier le statut boost d'une annonce
+   app.get("/api/boost/status/:annonceId", async (req, res) => {
+     try {
+       const { annonceId } = req.params;
+
+       const boostStatus = await storage.getBoostStatus(parseInt(annonceId));
+
+       res.json(boostStatus);
+     } catch (error) {
+       console.error("Error checking boost status:", error);
+       res.status(500).json({ error: "Failed to check boost status" });
+     }
+   });
+
+  // API pour confirmer le succès d’un paiement Boost
+  app.get("/api/boost/success", async (req, res) => {
     try {
-      const plans = await storage.getAllBoostPlans();
-      res.json(plans);
-    } catch (error) {
-      console.error("Error fetching boost plans:", error);
-      res.status(500).json({ error: "Failed to fetch boost plans" });
-    }
-  });
-
-  // Create Stripe checkout session for boost
-  app.post("/api/boost/checkout", async (req, res) => {
-    try {
-      const { annonceId, planId } = req.body;
-
-      if (!annonceId || !planId) {
-        return res
-          .status(400)
-          .json({ error: "annonceId and planId are required" });
+      const { session_id } = req.query;
+      if (!session_id) {
+        return res.status(400).json({ error: "session_id is required" });
       }
 
-      // Vérifier que l'annonce existe
-      const annonce = await storage.getVehicle(annonceId.toString());
-      if (!annonce) {
-        return res.status(404).json({ error: "Annonce not found" });
-      }
-
-      // Vérifier qu'il n'y a pas déjà un boost actif (optionnel - on permet l'empilement)
-      const isAlreadyBoosted = await storage.checkBoostAlreadyActive(
-        parseInt(annonceId),
-      );
-      if (isAlreadyBoosted) {
-        console.log(
-          `ℹ️ Annonce ${annonceId} déjà boostée, on va empiler le nouveau boost`,
-        );
-      }
-
-      // Récupérer le plan boost
-      const plan = await storage.getBoostPlan(parseInt(planId));
-      if (!plan) {
-        return res.status(404).json({ error: "Boost plan not found" });
-      }
-
-      // Créer le log d'achat (en attente de confirmation Stripe)
-      const logData = {
-        annonceId: parseInt(annonceId),
-        planId: parseInt(planId),
-        stripeSessionId: "", // Sera rempli après création de la session
-        action: "purchased",
-        amount: plan.priceCents,
-        userId: annonce.userId, // ID du propriétaire de l'annonce
-      };
-
-      // Créer la session Stripe
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+      const session = await stripe.checkout.sessions.retrieve(session_id as string);
 
-      const baseUrl = process.env.FRONTEND_URL || "https://" + req.get("host");
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
 
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price: plan.stripePriceId,
-            quantity: 1,
-          },
-        ],
-        mode: "payment",
-        success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&type=boost`,
-        cancel_url: `${baseUrl}/dashboard?boost_canceled=true`,
-        metadata: {
-          type: "boost",
-          annonceId: annonceId.toString(),
-          planId: planId.toString(),
-          userId: annonce.userId,
-        },
-      });
+      if (session.payment_status === "paid" && session.metadata?.type === "boost") {
+        // Optionnel : activer le boost ici si jamais le webhook n'a pas encore tourné
+        await storage.activateBoostWithLog(session.id);
+        return res.json({ success: true, message: "Boost activé" });
+      }
 
-      // Créer le log avec l'ID de session
-      await storage.createBoostLog({
-        ...logData,
-        stripeSessionId: session.id,
-      });
-
-      res.json({ sessionId: session.id, url: session.url });
+      res.json({ success: false, message: "Paiement non confirmé" });
     } catch (error) {
-      console.error("Error creating boost checkout:", error);
-      res.status(500).json({ error: "Failed to create boost checkout" });
-    }
-  });
-
-  // Webhook Stripe avec logique boost et abonnement
-  app.post("/api/stripe/webhook", async (req, res) => {
-    try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-      const sig = req.headers["stripe-signature"];
-      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      if (!sig || !endpointSecret) {
-        return res.status(400).send("Webhook configuration error");
-      }
-
-      let event;
-      try {
-        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-      } catch (err) {
-        console.error("⚠️ Webhook signature verification failed:", err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-      }
-
-      console.log("🎯 Stripe webhook reçu:", event.type);
-
-      switch (event.type) {
-        case "checkout.session.completed":
-          const session = event.data.object;
-          console.log("✅ Paiement confirmé pour session:", session.id);
-          console.log("📊 Metadata:", session.metadata);
-
-          if (session.metadata?.type === "boost") {
-            // Activer le boost avec le nouveau système
-            console.log("🚀 Activation boost pour session:", session.id);
-            const success = await storage.activateBoostWithLog(session.id);
-            if (success) {
-              console.log(
-                "✅ Boost activé avec succès - boosted_until mis à jour",
-              );
-            } else {
-              console.error("❌ Erreur activation boost");
-            }
-          } else if (session.metadata?.type === "subscription") {
-            // Logique abonnement existante (si nécessaire)
-            console.log("📋 Traitement abonnement pour session:", session.id);
-          }
-          break;
-
-        case "invoice.payment_succeeded":
-          console.log("💰 Paiement facture réussi");
-          // Logique pour les abonnements récurrents si nécessaire
-          break;
-
-        case "customer.subscription.deleted":
-          console.log("❌ Abonnement supprimé");
-          // Logique pour désactiver les abonnements si nécessaire
-          break;
-
-        default:
-          console.log(`🔔 Événement non géré: ${event.type}`);
-      }
-
-      res.status(200).json({ received: true });
-    } catch (error) {
-      console.error("❌ Erreur webhook Stripe:", error);
-      res.status(500).json({ error: "Webhook processing failed" });
-    }
-  });
-
-  // API Historique des achats utilisateur
-  app.get("/api/purchase-history/user/:userId", async (req, res) => {
-    try {
-      const { userId } = req.params;
-
-      const { data: purchaseHistory, error } =
-        await storage.getUserPurchaseHistory(userId);
-
-      if (error) {
-        console.error("Error fetching user purchase history:", error);
-        return res
-          .status(500)
-          .json({ error: "Failed to fetch purchase history" });
-      }
-
-      res.json(purchaseHistory || []);
-    } catch (error) {
-      console.error("Error in user purchase history endpoint:", error);
+      console.error("Error in /api/boost/success:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // API Historique global des achats pour admin
-  app.get("/api/admin/purchase-history", async (req, res) => {
-    try {
-      const { data: allPurchaseHistory, error } =
-        await storage.getAllPurchaseHistory();
+  
 
-      if (error) {
-        console.error("Error fetching admin purchase history:", error);
-        return res
-          .status(500)
-          .json({ error: "Failed to fetch purchase history" });
-      }
+   // Setup wishlist migration routes
+   setupWishlistMigration(app);
+   setupWishlistDirect(app);
 
-      res.json(allPurchaseHistory || []);
-    } catch (error) {
-      console.error("Error in admin purchase history endpoint:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // API pour vérifier le statut boost d'une annonce
-  app.get("/api/boost/status/:annonceId", async (req, res) => {
-    try {
-      const { annonceId } = req.params;
-
-      const boostStatus = await storage.getBoostStatus(parseInt(annonceId));
-
-      res.json(boostStatus);
-    } catch (error) {
-      console.error("Error checking boost status:", error);
-      res.status(500).json({ error: "Failed to check boost status" });
-    }
-  });
-
-  // Setup wishlist migration routes
-  setupWishlistMigration(app);
-  setupWishlistDirect(app);
-
-  const httpServer = createServer(app);
-  return httpServer;
-}
+   const httpServer = createServer(app);
+   return httpServer;
+ }

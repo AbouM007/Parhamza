@@ -400,7 +400,7 @@ export default function ListingsSection({
                         {/* Afficher les boutons seulement pour les annonces approuvées ou en attente */}
                         {!(vehicle as any).deletedAt &&
                           (vehicle.status === "approved" ||
-                            vehicle.status === "pending") && (
+                            vehicle.status === "draft") && (
                             <>
                               {boostStatuses[vehicle.id]?.isActive ? (
                                 <span className="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold flex items-center space-x-2 shadow-lg">
