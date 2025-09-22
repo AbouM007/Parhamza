@@ -1,62 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ArrowLeft, ArrowRight, Upload, X, Check, Car, Bike, Wrench, Package, Camera, Search,
-  Truck, Ship, Waves, Settings, Anchor, Sailboat, Mountain, CreditCard
-} from 'lucide-react';
-import { ImageUploader } from './ImageUploader';
-import { PremiumPackSelector } from './PremiumPackSelector';
-import { PremiumPayment } from './PremiumPayment';
-import { PublishSuccessModal } from './PublishSuccessModal';
-import { AddressInput } from './AddressInput';
-import { PREMIUM_PACKS } from '@/types/premium';
+import React, { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Upload,
+  X,
+  Check,
+  Car,
+  Bike,
+  Wrench,
+  Package,
+  Camera,
+  Search,
+  Truck,
+  Ship,
+  Waves,
+  Settings,
+  Anchor,
+  Sailboat,
+  Mountain,
+  CreditCard,
+} from "lucide-react";
+import { ImageUploader } from "./ImageUploader";
+import { PremiumPackSelector } from "./PremiumPackSelector";
+import { PremiumPayment } from "./PremiumPayment";
+import { PublishSuccessModal } from "./PublishSuccessModal";
+import { AddressInput } from "./AddressInput";
+import { PREMIUM_PACKS } from "@/types/premium";
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from '@/hooks/useAuth';
-import { useQuota } from '@/hooks/useQuota';
+import { useAuth } from "@/hooks/useAuth";
+import { useQuota } from "@/hooks/useQuota";
 // Temporairement commenté pour éviter l'erreur d'import
 // import { useToast } from '../../hooks/use-toast';
-import { getBrandsBySubcategory, fuelTypes, carModelsByBrand } from '@/utils/mockData';
+import {
+  getBrandsBySubcategory,
+  fuelTypes,
+  carModelsByBrand,
+} from "@/utils/mockData";
 // Nouvelles images des catégories principales
-import voitureImage from '@/assets/voiture-2_1752244968736.png';
-import motosImage from '@/assets/motos-scooters_1752244968742.png';
-import piecesImage from '@/assets/pieces-detachees_1752244968743.png';
-import servicesImage from '@/assets/services-entretien_1752244968744.png';
+import voitureImage from "@/assets/voiture-2_1752244968736.png";
+import motosImage from "@/assets/motos-scooters_1752244968742.png";
+import piecesImage from "@/assets/pieces-detachees_1752244968743.png";
+import servicesImage from "@/assets/services-entretien_1752244968744.png";
 
 // Images des sous-catégories voitures-utilitaires
-import voitureIcon from '@/assets/voiture-_1752249166092.png';
-import utilitaireIcon from '@/assets/utilitaire_1752249166091.png';
-import remorqueIcon from '@/assets/remorque_1752249166090.png';
-import caravaneIcon from '@/assets/caravane_1752249166091.png';
+import voitureIcon from "@/assets/voiture-_1752249166092.png";
+import utilitaireIcon from "@/assets/utilitaire_1752249166091.png";
+import remorqueIcon from "@/assets/remorque_1752249166090.png";
+import caravaneIcon from "@/assets/caravane_1752249166091.png";
 // Images des sous-catégories motos-quad-marine
-import motosIcon from '@/assets/motos-scooters_1752244968742.png'; // Utiliser l'image de la catégorie principale
-import scooterIcon from '@/assets/scooter_1752088210843.png';
-import quadIcon from '@/assets/Quad_1752249742337.png';
-import jetskiIcon from '@/assets/Jetski_1752249742334.png';
-import bateauIcon from '@/assets/bateau_1752249742336.png';
-import aerienIcon from '@/assets/aerien_1753810777764.png';
+import motosIcon from "@/assets/motos-scooters_1752244968742.png"; // Utiliser l'image de la catégorie principale
+import scooterIcon from "@/assets/scooter_1752088210843.png";
+import quadIcon from "@/assets/Quad_1752249742337.png";
+import jetskiIcon from "@/assets/Jetski_1752249742334.png";
+import bateauIcon from "@/assets/bateau_1752249742336.png";
+import aerienIcon from "@/assets/aerien_1753810777764.png";
 
 // Images des sous-catégories services
-import reparationIcon from '@/assets/reparation_1752251142655.png';
-import remorquageIcon from '@/assets/remorquage_1752251142654.png';
-import entretienIcon from '@/assets/entretien_1752251142651.png';
-import autreServiceIcon from '@/assets/autre_1752251142652.png';
+import reparationIcon from "@/assets/reparation_1752251142655.png";
+import remorquageIcon from "@/assets/remorquage_1752251142654.png";
+import entretienIcon from "@/assets/entretien_1752251142651.png";
+import autreServiceIcon from "@/assets/autre_1752251142652.png";
 
 // Images pour les boutons "Je vends" et "Je cherche"
-import vendreIcon from '@/assets/vendre_1752258100618.png';
-import chercherIcon from '@/assets/chercher_1752258100621.png';
+import vendreIcon from "@/assets/vendre_1752258100618.png";
+import chercherIcon from "@/assets/chercher_1752258100621.png";
 
 interface FormData {
   // Étape 1: Type d'annonce
-  listingType: 'sale' | 'search' | '';
-  
+  listingType: "sale" | "search" | "";
+
   // Étape 2: Famille principale
   category: string;
-  
+
   // Étape 3: État du bien (seulement pour biens matériels - non services/pièces)
-  condition?: 'neuf' | 'tres_bon_etat' | 'bon_etat' | 'etat_moyen' | 'pour_pieces';
-  
+  condition?:
+    | "neuf"
+    | "tres_bon_etat"
+    | "bon_etat"
+    | "etat_moyen"
+    | "pour_pieces";
+
   // Étape 4: Sous-famille
   subcategory: string;
-  
+
   // Étape 5+: Suite habituelle
   title: string;
   registrationNumber?: string;
@@ -80,562 +106,641 @@ interface FormData {
 
 const CATEGORIES = [
   {
-    id: 'voiture-utilitaire',
-    name: 'Voitures - Utilitaires',
+    id: "voiture-utilitaire",
+    name: "Voitures - Utilitaires",
     icon: Car,
     image: voitureImage,
-    color: 'from-blue-500 to-blue-600',
+    color: "from-blue-500 to-blue-600",
     isMaterial: true, // Bien matériel
     subcategories: [
-      { 
-        id: 'voiture', 
-        name: 'Voiture', 
-        image: voitureIcon, 
-        color: 'text-blue-500',
-        bgColor: 'bg-blue-100'
+      {
+        id: "voiture",
+        name: "Voiture",
+        image: voitureIcon,
+        color: "text-blue-500",
+        bgColor: "bg-blue-100",
       },
-      { 
-        id: 'utilitaire', 
-        name: 'Utilitaire', 
-        image: utilitaireIcon, 
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-100'
+      {
+        id: "utilitaire",
+        name: "Utilitaire",
+        image: utilitaireIcon,
+        color: "text-gray-600",
+        bgColor: "bg-gray-100",
       },
-      { 
-        id: 'caravane', 
-        name: 'Caravane', 
-        image: caravaneIcon, 
-        color: 'text-green-600',
-        bgColor: 'bg-green-100'
+      {
+        id: "caravane",
+        name: "Caravane",
+        image: caravaneIcon,
+        color: "text-green-600",
+        bgColor: "bg-green-100",
       },
-      { 
-        id: 'remorque', 
-        name: 'Remorque', 
-        image: remorqueIcon, 
-        color: 'text-orange-600',
-        bgColor: 'bg-orange-100'
-      }
-    ]
+      {
+        id: "remorque",
+        name: "Remorque",
+        image: remorqueIcon,
+        color: "text-orange-600",
+        bgColor: "bg-orange-100",
+      },
+    ],
   },
   {
-    id: 'moto-scooter-quad',
-    name: 'Motos, Scooters, Quads',
+    id: "moto-scooter-quad",
+    name: "Motos, Scooters, Quads",
     icon: Bike,
     image: motosImage,
-    color: 'from-green-500 to-green-600',
+    color: "from-green-500 to-green-600",
     isMaterial: true, // Bien matériel
     subcategories: [
-      { 
-        id: 'moto', 
-        name: 'Moto', 
-        image: motosIcon, 
-        color: 'text-red-500',
-        bgColor: 'bg-red-100'
+      {
+        id: "moto",
+        name: "Moto",
+        image: motosIcon,
+        color: "text-red-500",
+        bgColor: "bg-red-100",
       },
-      { 
-        id: 'scooter', 
-        name: 'Scooter', 
-        image: scooterIcon, 
-        color: 'text-purple-500',
-        bgColor: 'bg-purple-100'
+      {
+        id: "scooter",
+        name: "Scooter",
+        image: scooterIcon,
+        color: "text-purple-500",
+        bgColor: "bg-purple-100",
       },
-      { 
-        id: 'quad', 
-        name: 'Quad', 
-        image: quadIcon, 
-        color: 'text-yellow-600',
-        bgColor: 'bg-yellow-100'
-      }
-    ]
+      {
+        id: "quad",
+        name: "Quad",
+        image: quadIcon,
+        color: "text-yellow-600",
+        bgColor: "bg-yellow-100",
+      },
+    ],
   },
   {
-    id: 'nautisme-sport-aerien',
-    name: 'Nautisme, Sport et Plein air',
+    id: "nautisme-sport-aerien",
+    name: "Nautisme, Sport et Plein air",
     icon: Anchor,
     image: bateauIcon,
-    color: 'from-cyan-500 to-blue-600',
+    color: "from-cyan-500 to-blue-600",
     isMaterial: true, // Bien matériel
     subcategories: [
-      { 
-        id: 'bateau', 
-        name: 'Bateau', 
-        image: bateauIcon, 
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-100'
+      {
+        id: "bateau",
+        name: "Bateau",
+        image: bateauIcon,
+        color: "text-blue-600",
+        bgColor: "bg-blue-100",
       },
-      { 
-        id: 'jetski', 
-        name: 'Jet ski', 
-        image: jetskiIcon, 
-        color: 'text-cyan-500',
-        bgColor: 'bg-cyan-100'
+      {
+        id: "jetski",
+        name: "Jet ski",
+        image: jetskiIcon,
+        color: "text-cyan-500",
+        bgColor: "bg-cyan-100",
       },
-      { 
-        id: 'aerien', 
-        name: 'Aérien', 
+      {
+        id: "aerien",
+        name: "Aérien",
         image: aerienIcon,
-        color: 'text-sky-600',
-        bgColor: 'bg-sky-100'
-      }
-    ]
+        color: "text-sky-600",
+        bgColor: "bg-sky-100",
+      },
+    ],
   },
   {
-    id: 'services',
-    name: 'Services',
+    id: "services",
+    name: "Services",
     icon: Wrench,
     image: servicesImage,
-    color: 'from-orange-500 to-orange-600',
+    color: "from-orange-500 to-orange-600",
     isMaterial: false, // Pas un bien matériel
     subcategories: [
-      { 
-        id: 'reparation', 
-        name: 'Réparation', 
+      {
+        id: "reparation",
+        name: "Réparation",
         image: reparationIcon,
-        color: 'text-orange-500',
-        bgColor: 'bg-orange-100'
+        color: "text-orange-500",
+        bgColor: "bg-orange-100",
       },
-      { 
-        id: 'remorquage', 
-        name: 'Remorquage', 
+      {
+        id: "remorquage",
+        name: "Remorquage",
         image: remorquageIcon,
-        color: 'text-red-600',
-        bgColor: 'bg-red-100'
+        color: "text-red-600",
+        bgColor: "bg-red-100",
       },
-      { 
-        id: 'entretien', 
-        name: 'Entretien', 
+      {
+        id: "entretien",
+        name: "Entretien",
         image: entretienIcon,
-        color: 'text-green-500',
-        bgColor: 'bg-green-100'
+        color: "text-green-500",
+        bgColor: "bg-green-100",
       },
-      { 
-        id: 'autre-service', 
-        name: 'Autre', 
+      {
+        id: "autre-service",
+        name: "Autre",
         image: autreServiceIcon,
-        color: 'text-gray-500',
-        bgColor: 'bg-gray-100'
-      }
-    ]
+        color: "text-gray-500",
+        bgColor: "bg-gray-100",
+      },
+    ],
   },
   {
-    id: 'pieces',
-    name: 'Pièces détachées',
+    id: "pieces",
+    name: "Pièces détachées",
     icon: Package,
     image: piecesImage,
-    color: 'from-purple-500 to-purple-600',
+    color: "from-purple-500 to-purple-600",
     isMaterial: false, // Pas un bien matériel (pièces détachées)
     subcategories: [
-      { 
-        id: 'piece-moto', 
-        name: 'Pièces moto', 
+      {
+        id: "piece-moto",
+        name: "Pièces moto",
         image: motosImage, // Utiliser l'image de la catégorie Motos, scooters
-        color: 'text-purple-500',
-        bgColor: 'bg-purple-100'
+        color: "text-purple-500",
+        bgColor: "bg-purple-100",
       },
-      { 
-        id: 'piece-voiture', 
-        name: 'Pièces voiture', 
+      {
+        id: "piece-voiture",
+        name: "Pièces voiture",
         image: voitureImage, // Utiliser l'image de la catégorie Voitures - utilitaires
-        color: 'text-blue-500',
-        bgColor: 'bg-blue-100'
+        color: "text-blue-500",
+        bgColor: "bg-blue-100",
       },
-      { 
-        id: 'autre-piece', 
-        name: 'Autres pièces', 
-        image: piecesImage, 
-        color: 'text-purple-500',
-        bgColor: 'bg-purple-100'
-      }
-    ]
-  }
+      {
+        id: "autre-piece",
+        name: "Autres pièces",
+        image: piecesImage,
+        color: "text-purple-500",
+        bgColor: "bg-purple-100",
+      },
+    ],
+  },
 ];
 
 // Équipements prédéfinis pour les véhicules
 const VEHICLE_EQUIPMENT = {
   car: [
-    'Toit ouvrant / Toit panoramique',
-    'Climatisation',
-    'GPS',
-    'Sièges chauffants',
-    'Caméra de recul',
-    'Radar de recul',
-    'Jantes alliage',
-    'Feux LED / Xénon',
-    'Vitres électriques',
-    'Airbags',
-    'Sièges électriques',
-    'Attelage',
-    'Régulateur de vitesse',
-    'Bluetooth',
-    'Système audio premium',
-    'Cuir'
+    "Toit ouvrant / Toit panoramique",
+    "Climatisation",
+    "GPS",
+    "Sièges chauffants",
+    "Caméra de recul",
+    "Radar de recul",
+    "Jantes alliage",
+    "Feux LED / Xénon",
+    "Vitres électriques",
+    "Airbags",
+    "Sièges électriques",
+    "Attelage",
+    "Régulateur de vitesse",
+    "Bluetooth",
+    "Système audio premium",
+    "Cuir",
   ],
   motorcycle: [
-    'ABS',
-    'Contrôle de traction',
-    'Modes de conduite',
-    'Éclairage LED',
-    'Quickshifter',
-    'Chauffage poignées',
-    'Pare-brise',
-    'Top case',
-    'Sacoches',
-    'Antivol',
-    'Compteur digital',
-    'USB'
+    "ABS",
+    "Contrôle de traction",
+    "Modes de conduite",
+    "Éclairage LED",
+    "Quickshifter",
+    "Chauffage poignées",
+    "Pare-brise",
+    "Top case",
+    "Sacoches",
+    "Antivol",
+    "Compteur digital",
+    "USB",
   ],
   utility: [
-    'Climatisation',
-    'GPS',
-    'Caméra de recul',
-    'Radar de recul',
-    'Attelage',
-    'Cloison de séparation',
-    'Hayon arrière',
-    'Porte latérale',
-    'Plancher bois',
-    'Éclairage LED cargo',
-    'Prise 12V',
-    'Radio Bluetooth'
+    "Climatisation",
+    "GPS",
+    "Caméra de recul",
+    "Radar de recul",
+    "Attelage",
+    "Cloison de séparation",
+    "Hayon arrière",
+    "Porte latérale",
+    "Plancher bois",
+    "Éclairage LED cargo",
+    "Prise 12V",
+    "Radio Bluetooth",
   ],
   caravan: [
-    'Chauffage',
-    'Eau courante',
-    'WC',
-    'Douche',
-    'Frigo',
-    'Plaques de cuisson',
-    'Four',
-    'TV',
-    'Auvent',
-    'Climatisation',
-    'Panneaux solaires',
-    'Antenne satellite'
+    "Chauffage",
+    "Eau courante",
+    "WC",
+    "Douche",
+    "Frigo",
+    "Plaques de cuisson",
+    "Four",
+    "TV",
+    "Auvent",
+    "Climatisation",
+    "Panneaux solaires",
+    "Antenne satellite",
   ],
   trailer: [
-    'Bâche de protection',
-    'Ridelles amovibles',
-    'Rampes de chargement',
-    'Sangles d\'arrimage',
-    'Roue de secours',
-    'Éclairage LED',
-    'Plancher antidérapant',
-    'Support vélo'
+    "Bâche de protection",
+    "Ridelles amovibles",
+    "Rampes de chargement",
+    "Sangles d'arrimage",
+    "Roue de secours",
+    "Éclairage LED",
+    "Plancher antidérapant",
+    "Support vélo",
   ],
   scooter: [
-    'ABS',
-    'Coffre sous selle',
-    'Éclairage LED',
-    'Prise USB',
-    'Pare-brise',
-    'Top case',
-    'Antivol',
-    'Compteur digital'
+    "ABS",
+    "Coffre sous selle",
+    "Éclairage LED",
+    "Prise USB",
+    "Pare-brise",
+    "Top case",
+    "Antivol",
+    "Compteur digital",
   ],
   quad: [
-    'Suspension sport',
-    'Freins à disque',
-    'Démarreur électrique',
-    'Pneus tout-terrain',
-    'Treuil',
-    'Protection',
-    'Éclairage LED',
-    'Attelage'
+    "Suspension sport",
+    "Freins à disque",
+    "Démarreur électrique",
+    "Pneus tout-terrain",
+    "Treuil",
+    "Protection",
+    "Éclairage LED",
+    "Attelage",
   ],
   jetski: [
-    'Système audio',
-    'GPS',
-    'Éclairage LED',
-    'Compartiments étanches',
-    'Échelle de remontée',
-    'Remorque incluse',
-    'Housse de protection'
+    "Système audio",
+    "GPS",
+    "Éclairage LED",
+    "Compartiments étanches",
+    "Échelle de remontée",
+    "Remorque incluse",
+    "Housse de protection",
   ],
   boat: [
-    'GPS',
-    'Sondeur',
-    'Radio VHF',
-    'Pilote automatique',
-    'Éclairage LED',
-    'Taud de soleil',
-    'Échelle de bain',
-    'Douche de pont',
-    'WC',
-    'Cuisine',
-    'Couchettes'
+    "GPS",
+    "Sondeur",
+    "Radio VHF",
+    "Pilote automatique",
+    "Éclairage LED",
+    "Taud de soleil",
+    "Échelle de bain",
+    "Douche de pont",
+    "WC",
+    "Cuisine",
+    "Couchettes",
   ],
   aircraft: [
-    'Parachute de secours',
-    'GPS',
-    'Radio',
-    'Variomètre',
-    'Sac de portage',
-    'Kit d\'entretien',
-    'Housse de protection',
-    'Manuel d\'utilisation'
-  ]
+    "Parachute de secours",
+    "GPS",
+    "Radio",
+    "Variomètre",
+    "Sac de portage",
+    "Kit d'entretien",
+    "Housse de protection",
+    "Manuel d'utilisation",
+  ],
 };
 
 // Options pour les différents types
 const VEHICLE_TYPES = {
   car: [
-    'Citadine',
-    'Berline',
-    'SUV',
-    'Break',
-    'Coupé',
-    'Cabriolet',
-    'Monospace',
-    'Pickup'
+    "Citadine",
+    "Berline",
+    "SUV",
+    "Break",
+    "Coupé",
+    "Cabriolet",
+    "Monospace",
+    "Pickup",
   ],
   utility: [
-    'Camionnette',
-    'Fourgon',
-    'Plateau',
-    'Benne',
-    'Frigorifique',
-    'Hayon',
-    'Autre'
+    "Camionnette",
+    "Fourgon",
+    "Plateau",
+    "Benne",
+    "Frigorifique",
+    "Hayon",
+    "Autre",
   ],
   caravan: [
-    'Caravane pliante',
-    'Caravane rigide',
-    'Camping-car',
-    'Cellule amovible',
-    'Autre'
+    "Caravane pliante",
+    "Caravane rigide",
+    "Camping-car",
+    "Cellule amovible",
+    "Autre",
   ],
   trailer: [
-    'Remorque bagagère',
-    'Remorque porte-voiture',
-    'Remorque plateau',
-    'Remorque benne',
-    'Remorque fermée',
-    'Autre'
+    "Remorque bagagère",
+    "Remorque porte-voiture",
+    "Remorque plateau",
+    "Remorque benne",
+    "Remorque fermée",
+    "Autre",
   ],
   motorcycle: [
-    'Sportive',
-    'Routière',
-    'Trail',
-    'Custom',
-    'Roadster',
-    'Enduro',
-    'Cross',
-    'Autre'
+    "Sportive",
+    "Routière",
+    "Trail",
+    "Custom",
+    "Roadster",
+    "Enduro",
+    "Cross",
+    "Autre",
   ],
   scooter: [
-    'Scooter 50cc',
-    'Scooter 125cc',
-    'Scooter 250cc',
-    'Maxi-scooter',
-    'Scooter électrique',
-    'Scooter vintage',
-    'Autre'
+    "Scooter 50cc",
+    "Scooter 125cc",
+    "Scooter 250cc",
+    "Maxi-scooter",
+    "Scooter électrique",
+    "Scooter vintage",
+    "Autre",
   ],
   quad: [
-    'Quad sport',
-    'Quad utilitaire',
-    'Quad enfant',
-    'Side-by-side',
-    'Autre'
+    "Quad sport",
+    "Quad utilitaire",
+    "Quad enfant",
+    "Side-by-side",
+    "Autre",
   ],
   aircraft: [
-    'ULM pendulaire',
-    'ULM multiaxe',
-    'Parapente',
-    'Paramoteur',
-    'Planeur',
-    'Avion léger',
-    'Hélicoptère',
-    'Autre'
+    "ULM pendulaire",
+    "ULM multiaxe",
+    "Parapente",
+    "Paramoteur",
+    "Planeur",
+    "Avion léger",
+    "Hélicoptère",
+    "Autre",
   ],
   boat: [
-    'Bateau à moteur',
-    'Voilier',
-    'Semi-rigide',
-    'Pneumatique',
-    'Catamaran',
-    'Pêche promenade',
-    'Runabout',
-    'Autre'
+    "Bateau à moteur",
+    "Voilier",
+    "Semi-rigide",
+    "Pneumatique",
+    "Catamaran",
+    "Pêche promenade",
+    "Runabout",
+    "Autre",
   ],
-  jetski: [
-    'Jet à bras',
-    'Jet assis',
-    'Jet 3 places',
-    'Jet de course',
-    'Autre'
-  ]
+  jetski: ["Jet à bras", "Jet assis", "Jet 3 places", "Jet de course", "Autre"],
 };
 
 const TRANSMISSION_TYPES = [
-  { value: 'manual', label: 'Manuelle' },
-  { value: 'automatic', label: 'Automatique' },
-  { value: 'semi-automatic', label: 'Semi-automatique' }
+  { value: "manual", label: "Manuelle" },
+  { value: "automatic", label: "Automatique" },
+  { value: "semi-automatic", label: "Semi-automatique" },
 ];
 
 const COLORS = [
-  'Blanc', 'Noir', 'Gris', 'Argent', 'Rouge', 'Bleu', 'Vert', 'Jaune', 'Orange', 'Violet', 'Marron', 'Beige', 'Autre'
+  "Blanc",
+  "Noir",
+  "Gris",
+  "Argent",
+  "Rouge",
+  "Bleu",
+  "Vert",
+  "Jaune",
+  "Orange",
+  "Violet",
+  "Marron",
+  "Beige",
+  "Autre",
 ];
 
 const DOORS = [2, 3, 4, 5];
 
 const UPHOLSTERY_TYPES = [
-  { value: 'tissu', label: 'Tissu' },
-  { value: 'cuir_partiel', label: 'Cuir partiel' },
-  { value: 'cuir', label: 'Cuir' },
-  { value: 'velours', label: 'Velours' },
-  { value: 'alcantara', label: 'Alcantara' }
+  { value: "tissu", label: "Tissu" },
+  { value: "cuir_partiel", label: "Cuir partiel" },
+  { value: "cuir", label: "Cuir" },
+  { value: "velours", label: "Velours" },
+  { value: "alcantara", label: "Alcantara" },
 ];
 
 const EMISSION_CLASSES = [
-  { value: 'euro1', label: 'Euro 1' },
-  { value: 'euro2', label: 'Euro 2' },
-  { value: 'euro3', label: 'Euro 3' },
-  { value: 'euro4', label: 'Euro 4' },
-  { value: 'euro5', label: 'Euro 5' },
-  { value: 'euro6', label: 'Euro 6' }
+  { value: "euro1", label: "Euro 1" },
+  { value: "euro2", label: "Euro 2" },
+  { value: "euro3", label: "Euro 3" },
+  { value: "euro4", label: "Euro 4" },
+  { value: "euro5", label: "Euro 5" },
+  { value: "euro6", label: "Euro 6" },
 ];
 
 const LICENSE_TYPES = [
-  { value: 'A', label: 'Permis A' },
-  { value: 'A1', label: 'Permis A1' },
-  { value: 'A2', label: 'Permis A2' },
-  { value: 'AL', label: 'Permis AL' },
-  { value: 'sans_permis', label: 'Sans permis' }
+  { value: "A", label: "Permis A" },
+  { value: "A1", label: "Permis A1" },
+  { value: "A2", label: "Permis A2" },
+  { value: "AL", label: "Permis AL" },
+  { value: "sans_permis", label: "Sans permis" },
 ];
 
 const SERVICE_TYPES = [
-  'Réparation mécanique',
-  'Réparation carrosserie',
-  'Entretien',
-  'Révision',
-  'Contrôle technique',
-  'Remorquage',
-  'Dépannage',
-  'Autre'
+  "Réparation mécanique",
+  "Réparation carrosserie",
+  "Entretien",
+  "Révision",
+  "Contrôle technique",
+  "Remorquage",
+  "Dépannage",
+  "Autre",
 ];
 
 const PART_CATEGORIES = [
-  'Moteur',
-  'Transmission',
-  'Freinage',
-  'Suspension',
-  'Électronique',
-  'Carrosserie',
-  'Intérieur',
-  'Éclairage',
-  'Pneumatiques',
-  'Autre'
+  "Moteur",
+  "Transmission",
+  "Freinage",
+  "Suspension",
+  "Électronique",
+  "Carrosserie",
+  "Intérieur",
+  "Éclairage",
+  "Pneumatiques",
+  "Autre",
 ];
 
 const PART_CONDITIONS = [
-  { value: 'new', label: 'Neuf' },
-  { value: 'used', label: 'Occasion' }
+  { value: "new", label: "Neuf" },
+  { value: "used", label: "Occasion" },
 ];
 
 const VEHICLE_CONDITIONS = [
-  { value: 'en_circulation', label: 'Roulant', description: 'Véhicule en état de circulation' },
-  { value: 'accidente', label: 'Accidenté', description: 'Véhicule accidenté, vendu en l\'état' }
+  {
+    value: "en_circulation",
+    label: "Roulant",
+    description: "Véhicule en état de circulation",
+  },
+  {
+    value: "accidente",
+    label: "Accidenté",
+    description: "Véhicule accidenté, vendu en l'état",
+  },
 ];
 
 interface CreateListingFormProps {
   onSuccess?: () => void;
 }
 
-export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess }) => {
-  const { user, dbUser } = useAuth();
+export const CreateListingForm: React.FC<CreateListingFormProps> = ({
+  onSuccess,
+}) => {
+  const { user, dbUser, isLoading } = useAuth();
   const { data: quotaInfo } = useQuota(dbUser?.id);
   // const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
+
   // Configuration des pays supportés
   const COUNTRY_CODES = [
-    { code: '+33', name: 'France', length: 9, format: (num: string) => num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5') },
-    { code: '+1', name: 'États-Unis/Canada', length: 10, format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3') },
-    { code: '+44', name: 'Royaume-Uni', length: 10, format: (num: string) => num.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3') },
-    { code: '+49', name: 'Allemagne', length: 10, format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3') },
-    { code: '+34', name: 'Espagne', length: 9, format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3') },
-    { code: '+39', name: 'Italie', length: 10, format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3') },
-    { code: '+32', name: 'Belgique', length: 9, format: (num: string) => num.replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4') },
-    { code: '+41', name: 'Suisse', length: 9, format: (num: string) => num.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4') },
-    { code: '+212', name: 'Maroc', length: 9, format: (num: string) => num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5') },
-    { code: '+213', name: 'Algérie', length: 9, format: (num: string) => num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5') }
+    {
+      code: "+33",
+      name: "France",
+      length: 9,
+      format: (num: string) =>
+        num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
+    },
+    {
+      code: "+1",
+      name: "États-Unis/Canada",
+      length: 10,
+      format: (num: string) =>
+        num.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3"),
+    },
+    {
+      code: "+44",
+      name: "Royaume-Uni",
+      length: 10,
+      format: (num: string) => num.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3"),
+    },
+    {
+      code: "+49",
+      name: "Allemagne",
+      length: 10,
+      format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3"),
+    },
+    {
+      code: "+34",
+      name: "Espagne",
+      length: 9,
+      format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3"),
+    },
+    {
+      code: "+39",
+      name: "Italie",
+      length: 10,
+      format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3"),
+    },
+    {
+      code: "+32",
+      name: "Belgique",
+      length: 9,
+      format: (num: string) =>
+        num.replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4"),
+    },
+    {
+      code: "+41",
+      name: "Suisse",
+      length: 9,
+      format: (num: string) =>
+        num.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"),
+    },
+    {
+      code: "+212",
+      name: "Maroc",
+      length: 9,
+      format: (num: string) =>
+        num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
+    },
+    {
+      code: "+213",
+      name: "Algérie",
+      length: 9,
+      format: (num: string) =>
+        num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
+    },
   ];
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
     // Supprimer tous les caractères non numériques sauf le +
-    const cleaned = phone.replace(/[^\d+]/g, '');
-    
+    const cleaned = phone.replace(/[^\d+]/g, "");
+
     // Si le numéro commence déjà par +, essayer de le formater selon le pays
-    if (cleaned.startsWith('+')) {
+    if (cleaned.startsWith("+")) {
       for (const country of COUNTRY_CODES) {
         if (cleaned.startsWith(country.code)) {
           const withoutPrefix = cleaned.slice(country.code.length);
-          if (withoutPrefix.length >= country.length - 1 && withoutPrefix.length <= country.length + 1) {
-            const paddedNumber = withoutPrefix.padEnd(country.length, '');
+          if (
+            withoutPrefix.length >= country.length - 1 &&
+            withoutPrefix.length <= country.length + 1
+          ) {
+            const paddedNumber = withoutPrefix.padEnd(country.length, "");
             return `${country.code} ${country.format(paddedNumber.slice(0, country.length))}`;
           }
         }
       }
       return cleaned; // Retourner tel quel si format non reconnu
     }
-    
+
     // Pour les numéros français sans indicatif
-    if (cleaned.startsWith('0') && cleaned.length === 10) {
+    if (cleaned.startsWith("0") && cleaned.length === 10) {
       const withoutZero = cleaned.slice(1);
-      return `+33 ${withoutZero.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5')}`;
+      return `+33 ${withoutZero.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5")}`;
     }
-    
+
     // Si le numéro fait 9 chiffres (français sans 0), ajouter +33
-    if (cleaned.length === 9 && !cleaned.startsWith('0')) {
-      return `+33 ${cleaned.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5')}`;
+    if (cleaned.length === 9 && !cleaned.startsWith("0")) {
+      return `+33 ${cleaned.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5")}`;
     }
-    
+
     // Si pas de format reconnu, ajouter +33 par défaut pour la France
-    if (cleaned.length > 0 && !cleaned.startsWith('+')) {
+    if (cleaned.length > 0 && !cleaned.startsWith("+")) {
       return `+33 ${cleaned}`;
     }
-    
+
     return cleaned;
   };
 
   // Initialiser formData avec les fonctions de formatage
   const initializeFormData = (): FormData => ({
-    listingType: '',
-    category: '',
-    subcategory: '',
-    title: '',
-    registrationNumber: '',
+    listingType: "",
+    category: "",
+    subcategory: "",
+    title: "",
+    registrationNumber: "",
     specificDetails: {},
-    description: '',
+    description: "",
     photos: [],
     price: 0,
-    location: { city: '', postalCode: '' },
-    contact: { 
-      phone: '', 
-      email: '', 
+    location: { city: "", postalCode: "" },
+    contact: {
+      phone: "",
+      email: "",
       hidePhone: false,
-      whatsapp: '',
-      sameAsPhone: false
+      whatsapp: "",
+      sameAsPhone: false,
     },
-    premiumPack: 'free' // Gardé pour compatibilité mais plus utilisé dans le flux
+    premiumPack: "free", // Gardé pour compatibilité mais plus utilisé dans le flux
   });
 
   const [formData, setFormData] = useState<FormData>(initializeFormData());
 
   const [vehicleDataLoading, setVehicleDataLoading] = useState(false);
-  const [vehicleDataMessage, setVehicleDataMessage] = useState('');
+  const [vehicleDataMessage, setVehicleDataMessage] = useState("");
 
   const totalSteps = 12; // Suppression de l'étape pack premium
 
   // Réinitialiser la sous-catégorie quand la catégorie change
   useEffect(() => {
     if (formData.category) {
-      setFormData(prev => ({ ...prev, subcategory: '', specificDetails: {} }));
+      setFormData((prev) => ({
+        ...prev,
+        subcategory: "",
+        specificDetails: {},
+      }));
     }
   }, [formData.category]);
 
@@ -652,47 +757,60 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     const loadUserContactData = async () => {
       if ((user || dbUser) && !hasPrefilledData) {
         try {
-          console.log('🔄 Récupération des données utilisateur depuis Supabase...');
-          
+          console.log(
+            "🔄 Récupération des données utilisateur depuis Supabase...",
+          );
+
           // Appel API pour récupérer les données fraîches de l'utilisateur
           const userEmail = user?.email || dbUser?.email;
           if (!userEmail) return;
-          
-          const response = await fetch(`/api/users/by-email/${encodeURIComponent(userEmail)}`);
+
+          const response = await fetch(
+            `/api/users/by-email/${encodeURIComponent(userEmail)}`,
+          );
           if (!response.ok) {
-            console.error('Erreur lors de la récupération des données utilisateur');
+            console.error(
+              "Erreur lors de la récupération des données utilisateur",
+            );
             return;
           }
-          
+
           const userData = await response.json();
-          console.log('📞 Données utilisateur récupérées:', userData);
-          
-          const userPhone = userData.phone ? formatPhoneNumber(userData.phone) : '';
-          const userWhatsapp = userData.whatsapp ? formatPhoneNumber(userData.whatsapp) : '';
-          
-          setFormData(prev => ({
+          console.log("📞 Données utilisateur récupérées:", userData);
+
+          const userPhone = userData.phone
+            ? formatPhoneNumber(userData.phone)
+            : "";
+          const userWhatsapp = userData.whatsapp
+            ? formatPhoneNumber(userData.whatsapp)
+            : "";
+
+          setFormData((prev) => ({
             ...prev,
             location: {
-              city: userData.city || '',
-              postalCode: userData.postal_code?.toString() || ''
+              city: userData.city || "",
+              postalCode: userData.postal_code?.toString() || "",
             },
             contact: {
               ...prev.contact,
               phone: userPhone,
-              email: userData.email || '',
+              email: userData.email || "",
               whatsapp: userWhatsapp,
-              sameAsPhone: userWhatsapp === userPhone && userPhone !== ''
-            }
+              sameAsPhone: userWhatsapp === userPhone && userPhone !== "",
+            },
           }));
-          
+
           setHasPrefilledData(true);
-          console.log('✅ Données auto-remplies depuis l\'API');
+          console.log("✅ Données auto-remplies depuis l'API");
         } catch (error) {
-          console.error('Erreur lors du chargement des données utilisateur:', error);
+          console.error(
+            "Erreur lors du chargement des données utilisateur:",
+            error,
+          );
         }
       }
     };
-    
+
     loadUserContactData();
   }, [user, dbUser, hasPrefilledData]);
 
@@ -719,96 +837,104 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
   }, [formData.subcategory, currentStep, autoAdvanceEnabled]);
 
   useEffect(() => {
-    if (autoAdvanceEnabled && currentStep === 4 && formData.condition && needsConditionStep()) {
+    if (
+      autoAdvanceEnabled &&
+      currentStep === 4 &&
+      formData.condition &&
+      needsConditionStep()
+    ) {
       // Depuis état du bien, aller au titre (étape 5)
       setTimeout(() => setCurrentStep(5), 300);
     }
   }, [formData.subcategory, currentStep, autoAdvanceEnabled]);
 
   const updateFormData = (field: string, value: any) => {
-    console.log('updateFormData called:', field, value);
-    
+    console.log("updateFormData called:", field, value);
+
     // Validation spéciale pour le titre
-    if (field === 'title') {
+    if (field === "title") {
       // Limiter à 50 caractères et ne garder que lettres, chiffres, espaces et caractères accentués
       const cleanedValue = value
-        .replace(/[^a-zA-Z0-9\sÀ-ÿ]/g, '') // Garde uniquement lettres, chiffres, espaces et caractères accentués
+        .replace(/[^a-zA-Z0-9\sÀ-ÿ]/g, "") // Garde uniquement lettres, chiffres, espaces et caractères accentués
         .substring(0, 50); // Limite à 50 caractères
-      
-      setFormData(prev => {
+
+      setFormData((prev) => {
         const newData = { ...prev, [field]: cleanedValue };
-        console.log('New form data (title filtered):', newData);
+        console.log("New form data (title filtered):", newData);
         return newData;
       });
-    } else if (field === 'description') {
+    } else if (field === "description") {
       // Validation spéciale pour la description - ne garder que lettres, chiffres, espaces et caractères accentués
       const cleanedValue = value
-        .replace(/[^a-zA-Z0-9\sÀ-ÿ.,!?;:()\-]/g, '') // Garde uniquement lettres, chiffres, espaces, caractères accentués et ponctuation de base
+        .replace(/[^a-zA-Z0-9\sÀ-ÿ.,!?;:()\-]/g, "") // Garde uniquement lettres, chiffres, espaces, caractères accentués et ponctuation de base
         .substring(0, 300); // Limite à 300 caractères
-      
-      setFormData(prev => {
+
+      setFormData((prev) => {
         const newData = { ...prev, [field]: cleanedValue };
-        console.log('New form data (description filtered):', newData);
+        console.log("New form data (description filtered):", newData);
         return newData;
       });
     } else {
-      setFormData(prev => {
+      setFormData((prev) => {
         const newData = { ...prev, [field]: value };
-        console.log('New form data:', newData);
+        console.log("New form data:", newData);
         return newData;
       });
     }
-    
+
     // Réactiver l'auto-avancement quand l'utilisateur fait un nouveau choix
     if (!autoAdvanceEnabled) {
       setAutoAdvanceEnabled(true);
     }
-    
+
     // Auto-avancement immédiat pour l'état du bien
-    if (field === 'condition' && value && currentStep === 4) {
+    if (field === "condition" && value && currentStep === 4) {
       setTimeout(() => setCurrentStep(5), 300);
     }
   };
 
   const updateSpecificDetails = (field: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      specificDetails: { ...prev.specificDetails, [field]: value }
+      specificDetails: { ...prev.specificDetails, [field]: value },
     }));
   };
 
   // Validation du format d'immatriculation française
-  const validateRegistrationNumber = (regNumber: string): { isValid: boolean; message: string } => {
-    if (!regNumber) return { isValid: true, message: '' };
-    
+  const validateRegistrationNumber = (
+    regNumber: string,
+  ): { isValid: boolean; message: string } => {
+    if (!regNumber) return { isValid: true, message: "" };
+
     // Nettoyer la chaîne (supprimer espaces et tirets)
-    const cleaned = regNumber.replace(/[\s-]/g, '').toUpperCase();
-    
+    const cleaned = regNumber.replace(/[\s-]/g, "").toUpperCase();
+
     // Format SIV actuel (depuis 2009): AA-123-AA
     const sivPattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
-    
+
     // Format FNI ancien (avant 2009): 1234 AB 56
     const fniPattern = /^[0-9]{1,4}[A-Z]{1,3}[0-9]{1,3}$/;
-    
+
     if (sivPattern.test(cleaned)) {
-      return { isValid: true, message: 'Format SIV valide (AA-123-AA)' };
+      return { isValid: true, message: "Format SIV valide (AA-123-AA)" };
     } else if (fniPattern.test(cleaned)) {
-      return { isValid: true, message: 'Format FNI valide (1234 AB 56)' };
+      return { isValid: true, message: "Format FNI valide (1234 AB 56)" };
     } else {
-      return { 
-        isValid: false, 
-        message: 'Format invalide. Utilisez le format SIV (AA-123-AA) ou FNI (1234 AB 56)' 
+      return {
+        isValid: false,
+        message:
+          "Format invalide. Utilisez le format SIV (AA-123-AA) ou FNI (1234 AB 56)",
       };
     }
   };
 
   // Formater automatiquement l'immatriculation
   const formatRegistrationNumber = (value: string): string => {
-    if (!value) return '';
-    
+    if (!value) return "";
+
     // Nettoyer la chaîne
-    const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
-    
+    const cleaned = value.replace(/[\s-]/g, "").toUpperCase();
+
     // Tentative de formatage SIV (AA123AA -> AA-123-AA)
     if (cleaned.length >= 5) {
       const sivPattern = /^([A-Z]{2})([0-9]{3})([A-Z]{0,2}).*$/;
@@ -824,7 +950,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         }
       }
     }
-    
+
     // Tentative de formatage FNI (1234AB56 -> 1234 AB 56)
     if (cleaned.length >= 6) {
       const fniPattern = /^([0-9]{1,4})([A-Z]{1,3})([0-9]{1,3}).*$/;
@@ -834,70 +960,90 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         return `${numbers1} ${letters} ${numbers2}`;
       }
     }
-    
+
     return cleaned;
   };
 
   // Validation du numéro de téléphone international
-  const validatePhoneNumber = (phone: string): { isValid: boolean; message: string } => {
-    if (!phone) return { isValid: false, message: 'Le numéro de téléphone est requis' };
-    
+  const validatePhoneNumber = (
+    phone: string,
+  ): { isValid: boolean; message: string } => {
+    if (!phone)
+      return { isValid: false, message: "Le numéro de téléphone est requis" };
+
     // Vérifier si le numéro commence par +
-    if (!phone.startsWith('+')) {
-      return { isValid: false, message: 'Le numéro doit commencer par un indicatif international (+33, +1, +44, etc.)' };
+    if (!phone.startsWith("+")) {
+      return {
+        isValid: false,
+        message:
+          "Le numéro doit commencer par un indicatif international (+33, +1, +44, etc.)",
+      };
     }
-    
-    const cleaned = phone.replace(/[^\d]/g, '');
-    
+
+    const cleaned = phone.replace(/[^\d]/g, "");
+
     // Vérifier pour chaque pays supporté
     for (const country of COUNTRY_CODES) {
-      const countryCode = country.code.replace('+', '');
+      const countryCode = country.code.replace("+", "");
       if (cleaned.startsWith(countryCode)) {
         const withoutPrefix = cleaned.slice(countryCode.length);
-        
+
         // Validation spécifique pour la France
-        if (country.code === '+33') {
+        if (country.code === "+33") {
           if (withoutPrefix.length === 9) {
             const firstDigit = withoutPrefix.charAt(0);
-            const validPrefixes = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            const validPrefixes = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
             if (validPrefixes.includes(firstDigit)) {
-              return { isValid: true, message: `Numéro valide (${country.name})` };
+              return {
+                isValid: true,
+                message: `Numéro valide (${country.name})`,
+              };
             }
           }
         } else {
           // Validation générique pour les autres pays
-          if (withoutPrefix.length >= country.length - 1 && withoutPrefix.length <= country.length + 1) {
-            return { isValid: true, message: `Numéro valide (${country.name})` };
+          if (
+            withoutPrefix.length >= country.length - 1 &&
+            withoutPrefix.length <= country.length + 1
+          ) {
+            return {
+              isValid: true,
+              message: `Numéro valide (${country.name})`,
+            };
           }
         }
       }
     }
-    
+
     // Si aucun pays reconnu, vérifier si c'est un format international valide générique
     if (cleaned.length >= 8 && cleaned.length <= 15) {
-      return { isValid: true, message: 'Format international valide' };
+      return { isValid: true, message: "Format international valide" };
     }
-    
-    return { 
-      isValid: false, 
-      message: 'Format invalide. Utilisez un indicatif international (ex: +33 6 12 34 56 78)' 
+
+    return {
+      isValid: false,
+      message:
+        "Format invalide. Utilisez un indicatif international (ex: +33 6 12 34 56 78)",
     };
   };
 
   // Fonction pour récupérer les données véhicule via API
   const fetchVehicleData = async (registrationNumber: string) => {
-    if (!registrationNumber || !validateRegistrationNumber(registrationNumber).isValid) {
+    if (
+      !registrationNumber ||
+      !validateRegistrationNumber(registrationNumber).isValid
+    ) {
       return;
     }
 
     setVehicleDataLoading(true);
-    setVehicleDataMessage('');
+    setVehicleDataMessage("");
 
     try {
-      const response = await fetch('/api/vehicle-data', {
-        method: 'POST',
+      const response = await fetch("/api/vehicle-data", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ registrationNumber }),
       });
@@ -914,29 +1060,41 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           year: apiData.year || formData.specificDetails.year,
           fuelType: apiData.fuelType || formData.specificDetails.fuelType,
           power: apiData.power || formData.specificDetails.power,
-          displacement: apiData.displacement || formData.specificDetails.displacement,
-          transmission: apiData.transmission || formData.specificDetails.transmission,
+          displacement:
+            apiData.displacement || formData.specificDetails.displacement,
+          transmission:
+            apiData.transmission || formData.specificDetails.transmission,
           doors: apiData.doors || formData.specificDetails.doors,
           color: apiData.color || formData.specificDetails.color,
-          vehicleType: apiData.vehicleType || formData.specificDetails.vehicleType,
-          emissionClass: apiData.emissionClass || formData.specificDetails.emissionClass,
+          vehicleType:
+            apiData.vehicleType || formData.specificDetails.vehicleType,
+          emissionClass:
+            apiData.emissionClass || formData.specificDetails.emissionClass,
           critAir: apiData.critAir || formData.specificDetails.critAir,
-          firstRegistrationDate: apiData.firstRegistrationDate || formData.specificDetails.firstRegistrationDate,
+          firstRegistrationDate:
+            apiData.firstRegistrationDate ||
+            formData.specificDetails.firstRegistrationDate,
         };
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          specificDetails: newSpecificDetails
+          specificDetails: newSpecificDetails,
         }));
 
-        const source = result.source === 'cache' ? 'cache' : 'API officielle';
-        setVehicleDataMessage(`✅ Données récupérées depuis ${source} et pré-remplies automatiquement`);
+        const source = result.source === "cache" ? "cache" : "API officielle";
+        setVehicleDataMessage(
+          `✅ Données récupérées depuis ${source} et pré-remplies automatiquement`,
+        );
       } else {
-        setVehicleDataMessage(`⚠️ ${result.error || 'Véhicule non trouvé dans la base de données'}`);
+        setVehicleDataMessage(
+          `⚠️ ${result.error || "Véhicule non trouvé dans la base de données"}`,
+        );
       }
     } catch (error) {
-      console.error('Erreur récupération données:', error);
-      setVehicleDataMessage('❌ Erreur de connexion au service de données véhicule');
+      console.error("Erreur récupération données:", error);
+      setVehicleDataMessage(
+        "❌ Erreur de connexion au service de données véhicule",
+      );
     } finally {
       setVehicleDataLoading(false);
     }
@@ -947,14 +1105,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     const updatedEquipment = currentEquipment.includes(equipment)
       ? currentEquipment.filter((item: string) => item !== equipment)
       : [...currentEquipment, equipment];
-    
-    updateSpecificDetails('equipment', updatedEquipment);
+
+    updateSpecificDetails("equipment", updatedEquipment);
   };
 
   const nextStepHandler = () => {
     const selectedCategory = getSelectedCategory();
     let nextStepNumber = currentStep + 1;
-    
+
     // Nouvelle logique conditionnelle : Type → Famille → Sous-famille → État (si matériel) → Titre
     if (currentStep === 2) {
       // Depuis famille principale -> sous-famille (3)
@@ -993,7 +1151,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
       }
       // Autres logiques selon les besoins
     }
-    
+
     if (nextStepNumber <= totalSteps) {
       setCurrentStep(nextStepNumber);
     }
@@ -1002,39 +1160,43 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
   const prevStepHandler = () => {
     // Désactiver l'auto-avancement temporairement
     setAutoAdvanceEnabled(false);
-    
+
     // Effacer seulement les données de navigation (pas les contenus saisis par l'utilisateur)
     switch (currentStep) {
       case 2:
         // En revenant de l'étape famille principale, on efface le type d'annonce
-        setFormData(prev => ({ ...prev, listingType: '' }));
+        setFormData((prev) => ({ ...prev, listingType: "" }));
         break;
       case 3:
         // En revenant de l'étape sous-famille, on efface la famille principale
-        setFormData(prev => ({ ...prev, category: '' }));
+        setFormData((prev) => ({ ...prev, category: "" }));
         break;
       case 4:
         // En revenant de l'étape état du bien, on efface la sous-famille
-        setFormData(prev => ({ ...prev, subcategory: '', condition: undefined }));
+        setFormData((prev) => ({
+          ...prev,
+          subcategory: "",
+          condition: undefined,
+        }));
         break;
       case 5:
         // En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
         if (needsConditionStep()) {
-          setFormData(prev => ({ ...prev, condition: undefined }));
+          setFormData((prev) => ({ ...prev, condition: undefined }));
         } else {
-          setFormData(prev => ({ ...prev, subcategory: '' }));
+          setFormData((prev) => ({ ...prev, subcategory: "" }));
         }
         break;
       // Pour les étapes 6 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
     }
-    
+
     const selectedCategory = getSelectedCategory();
-    
+
     let previousStepNumber = currentStep - 1;
-    
+
     // Nouvelle logique de navigation arrière selon le nouveau schéma
     const category = getSelectedCategory();
-    
+
     if (currentStep === 4 && !needsConditionStep()) {
       // Si on revient de l'étape titre et qu'il n'y a pas d'étape état du bien, retourner à sous-famille (étape 3)
       previousStepNumber = 3;
@@ -1068,11 +1230,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         }
       }
     }
-    
+
     if (previousStepNumber >= 1) {
       setCurrentStep(previousStepNumber);
     }
-    
+
     // Réactiver l'auto-avancement après un délai
     setTimeout(() => {
       setAutoAdvanceEnabled(true);
@@ -1083,11 +1245,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     const result = (() => {
       switch (currentStep) {
         case 1:
-          return formData.listingType !== '';
+          return formData.listingType !== "";
         case 2:
-          return formData.category !== '';
+          return formData.category !== "";
         case 3:
-          return formData.subcategory !== '';
+          return formData.subcategory !== "";
         case 4:
           // Étape état du bien (seulement pour biens matériels)
           if (needsConditionStep()) {
@@ -1095,72 +1257,102 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           }
           return true; // Si pas besoin d'état, toujours valide
         case 5:
-          return formData.title.trim() !== '';
+          return formData.title.trim() !== "";
         case 6:
           // Détails spécifiques - ignorer pour les recherches de pièces détachées ET les services
           if (isSearchForParts() || isServiceCategory()) {
             return true;
           }
           // Validation spécifique pour les pièces détachées
-          if (formData.subcategory === 'piece-moto' || formData.subcategory === 'piece-voiture' || formData.subcategory === 'autre-piece') {
-            return !!(formData.specificDetails.partCategory && formData.specificDetails.partCondition);
+          if (
+            formData.subcategory === "piece-moto" ||
+            formData.subcategory === "piece-voiture" ||
+            formData.subcategory === "autre-piece"
+          ) {
+            return !!(
+              formData.specificDetails.partCategory &&
+              formData.specificDetails.partCondition
+            );
           }
           // Validation pour les services
-          if (formData.subcategory === 'reparation' || formData.subcategory === 'remorquage' || formData.subcategory === 'entretien' || formData.subcategory === 'autre-service') {
-            return !!(formData.specificDetails.serviceType && formData.specificDetails.serviceArea);
+          if (
+            formData.subcategory === "reparation" ||
+            formData.subcategory === "remorquage" ||
+            formData.subcategory === "entretien" ||
+            formData.subcategory === "autre-service"
+          ) {
+            return !!(
+              formData.specificDetails.serviceType &&
+              formData.specificDetails.serviceArea
+            );
           }
           // Validation spécifique pour les voitures
-          if (formData.subcategory === 'voiture') {
-            return !!(formData.specificDetails.brand && 
-                   formData.specificDetails.model && 
-                   formData.specificDetails.year && 
-                   formData.specificDetails.mileage && 
-                   formData.specificDetails.fuelType &&
-                   formData.specificDetails.vehicleType &&
-                   formData.specificDetails.transmission);
+          if (formData.subcategory === "voiture") {
+            return !!(
+              formData.specificDetails.brand &&
+              formData.specificDetails.model &&
+              formData.specificDetails.year &&
+              formData.specificDetails.mileage &&
+              formData.specificDetails.fuelType &&
+              formData.specificDetails.vehicleType &&
+              formData.specificDetails.transmission
+            );
           }
           // Validation pour les utilitaires
-          if (formData.subcategory === 'utilitaire') {
-            return !!(formData.specificDetails.brand && 
-                   formData.specificDetails.model && 
-                   formData.specificDetails.year && 
-                   formData.specificDetails.mileage && 
-                   formData.specificDetails.fuelType &&
-                   formData.specificDetails.utilityType &&
-                   formData.specificDetails.transmission);
+          if (formData.subcategory === "utilitaire") {
+            return !!(
+              formData.specificDetails.brand &&
+              formData.specificDetails.model &&
+              formData.specificDetails.year &&
+              formData.specificDetails.mileage &&
+              formData.specificDetails.fuelType &&
+              formData.specificDetails.utilityType &&
+              formData.specificDetails.transmission
+            );
           }
           // Validation pour les motos et scooters
-          if (formData.subcategory === 'moto' || formData.subcategory === 'scooter') {
-            return !!(formData.specificDetails.brand && 
-                   formData.specificDetails.model && 
-                   formData.specificDetails.year && 
-                   formData.specificDetails.mileage &&
-                   formData.specificDetails.motorcycleType);
+          if (
+            formData.subcategory === "moto" ||
+            formData.subcategory === "scooter"
+          ) {
+            return !!(
+              formData.specificDetails.brand &&
+              formData.specificDetails.model &&
+              formData.specificDetails.year &&
+              formData.specificDetails.mileage &&
+              formData.specificDetails.motorcycleType
+            );
           }
           // Validation pour les caravanes
-          if (formData.subcategory === 'caravane') {
-            return !!(formData.specificDetails.brand && 
-                   formData.specificDetails.model && 
-                   formData.specificDetails.year &&
-                   formData.specificDetails.caravanType &&
-                   formData.specificDetails.sleeps);
+          if (formData.subcategory === "caravane") {
+            return !!(
+              formData.specificDetails.brand &&
+              formData.specificDetails.model &&
+              formData.specificDetails.year &&
+              formData.specificDetails.caravanType &&
+              formData.specificDetails.sleeps
+            );
           }
           // Validation pour les remorques
-          if (formData.subcategory === 'remorque') {
-            return !!(formData.specificDetails.trailerType);
+          if (formData.subcategory === "remorque") {
+            return !!formData.specificDetails.trailerType;
           }
           // Validation pour les bateaux
-          if (formData.subcategory === 'bateau') {
-            return !!(formData.specificDetails.brand && 
-                   formData.specificDetails.model && 
-                   formData.specificDetails.year &&
-                   formData.specificDetails.boatType &&
-                   formData.specificDetails.length);
+          if (formData.subcategory === "bateau") {
+            return !!(
+              formData.specificDetails.brand &&
+              formData.specificDetails.model &&
+              formData.specificDetails.year &&
+              formData.specificDetails.boatType &&
+              formData.specificDetails.length
+            );
           }
           // Validation pour les autres sous-catégories
-          return !!(formData.specificDetails.brand && 
-                 formData.specificDetails.model && 
-                 formData.specificDetails.year);
+          return !!(
+            formData.specificDetails.brand &&
+            formData.specificDetails.model &&
+            formData.specificDetails.year
+          );
         case 7:
           return formData.description.trim().length >= 30;
         case 8:
@@ -1176,22 +1368,27 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           if (isSearchForParts()) {
             return true;
           }
-          const locationValid = formData.location.city !== '' && formData.location.postalCode !== '';
-          console.log('Step 10 validation:', {
+          const locationValid =
+            formData.location.city !== "" &&
+            formData.location.postalCode !== "";
+          console.log("Step 10 validation:", {
             city: formData.location.city,
             postalCode: formData.location.postalCode,
-            locationValid
+            locationValid,
           });
           return locationValid;
         case 11:
-          return formData.contact.phone !== '' && validatePhoneNumber(formData.contact.phone).isValid;
+          return (
+            formData.contact.phone !== "" &&
+            validatePhoneNumber(formData.contact.phone).isValid
+          );
         case 12:
           return true; // Étape de récapitulatif
         default:
           return false;
       }
     })();
-    
+
     // Debug log pour identifier le problème
     console.log(`Step ${currentStep}: canProceed = ${result}`, {
       listingType: formData.listingType,
@@ -1202,24 +1399,37 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
       price: formData.price,
       photosCount: formData.photos.length,
       needsCondition: needsConditionStep(),
-      condition: formData.condition
+      condition: formData.condition,
     });
-    
+
     return result;
   };
 
   const getSelectedCategory = () => {
-    return CATEGORIES.find(cat => cat.id === formData.category);
+    return CATEGORIES.find((cat) => cat.id === formData.category);
   };
 
   const getSelectedSubcategory = () => {
     const category = getSelectedCategory();
-    return category?.subcategories.find(sub => sub.id === formData.subcategory);
+    return category?.subcategories.find(
+      (sub) => sub.id === formData.subcategory,
+    );
   };
 
   // Vérifier si la sous-catégorie nécessite un numéro d'immatriculation
   const needsRegistrationNumber = () => {
-    const vehicleSubcategories = ['voiture', 'utilitaire', 'caravane', 'remorque', 'moto', 'scooter', 'quad', 'bateau', 'jetski', 'aerien'];
+    const vehicleSubcategories = [
+      "voiture",
+      "utilitaire",
+      "caravane",
+      "remorque",
+      "moto",
+      "scooter",
+      "quad",
+      "bateau",
+      "jetski",
+      "aerien",
+    ];
     return vehicleSubcategories.includes(formData.subcategory);
   };
 
@@ -1227,94 +1437,117 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
   const needsConditionStep = () => {
     const category = getSelectedCategory();
     // Seulement pour les biens matériels, excluant services et pièces détachées
-    return category?.isMaterial && category?.id !== 'services' && category?.id !== 'pieces';
+    return (
+      category?.isMaterial &&
+      category?.id !== "services" &&
+      category?.id !== "pieces"
+    );
   };
 
   // Vérifier si on est dans le cas d'une recherche de pièces détachées
   const isSearchForParts = () => {
-    return formData.listingType === 'search' && formData.category === 'spare-parts';
+    return (
+      formData.listingType === "search" && formData.category === "spare-parts"
+    );
   };
 
   const isServiceCategory = () => {
-    return formData.category === 'services';
+    return formData.category === "services";
   };
 
   const isSearchListing = () => {
-    return formData.listingType === 'search';
+    return formData.listingType === "search";
   };
 
   // Vérifier si on est dans le cas d'une recherche de véhicules moto/quad/marine qui n'ont pas besoin d'étape condition
   const isSearchForMotorizedVehicles = () => {
-    return formData.listingType === 'search' && 
-           ['motorcycle', 'scooter', 'quad', 'jetski', 'boat'].includes(formData.subcategory);
+    return (
+      formData.listingType === "search" &&
+      ["motorcycle", "scooter", "quad", "jetski", "boat"].includes(
+        formData.subcategory,
+      )
+    );
   };
 
   // Fonction pour publier l'annonce
   const publishListing = async () => {
     try {
       // Vérification du quota pour les comptes professionnels
-      if (dbUser?.type === 'professional' && quotaInfo && !quotaInfo.canCreate) {
-        alert(quotaInfo.message || "Vous avez atteint votre limite d'annonces. Passez à un plan supérieur pour publier plus d'annonces.");
+      if (
+        dbUser?.type === "professional" &&
+        quotaInfo &&
+        !quotaInfo.canCreate
+      ) {
+        alert(
+          quotaInfo.message ||
+            "Vous avez atteint votre limite d'annonces. Passez à un plan supérieur pour publier plus d'annonces.",
+        );
         return;
       }
 
-      console.log('Publier l\'annonce:', formData);
-      
+      console.log("Publier l'annonce:", formData);
+
       // Transformer les données pour l'API avec validation adaptée au type d'annonce
-      const isService = formData.category === 'services';
-      const isSearch = formData.listingType === 'search';
-      
+      const isService = formData.category === "services";
+      const isSearch = formData.listingType === "search";
+
       const vehicleData = {
         userId: dbUser?.id || user?.id,
-        title: formData.title || '',
-        description: formData.description || '',
-        category: formData.subcategory || '',  // Utiliser la sous-catégorie spécifique comme catégorie principale
-        subcategory: formData.subcategory || '',
+        title: formData.title || "",
+        description: formData.description || "",
+        category: formData.subcategory || "", // Utiliser la sous-catégorie spécifique comme catégorie principale
+        subcategory: formData.subcategory || "",
         // Tous les champs avec valeurs par défaut pour respecter les contraintes DB
-        brand: formData.specificDetails.brand || 'Non spécifié',
-        model: formData.specificDetails.model || 'Non spécifié',
-        year: formData.specificDetails.year ? parseInt(formData.specificDetails.year.toString()) : new Date().getFullYear(),
+        brand: formData.specificDetails.brand || "Non spécifié",
+        model: formData.specificDetails.model || "Non spécifié",
+        year: formData.specificDetails.year
+          ? parseInt(formData.specificDetails.year.toString())
+          : new Date().getFullYear(),
         mileage: formData.specificDetails.mileage || 0,
-        fuelType: formData.specificDetails.fuelType || 'Non spécifié',
-        condition: formData.condition || 'good',
+        fuelType: formData.specificDetails.fuelType || "Non spécifié",
+        condition: formData.condition || "good",
         price: formData.price || 0,
-        location: formData.location || '',
-        images: formData.photos?.map(photo => 
-          typeof photo === 'string' ? photo : URL.createObjectURL(photo)
-        ) || [], 
+        location: formData.location || "",
+        images:
+          formData.photos?.map((photo) =>
+            typeof photo === "string" ? photo : URL.createObjectURL(photo),
+          ) || [],
         features: formData.specificDetails.equipment || [],
         // Informations de contact spécifiques à l'annonce
-        contactPhone: formData.contact.phone || '',
-        contactEmail: formData.contact.email || '',
-        contactWhatsapp: formData.contact.whatsapp || '',
+        contactPhone: formData.contact.phone || "",
+        contactEmail: formData.contact.email || "",
+        contactWhatsapp: formData.contact.whatsapp || "",
         hidePhone: formData.contact.hidePhone || false,
         isPremium: false,
-        status: 'draft', // Initialement en brouillon
-        listingType: formData.listingType || 'sale'
+        status: "draft", // Initialement en brouillon
+        listingType: formData.listingType || "sale",
       };
 
-      console.log('🔍 FRONTEND - vehicleData avant envoi:', JSON.stringify(vehicleData, null, 2));
+      console.log(
+        "🔍 FRONTEND - vehicleData avant envoi:",
+        JSON.stringify(vehicleData, null, 2),
+      );
 
-      const response = await fetch('/api/vehicles', {
-        method: 'POST',
+      const response = await fetch("/api/vehicles", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(vehicleData),
       });
 
       if (response.ok) {
         const newVehicle = await response.json();
-        console.log('Annonce créée avec succès:', newVehicle);
-        
+        console.log("Annonce créée avec succès:", newVehicle);
+
         // Afficher le modal de succès
         setShowSuccessModal(true);
       } else {
-        throw new Error('Erreur lors de la création de l\'annonce');
+        throw new Error("Erreur lors de la création de l'annonce");
       }
     } catch (error) {
-      console.error('Erreur:', error);
-      alert('Erreur lors de la publication de l\'annonce. Veuillez réessayer.');
+      console.error("Erreur:", error);
+      alert("Erreur lors de la publication de l'annonce. Veuillez réessayer.");
     }
   };
 
@@ -1347,53 +1580,53 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     // Upload vers Supabase Storage
     try {
       const formData = new FormData();
-      filesToAdd.forEach(file => {
-        formData.append('images', file);
+      filesToAdd.forEach((file) => {
+        formData.append("images", file);
       });
 
-      const userId = dbUser?.id || 'anonymous';
+      const userId = dbUser?.id || "anonymous";
       const response = await fetch(`/api/images/upload/${userId}`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Échec de l\'upload');
+        throw new Error("Échec de l'upload");
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.images) {
         const newImageUrls = data.images.map((img: any) => img.url);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          photos: [...prev.photos, ...newImageUrls]
+          photos: [...prev.photos, ...newImageUrls],
         }));
-        console.log('Images uploadées avec succès:', newImageUrls);
+        console.log("Images uploadées avec succès:", newImageUrls);
       } else {
         // Fallback : utiliser les fichiers localement si l'upload échoue
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          photos: [...prev.photos, ...filesToAdd]
+          photos: [...prev.photos, ...filesToAdd],
         }));
       }
     } catch (error) {
-      console.error('Erreur upload:', error);
+      console.error("Erreur upload:", error);
       // Fallback : utiliser les fichiers localement
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        photos: [...prev.photos, ...filesToAdd]
+        photos: [...prev.photos, ...filesToAdd],
       }));
     }
 
     // Réinitialiser l'input
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const removePhoto = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
+      photos: prev.photos.filter((_, i) => i !== index),
     }));
   };
 
@@ -1405,21 +1638,34 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     // Mapper les sous-catégories aux clés d'équipement
     const equipmentKey = (() => {
       switch (subcategory.id) {
-        case 'voiture': return 'car';
-        case 'utilitaire': return 'utility';
-        case 'caravane': return 'caravan';
-        case 'remorque': return 'trailer';
-        case 'moto': return 'motorcycle';
-        case 'scooter': return 'scooter';
-        case 'quad': return 'quad';
-        case 'jetski': return 'jetski';
-        case 'bateau': return 'boat';
-        case 'aerien': return 'aircraft';
-        default: return null;
+        case "voiture":
+          return "car";
+        case "utilitaire":
+          return "utility";
+        case "caravane":
+          return "caravan";
+        case "remorque":
+          return "trailer";
+        case "moto":
+          return "motorcycle";
+        case "scooter":
+          return "scooter";
+        case "quad":
+          return "quad";
+        case "jetski":
+          return "jetski";
+        case "bateau":
+          return "boat";
+        case "aerien":
+          return "aircraft";
+        default:
+          return null;
       }
     })();
-    
-    const equipment = equipmentKey ? VEHICLE_EQUIPMENT[equipmentKey as keyof typeof VEHICLE_EQUIPMENT] || [] : [];
+
+    const equipment = equipmentKey
+      ? VEHICLE_EQUIPMENT[equipmentKey as keyof typeof VEHICLE_EQUIPMENT] || []
+      : [];
     const selectedEquipment = formData.specificDetails.equipment || [];
 
     // Champs communs pour la plupart des véhicules
@@ -1430,8 +1676,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
             Marque *
           </label>
           <select
-            value={formData.specificDetails.brand || ''}
-            onChange={(e) => updateSpecificDetails('brand', e.target.value)}
+            value={formData.specificDetails.brand || ""}
+            onChange={(e) => updateSpecificDetails("brand", e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
           >
             <option value="">Sélectionnez une marque</option>
@@ -1451,18 +1697,24 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
             // Logique intelligente : dropdown pour voitures avec marques populaires, texte libre sinon
             const subcategory = getSelectedSubcategory();
             const selectedBrand = formData.specificDetails.brand;
-            const isCarWithPopularBrand = subcategory?.id === 'voiture' && 
-                                        selectedBrand && 
-                                        selectedBrand !== 'Autres voitures' &&
-                                        carModelsByBrand[selectedBrand as keyof typeof carModelsByBrand];
+            const isCarWithPopularBrand =
+              subcategory?.id === "voiture" &&
+              selectedBrand &&
+              selectedBrand !== "Autres voitures" &&
+              carModelsByBrand[selectedBrand as keyof typeof carModelsByBrand];
 
             if (isCarWithPopularBrand) {
               // Dropdown pour marques populaires de voitures
-              const availableModels = carModelsByBrand[selectedBrand as keyof typeof carModelsByBrand] || [];
+              const availableModels =
+                carModelsByBrand[
+                  selectedBrand as keyof typeof carModelsByBrand
+                ] || [];
               return (
                 <select
-                  value={formData.specificDetails.model || ''}
-                  onChange={(e) => updateSpecificDetails('model', e.target.value)}
+                  value={formData.specificDetails.model || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("model", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un modèle</option>
@@ -1478,8 +1730,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               return (
                 <input
                   type="text"
-                  value={formData.specificDetails.model || ''}
-                  onChange={(e) => updateSpecificDetails('model', e.target.value)}
+                  value={formData.specificDetails.model || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("model", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="Ex: 320d, Agility 50, Niva..."
                 />
@@ -1494,8 +1748,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </label>
           <input
             type="number"
-            value={formData.specificDetails.year || ''}
-            onChange={(e) => updateSpecificDetails('year', parseInt(e.target.value) || '')}
+            value={formData.specificDetails.year || ""}
+            onChange={(e) =>
+              updateSpecificDetails("year", parseInt(e.target.value) || "")
+            }
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
             placeholder="2020"
             min="1990"
@@ -1506,7 +1762,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     );
 
     // Équipements
-    const renderEquipment = () => (
+    const renderEquipment = () =>
       equipment.length > 0 && (
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-4">
@@ -1530,32 +1786,37 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
           {selectedEquipment.length > 0 && (
             <p className="text-sm text-gray-500 mt-2">
-              {selectedEquipment.length} équipement{selectedEquipment.length > 1 ? 's' : ''} sélectionné{selectedEquipment.length > 1 ? 's' : ''}
+              {selectedEquipment.length} équipement
+              {selectedEquipment.length > 1 ? "s" : ""} sélectionné
+              {selectedEquipment.length > 1 ? "s" : ""}
             </p>
           )}
         </div>
-      )
-    );
+      );
 
     switch (subcategory.id) {
-      case 'voiture':
+      case "voiture":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de véhicule *
                 </label>
                 <select
-                  value={formData.specificDetails.vehicleType || ''}
-                  onChange={(e) => updateSpecificDetails('vehicleType', e.target.value)}
+                  value={formData.specificDetails.vehicleType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("vehicleType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.car?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1566,8 +1827,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.mileage || ''}
-                  onChange={(e) => updateSpecificDetails('mileage', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.mileage || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "mileage",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="50000"
                   min="0"
@@ -1579,13 +1845,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Boîte de vitesses *
                 </label>
                 <select
-                  value={formData.specificDetails.transmission || ''}
-                  onChange={(e) => updateSpecificDetails('transmission', e.target.value)}
+                  value={formData.specificDetails.transmission || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("transmission", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {TRANSMISSION_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1595,29 +1865,38 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Carburant *
                 </label>
                 <select
-                  value={formData.specificDetails.fuelType || ''}
-                  onChange={(e) => updateSpecificDetails('fuelType', e.target.value)}
+                  value={formData.specificDetails.fuelType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("fuelType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un carburant</option>
                   {fuelTypes.map((fuel) => (
-                    <option key={fuel.value} value={fuel.value}>{fuel.label}</option>
+                    <option key={fuel.value} value={fuel.value}>
+                      {fuel.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Couleur <span className="text-gray-500 font-normal">(optionnel)</span>
+                  Couleur{" "}
+                  <span className="text-gray-500 font-normal">(optionnel)</span>
                 </label>
                 <select
-                  value={formData.specificDetails.color || ''}
-                  onChange={(e) => updateSpecificDetails('color', e.target.value)}
+                  value={formData.specificDetails.color || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("color", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez une couleur</option>
                   {COLORS.map((color) => (
-                    <option key={color} value={color}>{color}</option>
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1628,8 +1907,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.power || ''}
-                  onChange={(e) => updateSpecificDetails('power', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.power || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "power",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="150"
                   min="0"
@@ -1638,28 +1922,42 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Nombre de portes <span className="text-gray-500 font-normal">(optionnel)</span>
+                  Nombre de portes{" "}
+                  <span className="text-gray-500 font-normal">(optionnel)</span>
                 </label>
                 <select
-                  value={formData.specificDetails.doors || ''}
-                  onChange={(e) => updateSpecificDetails('doors', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.doors || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "doors",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {DOORS.map((door) => (
-                    <option key={door} value={door}>{door} portes</option>
+                    <option key={door} value={door}>
+                      {door} portes
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Puissance fiscale (CV) <span className="text-gray-500 font-normal">(optionnel)</span>
+                  Puissance fiscale (CV){" "}
+                  <span className="text-gray-500 font-normal">(optionnel)</span>
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.fiscalPower || ''}
-                  onChange={(e) => updateSpecificDetails('fiscalPower', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.fiscalPower || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "fiscalPower",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="7"
                   min="1"
@@ -1672,29 +1970,38 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Sellerie
                 </label>
                 <select
-                  value={formData.specificDetails.upholstery || ''}
-                  onChange={(e) => updateSpecificDetails('upholstery', e.target.value)}
+                  value={formData.specificDetails.upholstery || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("upholstery", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {UPHOLSTERY_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Classe d'émissions <span className="text-gray-500 font-normal">(optionnel)</span>
+                  Classe d'émissions{" "}
+                  <span className="text-gray-500 font-normal">(optionnel)</span>
                 </label>
                 <select
-                  value={formData.specificDetails.emissionClass || ''}
-                  onChange={(e) => updateSpecificDetails('emissionClass', e.target.value)}
+                  value={formData.specificDetails.emissionClass || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("emissionClass", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {EMISSION_CLASSES.map((cls) => (
-                    <option key={cls.value} value={cls.value}>{cls.label}</option>
+                    <option key={cls.value} value={cls.value}>
+                      {cls.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1704,24 +2011,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'utilitaire':
+      case "utilitaire":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type d'utilitaire *
                 </label>
                 <select
-                  value={formData.specificDetails.utilityType || ''}
-                  onChange={(e) => updateSpecificDetails('utilityType', e.target.value)}
+                  value={formData.specificDetails.utilityType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("utilityType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.utility?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1732,8 +2043,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.mileage || ''}
-                  onChange={(e) => updateSpecificDetails('mileage', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.mileage || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "mileage",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="50000"
                   min="0"
@@ -1745,13 +2061,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Boîte de vitesses *
                 </label>
                 <select
-                  value={formData.specificDetails.transmission || ''}
-                  onChange={(e) => updateSpecificDetails('transmission', e.target.value)}
+                  value={formData.specificDetails.transmission || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("transmission", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {TRANSMISSION_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1761,13 +2081,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Carburant *
                 </label>
                 <select
-                  value={formData.specificDetails.fuelType || ''}
-                  onChange={(e) => updateSpecificDetails('fuelType', e.target.value)}
+                  value={formData.specificDetails.fuelType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("fuelType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un carburant</option>
                   {fuelTypes.map((fuel) => (
-                    <option key={fuel.value} value={fuel.value}>{fuel.label}</option>
+                    <option key={fuel.value} value={fuel.value}>
+                      {fuel.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1778,8 +2102,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.payload || ''}
-                  onChange={(e) => updateSpecificDetails('payload', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.payload || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "payload",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="1000"
                   min="0"
@@ -1793,8 +2122,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 <input
                   type="number"
                   step="0.1"
-                  value={formData.specificDetails.volume || ''}
-                  onChange={(e) => updateSpecificDetails('volume', parseFloat(e.target.value) || '')}
+                  value={formData.specificDetails.volume || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "volume",
+                      parseFloat(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="8.5"
                   min="0"
@@ -1806,13 +2140,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Nombre de places
                 </label>
                 <select
-                  value={formData.specificDetails.seats || ''}
-                  onChange={(e) => updateSpecificDetails('seats', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.seats || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "seats",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((seat) => (
-                    <option key={seat} value={seat}>{seat} place{seat > 1 ? 's' : ''}</option>
+                    <option key={seat} value={seat}>
+                      {seat} place{seat > 1 ? "s" : ""}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1822,13 +2163,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Couleur
                 </label>
                 <select
-                  value={formData.specificDetails.color || ''}
-                  onChange={(e) => updateSpecificDetails('color', e.target.value)}
+                  value={formData.specificDetails.color || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("color", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez une couleur</option>
                   {COLORS.map((color) => (
-                    <option key={color} value={color}>{color}</option>
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1838,13 +2183,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Classe d'émissions
                 </label>
                 <select
-                  value={formData.specificDetails.emissionClass || ''}
-                  onChange={(e) => updateSpecificDetails('emissionClass', e.target.value)}
+                  value={formData.specificDetails.emissionClass || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("emissionClass", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {EMISSION_CLASSES.map((cls) => (
-                    <option key={cls.value} value={cls.value}>{cls.label}</option>
+                    <option key={cls.value} value={cls.value}>
+                      {cls.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1854,24 +2203,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'caravane':
+      case "caravane":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de caravane *
                 </label>
                 <select
-                  value={formData.specificDetails.caravanType || ''}
-                  onChange={(e) => updateSpecificDetails('caravanType', e.target.value)}
+                  value={formData.specificDetails.caravanType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("caravanType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.caravan.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1881,13 +2234,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Nombre de couchages *
                 </label>
                 <select
-                  value={formData.specificDetails.sleeps || ''}
-                  onChange={(e) => updateSpecificDetails('sleeps', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.sleeps || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "sleeps",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((sleep) => (
-                    <option key={sleep} value={sleep}>{sleep} couchage{sleep > 1 ? 's' : ''}</option>
+                    <option key={sleep} value={sleep}>
+                      {sleep} couchage{sleep > 1 ? "s" : ""}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1899,8 +2259,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 <input
                   type="number"
                   step="0.1"
-                  value={formData.specificDetails.length || ''}
-                  onChange={(e) => updateSpecificDetails('length', parseFloat(e.target.value) || '')}
+                  value={formData.specificDetails.length || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "length",
+                      parseFloat(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="6.5"
                   min="0"
@@ -1913,8 +2278,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.weight || ''}
-                  onChange={(e) => updateSpecificDetails('weight', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.weight || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "weight",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="1200"
                   min="0"
@@ -1926,7 +2296,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'remorque':
+      case "remorque":
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1935,13 +2305,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Type de remorque *
                 </label>
                 <select
-                  value={formData.specificDetails.trailerType || ''}
-                  onChange={(e) => updateSpecificDetails('trailerType', e.target.value)}
+                  value={formData.specificDetails.trailerType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("trailerType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.trailer.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -1952,8 +2326,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.year || ''}
-                  onChange={(e) => updateSpecificDetails('year', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.year || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "year",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="2020"
                   min="1990"
@@ -1967,8 +2346,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="text"
-                  value={formData.specificDetails.dimensions || ''}
-                  onChange={(e) => updateSpecificDetails('dimensions', e.target.value)}
+                  value={formData.specificDetails.dimensions || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("dimensions", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="Ex: 3.0 x 1.5"
                 />
@@ -1980,8 +2361,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.emptyWeight || ''}
-                  onChange={(e) => updateSpecificDetails('emptyWeight', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.emptyWeight || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "emptyWeight",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="300"
                   min="0"
@@ -1994,8 +2380,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.maxWeight || ''}
-                  onChange={(e) => updateSpecificDetails('maxWeight', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.maxWeight || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "maxWeight",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="750"
                   min="0"
@@ -2007,29 +2398,37 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'moto':
-      case 'scooter':
+      case "moto":
+      case "scooter":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Type {subcategory.id === 'moto' ? 'de moto' : 'de scooter'} *
+                  Type {subcategory.id === "moto" ? "de moto" : "de scooter"} *
                 </label>
                 <select
-                  value={formData.specificDetails.motorcycleType || ''}
-                  onChange={(e) => updateSpecificDetails('motorcycleType', e.target.value)}
+                  value={formData.specificDetails.motorcycleType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("motorcycleType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
-                  {subcategory.id === 'moto' && VEHICLE_TYPES.motorcycle?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                  {subcategory.id === 'scooter' && VEHICLE_TYPES.scooter?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
+                  {subcategory.id === "moto" &&
+                    VEHICLE_TYPES.motorcycle?.map((type: string) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  {subcategory.id === "scooter" &&
+                    VEHICLE_TYPES.scooter?.map((type: string) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -2039,8 +2438,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.mileage || ''}
-                  onChange={(e) => updateSpecificDetails('mileage', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.mileage || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "mileage",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="15000"
                   min="0"
@@ -2053,8 +2457,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.displacement || ''}
-                  onChange={(e) => updateSpecificDetails('displacement', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.displacement || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "displacement",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="600"
                   min="0"
@@ -2066,30 +2475,38 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Couleur
                 </label>
                 <select
-                  value={formData.specificDetails.color || ''}
-                  onChange={(e) => updateSpecificDetails('color', e.target.value)}
+                  value={formData.specificDetails.color || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("color", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez une couleur</option>
                   {COLORS.map((color) => (
-                    <option key={color} value={color}>{color}</option>
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
                   ))}
                 </select>
               </div>
 
-              {subcategory.id === 'moto' && (
+              {subcategory.id === "moto" && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Type de permis requis
                   </label>
                   <select
-                    value={formData.specificDetails.licenseType || ''}
-                    onChange={(e) => updateSpecificDetails('licenseType', e.target.value)}
+                    value={formData.specificDetails.licenseType || ""}
+                    onChange={(e) =>
+                      updateSpecificDetails("licenseType", e.target.value)
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   >
                     <option value="">Sélectionnez</option>
                     {LICENSE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -2100,24 +2517,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'quad':
+      case "quad":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de quad *
                 </label>
                 <select
-                  value={formData.specificDetails.quadType || ''}
-                  onChange={(e) => updateSpecificDetails('quadType', e.target.value)}
+                  value={formData.specificDetails.quadType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("quadType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.quad?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2128,8 +2549,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.mileage || ''}
-                  onChange={(e) => updateSpecificDetails('mileage', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.mileage || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "mileage",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="5000"
                   min="0"
@@ -2142,8 +2568,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.displacement || ''}
-                  onChange={(e) => updateSpecificDetails('displacement', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.displacement || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "displacement",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="450"
                   min="0"
@@ -2155,13 +2586,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Couleur
                 </label>
                 <select
-                  value={formData.specificDetails.color || ''}
-                  onChange={(e) => updateSpecificDetails('color', e.target.value)}
+                  value={formData.specificDetails.color || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("color", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez une couleur</option>
                   {COLORS.map((color) => (
-                    <option key={color} value={color}>{color}</option>
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2171,8 +2606,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Transmission
                 </label>
                 <select
-                  value={formData.specificDetails.transmission || ''}
-                  onChange={(e) => updateSpecificDetails('transmission', e.target.value)}
+                  value={formData.specificDetails.transmission || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("transmission", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
@@ -2186,24 +2623,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'jetski':
+      case "jetski":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de jetski *
                 </label>
                 <select
-                  value={formData.specificDetails.jetskiType || ''}
-                  onChange={(e) => updateSpecificDetails('jetskiType', e.target.value)}
+                  value={formData.specificDetails.jetskiType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("jetskiType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.jetski?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2214,8 +2655,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.hours || ''}
-                  onChange={(e) => updateSpecificDetails('hours', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.hours || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "hours",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="50"
                   min="0"
@@ -2228,8 +2674,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.power || ''}
-                  onChange={(e) => updateSpecificDetails('power', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.power || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "power",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="130"
                   min="0"
@@ -2241,13 +2692,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Nombre de places
                 </label>
                 <select
-                  value={formData.specificDetails.seats || ''}
-                  onChange={(e) => updateSpecificDetails('seats', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.seats || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "seats",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {[1, 2, 3, 4].map((seat) => (
-                    <option key={seat} value={seat}>{seat} place{seat > 1 ? 's' : ''}</option>
+                    <option key={seat} value={seat}>
+                      {seat} place{seat > 1 ? "s" : ""}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2257,24 +2715,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'aerien':
+      case "aerien":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type d'aéronef *
                 </label>
                 <select
-                  value={formData.specificDetails.aircraftType || ''}
-                  onChange={(e) => updateSpecificDetails('aircraftType', e.target.value)}
+                  value={formData.specificDetails.aircraftType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("aircraftType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.aircraft?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2285,8 +2747,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.flightHours || ''}
-                  onChange={(e) => updateSpecificDetails('flightHours', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.flightHours || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "flightHours",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="200"
                   min="0"
@@ -2298,13 +2765,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Nombre de places
                 </label>
                 <select
-                  value={formData.specificDetails.seats || ''}
-                  onChange={(e) => updateSpecificDetails('seats', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.seats || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "seats",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {[1, 2, 3, 4].map((seat) => (
-                    <option key={seat} value={seat}>{seat} place{seat > 1 ? 's' : ''}</option>
+                    <option key={seat} value={seat}>
+                      {seat} place{seat > 1 ? "s" : ""}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2314,13 +2788,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Couleur
                 </label>
                 <select
-                  value={formData.specificDetails.color || ''}
-                  onChange={(e) => updateSpecificDetails('color', e.target.value)}
+                  value={formData.specificDetails.color || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("color", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez une couleur</option>
                   {COLORS.map((color) => (
-                    <option key={color} value={color}>{color}</option>
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2330,24 +2808,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'bateau':
+      case "bateau":
         return (
           <div className="space-y-6">
             {renderCommonVehicleFields()}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de bateau *
                 </label>
                 <select
-                  value={formData.specificDetails.boatType || ''}
-                  onChange={(e) => updateSpecificDetails('boatType', e.target.value)}
+                  value={formData.specificDetails.boatType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("boatType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {VEHICLE_TYPES.boat?.map((type: string) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2359,8 +2841,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 <input
                   type="number"
                   step="0.1"
-                  value={formData.specificDetails.length || ''}
-                  onChange={(e) => updateSpecificDetails('length', parseFloat(e.target.value) || '')}
+                  value={formData.specificDetails.length || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "length",
+                      parseFloat(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="6.5"
                   min="0"
@@ -2373,8 +2860,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="text"
-                  value={formData.specificDetails.engineType || ''}
-                  onChange={(e) => updateSpecificDetails('engineType', e.target.value)}
+                  value={formData.specificDetails.engineType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("engineType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="Ex: Hors-bord, In-board"
                 />
@@ -2386,8 +2875,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="number"
-                  value={formData.specificDetails.enginePower || ''}
-                  onChange={(e) => updateSpecificDetails('enginePower', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.enginePower || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "enginePower",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="115"
                   min="0"
@@ -2399,14 +2893,21 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Nombre de couchages
                 </label>
                 <select
-                  value={formData.specificDetails.sleeps || ''}
-                  onChange={(e) => updateSpecificDetails('sleeps', parseInt(e.target.value) || '')}
+                  value={formData.specificDetails.sleeps || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "sleeps",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez</option>
                   {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((sleep) => (
                     <option key={sleep} value={sleep}>
-                      {sleep === 0 ? 'Aucun couchage' : `${sleep} couchage${sleep > 1 ? 's' : ''}`}
+                      {sleep === 0
+                        ? "Aucun couchage"
+                        : `${sleep} couchage${sleep > 1 ? "s" : ""}`}
                     </option>
                   ))}
                 </select>
@@ -2417,10 +2918,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'reparation':
-      case 'remorquage':
-      case 'entretien':
-      case 'autre-service':
+      case "reparation":
+      case "remorquage":
+      case "entretien":
+      case "autre-service":
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2429,13 +2930,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Type de service *
                 </label>
                 <select
-                  value={formData.specificDetails.serviceType || ''}
-                  onChange={(e) => updateSpecificDetails('serviceType', e.target.value)}
+                  value={formData.specificDetails.serviceType || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("serviceType", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {SERVICE_TYPES.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2446,8 +2951,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="text"
-                  value={formData.specificDetails.serviceArea || ''}
-                  onChange={(e) => updateSpecificDetails('serviceArea', e.target.value)}
+                  value={formData.specificDetails.serviceArea || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("serviceArea", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="Ex: Paris et région parisienne"
                 />
@@ -2460,8 +2967,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               </label>
               <input
                 type="text"
-                value={formData.specificDetails.certification || ''}
-                onChange={(e) => updateSpecificDetails('certification', e.target.value)}
+                value={formData.specificDetails.certification || ""}
+                onChange={(e) =>
+                  updateSpecificDetails("certification", e.target.value)
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 placeholder="Ex: Agréé assurances, Certifié ISO"
               />
@@ -2469,9 +2978,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           </div>
         );
 
-      case 'piece-moto':
-      case 'piece-voiture':
-      case 'autre-piece':
+      case "piece-moto":
+      case "piece-voiture":
+      case "autre-piece":
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2480,13 +2989,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Type de pièce *
                 </label>
                 <select
-                  value={formData.specificDetails.partCategory || ''}
-                  onChange={(e) => updateSpecificDetails('partCategory', e.target.value)}
+                  value={formData.specificDetails.partCategory || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("partCategory", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez un type</option>
                   {PART_CATEGORIES.map((category) => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2496,13 +3009,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   État *
                 </label>
                 <select
-                  value={formData.specificDetails.partCondition || ''}
-                  onChange={(e) => updateSpecificDetails('partCondition', e.target.value)}
+                  value={formData.specificDetails.partCondition || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("partCondition", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 >
                   <option value="">Sélectionnez l'état</option>
                   {PART_CONDITIONS.map((condition) => (
-                    <option key={condition.value} value={condition.value}>{condition.label}</option>
+                    <option key={condition.value} value={condition.value}>
+                      {condition.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2513,8 +3030,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </label>
                 <input
                   type="text"
-                  value={formData.specificDetails.partReference || ''}
-                  onChange={(e) => updateSpecificDetails('partReference', e.target.value)}
+                  value={formData.specificDetails.partReference || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("partReference", e.target.value)
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="Ex: 11427788458"
                 />
@@ -2531,14 +3050,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Détails spécifiques pour {subcategory.name}
               </label>
               <textarea
-                value={formData.specificDetails.details || ''}
-                onChange={(e) => updateSpecificDetails('details', e.target.value)}
+                value={formData.specificDetails.details || ""}
+                onChange={(e) =>
+                  updateSpecificDetails("details", e.target.value)
+                }
                 rows={6}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 placeholder="Renseignez les détails spécifiques..."
               />
               <p className="text-sm text-gray-500 mt-2">
-                Renseignez les informations importantes pour votre {subcategory.name.toLowerCase()}.
+                Renseignez les informations importantes pour votre{" "}
+                {subcategory.name.toLowerCase()}.
               </p>
             </div>
           </div>
@@ -2548,7 +3070,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
 
   const renderStepContent = () => {
     const selectedCategory = getSelectedCategory();
-    
+
     // Pour les recherches de pièces détachées, rediriger automatiquement les étapes ignorées
     if (isSearchForParts()) {
       if (currentStep === 5) {
@@ -2572,7 +3094,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         return null;
       }
     }
-    
+
     switch (currentStep) {
       case 1:
         return (
@@ -2581,25 +3103,23 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Type d'annonce
               </h2>
-              <p className="text-gray-600">
-                Que souhaitez-vous faire ?
-              </p>
+              <p className="text-gray-600">Que souhaitez-vous faire ?</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
               <button
-                onClick={() => updateFormData('listingType', 'sale')}
+                onClick={() => updateFormData("listingType", "sale")}
                 className={`relative p-8 rounded-2xl border-2 transition-all duration-200 text-center ${
-                  formData.listingType === 'sale'
-                    ? 'border-primary-bolt-500 bg-primary-bolt-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  formData.listingType === "sale"
+                    ? "border-primary-bolt-500 bg-primary-bolt-50"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 <div className="mb-4">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-                    <img 
-                      src={vendreIcon} 
-                      alt="Je vends" 
+                    <img
+                      src={vendreIcon}
+                      alt="Je vends"
                       className="w-18 h-18"
                     />
                   </div>
@@ -2608,10 +3128,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Je vends
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Déposer une annonce pour vendre un véhicule, une pièce détachée ou proposer un service
+                  Déposer une annonce pour vendre un véhicule, une pièce
+                  détachée ou proposer un service
                 </p>
-                
-                {formData.listingType === 'sale' && (
+
+                {formData.listingType === "sale" && (
                   <div className="absolute top-4 right-4">
                     <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
                       <Check className="h-4 w-4 text-white" />
@@ -2621,18 +3142,18 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               </button>
 
               <button
-                onClick={() => updateFormData('listingType', 'search')}
+                onClick={() => updateFormData("listingType", "search")}
                 className={`relative p-8 rounded-2xl border-2 transition-all duration-200 text-center ${
-                  formData.listingType === 'search'
-                    ? 'border-primary-bolt-500 bg-primary-bolt-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  formData.listingType === "search"
+                    ? "border-primary-bolt-500 bg-primary-bolt-50"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
               >
                 <div className="mb-4">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-                    <img 
-                      src={chercherIcon} 
-                      alt="Je cherche" 
+                    <img
+                      src={chercherIcon}
+                      alt="Je cherche"
                       className="w-18 h-18"
                     />
                   </div>
@@ -2641,10 +3162,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Je cherche
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Publier une demande de recherche pour trouver un véhicule, une pièce ou un service spécifique
+                  Publier une demande de recherche pour trouver un véhicule, une
+                  pièce ou un service spécifique
                 </p>
-                
-                {formData.listingType === 'search' && (
+
+                {formData.listingType === "search" && (
                   <div className="absolute top-4 right-4">
                     <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
                       <Check className="h-4 w-4 text-white" />
@@ -2664,7 +3186,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Choisissez une catégorie
               </h2>
               <p className="text-gray-600">
-                Sélectionnez la catégorie qui correspond le mieux à votre {formData.listingType === 'sale' ? 'annonce' : 'recherche'}
+                Sélectionnez la catégorie qui correspond le mieux à votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"}
               </p>
             </div>
 
@@ -2674,23 +3197,25 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 return (
                   <button
                     key={category.id}
-                    onClick={() => updateFormData('category', category.id)}
+                    onClick={() => updateFormData("category", category.id)}
                     className={`relative p-6 rounded-2xl border-2 transition-all duration-200 text-left ${
                       formData.category === category.id
-                        ? 'border-primary-bolt-500 bg-primary-bolt-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? "border-primary-bolt-500 bg-primary-bolt-50"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     <div className="flex items-start space-x-4">
                       <div className="p-3 flex items-center justify-center">
                         {category.image ? (
-                          <img 
-                            src={category.image} 
+                          <img
+                            src={category.image}
                             alt={category.name}
                             className="h-12 w-12 object-contain"
                           />
                         ) : (
-                          <div className={`p-3 rounded-xl bg-gradient-to-r ${category.color} shadow-lg flex items-center justify-center`}>
+                          <div
+                            className={`p-3 rounded-xl bg-gradient-to-r ${category.color} shadow-lg flex items-center justify-center`}
+                          >
                             <IconComponent className="h-6 w-6 text-white" />
                           </div>
                         )}
@@ -2700,11 +3225,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                           {category.name}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {category.subcategories.map(sub => sub.name).join(', ')}
+                          {category.subcategories
+                            .map((sub) => sub.name)
+                            .join(", ")}
                         </p>
                       </div>
                     </div>
-                    
+
                     {formData.category === category.id && (
                       <div className="absolute top-4 right-4">
                         <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
@@ -2720,7 +3247,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         );
 
       case 3:
-        // Étape sous-catégorie 
+        // Étape sous-catégorie
         if (!selectedCategory) return null;
 
         return (
@@ -2739,23 +3266,27 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 return (
                   <button
                     key={subcategory.id}
-                    onClick={() => updateFormData('subcategory', subcategory.id)}
+                    onClick={() =>
+                      updateFormData("subcategory", subcategory.id)
+                    }
                     className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-center ${
                       formData.subcategory === subcategory.id
-                        ? 'border-primary-bolt-500 bg-primary-bolt-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? "border-primary-bolt-500 bg-primary-bolt-50"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     {/* Icône ou image */}
                     <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3">
                       {subcategory.image ? (
-                        <img 
-                          src={subcategory.image} 
+                        <img
+                          src={subcategory.image}
                           alt={subcategory.name}
                           className="h-14 w-14 object-contain"
                         />
                       ) : (
-                        <div className={`w-12 h-12 ${subcategory.bgColor} rounded-xl flex items-center justify-center`}>
+                        <div
+                          className={`w-12 h-12 ${subcategory.bgColor} rounded-xl flex items-center justify-center`}
+                        >
                           {/* Icône de substitution si pas d'image */}
                           <div className={`h-6 w-6 ${subcategory.color}`}>
                             ⚪
@@ -2763,11 +3294,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                         </div>
                       )}
                     </div>
-                    
+
                     <h3 className="font-semibold text-gray-900">
                       {subcategory.name}
                     </h3>
-                    
+
                     {formData.subcategory === subcategory.id && (
                       <div className="absolute top-2 right-2">
                         <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
@@ -2796,50 +3327,49 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 État du bien
               </h2>
               <p className="text-gray-600">
-                Précisez l'état général de votre {selectedCategory?.name.toLowerCase()}
+                Précisez l'état général de votre{" "}
+                {selectedCategory?.name.toLowerCase()}
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {[
                 {
-                  id: 'occasion',
-                  name: 'Occasion',
-                  description: 'Véhicule d\'occasion en état de marche',
-                  bgColor: 'bg-blue-50',
-                  borderColor: 'border-blue-500',
-                  icon: '🚗'
+                  id: "occasion",
+                  name: "Occasion",
+                  description: "Véhicule d'occasion en état de marche",
+                  bgColor: "bg-blue-50",
+                  borderColor: "border-blue-500",
+                  icon: "🚗",
                 },
                 {
-                  id: 'accidente',
-                  name: 'Accidenté',
-                  description: 'Véhicule accidenté ou endommagé',
-                  bgColor: 'bg-orange-50',
-                  borderColor: 'border-orange-500',
-                  icon: '⚠️'
-                }
+                  id: "accidente",
+                  name: "Accidenté",
+                  description: "Véhicule accidenté ou endommagé",
+                  bgColor: "bg-orange-50",
+                  borderColor: "border-orange-500",
+                  icon: "⚠️",
+                },
               ].map((condition) => (
                 <button
                   key={condition.id}
-                  onClick={() => updateFormData('condition', condition.id)}
+                  onClick={() => updateFormData("condition", condition.id)}
                   className={`relative p-6 rounded-xl border-2 transition-all duration-200 text-center ${
                     formData.condition === condition.id
                       ? `${condition.borderColor} ${condition.bgColor}`
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                   }`}
                 >
-                  <div className="text-4xl mb-3">
-                    {condition.icon}
-                  </div>
-                  
+                  <div className="text-4xl mb-3">{condition.icon}</div>
+
                   <h3 className="font-semibold text-gray-900 mb-2">
                     {condition.name}
                   </h3>
-                  
+
                   <p className="text-sm text-gray-600">
                     {condition.description}
                   </p>
-                  
+
                   {formData.condition === condition.id && (
                     <div className="absolute top-3 right-3">
                       <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
@@ -2859,7 +3389,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Titre de votre {formData.listingType === 'sale' ? 'annonce' : 'recherche'}
+                Titre de votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"}
               </h2>
               <p className="text-gray-600">
                 Rédigez un titre accrocheur et descriptif
@@ -2874,95 +3405,120 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => updateFormData('title', e.target.value)}
+                  onChange={(e) => updateFormData("title", e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all text-lg"
-                  placeholder={formData.listingType === 'sale' 
-                    ? "Ex: BMW 320d excellent état" 
-                    : "Ex: Recherche BMW 320d"
+                  placeholder={
+                    formData.listingType === "sale"
+                      ? "Ex: BMW 320d excellent état"
+                      : "Ex: Recherche BMW 320d"
                   }
                   maxLength={50}
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
-                    Un bon titre augmente vos chances de {formData.listingType === 'sale' ? 'vente' : 'trouver ce que vous cherchez'}
+                    Un bon titre augmente vos chances de{" "}
+                    {formData.listingType === "sale"
+                      ? "vente"
+                      : "trouver ce que vous cherchez"}
                   </p>
-                  <span className={`text-sm ${formData.title.length > 40 ? 'text-orange-500' : 'text-gray-400'}`}>
+                  <span
+                    className={`text-sm ${formData.title.length > 40 ? "text-orange-500" : "text-gray-400"}`}
+                  >
                     {formData.title.length}/50
                   </span>
                 </div>
               </div>
 
               {/* Champ d'immatriculation conditionnel */}
-              {needsRegistrationNumber() && formData.listingType === 'sale' && (
+              {needsRegistrationNumber() && formData.listingType === "sale" && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Numéro d'immatriculation (optionnel)
                   </label>
                   <input
                     type="text"
-                    value={formData.registrationNumber || ''}
+                    value={formData.registrationNumber || ""}
                     onChange={(e) => {
-                      const formatted = formatRegistrationNumber(e.target.value);
-                      updateFormData('registrationNumber', formatted);
+                      const formatted = formatRegistrationNumber(
+                        e.target.value,
+                      );
+                      updateFormData("registrationNumber", formatted);
                     }}
                     className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                      formData.registrationNumber && !validateRegistrationNumber(formData.registrationNumber).isValid
-                        ? 'border-red-300 bg-red-50'
-                        : 'border-gray-300'
+                      formData.registrationNumber &&
+                      !validateRegistrationNumber(formData.registrationNumber)
+                        .isValid
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     placeholder="Ex: AB-123-CD ou 1234 AB 56"
                     maxLength={20}
                   />
                   <div className="mt-2 space-y-2">
                     {formData.registrationNumber && (
-                      <p className={`text-sm ${
-                        validateRegistrationNumber(formData.registrationNumber).isValid 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
-                      }`}>
-                        {validateRegistrationNumber(formData.registrationNumber).message}
+                      <p
+                        className={`text-sm ${
+                          validateRegistrationNumber(
+                            formData.registrationNumber,
+                          ).isValid
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {
+                          validateRegistrationNumber(
+                            formData.registrationNumber,
+                          ).message
+                        }
                       </p>
                     )}
-                    
+
                     {/* Bouton pour récupérer les données automatiquement */}
-                    {formData.registrationNumber && validateRegistrationNumber(formData.registrationNumber).isValid && (
-                      <div className="flex items-center space-x-3">
-                        <button
-                          type="button"
-                          onClick={() => fetchVehicleData(formData.registrationNumber!)}
-                          disabled={vehicleDataLoading}
-                          className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {vehicleDataLoading ? (
-                            <>
-                              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                              Récupération...
-                            </>
-                          ) : (
-                            <>
-                              <Search className="h-4 w-4 mr-2" />
-                              Pré-remplir automatiquement
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                    
+                    {formData.registrationNumber &&
+                      validateRegistrationNumber(formData.registrationNumber)
+                        .isValid && (
+                        <div className="flex items-center space-x-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              fetchVehicleData(formData.registrationNumber!)
+                            }
+                            disabled={vehicleDataLoading}
+                            className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {vehicleDataLoading ? (
+                              <>
+                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                Récupération...
+                              </>
+                            ) : (
+                              <>
+                                <Search className="h-4 w-4 mr-2" />
+                                Pré-remplir automatiquement
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
                     {/* Message de retour */}
                     {vehicleDataMessage && (
-                      <div className={`text-sm p-3 rounded-lg ${
-                        vehicleDataMessage.startsWith('✅') 
-                          ? 'bg-green-50 text-green-700 border border-green-200' 
-                          : vehicleDataMessage.startsWith('⚠️')
-                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                          : 'bg-red-50 text-red-700 border border-red-200'
-                      }`}>
+                      <div
+                        className={`text-sm p-3 rounded-lg ${
+                          vehicleDataMessage.startsWith("✅")
+                            ? "bg-green-50 text-green-700 border border-green-200"
+                            : vehicleDataMessage.startsWith("⚠️")
+                              ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                              : "bg-red-50 text-red-700 border border-red-200"
+                        }`}
+                      >
                         {vehicleDataMessage}
                       </div>
                     )}
-                    
+
                     <p className="text-sm text-gray-500">
-                      Formats acceptés : SIV (AA-123-AA) depuis 2009 ou FNI (1234 AB 56) avant 2009
+                      Formats acceptés : SIV (AA-123-AA) depuis 2009 ou FNI
+                      (1234 AB 56) avant 2009
                     </p>
                   </div>
                 </div>
@@ -2984,7 +3540,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Détails spécifiques
               </h2>
               <p className="text-gray-600">
-                Renseignez les caractéristiques importantes de votre {getSelectedSubcategory()?.name.toLowerCase()}
+                Renseignez les caractéristiques importantes de votre{" "}
+                {getSelectedSubcategory()?.name.toLowerCase()}
               </p>
             </div>
 
@@ -3001,22 +3558,27 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Description détaillée
               </h2>
               <p className="text-gray-600">
-                Décrivez votre {getSelectedSubcategory()?.name.toLowerCase()} en détail
+                Décrivez votre {getSelectedSubcategory()?.name.toLowerCase()} en
+                détail
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description * <span className="text-gray-500 font-normal">(30-300 caractères)</span>
+                Description *{" "}
+                <span className="text-gray-500 font-normal">
+                  (30-300 caractères)
+                </span>
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => updateFormData('description', e.target.value)}
+                onChange={(e) => updateFormData("description", e.target.value)}
                 rows={8}
                 className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                  formData.description.length > 0 && formData.description.length < 30 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300'
+                  formData.description.length > 0 &&
+                  formData.description.length < 30
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
                 }`}
                 placeholder="Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
                 minLength={50}
@@ -3024,16 +3586,19 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
-                  Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux.
+                  Plus votre description est détaillée, plus vous avez de
+                  chances d'attirer des acheteurs sérieux.
                 </p>
                 <div className="flex flex-col text-right">
-                  <span className={`text-sm font-medium ${
-                    formData.description.length < 50 
-                      ? 'text-red-500' 
-                      : formData.description.length > 280 
-                      ? 'text-orange-500'
-                      : 'text-green-600'
-                  }`}>
+                  <span
+                    className={`text-sm font-medium ${
+                      formData.description.length < 50
+                        ? "text-red-500"
+                        : formData.description.length > 280
+                          ? "text-orange-500"
+                          : "text-green-600"
+                    }`}
+                  >
                     {formData.description.length}/300 caractères
                   </span>
                   {formData.description.length < 30 && (
@@ -3055,7 +3620,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Photos de votre {getSelectedSubcategory()?.name.toLowerCase()}
               </h2>
               <p className="text-gray-600">
-                Ajoutez des photos de qualité pour attirer plus d'acheteurs (maximum 4 photos)
+                Ajoutez des photos de qualité pour attirer plus d'acheteurs
+                (maximum 4 photos)
               </p>
             </div>
 
@@ -3106,7 +3672,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                     {formData.photos.map((photo, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
+                          src={
+                            typeof photo === "string"
+                              ? photo
+                              : URL.createObjectURL(photo)
+                          }
                           alt={`Photo ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
@@ -3134,25 +3704,29 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Prix de {formData.listingType === 'sale' ? 'vente' : 'budget maximum'}
+                Prix de{" "}
+                {formData.listingType === "sale" ? "vente" : "budget maximum"}
               </h2>
               <p className="text-gray-600">
-                {formData.listingType === 'sale' 
+                {formData.listingType === "sale"
                   ? `Fixez un prix attractif pour votre ${getSelectedSubcategory()?.name.toLowerCase()}`
-                  : `Indiquez votre budget maximum pour votre recherche`
-                }
+                  : `Indiquez votre budget maximum pour votre recherche`}
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                {formData.listingType === 'sale' ? 'Prix (€) *' : 'Budget maximum (€) *'}
+                {formData.listingType === "sale"
+                  ? "Prix (€) *"
+                  : "Budget maximum (€) *"}
               </label>
               <div className="relative">
                 <input
                   type="number"
-                  value={formData.price || ''}
-                  onChange={(e) => updateFormData('price', parseInt(e.target.value) || 0)}
+                  value={formData.price || ""}
+                  onChange={(e) =>
+                    updateFormData("price", parseInt(e.target.value) || 0)
+                  }
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all text-lg"
                   placeholder="0"
                   min="0"
@@ -3162,10 +3736,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 </span>
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                {formData.listingType === 'sale' 
-                  ? 'Consultez des annonces similaires pour fixer un prix compétitif'
-                  : 'Indiquez le budget maximum que vous êtes prêt à dépenser'
-                }
+                {formData.listingType === "sale"
+                  ? "Consultez des annonces similaires pour fixer un prix compétitif"
+                  : "Indiquez le budget maximum que vous êtes prêt à dépenser"}
               </p>
             </div>
           </div>
@@ -3179,12 +3752,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Localisation
               </h2>
               <p className="text-gray-600">
-                Où se trouve votre {getSelectedSubcategory()?.name.toLowerCase()} ?
+                Où se trouve votre{" "}
+                {getSelectedSubcategory()?.name.toLowerCase()} ?
               </p>
               {(formData.location.city || formData.location.postalCode) && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    ℹ️ Informations pré-remplies depuis votre profil. Vous pouvez les modifier si nécessaire.
+                    ℹ️ Informations pré-remplies depuis votre profil. Vous
+                    pouvez les modifier si nécessaire.
                   </p>
                 </div>
               )}
@@ -3194,22 +3769,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               postalCode={formData.location.postalCode}
               city={formData.location.city}
               onPostalCodeChange={(postalCode) => {
-                console.log('Form updating postal code:', postalCode);
-                setFormData(prev => {
+                console.log("Form updating postal code:", postalCode);
+                setFormData((prev) => {
                   const newLocation = { ...prev.location, postalCode };
                   const newData = { ...prev, location: newLocation };
-                  console.log('Direct form update - new location:', newLocation);
-                  console.log('Direct form update - complete data:', newData);
+                  console.log(
+                    "Direct form update - new location:",
+                    newLocation,
+                  );
+                  console.log("Direct form update - complete data:", newData);
                   return newData;
                 });
               }}
               onCityChange={(city) => {
-                console.log('Form updating city:', city);
-                setFormData(prev => {
+                console.log("Form updating city:", city);
+                setFormData((prev) => {
                   const newLocation = { ...prev.location, city };
                   const newData = { ...prev, location: newLocation };
-                  console.log('Direct form update - new location:', newLocation);
-                  console.log('Direct form update - complete data:', newData);
+                  console.log(
+                    "Direct form update - new location:",
+                    newLocation,
+                  );
+                  console.log("Direct form update - complete data:", newData);
                   return newData;
                 });
               }}
@@ -3225,12 +3806,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Informations de contact
               </h2>
               <p className="text-gray-600">
-                Comment les {formData.listingType === 'sale' ? 'acheteurs' : 'vendeurs'} peuvent-ils vous contacter ?
+                Comment les{" "}
+                {formData.listingType === "sale" ? "acheteurs" : "vendeurs"}{" "}
+                peuvent-ils vous contacter ?
               </p>
-              {(formData.contact.phone || formData.contact.whatsapp || formData.contact.email) && (
+              {(formData.contact.phone ||
+                formData.contact.whatsapp ||
+                formData.contact.email) && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    ℹ️ Informations pré-remplies depuis votre profil. Vous pouvez les modifier pour cette annonce uniquement.
+                    ℹ️ Informations pré-remplies depuis votre profil. Vous
+                    pouvez les modifier pour cette annonce uniquement.
                   </p>
                 </div>
               )}
@@ -3242,60 +3828,75 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                   Téléphone * (avec indicatif international)
                 </label>
                 <div className="text-xs text-gray-500 mb-2">
-                  Exemples : +33 (France), +1 (USA/Canada), +44 (UK), +49 (Allemagne), +34 (Espagne)
+                  Exemples : +33 (France), +1 (USA/Canada), +44 (UK), +49
+                  (Allemagne), +34 (Espagne)
                 </div>
                 <input
                   type="tel"
                   value={formData.contact.phone}
                   onChange={(e) => {
                     const formatted = formatPhoneNumber(e.target.value);
-                    const updatedContact = { ...formData.contact, phone: formatted };
-                    
+                    const updatedContact = {
+                      ...formData.contact,
+                      phone: formatted,
+                    };
+
                     // Si "même numéro WhatsApp" est coché, copier automatiquement
                     if (formData.contact.sameAsPhone) {
                       updatedContact.whatsapp = formatted;
                     }
-                    
-                    updateFormData('contact', updatedContact);
+
+                    updateFormData("contact", updatedContact);
                   }}
                   onBlur={(e) => {
                     // Validation lors de la perte de focus
                     const validation = validatePhoneNumber(e.target.value);
                     if (!validation.isValid) {
-                      console.log('Erreur de validation téléphone:', validation.message);
+                      console.log(
+                        "Erreur de validation téléphone:",
+                        validation.message,
+                      );
                     }
                   }}
                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                    formData.contact.phone && !validatePhoneNumber(formData.contact.phone).isValid
-                      ? 'border-red-300 bg-red-50'
-                      : 'border-gray-300'
+                    formData.contact.phone &&
+                    !validatePhoneNumber(formData.contact.phone).isValid
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300"
                   }`}
                   placeholder="+33 6 12 34 56 78 (France par défaut)"
                   maxLength={25}
                 />
                 {formData.contact.phone && (
-                  <p className={`text-sm mt-1 ${
-                    validatePhoneNumber(formData.contact.phone).isValid
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }`}>
+                  <p
+                    className={`text-sm mt-1 ${
+                      validatePhoneNumber(formData.contact.phone).isValid
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {validatePhoneNumber(formData.contact.phone).message}
                   </p>
                 )}
-                
+
                 {/* Checkbox pour masquer le téléphone - déplacée ici */}
                 <div className="flex items-center mt-3">
                   <input
                     type="checkbox"
                     id="hidePhone"
                     checked={formData.contact.hidePhone}
-                    onChange={(e) => updateFormData('contact', {
-                      ...formData.contact,
-                      hidePhone: e.target.checked
-                    })}
+                    onChange={(e) =>
+                      updateFormData("contact", {
+                        ...formData.contact,
+                        hidePhone: e.target.checked,
+                      })
+                    }
                     className="h-4 w-4 text-primary-bolt-600 focus:ring-primary-bolt-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="hidePhone" className="ml-2 text-sm text-gray-700">
+                  <label
+                    htmlFor="hidePhone"
+                    className="ml-2 text-sm text-gray-700"
+                  >
                     Masquer le Téléphone dans l'annonce
                   </label>
                 </div>
@@ -3305,7 +3906,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   WhatsApp
                 </label>
-                
+
                 <div className="mb-3">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
@@ -3313,10 +3914,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                       checked={formData.contact.sameAsPhone}
                       onChange={(e) => {
                         const sameAsPhone = e.target.checked;
-                        updateFormData('contact', { 
-                          ...formData.contact, 
+                        updateFormData("contact", {
+                          ...formData.contact,
                           sameAsPhone,
-                          whatsapp: sameAsPhone ? formData.contact.phone : ''
+                          whatsapp: sameAsPhone ? formData.contact.phone : "",
                         });
                       }}
                       className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
@@ -3334,28 +3935,37 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                       value={formData.contact.whatsapp}
                       onChange={(e) => {
                         const formatted = formatPhoneNumber(e.target.value);
-                        updateFormData('contact', { ...formData.contact, whatsapp: formatted });
+                        updateFormData("contact", {
+                          ...formData.contact,
+                          whatsapp: formatted,
+                        });
                       }}
                       onBlur={(e) => {
                         const validation = validatePhoneNumber(e.target.value);
                         if (!validation.isValid && e.target.value) {
-                          console.log('Erreur de validation WhatsApp:', validation.message);
+                          console.log(
+                            "Erreur de validation WhatsApp:",
+                            validation.message,
+                          );
                         }
                       }}
                       className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                        formData.contact.whatsapp && !validatePhoneNumber(formData.contact.whatsapp).isValid
-                          ? 'border-red-300 bg-red-50'
-                          : 'border-gray-300'
+                        formData.contact.whatsapp &&
+                        !validatePhoneNumber(formData.contact.whatsapp).isValid
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="+33 6 12 34 56 78 (WhatsApp)"
                       maxLength={25}
                     />
                     {formData.contact.whatsapp && (
-                      <p className={`text-sm mt-1 ${
-                        validatePhoneNumber(formData.contact.whatsapp).isValid
-                          ? 'text-green-600'
-                          : 'text-red-600'
-                      }`}>
+                      <p
+                        className={`text-sm mt-1 ${
+                          validatePhoneNumber(formData.contact.whatsapp).isValid
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
                         {validatePhoneNumber(formData.contact.whatsapp).message}
                       </p>
                     )}
@@ -3365,13 +3975,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 {formData.contact.sameAsPhone && formData.contact.phone && (
                   <div className="bg-gray-50 p-3 rounded-xl">
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">WhatsApp :</span> {formData.contact.phone}
+                      <span className="font-medium">WhatsApp :</span>{" "}
+                      {formData.contact.phone}
                     </p>
                   </div>
                 )}
               </div>
-
-
             </div>
           </div>
         );
@@ -3381,10 +3990,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           <div className="space-y-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Récapitulatif de votre {formData.listingType === 'sale' ? 'annonce' : 'recherche'}
+                Récapitulatif de votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"}
               </h2>
               <p className="text-gray-600">
-                Vérifiez les informations avant de publier votre {formData.listingType === 'sale' ? 'annonce' : 'recherche'}
+                Vérifiez les informations avant de publier votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"}
               </p>
             </div>
 
@@ -3392,49 +4003,76 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations générales</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Informations générales
+                  </h3>
                   <dl className="space-y-3">
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Type</dt>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Type
+                      </dt>
                       <dd className="text-sm text-gray-900">
-                        {formData.listingType === 'sale' ? 'Vendre' : 'Rechercher'}
+                        {formData.listingType === "sale"
+                          ? "Vendre"
+                          : "Rechercher"}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Catégorie</dt>
-                      <dd className="text-sm text-gray-900">{formData.category}</dd>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Catégorie
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {formData.category}
+                      </dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Titre</dt>
-                      <dd className="text-sm text-gray-900">{formData.title}</dd>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Titre
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {formData.title}
+                      </dd>
                     </div>
                     {formData.price > 0 && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500">Prix</dt>
-                        <dd className="text-sm text-gray-900">{formData.price}€</dd>
+                        <dt className="text-sm font-medium text-gray-500">
+                          Prix
+                        </dt>
+                        <dd className="text-sm text-gray-900">
+                          {formData.price}€
+                        </dd>
                       </div>
                     )}
                   </dl>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Contact
+                  </h3>
                   <dl className="space-y-3">
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Téléphone</dt>
-                      <dd className="text-sm text-gray-900">{formData.contact.phone}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">WhatsApp</dt>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Téléphone
+                      </dt>
                       <dd className="text-sm text-gray-900">
-                        {formData.contact.sameAsPhone 
-                          ? `${formData.contact.phone} (même que téléphone)`
-                          : formData.contact.whatsapp || 'Non renseigné'
-                        }
+                        {formData.contact.phone}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">Localisation</dt>
+                      <dt className="text-sm font-medium text-gray-500">
+                        WhatsApp
+                      </dt>
+                      <dd className="text-sm text-gray-900">
+                        {formData.contact.sameAsPhone
+                          ? `${formData.contact.phone} (même que téléphone)`
+                          : formData.contact.whatsapp || "Non renseigné"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Localisation
+                      </dt>
                       <dd className="text-sm text-gray-900">
                         {formData.location.postalCode} {formData.location.city}
                       </dd>
@@ -3445,42 +4083,69 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
 
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Description
+                  </h3>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">
                     {formData.description}
                   </p>
                 </div>
 
                 {/* Section équipements sélectionnés */}
-                {formData.specificDetails.equipment && formData.specificDetails.equipment.length > 0 && (
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Équipements</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {formData.specificDetails.equipment.map((equipment: string, index: number) => (
-                        <div key={index} className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-sm text-gray-700">{equipment}</span>
-                        </div>
-                      ))}
+                {formData.specificDetails.equipment &&
+                  formData.specificDetails.equipment.length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Équipements
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {formData.specificDetails.equipment.map(
+                          (equipment: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-2"
+                            >
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm text-gray-700">
+                                {equipment}
+                              </span>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-3">
+                        {formData.specificDetails.equipment.length} équipement
+                        {formData.specificDetails.equipment.length > 1
+                          ? "s"
+                          : ""}{" "}
+                        sélectionné
+                        {formData.specificDetails.equipment.length > 1
+                          ? "s"
+                          : ""}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-500 mt-3">
-                      {formData.specificDetails.equipment.length} équipement{formData.specificDetails.equipment.length > 1 ? 's' : ''} sélectionné{formData.specificDetails.equipment.length > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                )}
+                  )}
 
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Photos</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Photos
+                  </h3>
                   {formData.photos.length > 0 ? (
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600">
-                        {formData.photos.length} photo{formData.photos.length !== 1 ? 's' : ''} ajoutée{formData.photos.length !== 1 ? 's' : ''}
+                        {formData.photos.length} photo
+                        {formData.photos.length !== 1 ? "s" : ""} ajoutée
+                        {formData.photos.length !== 1 ? "s" : ""}
                       </p>
                       <div className="grid grid-cols-3 gap-2">
                         {formData.photos.map((photo, index) => (
                           <div key={index} className="relative aspect-square">
                             <img
-                              src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
+                              src={
+                                typeof photo === "string"
+                                  ? photo
+                                  : URL.createObjectURL(photo)
+                              }
                               alt={`Photo ${index + 1}`}
                               className="w-full h-full object-cover rounded-lg border border-gray-200"
                             />
@@ -3512,14 +4177,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
                 Récapitulatif final
               </h2>
               <p className="text-gray-600">
-                Vérifiez les informations avant de publier votre {formData.listingType === 'sale' ? 'annonce' : 'recherche'}
+                Vérifiez les informations avant de publier votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"}
               </p>
             </div>
 
             <div className="space-y-6">
               {/* Catégorie et sous-catégorie */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Catégorie</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Catégorie
+                </h3>
                 <div className="flex items-center space-x-3">
                   <span className="px-3 py-1 bg-primary-bolt-100 text-primary-bolt-500 rounded-full text-sm font-medium">
                     {selectedCategory?.name}
@@ -3533,20 +4201,25 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
 
               {/* Titre et prix */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Titre et prix</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Titre et prix
+                </h3>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h4 className="text-xl font-bold text-gray-900 mb-2">{formData.title || 'Titre non renseigné'}</h4>
+                    <h4 className="text-xl font-bold text-gray-900 mb-2">
+                      {formData.title || "Titre non renseigné"}
+                    </h4>
                     {formData.registrationNumber && (
                       <p className="text-sm text-gray-600">
-                        <span className="font-medium">Immatriculation:</span> {formData.registrationNumber}
+                        <span className="font-medium">Immatriculation:</span>{" "}
+                        {formData.registrationNumber}
                       </p>
                     )}
                   </div>
-                  
+
                   <div className="text-right">
                     <div className="text-2xl font-bold text-primary-bolt-500">
-                      {formData.price.toLocaleString('fr-FR')} €
+                      {formData.price.toLocaleString("fr-FR")} €
                     </div>
                   </div>
                 </div>
@@ -3555,80 +4228,118 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               {/* Détails spécifiques */}
               {Object.keys(formData.specificDetails).length > 0 && (
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Détails spécifiques</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Détails spécifiques
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(formData.specificDetails).map(([key, value]) => {
-                      if (key === 'equipment' && Array.isArray(value)) {
-                        return (
-                          <div key={key} className="md:col-span-2">
-                            <span className="font-medium text-gray-900">Équipements:</span>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {value.map((equipment: string, index: number) => (
-                                <span key={index} className="px-2 py-1 bg-primary-bolt-100 text-primary-bolt-700 rounded-md text-sm">
-                                  {equipment}
-                                </span>
-                              ))}
+                    {Object.entries(formData.specificDetails).map(
+                      ([key, value]) => {
+                        if (key === "equipment" && Array.isArray(value)) {
+                          return (
+                            <div key={key} className="md:col-span-2">
+                              <span className="font-medium text-gray-900">
+                                Équipements:
+                              </span>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {value.map(
+                                  (equipment: string, index: number) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-1 bg-primary-bolt-100 text-primary-bolt-700 rounded-md text-sm"
+                                    >
+                                      {equipment}
+                                    </span>
+                                  ),
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      }
-                      
-                      if (value && value !== '') {
-                        const displayKey = (() => {
-                          switch(key) {
-                            case 'brand': return 'Marque';
-                            case 'model': return 'Modèle';
-                            case 'year': return 'Année';
-                            case 'mileage': return 'Kilométrage';
-                            case 'fuelType': return 'Carburant';
-                            case 'transmission': return 'Transmission';
-                            case 'color': return 'Couleur';
-                            case 'doors': return 'Portes';
-                            case 'power': return 'Puissance (CV)';
-                            case 'displacement': return 'Cylindrée (cm³)';
-                            case 'motorcycleType': return 'Type de moto';
-                            case 'licenseType': return 'Permis requis';
-                            case 'length': return 'Longueur (m)';
-                            case 'engineType': return 'Type de moteur';
-                            case 'enginePower': return 'Puissance moteur (CV)';
-                            case 'boatType': return 'Type de bateau';
-                            case 'utilityType': return 'Type d\'utilitaire';
-                            case 'gvw': return 'PTAC (kg)';
-                            case 'volume': return 'Volume utile (m³)';
-                            default: return key;
-                          }
-                        })();
-                        
-                        const displayValue = (() => {
-                          if (key === 'fuelType') {
-                            const fuelLabels: Record<string, string> = {
-                              gasoline: 'Essence',
-                              diesel: 'Diesel',
-                              electric: 'Électrique',
-                              hybrid: 'Hybride'
-                            };
-                            return fuelLabels[value as string] || value;
-                          }
-                          if (key === 'transmission') {
-                            const transmissionLabels: Record<string, string> = {
-                              manual: 'Manuelle',
-                              automatic: 'Automatique',
-                              'semi-automatic': 'Semi-automatique'
-                            };
-                            return transmissionLabels[value as string] || value;
-                          }
-                          return value;
-                        })();
-                        
-                        return (
-                          <div key={key}>
-                            <span className="font-medium text-gray-900">{displayKey}:</span>
-                            <span className="text-gray-700 ml-2">{displayValue}</span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
+                          );
+                        }
+
+                        if (value && value !== "") {
+                          const displayKey = (() => {
+                            switch (key) {
+                              case "brand":
+                                return "Marque";
+                              case "model":
+                                return "Modèle";
+                              case "year":
+                                return "Année";
+                              case "mileage":
+                                return "Kilométrage";
+                              case "fuelType":
+                                return "Carburant";
+                              case "transmission":
+                                return "Transmission";
+                              case "color":
+                                return "Couleur";
+                              case "doors":
+                                return "Portes";
+                              case "power":
+                                return "Puissance (CV)";
+                              case "displacement":
+                                return "Cylindrée (cm³)";
+                              case "motorcycleType":
+                                return "Type de moto";
+                              case "licenseType":
+                                return "Permis requis";
+                              case "length":
+                                return "Longueur (m)";
+                              case "engineType":
+                                return "Type de moteur";
+                              case "enginePower":
+                                return "Puissance moteur (CV)";
+                              case "boatType":
+                                return "Type de bateau";
+                              case "utilityType":
+                                return "Type d'utilitaire";
+                              case "gvw":
+                                return "PTAC (kg)";
+                              case "volume":
+                                return "Volume utile (m³)";
+                              default:
+                                return key;
+                            }
+                          })();
+
+                          const displayValue = (() => {
+                            if (key === "fuelType") {
+                              const fuelLabels: Record<string, string> = {
+                                gasoline: "Essence",
+                                diesel: "Diesel",
+                                electric: "Électrique",
+                                hybrid: "Hybride",
+                              };
+                              return fuelLabels[value as string] || value;
+                            }
+                            if (key === "transmission") {
+                              const transmissionLabels: Record<string, string> =
+                                {
+                                  manual: "Manuelle",
+                                  automatic: "Automatique",
+                                  "semi-automatic": "Semi-automatique",
+                                };
+                              return (
+                                transmissionLabels[value as string] || value
+                              );
+                            }
+                            return value;
+                          })();
+
+                          return (
+                            <div key={key}>
+                              <span className="font-medium text-gray-900">
+                                {displayKey}:
+                              </span>
+                              <span className="text-gray-700 ml-2">
+                                {displayValue}
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      },
+                    )}
                   </div>
                 </div>
               )}
@@ -3636,10 +4347,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               {/* État général */}
               {formData.condition && needsConditionStep() && (
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">État général</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    État général
+                  </h3>
                   <div className="flex items-center space-x-3">
                     <span className="px-3 py-1 bg-primary-bolt-100 text-primary-bolt-500 rounded-full text-sm font-medium">
-                      {VEHICLE_CONDITIONS.find(c => c.value === formData.condition)?.label}
+                      {
+                        VEHICLE_CONDITIONS.find(
+                          (c) => c.value === formData.condition,
+                        )?.label
+                      }
                     </span>
                   </div>
                 </div>
@@ -3647,19 +4364,29 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
 
               {/* Description */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-                <p className="text-gray-700 whitespace-pre-line">{formData.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Description
+                </h3>
+                <p className="text-gray-700 whitespace-pre-line">
+                  {formData.description}
+                </p>
               </div>
 
               {/* Photos */}
               <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Photos ({formData.photos.length})</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Photos ({formData.photos.length})
+                </h3>
                 {formData.photos.length > 0 ? (
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
                     {formData.photos.map((photo, index) => (
                       <div key={index} className="aspect-square">
                         <img
-                          src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
+                          src={
+                            typeof photo === "string"
+                              ? photo
+                              : URL.createObjectURL(photo)
+                          }
                           alt={`Photo ${index + 1}`}
                           className="w-full h-full object-cover rounded-lg"
                         />
@@ -3674,28 +4401,35 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
               {/* Localisation et contact */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Localisation</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Localisation
+                  </h3>
                   <p className="text-gray-700">
                     {formData.location.postalCode} {formData.location.city}
                   </p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Contact
+                  </h3>
                   <div className="space-y-2">
                     <p className="text-gray-700">
-                      <span className="font-medium">Téléphone:</span> {formData.contact.hidePhone ? 'Masqué' : formData.contact.phone}
+                      <span className="font-medium">Téléphone:</span>{" "}
+                      {formData.contact.hidePhone
+                        ? "Masqué"
+                        : formData.contact.phone}
                     </p>
                     <p className="text-gray-700">
-                      <span className="font-medium">WhatsApp:</span> {
-                        formData.contact.sameAsPhone 
-                          ? `${formData.contact.phone} (même que téléphone)`
-                          : formData.contact.whatsapp || 'Non renseigné'
-                      }
+                      <span className="font-medium">WhatsApp:</span>{" "}
+                      {formData.contact.sameAsPhone
+                        ? `${formData.contact.phone} (même que téléphone)`
+                        : formData.contact.whatsapp || "Non renseigné"}
                     </p>
                     {formData.contact.email && (
                       <p className="text-gray-700">
-                        <span className="font-medium">Email:</span> {formData.contact.email}
+                        <span className="font-medium">Email:</span>{" "}
+                        {formData.contact.email}
                       </p>
                     )}
                   </div>
@@ -3710,6 +4444,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p>Chargement de votre session...</p>
+      </div>
+    );
+  }
+
   if (!user && !dbUser) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -3717,8 +4459,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🔒</span>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Connexion requise</h3>
-          <p className="text-gray-600">Vous devez être connecté pour déposer une annonce.</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            Connexion requise
+          </h3>
+          <p className="text-gray-600">
+            Vous devez être connecté pour déposer une annonce.
+          </p>
         </div>
       </div>
     );
@@ -3731,15 +4477,19 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              {formData.listingType === 'sale' ? 'Vente' : formData.listingType === 'search' ? 'Recherche' : 'Déposer une annonce'}
-              {formData.listingType && ' - Déposer une annonce'}
+              {formData.listingType === "sale"
+                ? "Vente"
+                : formData.listingType === "search"
+                  ? "Recherche"
+                  : "Déposer une annonce"}
+              {formData.listingType && " - Déposer une annonce"}
             </h1>
             <span className="text-sm font-medium text-gray-600">
               Étape {currentStep} sur {totalSteps}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             ></div>
@@ -3772,7 +4522,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
           {currentStep === 12 ? (
             // Étape récapitulatif - afficher uniquement l'option de publication gratuite
             <div className="flex flex-col gap-4">
-              
               <button
                 onClick={() => {
                   // Publication gratuite directe
@@ -3813,7 +4562,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({ onSuccess 
         isOpen={showSuccessModal}
         onClose={handleContinueNavigating}
         onNavigateToDashboard={navigateToDashboard}
-        listingType={formData.listingType === 'sale' ? 'sell' : 'search'}
+        listingType={formData.listingType === "sale" ? "sell" : "search"}
       />
     </div>
   );

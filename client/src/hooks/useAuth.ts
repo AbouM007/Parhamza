@@ -134,7 +134,7 @@ export function useAuth(): AuthState {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await fetchDbUser(session.user);
+        fetchDbUser(session.user);
       }
 
       setIsLoading(false);
@@ -148,7 +148,7 @@ export function useAuth(): AuthState {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await fetchDbUser(session.user);
+        fetchDbUser(session.user);
       } else {
         setDbUser(null);
       }

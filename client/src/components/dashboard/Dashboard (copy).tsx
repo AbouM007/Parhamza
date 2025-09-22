@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  ProfileSection,
-  MessagesSection,
-  ListingsSection,
-  OverviewSection,
-  PurchaseHistorySection,
-  FavoritesSection,
-  PremiumSection,
-} from "../dashboard";
-
-import {
   Car,
   MessageCircle,
   User,
@@ -52,7 +42,7 @@ import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { Vehicle } from "@/types";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 import { DeletionQuestionnaireModal } from "../DeletionQuestionnaireModal";
-import ProfessionalVerificationBanner from "../ProfessionalVerificationBanner";
+import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanner";
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { BoostModal } from "../BoostModal";
@@ -971,6 +961,836 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }).format(price);
   };
 
+  const renderOverview = () => (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="relative bg-gradient-to-r from-primary-bolt-500 via-primary-bolt-600 to-primary-bolt-700 rounded-2xl p-8 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">
+                Bonjour, {dbUser?.name || user?.email?.split("@")[0]} ! 👋
+              </h1>
+              {/* Affichage du nom de société pour les comptes professionnels */}
+              {dbUser?.type === "professional" &&
+                professionalAccount?.company_name && (
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Building2 className="h-5 w-5 text-cyan-200" />
+                    <p className="text-cyan-100 text-xl font-semibold">
+                      {professionalAccount.company_name}
+                    </p>
+                    {professionalAccount.is_verified && (
+                      <div className="bg-green-500/30 text-green-100 px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+                        <Star className="h-3 w-3" />
+                        <span>Vérifié</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              <p className="text-cyan-100 text-lg font-medium">
+                {dbUser?.type === "professional"
+                  ? "Gérez votre activité professionnelle depuis votre tableau de bord"
+                  : "Bienvenue sur votre espace personnel"}
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
+                <Award className="h-12 w-12 text-white/80" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section d'informations enrichie */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Membre depuis */}
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
+              <div className="flex items-center space-x-2 mb-1">
+                <Calendar className="h-4 w-4 text-cyan-200" />
+                <span className="text-sm font-medium text-cyan-100">
+                  Membre depuis
+                </span>
+              </div>
+              <p className="text-lg font-bold text-white">
+                {dbUser?.created_at
+                  ? new Date(dbUser.created_at).toLocaleDateString("fr-FR", {
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "Récemment"}
+              </p>
+            </div>
+
+            {/* Type de compte */}
+            <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
+              <div className="flex items-center space-x-2 mb-1">
+                <User className="h-4 w-4 text-cyan-200" />
+                <span className="text-sm font-medium text-cyan-100">
+                  Type de compte
+                </span>
+              </div>
+              <p className="text-lg font-bold text-white">
+                {dbUser?.type === "professional"
+                  ? "Professionnel"
+                  : "Particulier"}
+              </p>
+            </div>
+
+            {/* Statut de vérification (pour les pros) */}
+            {dbUser?.type === "professional" && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Building2 className="h-4 w-4 text-cyan-200" />
+                  <span className="text-sm font-medium text-cyan-100">
+                    Statut
+                  </span>
+                </div>
+                <p className="text-lg font-bold text-white">
+                  {professionalAccount?.is_verified ? (
+                    <span className="text-green-200">✓ Vérifié</span>
+                  ) : professionalAccount?.verification_status === "pending" ? (
+                    <span className="text-yellow-200">⏳ En cours</span>
+                  ) : (
+                    <span className="text-orange-200">⚠ Non vérifié</span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* Abonnement (pour les pros) */}
+            {dbUser?.type === "professional" && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Crown className="h-4 w-4 text-cyan-200" />
+                  <span className="text-sm font-medium text-cyan-100">
+                    Abonnement
+                  </span>
+                </div>
+                <p className="text-lg font-bold text-white">
+                  {subscriptionInfo?.isActive ? (
+                    <span className="text-yellow-200">
+                      {subscriptionInfo.planName === "starter" ||
+                      subscriptionInfo.planName === 1
+                        ? "Starter"
+                        : subscriptionInfo.planName === "pro" ||
+                            subscriptionInfo.planName === 2
+                          ? "Pro"
+                          : subscriptionInfo.planName === "premium" ||
+                              subscriptionInfo.planName === 3
+                            ? "Premium"
+                            : "Pro Actif"}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300">Gratuit</span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {/* Compte vérifié (pour les particuliers) */}
+            {dbUser?.type !== "professional" && (dbUser as any)?.verified && (
+              <div className="bg-green-500/20 backdrop-blur-sm rounded-lg px-4 py-3 border border-green-400/30">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Star className="h-4 w-4 text-green-200" />
+                  <span className="text-sm font-medium text-green-100">
+                    Statut
+                  </span>
+                </div>
+                <p className="text-lg font-bold text-green-100">
+                  ✓ Compte vérifié
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Professional Verification Banner */}
+      <ProfessionalVerificationBanner />
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 p-3 rounded-xl shadow-lg">
+              <Car className="h-6 w-6 text-white" />
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gray-900">
+                {userVehicles.length}
+              </p>
+              <p className="text-sm text-gray-600 font-medium">Mes annonces</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-green-600 font-semibold text-sm bg-green-50 px-2 py-1 rounded-full">
+              {userVehicles.filter((v) => v.status === "approved").length}{" "}
+              actives
+            </span>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-3 rounded-xl shadow-lg">
+              <Eye className="h-6 w-6 text-white" />
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gray-900">
+                {totalViews.toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-600 font-medium">Vues totales</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600 text-sm bg-gray-50 px-2 py-1 rounded-full">
+              Moy:{" "}
+              {userVehicles.length > 0
+                ? Math.round(totalViews / userVehicles.length)
+                : 0}
+              /annonce
+            </span>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-red-500 to-pink-600 p-3 rounded-xl shadow-lg">
+              <Heart className="h-6 w-6 text-white" />
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gray-900">
+                {totalFavorites}
+              </p>
+              <p className="text-sm text-gray-600 font-medium">Favoris</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-pink-600 text-sm bg-pink-50 px-2 py-1 rounded-full font-medium">
+              Intérêt généré
+            </span>
+            <Heart className="h-4 w-4 text-pink-500" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-3 rounded-xl shadow-lg">
+              <Crown className="h-6 w-6 text-white" />
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-orange-600">
+                {premiumListings}
+              </p>
+              <p className="text-sm text-gray-600 font-medium">Premium</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-orange-600 font-semibold text-sm bg-orange-50 px-2 py-1 rounded-full">
+              Mises en avant
+            </span>
+            <Crown className="h-4 w-4 text-orange-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <button
+          onClick={onCreateListing}
+          className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+        >
+          <Plus className="h-8 w-8 mb-3" />
+          <h3 className="text-lg font-semibold mb-2">Nouvelle annonce</h3>
+          <p className="text-primary-bolt-100 text-sm">
+            Publiez votre véhicule en quelques clics
+          </p>
+        </button>
+
+        <button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <MessageCircle className="h-8 w-8 mb-3" />
+          <h3 className="text-lg font-semibold mb-2">Messages</h3>
+          <p className="text-green-100 text-sm">1 nouvelle conversation</p>
+        </button>
+
+        <button className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <Crown className="h-8 w-8 mb-3" />
+          <h3 className="text-lg font-semibold mb-2">Booster mes annonces</h3>
+          <p className="text-orange-100 text-sm">Augmentez votre visibilité</p>
+        </button>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Activité récente
+            </h2>
+            <button className="text-primary-bolt-500 hover:text-primary-bolt-600 font-medium text-sm">
+              Voir tout
+            </button>
+          </div>
+        </div>
+        <div className="p-6">
+          {userVehicles.length > 0 ? (
+            <div className="space-y-4">
+              {userVehicles.slice(0, 5).map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl hover:from-primary-bolt-50 hover:to-primary-bolt-100/50 transition-all duration-200"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-14 h-14 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Car className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">
+                        {vehicle.title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Créée le{" "}
+                        {new Date(vehicle.createdAt).toLocaleDateString(
+                          "fr-FR",
+                        )}
+                      </p>
+                      <div className="flex items-center space-x-3 mt-1">
+                        <span className="text-xs bg-primary-bolt-100 text-primary-bolt-500 px-2 py-1 rounded-full font-medium">
+                          {vehicle.views} vues
+                        </span>
+                        <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full font-medium">
+                          {vehicle.favorites} ❤️
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-primary-bolt-500">
+                      {formatPrice(vehicle.price)}
+                    </p>
+                    {vehicle.isPremium && (
+                      <span className="inline-flex items-center space-x-1 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
+                        <Crown className="h-3 w-3" />
+                        <span>Premium</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Car className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Aucune annonce
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Vous n'avez pas encore publié d'annonce.
+              </p>
+              <button className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                Publier ma première annonce
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderListings = () => {
+    // Filtrer les annonces selon le filtre sélectionné
+    const activeVehicles = userVehicles.filter((vehicle) => {
+      // Exclure les annonces supprimées
+      if ((vehicle as any).deletedAt) return false;
+
+      // Appliquer le filtre de statut
+      switch (listingFilter) {
+        case "approved":
+          return vehicle.status === "approved";
+        case "draft":
+        case "pending":
+          return vehicle.status === "draft" || vehicle.status === "pending";
+        case "rejected":
+          return vehicle.status === "rejected";
+        case "all":
+        default:
+          return true;
+      }
+    });
+
+    // Compter les annonces par statut pour les badges
+    const statusCounts = {
+      all: userVehicles.filter((v) => !(v as any).deletedAt).length,
+      approved: userVehicles.filter(
+        (v) => !(v as any).deletedAt && v.status === "approved",
+      ).length,
+      pending: userVehicles.filter(
+        (v) =>
+          !(v as any).deletedAt &&
+          (v.status === "draft" || v.status === "pending"),
+      ).length,
+      rejected: userVehicles.filter(
+        (v) => !(v as any).deletedAt && v.status === "rejected",
+      ).length,
+    };
+
+    return (
+      <div className="space-y-12">
+        {/* Section Mes annonces actives */}
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Mes annonces</h1>
+              <div className="mt-2 space-y-2">
+                <p className="text-gray-600 text-lg">
+                  {activeVehicles.length} annonce
+                  {activeVehicles.length !== 1 ? "s" : ""}{" "}
+                  {listingFilter === "all"
+                    ? "au total"
+                    : getFilterLabel(listingFilter)}
+                </p>
+
+                {/* Indicateur de quota pour les comptes professionnels */}
+                {dbUser?.type === "professional" && quotaInfo && (
+                  <div
+                    className={`flex items-center space-x-2 text-sm p-3 rounded-lg ${
+                      quotaInfo.canCreate
+                        ? "bg-green-50 border border-green-200"
+                        : "bg-red-50 border border-red-200"
+                    }`}
+                  >
+                    <BarChart3
+                      className={`h-4 w-4 ${
+                        quotaInfo.canCreate ? "text-green-600" : "text-red-600"
+                      }`}
+                    />
+                    <span
+                      className={`font-medium ${
+                        quotaInfo.canCreate ? "text-green-800" : "text-red-800"
+                      }`}
+                    >
+                      Quota: {quotaInfo.activeListings}
+                      {quotaInfo.maxListings ? `/${quotaInfo.maxListings}` : ""}
+                      {quotaInfo.maxListings
+                        ? " annonces autorisées"
+                        : " (illimité)"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              {/* Affichage conditionnel du bouton selon le quota */}
+              {dbUser?.type === "professional" &&
+              quotaInfo &&
+              !quotaInfo.canCreate ? (
+                <div className="space-y-3">
+                  <button
+                    disabled
+                    className="bg-gray-300 text-gray-500 px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 cursor-not-allowed"
+                    data-testid="button-create-listing-disabled"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>Nouvelle annonce</span>
+                  </button>
+                  <div className="text-center">
+                    <button
+                      onClick={() =>
+                        (window.location.href = "/subscription-purchase")
+                      }
+                      className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                      data-testid="button-upgrade-plan"
+                    >
+                      Passer à un plan supérieur
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={onCreateListing}
+                  className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+                  data-testid="button-create-listing"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Nouvelle annonce</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Filtres rapides */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Filtrer par statut
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              {/* Toutes */}
+              <button
+                onClick={() => setListingFilter("all")}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                  listingFilter === "all"
+                    ? "bg-gray-900 text-white shadow-lg"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <span>📋 Toutes</span>
+                <span className="bg-white/20 text-xs px-2 py-1 rounded-full font-bold">
+                  {statusCounts.all}
+                </span>
+              </button>
+
+              {/* Approuvées (Actives) */}
+              <button
+                onClick={() => setListingFilter("approved")}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                  listingFilter === "approved"
+                    ? "bg-green-600 text-white shadow-lg"
+                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                }`}
+              >
+                <span>✅ Actives</span>
+                <span className="bg-white/20 text-xs px-2 py-1 rounded-full font-bold">
+                  {statusCounts.approved}
+                </span>
+              </button>
+
+              {/* En attente */}
+              <button
+                onClick={() => setListingFilter("pending")}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                  listingFilter === "pending"
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                }`}
+              >
+                <span>🕐 En attente</span>
+                <span className="bg-white/20 text-xs px-2 py-1 rounded-full font-bold">
+                  {statusCounts.pending}
+                </span>
+              </button>
+
+              {/* Rejetées */}
+              <button
+                onClick={() => setListingFilter("rejected")}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+                  listingFilter === "rejected"
+                    ? "bg-red-600 text-white shadow-lg"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
+                }`}
+              >
+                <span>❌ Rejetées</span>
+                <span className="bg-white/20 text-xs px-2 py-1 rounded-full font-bold">
+                  {statusCounts.rejected}
+                </span>
+              </button>
+            </div>
+
+            {/* Indicateur du filtre actif */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                <strong>Filtre actif :</strong>{" "}
+                {getFilterDescription(listingFilter, activeVehicles.length)}
+              </p>
+            </div>
+          </div>
+
+          {activeVehicles.length > 0 ? (
+            <div className="grid gap-8">
+              {activeVehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="md:flex">
+                    <div className="md:w-80 h-64 bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden">
+                      {vehicle.images.length > 0 ? (
+                        <img
+                          src={vehicle.images[0]}
+                          alt={vehicle.title}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <img
+                            src={brandIcon}
+                            alt="Brand icon"
+                            className="w-20 h-20 opacity-60"
+                          />
+                        </div>
+                      )}
+                      {/* Badges Premium et Boost */}
+                      <div className="absolute top-4 left-4 flex flex-col space-y-2">
+                        {vehicle.isBoosted && (
+                          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 shadow-lg">
+                            <Zap className="h-4 w-4" />
+                            <span>Boosté</span>
+                          </div>
+                        )}
+                        {vehicle.isPremium && (
+                          <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 shadow-lg">
+                            <Crown className="h-4 w-4" />
+                            <span>Premium</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex-1 p-8">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                            {vehicle.title}
+                          </h3>
+                          <p className="text-3xl font-bold text-primary-bolt-500 mb-4">
+                            {formatPrice(vehicle.price)}
+                          </p>
+                          <div className="flex items-center space-x-6 text-gray-600 mb-4">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="h-5 w-5" />
+                              <span className="font-medium">
+                                {vehicle.year}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="h-5 w-5" />
+                              <span className="font-medium">
+                                {vehicle.location}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end space-y-2">
+                          <span
+                            className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                              vehicle.status === "approved"
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : vehicle.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                                  : vehicle.status === "draft"
+                                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                    : "bg-red-100 text-red-800 border border-red-200"
+                            }`}
+                          >
+                            {vehicle.status === "approved"
+                              ? "✓ Approuvée"
+                              : vehicle.status === "pending"
+                                ? "⏳ En attente"
+                                : vehicle.status === "draft"
+                                  ? "📝 En attente de validation"
+                                  : "❌ Rejetée"}
+                          </span>
+                          {vehicle.isBoosted && vehicle.boostedUntil && (
+                            <span className="px-4 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-800 border border-orange-200">
+                              <Zap className="h-3 w-3 inline mr-1" />
+                              Boost actif jusqu'au{" "}
+                              {new Date(
+                                vehicle.boostedUntil,
+                              ).toLocaleDateString("fr-FR")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Affichage de la raison du rejet */}
+                      {vehicle.status === "rejected" &&
+                        vehicle.rejectionReason && (
+                          <div className="mt-4 mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-start space-x-3">
+                              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-semibold text-red-900 mb-1">
+                                  Raison du refus :
+                                </h4>
+                                <p className="text-sm text-red-800">
+                                  {vehicle.rejectionReason}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                      <div className="flex justify-between items-center">
+                        {/* Afficher les compteurs seulement pour les annonces approuvées ou en attente */}
+                        {vehicle.status === "approved" ||
+                        vehicle.status === "pending" ? (
+                          <div className="flex items-center space-x-8">
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <Eye className="h-5 w-5" />
+                              <span className="font-semibold">
+                                {vehicle.views}
+                              </span>
+                              <span className="text-sm">vues</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <Heart className="h-5 w-5" />
+                              <span className="font-semibold">
+                                {vehicle.favorites}
+                              </span>
+                              <span className="text-sm">favoris</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <MessageCircle className="h-5 w-5" />
+                              <span className="font-semibold">3</span>
+                              <span className="text-sm">messages</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            {/* Div vide pour maintenir le justify-between */}
+                          </div>
+                        )}
+
+                        <div className="flex items-center space-x-3">
+                          {/* Afficher les boutons seulement pour les annonces approuvées ou en attente */}
+                          {!(vehicle as any).deletedAt &&
+                            (vehicle.status === "approved" ||
+                              vehicle.status === "pending") && (
+                              <>
+                                {boostStatuses[vehicle.id]?.isActive ? (
+                                  <span className="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold flex items-center space-x-2 shadow-lg">
+                                    <Zap className="h-4 w-4" />
+                                    <span>🚀 Annonce boostée</span>
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() =>
+                                      openBoostModal(vehicle.id, vehicle.title)
+                                    }
+                                    className="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                                    data-testid={`button-boost-${vehicle.id}`}
+                                  >
+                                    <Zap className="h-4 w-4" />
+                                    <span>Booster</span>
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() =>
+                                    openDeletionModal(vehicle.id, vehicle.title)
+                                  }
+                                  className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </button>
+                              </>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-16 text-center">
+              <div className="w-24 h-24 bg-gradient-to-r from-primary-bolt-100 to-primary-bolt-200 rounded-full flex items-center justify-center mx-auto mb-8">
+                <Car className="h-12 w-12 text-primary-bolt-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                {getEmptyStateTitle(listingFilter)}
+              </h3>
+              <p className="text-gray-600 mb-8 text-lg">
+                {getEmptyStateDescription(listingFilter)}
+              </p>
+              <button
+                onClick={onCreateListing}
+                className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-10 py-4 rounded-xl font-semibold flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+              >
+                <Plus className="h-6 w-6" />
+                <span>Publier une annonce</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Section Annonces supprimées */}
+        {deletedVehicles.length > 0 && (
+          <div className="space-y-8">
+            <div className="border-t border-gray-200 pt-8">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-3">
+                    <Trash2 className="h-7 w-7 text-gray-500" />
+                    <span>Annonces supprimées</span>
+                  </h2>
+                  <p className="text-gray-600 mt-2 text-lg">
+                    {deletedVehicles.length} annonce
+                    {deletedVehicles.length !== 1 ? "s" : ""} supprimée
+                    {deletedVehicles.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {deletedVehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm opacity-75"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {vehicle.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        {vehicle.brand} {vehicle.model} • {vehicle.year}
+                      </p>
+                    </div>
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Supprimée
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Prix :</span>
+                      <span className="font-semibold text-gray-900">
+                        {vehicle.price.toLocaleString()} €
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        Supprimée le :
+                      </span>
+                      <span className="text-sm text-gray-900">
+                        {(vehicle as any).deletedAt
+                          ? new Date(
+                              (vehicle as any).deletedAt,
+                            ).toLocaleDateString("fr-FR")
+                          : "N/A"}
+                      </span>
+                    </div>
+                    {(vehicle as any).deletionReason && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs font-medium text-gray-700 mb-1">
+                          Raison de suppression :
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {translateDeletionReason(
+                            (vehicle as any).deletionReason,
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderMessages = () => {
     if (loadingMessages) {
       return (
@@ -1311,18 +2131,677 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   };
 
-  <ProfileSection
-    dbUser={dbUser}
-    user={user}
-    profileForm={profileForm}
-    setProfileForm={setProfileForm}
-    editingProfile={editingProfile}
-    setEditingProfile={setEditingProfile}
-    profileSuccess={profileSuccess}
-    savingProfile={savingProfile}
-    handleSaveProfile={handleSaveProfile}
-    refreshDbUser={refreshDbUser}
-  />;
+  const renderProfile = () => (
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Mon profil</h1>
+          <p className="text-gray-600 mt-2 text-lg">
+            Gérez vos informations personnelles
+          </p>
+        </div>
+        <button
+          onClick={() => setEditingProfile(!editingProfile)}
+          className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          <Edit className="h-4 w-4" />
+          <span>{editingProfile ? "Annuler" : "Modifier"}</span>
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+        {/* Message de succès */}
+        {profileSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center space-x-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-green-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <p className="text-green-800 font-medium">
+              Profil mis à jour avec succès !
+            </p>
+          </div>
+        )}
+
+        <div className="flex items-center space-x-8 mb-10">
+          {/* Avatar avec upload pour utilisateurs individuels */}
+          <div className="relative">
+            <div className="w-24 h-24 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+              {dbUser?.type === "individual" && dbUser?.avatar ? (
+                <img
+                  src={dbUser.avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : dbUser?.type === "professional" &&
+                (dbUser as any)?.company_logo ? (
+                <img
+                  src={(dbUser as any).company_logo}
+                  alt="Logo entreprise"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-bold text-3xl">
+                  {(dbUser?.name || user?.email || "U").charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            {/* Bouton upload avatar pour utilisateurs individuels en mode édition */}
+            {editingProfile && dbUser?.type === "individual" && (
+              <div className="mt-3 text-center">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  id="avatar-upload"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !user?.id) return;
+
+                    // Vérifier le format
+                    const allowedTypes = [
+                      "image/jpeg",
+                      "image/jpg",
+                      "image/png",
+                      "image/webp",
+                    ];
+                    if (!allowedTypes.includes(file.type)) {
+                      alert(
+                        "Seuls les formats JPG, PNG et WEBP sont autorisés",
+                      );
+                      return;
+                    }
+
+                    // Vérifier la taille (1MB max pour Replit)
+                    if (file.size > 1 * 1024 * 1024) {
+                      alert("L'image ne doit pas dépasser 1 MB pour Replit");
+                      return;
+                    }
+
+                    // Fonction pour compresser l'image
+                    const compressImage = (file: File): Promise<File> => {
+                      return new Promise((resolve) => {
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        const img = new Image();
+
+                        img.onload = () => {
+                          // Redimensionner à 200x200 max
+                          const maxSize = 200;
+                          let { width, height } = img;
+
+                          if (width > height) {
+                            if (width > maxSize) {
+                              height = (height * maxSize) / width;
+                              width = maxSize;
+                            }
+                          } else {
+                            if (height > maxSize) {
+                              width = (width * maxSize) / height;
+                              height = maxSize;
+                            }
+                          }
+
+                          canvas.width = width;
+                          canvas.height = height;
+
+                          ctx?.drawImage(img, 0, 0, width, height);
+
+                          canvas.toBlob(
+                            (blob) => {
+                              if (blob) {
+                                const compressedFile = new File(
+                                  [blob],
+                                  file.name,
+                                  {
+                                    type: "image/jpeg",
+                                    lastModified: Date.now(),
+                                  },
+                                );
+                                resolve(compressedFile);
+                              } else {
+                                resolve(file);
+                              }
+                            },
+                            "image/jpeg",
+                            0.8,
+                          );
+                        };
+
+                        img.src = URL.createObjectURL(file);
+                      });
+                    };
+
+                    // Compresser l'image avant upload
+                    const compressedFile = await compressImage(file);
+
+                    const formData = new FormData();
+                    formData.append("avatar", compressedFile);
+
+                    console.log("🚀 Début upload avatar");
+                    console.log("📁 Fichier original:", {
+                      name: file.name,
+                      size: file.size,
+                      type: file.type,
+                    });
+                    console.log("📁 Fichier compressé:", {
+                      name: compressedFile.name,
+                      size: compressedFile.size,
+                      type: compressedFile.type,
+                    });
+                    console.log("👤 User ID:", user.id);
+
+                    try {
+                      const controller = new AbortController();
+                      const timeoutId = setTimeout(
+                        () => controller.abort(),
+                        30000,
+                      ); // 30s timeout
+
+                      const response = await fetch(
+                        `/api/avatar/upload/${user.id}`,
+                        {
+                          method: "POST",
+                          body: formData,
+                          signal: controller.signal,
+                        },
+                      );
+
+                      clearTimeout(timeoutId);
+
+                      console.log("Statut de la réponse:", response.status);
+                      console.log("Headers de la réponse:", [
+                        ...response.headers.entries(),
+                      ]);
+
+                      // Vérifier si la réponse est OK avant de parser JSON
+                      if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(
+                          "Erreur HTTP:",
+                          response.status,
+                          errorText,
+                        );
+                        alert(`Erreur HTTP ${response.status}: ${errorText}`);
+                        return;
+                      }
+
+                      const result = await response.json();
+
+                      console.log("Statut de la réponse:", response.status);
+                      console.log("Résultat complet:", result);
+
+                      if (response.ok) {
+                        // Mettre à jour le profil localement - rafraîchir les données utilisateur
+                        await refreshDbUser();
+                        alert("Photo de profil mise à jour avec succès !");
+                      } else {
+                        console.error("Erreur API:", result);
+                        alert(
+                          `Erreur: ${result.error || result.message || "Erreur inconnue"}`,
+                        );
+                      }
+                    } catch (error) {
+                      const errorMessage =
+                        error instanceof Error
+                          ? error.message
+                          : "Erreur inconnue";
+                      const errorStack =
+                        error instanceof Error ? error.stack : undefined;
+
+                      console.error(
+                        "Erreur upload avatar - Message:",
+                        errorMessage,
+                      );
+                      console.error(
+                        "Erreur upload avatar - Stack:",
+                        errorStack,
+                      );
+                      console.error(
+                        "Erreur upload avatar - Type:",
+                        typeof error,
+                      );
+                      console.error(
+                        "Erreur upload avatar - Name:",
+                        error instanceof Error ? error.name : "Unknown",
+                      );
+
+                      // Gestion spécifique des erreurs
+                      if (
+                        error instanceof Error &&
+                        error.name === "AbortError"
+                      ) {
+                        alert(
+                          "Timeout: L'upload a pris trop de temps. Essayez avec une image plus petite.",
+                        );
+                      } else if (errorMessage.includes("Failed to fetch")) {
+                        alert(
+                          "Erreur de connexion au serveur. Vérifiez votre connexion et réessayez.",
+                        );
+                      } else {
+                        alert(
+                          `Erreur lors de l'upload de l'avatar: ${errorMessage}`,
+                        );
+                      }
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="inline-flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg text-sm"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>{dbUser?.avatar ? "Changer" : "Ajouter"} photo</span>
+                </label>
+                <p className="text-xs text-gray-600 mt-1">
+                  JPG, PNG, WEBP (2MB max)
+                </p>
+              </div>
+            )}
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              {dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
+            </h2>
+            <CompanyNameDisplay userId={dbUser?.id} userType={dbUser?.type} />
+            <p className="text-gray-600 text-lg mt-1">
+              {user?.email || dbUser?.email}
+            </p>
+            <div className="flex items-center space-x-3 mt-4">
+              <ProfessionalVerificationBadge dbUser={dbUser} />
+              <span className="px-4 py-2 bg-primary-bolt-100 text-primary-bolt-500 rounded-full text-sm font-semibold border border-primary-bolt-200">
+                {dbUser?.type === "professional"
+                  ? "🏢 Professionnel"
+                  : "👤 Particulier"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Pseudo ou Nom Prénom (Sera affiché en public)
+            </label>
+            <input
+              type="text"
+              value={
+                editingProfile
+                  ? profileForm.name
+                  : dbUser?.name || user?.email?.split("@")[0] || ""
+              }
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, name: e.target.value })
+              }
+              disabled={!editingProfile}
+              className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Email
+            </label>
+            <input
+              type="email"
+              value={user?.email || dbUser?.email || ""}
+              disabled={true}
+              className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
+              title="L'email ne peut pas être modifié"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Téléphone
+            </label>
+            <input
+              type="tel"
+              value={(dbUser as any)?.phone || ""}
+              disabled={true} // ✅ Toujours désactivé
+              className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
+              title="Le téléphone ne peut pas être modifié après la création du compte"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              🔒 Le numéro de téléphone ne peut pas être modifié après la
+              création du compte
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              WhatsApp
+            </label>
+            <input
+              type="tel"
+              value={
+                editingProfile
+                  ? profileForm.whatsapp
+                  : (dbUser as any)?.whatsapp || ""
+              }
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // ✅ Supprimer tout sauf les chiffres
+                if (value.length <= 10) {
+                  // ✅ Limiter à exactement 10 chiffres
+                  setProfileForm({ ...profileForm, whatsapp: value });
+                }
+              }}
+              disabled={!editingProfile}
+              maxLength={10} // ✅ Limite HTML exacte
+              placeholder="0612345678"
+              className={`w-full px-4 py-4 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg ${
+                editingProfile &&
+                profileForm.whatsapp &&
+                profileForm.whatsapp.length !== 10 &&
+                profileForm.whatsapp.length > 0
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+            />
+            {editingProfile && (
+              <div className="mt-1">
+                <p className="text-xs text-gray-500">
+                  Entrez exactement 10 chiffres (ex: 0612345678)
+                </p>
+                {profileForm.whatsapp &&
+                  profileForm.whatsapp.length > 0 &&
+                  profileForm.whatsapp.length !== 10 && (
+                    <p className="text-xs text-red-500 mt-1">
+                      ❌ Le numéro WhatsApp doit contenir exactement 10 chiffres
+                      ({profileForm.whatsapp.length}/10)
+                    </p>
+                  )}
+                {profileForm.whatsapp && profileForm.whatsapp.length === 10 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✅ Numéro valide
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Code postal
+            </label>
+            <input
+              type="text"
+              value={
+                editingProfile
+                  ? profileForm.postalCode
+                  : (dbUser as any)?.postal_code || ""
+              }
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, postalCode: e.target.value })
+              }
+              disabled={!editingProfile}
+              className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Ville
+            </label>
+            <input
+              type="text"
+              value={
+                editingProfile ? profileForm.city : (dbUser as any)?.city || ""
+              }
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, city: e.target.value })
+              }
+              disabled={!editingProfile}
+              className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+            />
+          </div>
+        </div>
+
+        {/* Section Entreprise pour les professionnels */}
+        {dbUser?.type === "professional" && (
+          <div className="mt-8 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-200 p-8">
+            <div className="flex items-center space-x-3 mb-6">
+              <Building2 className="h-6 w-6 text-blue-600" />
+              <h3 className="text-2xl font-bold text-gray-900">
+                Informations Entreprise
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Nom entreprise - Lecture seule */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Nom de l'entreprise
+                </label>
+                <input
+                  type="text"
+                  value={(dbUser as any)?.company_name || "Non renseigné"}
+                  disabled={true}
+                  className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
+                  title="Le nom de l'entreprise ne peut pas être modifié"
+                />
+              </div>
+
+              {/* SIRET - Lecture seule */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  SIRET
+                </label>
+                <input
+                  type="text"
+                  value={(dbUser as any)?.siret || "Non renseigné"}
+                  disabled={true}
+                  className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
+                  title="Le SIRET ne peut pas être modifié"
+                />
+              </div>
+
+              {/* Adresse entreprise - Éditable */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Adresse entreprise
+                </label>
+                <input
+                  type="text"
+                  value={
+                    editingProfile
+                      ? profileForm.address
+                      : (dbUser as any)?.address || ""
+                  }
+                  onChange={(e) =>
+                    setProfileForm({ ...profileForm, address: e.target.value })
+                  }
+                  disabled={!editingProfile}
+                  className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+                  placeholder="Adresse de votre entreprise"
+                />
+              </div>
+
+              {/* Site web - Éditable */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Site web
+                </label>
+                <input
+                  type="url"
+                  value={
+                    editingProfile
+                      ? profileForm.website
+                      : (dbUser as any)?.website || ""
+                  }
+                  onChange={(e) =>
+                    setProfileForm({ ...profileForm, website: e.target.value })
+                  }
+                  disabled={!editingProfile}
+                  className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+                  placeholder="https://www.monentreprise.com"
+                />
+              </div>
+
+              {/* Description - Éditable */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Description de l'entreprise
+                </label>
+                <textarea
+                  value={
+                    editingProfile
+                      ? profileForm.description || ""
+                      : (dbUser as any)?.bio || ""
+                  }
+                  onChange={(e) =>
+                    setProfileForm({
+                      ...profileForm,
+                      description: e.target.value,
+                    })
+                  }
+                  disabled={!editingProfile}
+                  rows={4}
+                  className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg resize-none"
+                  placeholder="Décrivez votre entreprise et vos services..."
+                />
+              </div>
+
+              {/* Logo d'entreprise - Upload */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Logo de l'entreprise
+                </label>
+                <div className="flex items-start space-x-4">
+                  {/* Affichage du logo actuel */}
+                  {(editingProfile
+                    ? profileForm.companyLogo
+                    : (dbUser as any)?.company_logo || "") && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={
+                          editingProfile
+                            ? profileForm.companyLogo
+                            : (dbUser as any)?.company_logo || ""
+                        }
+                        alt="Logo entreprise"
+                        className="w-20 h-20 rounded-xl object-cover border border-gray-300"
+                      />
+                    </div>
+                  )}
+
+                  {/* Bouton d'upload en mode édition */}
+                  {editingProfile && (
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="logo-upload"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !dbUser?.id) return;
+
+                          const formData = new FormData();
+                          formData.append("logo", file);
+
+                          try {
+                            const response = await fetch(
+                              `/api/images/upload-logo/${dbUser.id}`,
+                              {
+                                method: "POST",
+                                body: formData,
+                              },
+                            );
+
+                            if (response.ok) {
+                              const data = await response.json();
+                              if (data.success && data.logo) {
+                                setProfileForm({
+                                  ...profileForm,
+                                  companyLogo: data.logo.url,
+                                });
+                              }
+                            } else {
+                              alert("Erreur lors de l'upload du logo");
+                            }
+                          } catch (error) {
+                            console.error("Erreur upload logo:", error);
+                            alert("Erreur lors de l'upload du logo");
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="logo-upload"
+                        className="inline-flex items-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg"
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span>
+                          {profileForm.companyLogo
+                            ? "Changer le logo"
+                            : "Ajouter un logo"}
+                        </span>
+                      </label>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Image carrée recommandée (200x200px max, formats: JPG,
+                        PNG, WebP)
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Message si pas de logo et pas en mode édition */}
+                  {!editingProfile &&
+                    !((dbUser as any)?.company_logo || "") && (
+                      <div className="flex-1 text-gray-600 italic">
+                        Aucun logo d'entreprise configuré
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {editingProfile && (
+          <div className="mt-10 flex justify-end space-x-4">
+            <button
+              onClick={() => {
+                setEditingProfile(false);
+                // Réinitialiser le formulaire avec les données originales
+                setProfileForm({
+                  name: dbUser?.name || "",
+                  phone: (dbUser as any)?.phone || "",
+                  whatsapp: (dbUser as any)?.whatsapp || "",
+                  postalCode: (dbUser as any)?.postal_code || "",
+                  city: (dbUser as any)?.city || "",
+                  companyName: (dbUser as any)?.company_name || "",
+                  address: (dbUser as any)?.address || "",
+                  website: (dbUser as any)?.website || "",
+                  description: (dbUser as any)?.bio || "",
+                  companyLogo: (dbUser as any)?.company_logo || "",
+                });
+              }}
+              className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleSaveProfile}
+              disabled={savingProfile}
+              className="px-8 py-3 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 disabled:bg-gray-400 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              {savingProfile ? "Sauvegarde..." : "Sauvegarder"}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   const renderPurchaseHistory = () => (
     <div className="space-y-8">
@@ -2751,75 +4230,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Main Content - plein largeur si messages */}
           <div className={activeTab === "messages" ? "w-full" : "flex-1"}>
-            {activeTab === "overview" && (
-              <OverviewSection
-                dbUser={dbUser}
-                user={user}
-                professionalAccount={professionalAccount}
-                subscriptionInfo={subscriptionInfo}
-                userVehicles={userVehicles}
-                totalViews={totalViews}
-                totalFavorites={totalFavorites}
-                premiumListings={premiumListings}
-                onCreateListing={handleCreateListing}
-                formatPrice={formatPrice}
-              />
-            )}
-
-            {activeTab === "listings" && (
-              <ListingsSection
-                userVehicles={userVehicles}
-                deletedVehicles={deletedVehicles}
-                listingFilter={listingFilter}
-                setListingFilter={setListingFilter}
-                dbUser={dbUser}
-                quotaInfo={quotaInfo}
-                brandIcon={brandIcon}
-                boostStatuses={boostStatuses}
-                onCreateListing={handleCreateListing}
-                openBoostModal={openBoostModal}
-                openDeletionModal={openDeletionModal}
-                formatPrice={formatPrice}
-                getFilterLabel={getFilterLabel}
-                getFilterDescription={getFilterDescription}
-                getEmptyStateTitle={getEmptyStateTitle}
-                getEmptyStateDescription={getEmptyStateDescription}
-                translateDeletionReason={translateDeletionReason}
-              />
-            )}
-
+            {activeTab === "overview" && renderOverview()}
+            {activeTab === "listings" && renderListings()}
             {activeTab === "purchase-history" && renderPurchaseHistory()}
             {activeTab === "favorites" && renderFavorites()}
-            {activeTab === "messages" && (
-              <MessagesSection
-                loadingMessages={loadingMessages}
-                dashboardConversations={dashboardConversations}
-                selectedConversation={selectedConversation}
-                setSelectedConversation={setSelectedConversation}
-                setActiveTab={setActiveTab}
-                //activeConversation={activeConversation}
-                newMessage={newMessage}
-                setNewMessage={setNewMessage}
-                sendingMessage={sendingMessage}
-                handleSendMessage={handleSendMessage}
-              />
-            )}
-
-            {activeTab === "profile" && (
-              <ProfileSection
-                dbUser={dbUser}
-                user={user}
-                profileForm={profileForm}
-                setProfileForm={setProfileForm}
-                editingProfile={editingProfile}
-                setEditingProfile={setEditingProfile}
-                profileSuccess={profileSuccess}
-                savingProfile={savingProfile}
-                handleSaveProfile={handleSaveProfile}
-                refreshDbUser={refreshDbUser}
-              />
-            )}
-
+            {activeTab === "messages" && renderMessages()}
+            {activeTab === "profile" && renderProfile()}
             {activeTab === "premium" && renderPremium()}
           </div>
         </div>
