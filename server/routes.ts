@@ -1622,7 +1622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { data: customization, error } = await supabaseServer
           .from("professional_accounts")
           .select(
-            "company_logo, banner_image, brand_colors, description, specialties, certifications",
+            "avatar, banner_image, brand_colors, description, specialties, certifications",
           )
           .eq("user_id", userId)
           .single();
@@ -1655,7 +1655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { data, error } = await supabaseServer
         .from("professional_accounts")
         .update({
-          company_logo: customizationData.company_logo,
+          avatar: customizationData.avatar,
           banner_image: customizationData.banner_image,
           brand_colors: customizationData.brand_colors,
           description: customizationData.description,
@@ -1839,7 +1839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description,
         specialties,
         certifications,
-        company_logo,
+        avatar,
         banner_image,
         brand_colors,
       } = req.body;
@@ -1864,7 +1864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: description?.trim() || null,
           specialties: specialties || [],
           certifications: certifications || [],
-          company_logo: company_logo?.trim() || null,
+          avatar: avatar?.trim() || null,
           banner_image: banner_image?.trim() || null,
           brand_colors: brand_colors || null,
           updated_at: new Date().toISOString(),

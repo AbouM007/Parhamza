@@ -247,6 +247,7 @@ router.get("/annonce/:annonceId", async (req, res) => {
 });
 
 // Upload logo d'entreprise
+/*
 router.post(
   "/upload-logo/:userId",
   upload.single("logo"),
@@ -347,7 +348,7 @@ router.post(
         .status(500)
         .json({ error: "Erreur serveur lors de l'upload du logo" });
     }
-  },
-);
+  }, 
+);*/
 
 export default router;

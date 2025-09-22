@@ -68,13 +68,14 @@ router.post(
         return res.status(404).json({ error: "Utilisateur non trouvé" });
       }
 
+      /*
       if (existingUser.type !== "individual") {
         console.log("❌ Utilisateur non autorisé:", existingUser.type);
         return res.status(403).json({
           error:
             "Seuls les utilisateurs individuels peuvent uploader un avatar",
         });
-      }
+      } */
 
       // Supprimer l'ancien avatar s'il existe
       if (existingUser.avatar) {

@@ -19,7 +19,7 @@ interface ProAccount {
   city?: string;
   postal_code?: string;
   company_name?: string;
-  company_logo?: string;
+  avatar?: string;
   siret?: string;
   bio?: string;
   type: string;
@@ -173,9 +173,9 @@ export default function ProShop() {
             <div className="flex items-end space-x-6">
               {/* Logo de l'entreprise */}
               <div className="w-32 h-32 bg-white rounded-2xl shadow-lg border-4 border-white flex items-center justify-center overflow-hidden">
-                {proAccount.company_logo ? (
+                {proAccount.avatar ? (
                   <img 
-                    src={proAccount.company_logo} 
+                    src={proAccount.avatar} 
                     alt={proAccount.company_name || proAccount.name}
                     className="w-full h-full object-cover"
                   />

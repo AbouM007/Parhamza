@@ -20,7 +20,7 @@ router.put("/update/:userId", async (req, res) => {
       contactPreferences,
       address,
       website,
-      company_logo,
+      avatar,
       specialties,
       profileCompleted,
       companyName, // <- maintenant utilisé uniquement pour professional_accounts
@@ -39,7 +39,7 @@ router.put("/update/:userId", async (req, res) => {
       updateData.contact_preferences = contactPreferences;
     if (address !== undefined) updateData.address = address;
     if (website !== undefined) updateData.website = website;
-    if (company_logo !== undefined) updateData.company_logo = company_logo;
+    if (avatar !== undefined) updateData.avatar = avatar;
     if (specialties !== undefined) updateData.specialties = specialties;
     if (profileCompleted !== undefined)
       updateData.profile_completed = profileCompleted;

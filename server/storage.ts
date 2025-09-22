@@ -178,7 +178,7 @@ export class SupabaseStorage implements IStorage {
 
     if (!data) return undefined;
 
-    // ✅ Préserver TOUTES les données users (y compris company_logo)
+    
     // ✅ Ajouter les données professional_accounts
     const enrichedData = {
       ...data, // ← GARDE company_logo de users
@@ -328,7 +328,7 @@ export class SupabaseStorage implements IStorage {
             whatsapp: annonce.users.whatsapp,
             type: annonce.users.type,
             companyName: annonce.users.company_name,
-            companyLogo: annonce.users.company_logo,
+            //companyLogo: annonce.users.company_logo,
             address: annonce.users.address,
             city: annonce.users.city,
             postalCode: annonce.users.postal_code,
@@ -362,7 +362,7 @@ export class SupabaseStorage implements IStorage {
                     annonce.users.professional_accounts[0]
                       .verification_process_status,
                   companyLogo:
-                    annonce.users.professional_accounts[0].company_logo,
+                    annonce.users.professional_accounts[0].avatar,
                   bannerImage:
                     annonce.users.professional_accounts[0].banner_image,
                 }
@@ -487,7 +487,7 @@ export class SupabaseStorage implements IStorage {
                 whatsapp: vehicle.users.whatsapp,
                 type: vehicle.users.type,
                 companyName: vehicle.users.company_name,
-                companyLogo: vehicle.users.company_logo,
+                //companyLogo: vehicle.users.company_logo,
                 address: vehicle.users.address,
                 city: vehicle.users.city,
                 postalCode: vehicle.users.postal_code,
@@ -589,7 +589,7 @@ export class SupabaseStorage implements IStorage {
             whatsapp: vehicle.users.whatsapp,
             type: vehicle.users.type,
             companyName: vehicle.users.company_name,
-            companyLogo: vehicle.users.company_logo,
+            //companyLogo: vehicle.users.company_logo,
             address: vehicle.users.address,
             city: vehicle.users.city,
             postalCode: vehicle.users.postal_code,
@@ -678,7 +678,7 @@ export class SupabaseStorage implements IStorage {
             whatsapp: annonce.users.whatsapp,
             type: annonce.users.type,
             companyName: annonce.users.company_name,
-            companyLogo: annonce.users.company_logo,
+            //companyLogo: annonce.users.company_logo,
             address: annonce.users.address,
             city: annonce.users.city,
             postalCode: annonce.users.postal_code,
@@ -1176,7 +1176,7 @@ export class SupabaseStorage implements IStorage {
           *,
           users!annonces_user_id_fkey (
             id, email, name, phone, whatsapp, type, company_name, 
-            company_logo, address, city, postal_code, website, 
+            avatar, address, city, postal_code, website, 
             siret, bio, avatar, specialties, verified, email_verified, 
             contact_preferences, created_at, last_login_at
           )
@@ -1206,7 +1206,7 @@ export class SupabaseStorage implements IStorage {
               whatsapp: annonce.users.whatsapp,
               type: annonce.users.type,
               companyName: annonce.users.company_name,
-              companyLogo: annonce.users.company_logo,
+              //companyLogo: annonce.users.company_logo,
               address: annonce.users.address,
               city: annonce.users.city,
               postalCode: annonce.users.postal_code,
@@ -1598,7 +1598,7 @@ export class SupabaseStorage implements IStorage {
                 whatsapp: vehicle.users.whatsapp,
                 type: vehicle.users.type,
                 companyName: vehicle.users.company_name,
-                companyLogo: vehicle.users.company_logo,
+                //companyLogo: vehicle.users.company_logo,
                 address: vehicle.users.address,
                 city: vehicle.users.city,
                 postalCode: vehicle.users.postal_code,

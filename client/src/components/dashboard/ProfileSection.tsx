@@ -16,6 +16,44 @@ interface ProfileSectionProps {
   refreshDbUser: () => void;
 }
 
+// Dans ProfileSection.tsx (ou utils séparé)
+const handleAvatarUpload = async (
+  file: File,
+  userId: string,
+  refreshDbUser: () => Promise<void>,
+) => {
+  // Vérifications format + taille
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) {
+    alert("Seuls les formats JPG, PNG et WEBP sont autorisés");
+    return;
+  }
+
+  if (file.size > 1 * 1024 * 1024) {
+    alert("L'image ne doit pas dépasser 1 MB");
+    return;
+  }
+
+  // Compression + Upload
+  //const compressedFile = await compressImage(file);
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  try {
+    const response = await fetch(`/api/avatar/upload/${userId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      await refreshDbUser();
+      alert("Photo mise à jour avec succès !");
+    }
+  } catch (error) {
+    alert("Erreur lors de l'upload");
+  }
+};
+
 export default function ProfileSection({
   dbUser,
   user,
@@ -74,223 +112,25 @@ export default function ProfileSection({
           {/* Avatar avec upload pour utilisateurs individuels */}
           <div className="relative">
             <div className="w-24 h-24 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-              {dbUser?.type === "individual" && dbUser?.avatar ? (
-                <img
-                  src={dbUser.avatar}
-                  alt="Avatar"
-                  className="w-full h-full object-cover"
-                />
-              ) : dbUser?.type === "professional" &&
-                (dbUser as any)?.company_logo ? (
-                <img
-                  src={(dbUser as any).company_logo}
-                  alt="Logo entreprise"
-                  className="w-full h-full object-cover"
-                />
+              {dbUser?.avatar ? (
+                <img src={dbUser.avatar} />
               ) : (
-                <span className="text-white font-bold text-3xl">
-                  {(dbUser?.name || user?.email || "U").charAt(0).toUpperCase()}
-                </span>
+                <span>Initiales</span>
               )}
             </div>
 
             {/* Bouton upload avatar pour utilisateurs individuels en mode édition */}
-            {editingProfile && dbUser?.type === "individual" && (
+            {editingProfile && (
               <div className="mt-3 text-center">
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp"
                   id="avatar-upload"
                   className="hidden"
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (!file || !user?.id) return;
-
-                    // Vérifier le format
-                    const allowedTypes = [
-                      "image/jpeg",
-                      "image/jpg",
-                      "image/png",
-                      "image/webp",
-                    ];
-                    if (!allowedTypes.includes(file.type)) {
-                      alert(
-                        "Seuls les formats JPG, PNG et WEBP sont autorisés",
-                      );
-                      return;
-                    }
-
-                    // Vérifier la taille (1MB max pour Replit)
-                    if (file.size > 1 * 1024 * 1024) {
-                      alert("L'image ne doit pas dépasser 1 MB pour Replit");
-                      return;
-                    }
-
-                    // Fonction pour compresser l'image
-                    const compressImage = (file: File): Promise<File> => {
-                      return new Promise((resolve) => {
-                        const canvas = document.createElement("canvas");
-                        const ctx = canvas.getContext("2d");
-                        const img = new Image();
-
-                        img.onload = () => {
-                          // Redimensionner à 200x200 max
-                          const maxSize = 200;
-                          let { width, height } = img;
-
-                          if (width > height) {
-                            if (width > maxSize) {
-                              height = (height * maxSize) / width;
-                              width = maxSize;
-                            }
-                          } else {
-                            if (height > maxSize) {
-                              width = (width * maxSize) / height;
-                              height = maxSize;
-                            }
-                          }
-
-                          canvas.width = width;
-                          canvas.height = height;
-
-                          ctx?.drawImage(img, 0, 0, width, height);
-
-                          canvas.toBlob(
-                            (blob) => {
-                              if (blob) {
-                                const compressedFile = new File(
-                                  [blob],
-                                  file.name,
-                                  {
-                                    type: "image/jpeg",
-                                    lastModified: Date.now(),
-                                  },
-                                );
-                                resolve(compressedFile);
-                              } else {
-                                resolve(file);
-                              }
-                            },
-                            "image/jpeg",
-                            0.8,
-                          );
-                        };
-
-                        img.src = URL.createObjectURL(file);
-                      });
-                    };
-
-                    // Compresser l'image avant upload
-                    const compressedFile = await compressImage(file);
-
-                    const formData = new FormData();
-                    formData.append("avatar", compressedFile);
-
-                    console.log("🚀 Début upload avatar");
-                    console.log("📁 Fichier original:", {
-                      name: file.name,
-                      size: file.size,
-                      type: file.type,
-                    });
-                    console.log("📁 Fichier compressé:", {
-                      name: compressedFile.name,
-                      size: compressedFile.size,
-                      type: compressedFile.type,
-                    });
-                    console.log("👤 User ID:", user.id);
-
-                    try {
-                      const controller = new AbortController();
-                      const timeoutId = setTimeout(
-                        () => controller.abort(),
-                        30000,
-                      ); // 30s timeout
-
-                      const response = await fetch(
-                        `/api/avatar/upload/${user.id}`,
-                        {
-                          method: "POST",
-                          body: formData,
-                          signal: controller.signal,
-                        },
-                      );
-
-                      clearTimeout(timeoutId);
-
-                      console.log("Statut de la réponse:", response.status);
-                      console.log("Headers de la réponse:", [
-                        ...response.headers.entries(),
-                      ]);
-
-                      // Vérifier si la réponse est OK avant de parser JSON
-                      if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(
-                          "Erreur HTTP:",
-                          response.status,
-                          errorText,
-                        );
-                        alert(`Erreur HTTP ${response.status}: ${errorText}`);
-                        return;
-                      }
-
-                      const result = await response.json();
-
-                      console.log("Statut de la réponse:", response.status);
-                      console.log("Résultat complet:", result);
-
-                      if (response.ok) {
-                        // Mettre à jour le profil localement - rafraîchir les données utilisateur
-                        await refreshDbUser();
-                        alert("Photo de profil mise à jour avec succès !");
-                      } else {
-                        console.error("Erreur API:", result);
-                        alert(
-                          `Erreur: ${result.error || result.message || "Erreur inconnue"}`,
-                        );
-                      }
-                    } catch (error) {
-                      const errorMessage =
-                        error instanceof Error
-                          ? error.message
-                          : "Erreur inconnue";
-                      const errorStack =
-                        error instanceof Error ? error.stack : undefined;
-
-                      console.error(
-                        "Erreur upload avatar - Message:",
-                        errorMessage,
-                      );
-                      console.error(
-                        "Erreur upload avatar - Stack:",
-                        errorStack,
-                      );
-                      console.error(
-                        "Erreur upload avatar - Type:",
-                        typeof error,
-                      );
-                      console.error(
-                        "Erreur upload avatar - Name:",
-                        error instanceof Error ? error.name : "Unknown",
-                      );
-
-                      // Gestion spécifique des erreurs
-                      if (
-                        error instanceof Error &&
-                        error.name === "AbortError"
-                      ) {
-                        alert(
-                          "Timeout: L'upload a pris trop de temps. Essayez avec une image plus petite.",
-                        );
-                      } else if (errorMessage.includes("Failed to fetch")) {
-                        alert(
-                          "Erreur de connexion au serveur. Vérifiez votre connexion et réessayez.",
-                        );
-                      } else {
-                        alert(
-                          `Erreur lors de l'upload de l'avatar: ${errorMessage}`,
-                        );
-                      }
+                    if (file && user?.id) {
+                      handleAvatarUpload(file, user.id, refreshDbUser);
                     }
                   }}
                 />
@@ -544,98 +384,6 @@ export default function ProfileSection({
                   className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
                   placeholder="https://www.monentreprise.com"
                 />
-              </div>
-
-              {/* Logo d'entreprise - Upload */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Logo de l'entreprise
-                </label>
-                <div className="flex items-start space-x-4">
-                  {/* Affichage du logo actuel */}
-                  {(editingProfile
-                    ? profileForm.companyLogo
-                    : (dbUser as any)?.company_logo || "") && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={
-                          editingProfile
-                            ? profileForm.companyLogo
-                            : (dbUser as any)?.company_logo || ""
-                        }
-                        alt="Logo entreprise"
-                        className="w-20 h-20 rounded-xl object-cover border border-gray-300"
-                      />
-                    </div>
-                  )}
-
-                  {/* Bouton d'upload en mode édition */}
-                  {editingProfile && (
-                    <div className="flex-1">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        id="logo-upload"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file || !dbUser?.id) return;
-
-                          const formData = new FormData();
-                          formData.append("logo", file);
-
-                          try {
-                            const response = await fetch(
-                              `/api/images/upload-logo/${dbUser.id}`,
-                              {
-                                method: "POST",
-                                body: formData,
-                              },
-                            );
-
-                            if (response.ok) {
-                              const data = await response.json();
-                              if (data.success && data.logo) {
-                                setProfileForm({
-                                  ...profileForm,
-                                  companyLogo: data.logo.url,
-                                });
-                              }
-                            } else {
-                              alert("Erreur lors de l'upload du logo");
-                            }
-                          } catch (error) {
-                            console.error("Erreur upload logo:", error);
-                            alert("Erreur lors de l'upload du logo");
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="logo-upload"
-                        className="inline-flex items-center space-x-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg"
-                      >
-                        <Upload className="h-4 w-4" />
-                        <span>
-                          {profileForm.companyLogo
-                            ? "Changer le logo"
-                            : "Ajouter un logo"}
-                        </span>
-                      </label>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Image carrée recommandée (200x200px max, formats: JPG,
-                        PNG, WebP)
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Message si pas de logo et pas en mode édition */}
-                  {!editingProfile &&
-                    !((dbUser as any)?.company_logo || "") && (
-                      <div className="flex-1 text-gray-600 italic">
-                        Aucun logo d'entreprise configuré
-                      </div>
-                    )}
-                </div>
               </div>
             </div>
           </div>

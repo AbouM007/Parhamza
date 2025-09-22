@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   whatsapp: text("whatsapp"),
   type: text("type").notNull().default("pending"),
   companyName: text("company_name"),
-  companyLogo: text("company_logo"),
+  
   address: text("address"),
   city: text("city"),
   postalCode: text("postal_code"),
@@ -222,7 +222,7 @@ export const professionalAccounts = pgTable("professional_accounts", {
   verifiedAt: timestamp("verified_at"),
   rejectedReason: text("rejected_reason"),
   // Champs de personnalisation pour la boutique
-  companyLogo: text("company_logo"),
+  avatar: text("avatar"),
   bannerImage: text("banner_image"),
   brandColors: json("brand_colors").$type<{
     primary: string;

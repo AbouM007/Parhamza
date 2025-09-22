@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { User, LogOut, Settings, Heart, Plus, Shield } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+//import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { signOut } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserMenuProps {
   onNavigate?: (path: string) => void;
@@ -10,7 +11,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
-  const { user, dbUser } = useAuth();
+  const { user, profile } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,9 +36,9 @@ export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
   if (!user) return null;
 
   const displayName =
-    dbUser?.name || user?.user_metadata?.name || "Utilisateur";
+    profile?.name || user?.user_metadata?.name || "Utilisateur";
   const userInitial = displayName.charAt(0)?.toUpperCase() || "U";
-  const avatarUrl = dbUser?.avatar;
+  const avatarUrl = profile?.avatar;
 
   return (
     <div className="relative">
@@ -64,9 +65,9 @@ export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
           <div className="p-3 border-b border-gray-100">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{displayName}</p>
-              {dbUser && (
+              {profile && (
                 <p className="text-xs leading-none text-blue-600 font-medium">
-                  {dbUser.type === "professional"
+                  {profile.type === "professional"
                     ? "Professionnel"
                     : "Particulier"}
                 </p>
@@ -123,7 +124,7 @@ export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
             </button>
 
             {/* Section pour administrateurs et professionnels */}
-            {dbUser?.email === "admin@passionauto2roues.com" && (
+            {profile?.email === "admin@passionauto2roues.com" && (
               <>
                 <div className="border-t border-gray-100 my-1"></div>
                 <button
@@ -140,14 +141,14 @@ export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
             )}
 
             {/* Ma Boutique Pro - visible uniquement pour les professionnels */}
-            {dbUser?.type === "professional" && (
+            {profile?.type === "professional" && (
               <>
                 <div className="border-t border-gray-100 my-1"></div>
                 <button
                   onClick={() => {
                     // Utiliser directement l'UID utilisateur
-                    if (dbUser?.id) {
-                      onNavigate?.(`/pro/${dbUser.id}`);
+                    if (profile?.id) {
+                      onNavigate?.(`/pro/${profile.id}`);
                     } else {
                       console.error("ID utilisateur non disponible");
                     }
