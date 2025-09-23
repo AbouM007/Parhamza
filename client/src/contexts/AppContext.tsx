@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { User, Vehicle, Message, SearchFilters } from "@/types";
 import { log } from "@/lib/logger";
+import { QuotaModal } from "@/components/QuotaModal";
 
 interface AppContextType {
   currentUser: User | null;
@@ -368,6 +369,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       }}
     >
       {children}
+      
+      {/* QuotaModal centralisée pour toute l'application */}
+      <QuotaModal
+        isOpen={isQuotaModalOpen}
+        onClose={closeQuotaModal}
+        quotaInfo={quotaModalInfo || { used: 0, maxListings: 5 }}
+        onUpgrade={() => {
+          closeQuotaModal();
+          window.location.href = "/subscription-plans";
+        }}
+      />
     </AppContext.Provider>
   );
 };
