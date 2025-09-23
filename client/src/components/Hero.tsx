@@ -44,6 +44,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
     setShowAuthModal,
     setAuthMode,
     vehicles,
+    handleCreateListingWithQuota,
   } = useApp();
   const { isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,12 +78,9 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
   };
 
   const handleCreateListing = () => {
-    if (!isAuthenticated) {
-      setAuthMode("login");
-      setShowAuthModal(true);
-    } else {
+    handleCreateListingWithQuota(() => {
       setCurrentView("create-listing");
-    }
+    });
   };
 
   const formatPrice = (price: number) => {
