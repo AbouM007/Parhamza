@@ -8,9 +8,10 @@ import { useAuth } from "@/contexts/AuthContext";
 interface UserMenuProps {
   onNavigate?: (path: string) => void;
   onDashboardNavigate?: (tab: string) => void;
+  onCreateListingWithQuota?: () => void;
 }
 
-export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
+export function UserMenu({ onNavigate, onDashboardNavigate, onCreateListingWithQuota }: UserMenuProps) {
   const { user, profile } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -114,7 +115,12 @@ export function UserMenu({ onNavigate, onDashboardNavigate }: UserMenuProps) {
 
             <button
               onClick={() => {
-                onNavigate?.("create-listing");
+                if (onCreateListingWithQuota) {
+                  onCreateListingWithQuota();
+                } else {
+                  // Fallback vers l'ancienne méthode si la fonction n'est pas fournie
+                  onNavigate?.("create-listing");
+                }
                 setIsOpen(false);
               }}
               className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
