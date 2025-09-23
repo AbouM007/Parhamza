@@ -27,6 +27,13 @@ interface AppContextType {
   authMode: "login" | "register";
   setAuthMode: (mode: "login" | "register") => void;
   refreshVehicles: () => Promise<void>;
+  // Nouvelles fonctions pour gestion quota unifiée
+  handleCreateListingWithQuota: (onSuccess: () => void) => Promise<void>;
+  openAuthModal: (mode: "login" | "register", onComplete?: () => void) => void;
+  // État pour QuotaModal centralisée
+  isQuotaModalOpen: boolean;
+  quotaModalInfo: any;
+  closeQuotaModal: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -99,6 +106,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  
+  // Nouveaux états pour gestion quota unifiée
+  const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
+  const [quotaModalInfo, setQuotaModalInfo] = useState<any>(null);
+  const [authCallback, setAuthCallback] = useState<(() => void) | null>(null);
   // Commentaire pour expliquer le changement
   // Les modals d'authentification utilisent maintenant un service centralisé
 
@@ -175,6 +187,47 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       console.error("❌ Impossible de charger les données Supabase");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Nouvelles fonctions pour gestion quota unifiée
+  const closeQuotaModal = () => {
+    setIsQuotaModalOpen(false);
+    setQuotaModalInfo(null);
+  };
+
+  const openAuthModal = (mode: "login" | "register", onComplete?: () => void) => {
+    setAuthMode(mode);
+    setShowAuthModal(true);
+    setAuthCallback(() => onComplete);
+  };
+
+  const handleCreateListingWithQuota = async (onSuccess: () => void) => {
+    // Vérifier si utilisateur connecté
+    if (!currentUser) {
+      openAuthModal("login", onSuccess);
+      return;
+    }
+
+    // Vérifier quota rapidement
+    try {
+      const response = await fetch(`/api/users/${currentUser.id}/quota/check`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const quotaInfo = await response.json();
+      
+      if (quotaInfo.canCreate) {
+        onSuccess(); // Navigation vers create-listing
+      } else {
+        // Afficher QuotaModal
+        setQuotaModalInfo(quotaInfo);
+        setIsQuotaModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Erreur vérification quota:", error);
+      onSuccess(); // Fallback: permettre la navigation
     }
   };
 
@@ -306,6 +359,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         authMode,
         setAuthMode,
         refreshVehicles,
+        // Nouvelles fonctions pour gestion quota unifiée
+        handleCreateListingWithQuota,
+        openAuthModal,
+        isQuotaModalOpen,
+        quotaModalInfo,
+        closeQuotaModal,
       }}
     >
       {children}
