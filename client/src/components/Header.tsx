@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   setDashboardTab,
   onSearch,
 }) => {
-  const { setSearchFilters, setSelectedVehicle } = useApp();
+  const { setSearchFilters, setSelectedVehicle, handleCreateListingWithQuota } = useApp();
   const { user, dbUser, isAuthenticated, isLoading } = useAuth();
   const { unreadCount } = useUnreadMessages();
   const { checkQuotaBeforeAction, isQuotaModalOpen, quotaInfo, closeQuotaModal, isChecking } = useQuotaCheck(dbUser?.id);
@@ -81,21 +81,19 @@ export const Header: React.FC<HeaderProps> = ({
     setActiveCategory(""); // Désactiver le soulignement des catégories principales
     setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
     
-    if (!isAuthenticated) {
-      // Utilisateur non connecté - afficher le modal de connexion
-      openAuthModal("login", () => {
-        setCurrentView("create-listing");
-      });
-      setMobileMenuOpen(false);
-      return;
-    }
-
-    // Utilisateur connecté - vérifier quota avant navigation
-    await checkQuotaBeforeAction(() => {
+    // Utiliser la fonction unifiée de l'AppContext
+    handleCreateListingWithQuota(() => {
       setCurrentView("create-listing");
     });
     
     setMobileMenuOpen(false);
+  };
+
+  // Fonction wrapper pour UserMenu
+  const handleUserMenuCreateListing = () => {
+    handleCreateListingWithQuota(() => {
+      setCurrentView("create-listing");
+    });
   };
 
   const handleNavigate = (path: string) => {
@@ -301,6 +299,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <UserMenu
                   onNavigate={handleNavigate}
                   onDashboardNavigate={handleDashboardNavClick}
+                  onCreateListingWithQuota={handleUserMenuCreateListing}
                 />
               </div>
             ) : (
