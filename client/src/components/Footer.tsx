@@ -6,15 +6,12 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
-  const { currentUser, setAuthMode, setShowAuthModal } = useApp();
+  const { currentUser, setAuthMode, setShowAuthModal, handleCreateListingWithQuota } = useApp();
 
   const handleCreateListing = () => {
-    if (!currentUser) {
-      setAuthMode('login');
-      setShowAuthModal(true);
-    } else {
+    handleCreateListingWithQuota(() => {
       setCurrentView('create-listing');
-    }
+    });
   };
 
   const handleMyAccountClick = () => {
