@@ -65,7 +65,10 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
             </p>
             <p className="text-gray-600 dark:text-gray-300 mt-2">
               Pour continuer à vendre, passez en{" "}
-              <span className="font-bold text-blue-600 dark:text-blue-400">Passionné</span> !
+              <span className="font-bold text-blue-600 dark:text-blue-400">
+                Passionné
+              </span>{" "}
+              !
             </p>
           </div>
 
@@ -80,19 +83,19 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
             <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-200">
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Annonces illimitées
+                Plus d'Annonces publiées
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Mise en avant prioritaire
+                Choisissez le pack qui vous convient
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Statistiques avancées
+                Badge spécial "Passionné" Visible
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                Support prioritaire
+                Plus de crédibilité
               </li>
             </ul>
           </div>
