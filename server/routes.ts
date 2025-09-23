@@ -109,6 +109,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint rapide pour vérifier le quota d'annonces d'un utilisateur (pour interception)
+  app.get("/api/users/:id/quota/check", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      
+      // Utiliser la méthode existante de vérification quota
+      const quotaInfo = await storage.checkListingQuota(userId);
+      
+      // Retourner les infos nécessaires pour l'interception côté client
+      res.json({
+        canCreate: quotaInfo.canCreate,
+        remaining: quotaInfo.maxListings ? Math.max(0, quotaInfo.maxListings - quotaInfo.activeListings) : null,
+        used: quotaInfo.activeListings,
+        maxListings: quotaInfo.maxListings,
+        message: quotaInfo.message
+      });
+    } catch (error) {
+      console.error("Error checking user quota:", error);
+      // En cas d'erreur, autoriser par défaut (fail-safe)
+      res.json({
+        canCreate: true,
+        remaining: null,
+        used: 0,
+        maxListings: null,
+        message: "Erreur lors de la vérification, autorisation par défaut"
+      });
+    }
+  });
+
   // Endpoint pour synchroniser un utilisateur Supabase Auth avec la table users
   app.post("/api/users/sync-auth", async (req, res) => {
     try {
