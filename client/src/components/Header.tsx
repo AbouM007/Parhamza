@@ -14,8 +14,10 @@ import {
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useQuotaCheck } from "@/hooks/useQuotaCheck";
 import { useAuthService } from "../services/AuthService";
 import { UserMenu } from "./auth/UserMenu";
+import { QuotaModal } from "./QuotaModal";
 import logoPath from "@/assets/logo-transparent_1753108744744.png";
 //import accidentIcon from "@/assets/accident_1753354197012.png";
 
@@ -39,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { setSearchFilters, setSelectedVehicle } = useApp();
   const { user, dbUser, isAuthenticated, isLoading } = useAuth();
   const { unreadCount } = useUnreadMessages();
+  const { checkQuotaBeforeAction, isQuotaModalOpen, quotaInfo, closeQuotaModal, isChecking } = useQuotaCheck(dbUser?.id);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("vehicles");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -74,17 +77,24 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileMenuOpen(false);
   };
 
-  const handleCreateListingClick = () => {
+  const handleCreateListingClick = async () => {
     setActiveCategory(""); // Désactiver le soulignement des catégories principales
     setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
-    if (isAuthenticated) {
-      setCurrentView("create-listing");
-    } else {
+    
+    if (!isAuthenticated) {
       // Utilisateur non connecté - afficher le modal de connexion
       openAuthModal("login", () => {
         setCurrentView("create-listing");
       });
+      setMobileMenuOpen(false);
+      return;
     }
+
+    // Utilisateur connecté - vérifier quota avant navigation
+    await checkQuotaBeforeAction(() => {
+      setCurrentView("create-listing");
+    });
+    
     setMobileMenuOpen(false);
   };
 
@@ -548,6 +558,17 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Auth Modal handled by AuthModal in App.tsx */}
+      
+      {/* Quota Modal */}
+      <QuotaModal
+        isOpen={isQuotaModalOpen}
+        onClose={closeQuotaModal}
+        quotaInfo={quotaInfo || { used: 0, maxListings: 5 }}
+        onUpgrade={() => {
+          closeQuotaModal();
+          setCurrentView("subscription-plans");
+        }}
+      />
     </header>
   );
 };

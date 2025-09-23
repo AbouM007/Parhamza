@@ -14,6 +14,8 @@ import {
   Trash2,
   Car,
 } from "lucide-react";
+import { useQuotaCheck } from "@/hooks/useQuotaCheck";
+import { QuotaModal } from "../QuotaModal";
 
 interface ListingsSectionProps {
   userVehicles: any[];
@@ -58,6 +60,9 @@ export default function ListingsSection({
   getEmptyStateDescription,
   translateDeletionReason,
 }: ListingsSectionProps) {
+  // Hook pour l'interception quota avec modal
+  const { checkQuotaBeforeAction, isQuotaModalOpen, quotaInfo: quotaModalInfo, closeQuotaModal } = useQuotaCheck(dbUser?.id);
+
   // Filtrer les annonces selon le filtre sélectionné
   const activeVehicles = userVehicles.filter((vehicle) => {
     if ((vehicle as any).deletedAt) return false;
@@ -139,41 +144,15 @@ export default function ListingsSection({
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Affichage conditionnel du bouton selon le quota */}
-            {dbUser?.type === "professional" &&
-            quotaInfo &&
-            !quotaInfo.canCreate ? (
-              <div className="space-y-3">
-                <button
-                  disabled
-                  className="bg-gray-300 text-gray-500 px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 cursor-not-allowed"
-                  data-testid="button-create-listing-disabled"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Nouvelle annonce</span>
-                </button>
-                <div className="text-center">
-                  <button
-                    onClick={() =>
-                      (window.location.href = "/subscription-purchase")
-                    }
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                    data-testid="button-upgrade-plan"
-                  >
-                    Passer à un plan supérieur
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={onCreateListing}
-                className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
-                data-testid="button-create-listing"
-              >
-                <Plus className="h-5 w-5" />
-                <span>Nouvelle annonce</span>
-              </button>
-            )}
+            {/* Bouton nouvelle annonce avec interception quota */}
+            <button
+              onClick={() => checkQuotaBeforeAction(onCreateListing)}
+              className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+              data-testid="button-create-listing"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Nouvelle annonce</span>
+            </button>
           </div>
         </div>
 
@@ -534,6 +513,17 @@ export default function ListingsSection({
           </div>
         </div>
       )}
+
+      {/* Quota Modal */}
+      <QuotaModal
+        isOpen={isQuotaModalOpen}
+        onClose={closeQuotaModal}
+        quotaInfo={quotaModalInfo || { used: 0, maxListings: 5 }}
+        onUpgrade={() => {
+          closeQuotaModal();
+          window.location.href = "/subscription-plans";
+        }}
+      />
     </div>
   );
 }
