@@ -585,7 +585,7 @@ interface CreateListingFormProps {
 export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   onSuccess,
 }) => {
-  const { user, dbUser, isLoading } = useAuth();
+  const { user, dbUser } = useAuth();
   const { data: quotaInfo } = useQuota(dbUser?.id);
   // const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
@@ -1473,11 +1473,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const publishListing = async () => {
     try {
       // Vérification du quota pour les comptes professionnels
-      if (
-        dbUser?.type === "professional" &&
-        quotaInfo &&
-        !quotaInfo.canCreate
-      ) {
+      if (quotaInfo && !quotaInfo.canCreate) {
         alert(
           quotaInfo.message ||
             "Vous avez atteint votre limite d'annonces. Passez à un plan supérieur pour publier plus d'annonces.",
@@ -4443,7 +4439,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return null;
     }
   };
-
+  /*
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -4451,6 +4447,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       </div>
     );
   }
+  */
 
   if (!user && !dbUser) {
     return (

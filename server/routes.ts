@@ -417,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .join(" ") || "Utilisateur"
     );
   }
-
+/*
   app.post("/api/vehicles", async (req, res) => {
     try {
       const vehicleData = req.body;
@@ -426,6 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JSON.stringify(vehicleData, null, 2),
       );
 
+      console.log("DEBUG USER ID:", vehicleData.userId);
       // Vérifier si l'utilisateur existe, sinon le créer automatiquement
       if (vehicleData.userId) {
         const userExists = await ensureUserExists(
@@ -452,10 +453,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // 🚦 VÉRIFICATION DU QUOTA POUR LES COMPTES PROFESSIONNELS
-        const quotaCheck = await storage.checkProfessionalListingQuota(
-          vehicleData.userId,
-        );
+        // 🚦 VÉRIFICATION DU QUOTA POUR LES COMPTES
+        const quotaCheck = await storage.checkListingQuota(vehicleData.userId);
         console.log(`📊 Résultat vérification quota:`, quotaCheck);
 
         if (!quotaCheck.canCreate) {
@@ -477,6 +476,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to create vehicle" });
     }
   });
+  */
+
+  app.post("/api/vehicles", async (req, res) => {
+    try {
+      const vehicleData = req.body;
+      console.log(
+        "🔍 DONNÉES REÇUES PAR L'API:",
+        JSON.stringify(vehicleData, null, 2),
+      );
+      console.log("DEBUG USER ID:", vehicleData.userId);
+
+      if (!vehicleData.userId) {
+        return res.status(400).json({ error: "userId manquant" });
+      }
+
+      // 🔐 Vérifier que l'utilisateur existe
+      const userExists = await ensureUserExists(
+        vehicleData.userId,
+        vehicleData.contact?.email || vehicleData.contact_email,
+      );
+
+      if (!userExists) {
+        const contactEmail =
+          vehicleData.contact?.email ||
+          vehicleData.contact_email ||
+          "user@example.com";
+        const contactPhone =
+          vehicleData.contact?.phone || vehicleData.contact_phone || "";
+        const city = vehicleData.location?.city || vehicleData.location || "";
+        const postalCode =
+          vehicleData.location?.postalCode || vehicleData.postal_code || null;
+
+        await createUserFromAuth(vehicleData.userId, contactEmail, {
+          phone: contactPhone,
+          city: city,
+          postal_code: postalCode,
+        });
+      }
+
+      // 🚦 Vérification du quota AVANT création
+      const quotaCheck = await storage.checkListingQuota(vehicleData.userId);
+      console.log(`📊 Résultat vérification quota:`, quotaCheck);
+
+      if (!quotaCheck?.canCreate) {
+        // ⛔ Stopper ici
+        return res.status(403).json({
+          error: "Quota d'annonces atteint",
+          message: quotaCheck?.message || "Vous avez atteint votre limite",
+          quota: {
+            activeListings: quotaCheck?.activeListings ?? 0,
+            maxListings: quotaCheck?.maxListings ?? 0,
+          },
+        });
+      }
+
+      // ✅ Si quota OK → Création
+      const vehicle = await storage.createVehicle(vehicleData);
+      return res.status(201).json(vehicle);
+
+    } catch (error) {
+      console.error("❌ Error creating vehicle:", error);
+      return res.status(500).json({ error: "Failed to create vehicle" });
+    }
+  });
+
 
   app.put("/api/vehicles/:id", async (req, res) => {
     try {
@@ -498,7 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       console.log(`📊 Récupération quota pour utilisateur: ${userId}`);
 
-      const quotaInfo = await storage.checkProfessionalListingQuota(userId);
+      const quotaInfo = await storage.checkListingQuota(userId);
       res.json(quotaInfo);
     } catch (error) {
       console.error("❌ Erreur récupération quota:", error);
@@ -1711,7 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       console.log(`💳 Vérification abonnement pour user ${userId}...`);
 
-      // Récupérer l'abonnement actif depuis la base de données
+      // Récup �rer l'abonnement actif depuis la base de données
       const { data: subscription, error } = await supabaseServer
         .from("subscriptions")
         .select(
@@ -2156,223 +2220,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==========================================
-   // BOOST APIs
-   // ==========================================
+  // BOOST APIs
+  // ==========================================
 
-   // Get all boost plans
-   app.get("/api/boost/plans", async (req, res) => {
-     try {
-       const plans = await storage.getAllBoostPlans();
-       res.json(plans);
-     } catch (error) {
-       console.error("Error fetching boost plans:", error);
-       res.status(500).json({ error: "Failed to fetch boost plans" });
-     }
-   });
+  // Get all boost plans
+  app.get("/api/boost/plans", async (req, res) => {
+    try {
+      const plans = await storage.getAllBoostPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching boost plans:", error);
+      res.status(500).json({ error: "Failed to fetch boost plans" });
+    }
+  });
 
-   // Create Stripe checkout session for boost
-   app.post("/api/boost/checkout", async (req, res) => {
-     try {
-       const { annonceId, planId } = req.body;
+  // Create Stripe checkout session for boost
+  app.post("/api/boost/checkout", async (req, res) => {
+    try {
+      const { annonceId, planId } = req.body;
 
-       if (!annonceId || !planId) {
-         return res
-           .status(400)
-           .json({ error: "annonceId and planId are required" });
-       }
+      if (!annonceId || !planId) {
+        return res
+          .status(400)
+          .json({ error: "annonceId and planId are required" });
+      }
 
-       // Vérifier que l'annonce existe
-       const annonce = await storage.getVehicle(annonceId.toString());
-       if (!annonce) {
-         return res.status(404).json({ error: "Annonce not found" });
-       }
+      // Vérifier que l'annonce existe
+      const annonce = await storage.getVehicle(annonceId.toString());
+      if (!annonce) {
+        return res.status(404).json({ error: "Annonce not found" });
+      }
 
-       // Vérifier qu'il n'y a pas déjà un boost actif (optionnel - on permet l'empilement)
-       const isAlreadyBoosted = await storage.checkBoostAlreadyActive(
-         parseInt(annonceId),
-       );
-       if (isAlreadyBoosted) {
-         console.log(
-           `ℹ️ Annonce ${annonceId} déjà boostée, on va empiler le nouveau boost`,
-         );
-       }
+      // Vérifier qu'il n'y a pas déjà un boost actif (optionnel - on permet l'empilement)
+      const isAlreadyBoosted = await storage.checkBoostAlreadyActive(
+        parseInt(annonceId),
+      );
+      if (isAlreadyBoosted) {
+        console.log(
+          `ℹ️ Annonce ${annonceId} déjà boostée, on va empiler le nouveau boost`,
+        );
+      }
 
-       // Récupérer le plan boost
-       const plan = await storage.getBoostPlan(parseInt(planId));
-       if (!plan) {
-         return res.status(404).json({ error: "Boost plan not found" });
-       }
+      // Récupérer le plan boost
+      const plan = await storage.getBoostPlan(parseInt(planId));
+      if (!plan) {
+        return res.status(404).json({ error: "Boost plan not found" });
+      }
 
-       // Créer le log d'achat (en attente de confirmation Stripe)
-       const logData = {
-         annonceId: parseInt(annonceId),
-         planId: parseInt(planId),
-         stripeSessionId: "", // Sera rempli après création de la session
-         action: "purchased",
-         amount: plan.priceCents,
-         userId: annonce.userId, // ID du propriétaire de l'annonce
-       };
+      // Créer le log d'achat (en attente de confirmation Stripe)
+      const logData = {
+        annonceId: parseInt(annonceId),
+        planId: parseInt(planId),
+        stripeSessionId: "", // Sera rempli après création de la session
+        action: "purchased",
+        amount: plan.priceCents,
+        userId: annonce.userId, // ID du propriétaire de l'annonce
+      };
 
-       // Créer la session Stripe
-       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+      // Créer la session Stripe
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-       const baseUrl = process.env.FRONTEND_URL || "https://" + req.get("host");
+      const baseUrl = process.env.FRONTEND_URL || "https://" + req.get("host");
 
-       const session = await stripe.checkout.sessions.create({
-         payment_method_types: ["card"],
-         line_items: [
-           {
-             price: plan.stripePriceId,
-             quantity: 1,
-           },
-         ],
-         mode: "payment",
-//         success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&type=boost`,
-         success_url: `${baseUrl}/success-boost?session_id={CHECKOUT_SESSION_ID}`,
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price: plan.stripePriceId,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        //         success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&type=boost`,
+        success_url: `${baseUrl}/success-boost?session_id={CHECKOUT_SESSION_ID}`,
 
-         cancel_url: `${baseUrl}/dashboard?boost_canceled=true`,
-         metadata: {
-           type: "boost",
-           annonceId: annonceId.toString(),
-           planId: planId.toString(),
-           userId: annonce.userId,
-         },
-       });
+        cancel_url: `${baseUrl}/dashboard?boost_canceled=true`,
+        metadata: {
+          type: "boost",
+          annonceId: annonceId.toString(),
+          planId: planId.toString(),
+          userId: annonce.userId,
+        },
+      });
 
-       // Créer le log avec l'ID de session
-       await storage.createBoostLog({
-         ...logData,
-         stripeSessionId: session.id,
-       });
+      // Créer le log avec l'ID de session
+      await storage.createBoostLog({
+        ...logData,
+        stripeSessionId: session.id,
+      });
 
-       res.json({ sessionId: session.id, url: session.url });
-     } catch (error) {
-       console.error("Error creating boost checkout:", error);
-       res.status(500).json({ error: "Failed to create boost checkout" });
-     }
-   });
+      res.json({ sessionId: session.id, url: session.url });
+    } catch (error) {
+      console.error("Error creating boost checkout:", error);
+      res.status(500).json({ error: "Failed to create boost checkout" });
+    }
+  });
 
-   // Webhook Stripe avec logique boost et abonnement
-   app.post("/api/stripe/webhook", async (req, res) => {
-     try {
-       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  // Webhook Stripe avec logique boost et abonnement
+  app.post("/api/stripe/webhook", async (req, res) => {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-       const sig = req.headers["stripe-signature"];
-       const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+      const sig = req.headers["stripe-signature"];
+      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-       if (!sig || !endpointSecret) {
-         return res.status(400).send("Webhook configuration error");
-       }
+      if (!sig || !endpointSecret) {
+        return res.status(400).send("Webhook configuration error");
+      }
 
-       let event;
-       try {
-         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-       } catch (err) {
-         console.error("⚠️ Webhook signature verification failed:", err.message);
-         return res.status(400).send(`Webhook Error: ${err.message}`);
-       }
+      let event;
+      try {
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      } catch (err) {
+        console.error("⚠️ Webhook signature verification failed:", err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+      }
 
-       console.log("🎯 Stripe webhook reçu:", event.type);
+      console.log("🎯 Stripe webhook reçu:", event.type);
 
-       switch (event.type) {
-         case "checkout.session.completed":
-           const session = event.data.object;
-           console.log("✅ Paiement confirmé pour session:", session.id);
-           console.log("📊 Metadata:", session.metadata);
+      switch (event.type) {
+        case "checkout.session.completed":
+          const session = event.data.object;
+          console.log("✅ Paiement confirmé pour session:", session.id);
+          console.log("📊 Metadata:", session.metadata);
 
-           if (session.metadata?.type === "boost") {
-             // Activer le boost avec le nouveau système
-             console.log("🚀 Activation boost pour session:", session.id);
-             const success = await storage.activateBoostWithLog(session.id);
-             if (success) {
-               console.log(
-                 "✅ Boost activé avec succès - boosted_until mis à jour",
-               );
-             } else {
-               console.error("❌ Erreur activation boost");
-             }
-           } else if (session.metadata?.type === "subscription") {
-             // Logique abonnement existante (si nécessaire)
-             console.log("📋 Traitement abonnement pour session:", session.id);
-           }
-           break;
+          if (session.metadata?.type === "boost") {
+            // Activer le boost avec le nouveau système
+            console.log("🚀 Activation boost pour session:", session.id);
+            const success = await storage.activateBoostWithLog(session.id);
+            if (success) {
+              console.log(
+                "✅ Boost activé avec succès - boosted_until mis à jour",
+              );
+            } else {
+              console.error("❌ Erreur activation boost");
+            }
+          } else if (session.metadata?.type === "subscription") {
+            // Logique abonnement existante (si nécessaire)
+            console.log("📋 Traitement abonnement pour session:", session.id);
+          }
+          break;
 
-         case "invoice.payment_succeeded":
-           console.log("💰 Paiement facture réussi");
-           // Logique pour les abonnements récurrents si nécessaire
-           break;
+        case "invoice.payment_succeeded":
+          console.log("💰 Paiement facture réussi");
+          // Logique pour les abonnements récurrents si nécessaire
+          break;
 
-         case "customer.subscription.deleted":
-           console.log("❌ Abonnement supprimé");
-           // Logique pour désactiver les abonnements si nécessaire
-           break;
+        case "customer.subscription.deleted":
+          console.log("❌ Abonnement supprimé");
+          // Logique pour désactiver les abonnements si nécessaire
+          break;
 
-         default:
-           console.log(`🔔 Événement non géré: ${event.type}`);
-       }
+        default:
+          console.log(`🔔 Événement non géré: ${event.type}`);
+      }
 
-       res.status(200).json({ received: true });
-     } catch (error) {
-       console.error("❌ Erreur webhook Stripe:", error);
-       res.status(500).json({ error: "Webhook processing failed" });
-     }
-   });
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("❌ Erreur webhook Stripe:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
 
-   // API Historique des achats utilisateur
-   app.get("/api/purchase-history/user/:userId", async (req, res) => {
-     try {
-       const { userId } = req.params;
+  // API Historique des achats utilisateur
+  app.get("/api/purchase-history/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
 
-       const { data: purchaseHistory, error } =
-         await storage.getUserPurchaseHistory(userId);
+      const { data: purchaseHistory, error } =
+        await storage.getUserPurchaseHistory(userId);
 
-       if (error) {
-         console.error("Error fetching user purchase history:", error);
-         return res
-           .status(500)
-           .json({ error: "Failed to fetch purchase history" });
-       }
+      if (error) {
+        console.error("Error fetching user purchase history:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to fetch purchase history" });
+      }
 
-       res.json(purchaseHistory || []);
-     } catch (error) {
-       console.error("Error in user purchase history endpoint:", error);
-       res.status(500).json({ error: "Internal server error" });
-     }
-   });
+      res.json(purchaseHistory || []);
+    } catch (error) {
+      console.error("Error in user purchase history endpoint:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
-   // API Historique global des achats pour admin
-   app.get("/api/admin/purchase-history", async (req, res) => {
-     try {
-       const { data: allPurchaseHistory, error } =
-         await storage.getAllPurchaseHistory();
+  // API Historique global des achats pour admin
+  app.get("/api/admin/purchase-history", async (req, res) => {
+    try {
+      const { data: allPurchaseHistory, error } =
+        await storage.getAllPurchaseHistory();
 
-       if (error) {
-         console.error("Error fetching admin purchase history:", error);
-         return res
-           .status(500)
-           .json({ error: "Failed to fetch purchase history" });
-       }
+      if (error) {
+        console.error("Error fetching admin purchase history:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to fetch purchase history" });
+      }
 
-       res.json(allPurchaseHistory || []);
-     } catch (error) {
-       console.error("Error in admin purchase history endpoint:", error);
-       res.status(500).json({ error: "Internal server error" });
-     }
-   });
+      res.json(allPurchaseHistory || []);
+    } catch (error) {
+      console.error("Error in admin purchase history endpoint:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
-   // API pour vérifier le statut boost d'une annonce
-   app.get("/api/boost/status/:annonceId", async (req, res) => {
-     try {
-       const { annonceId } = req.params;
+  // API pour vérifier le statut boost d'une annonce
+  app.get("/api/boost/status/:annonceId", async (req, res) => {
+    try {
+      const { annonceId } = req.params;
 
-       const boostStatus = await storage.getBoostStatus(parseInt(annonceId));
+      const boostStatus = await storage.getBoostStatus(parseInt(annonceId));
 
-       res.json(boostStatus);
-     } catch (error) {
-       console.error("Error checking boost status:", error);
-       res.status(500).json({ error: "Failed to check boost status" });
-     }
-   });
+      res.json(boostStatus);
+    } catch (error) {
+      console.error("Error checking boost status:", error);
+      res.status(500).json({ error: "Failed to check boost status" });
+    }
+  });
 
   // API pour confirmer le succès d’un paiement Boost
   app.get("/api/boost/success", async (req, res) => {
@@ -2383,13 +2447,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-      const session = await stripe.checkout.sessions.retrieve(session_id as string);
+      const session = await stripe.checkout.sessions.retrieve(
+        session_id as string,
+      );
 
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
 
-      if (session.payment_status === "paid" && session.metadata?.type === "boost") {
+      if (
+        session.payment_status === "paid" &&
+        session.metadata?.type === "boost"
+      ) {
         // Optionnel : activer le boost ici si jamais le webhook n'a pas encore tourné
         await storage.activateBoostWithLog(session.id);
         return res.json({ success: true, message: "Boost activé" });
@@ -2402,12 +2471,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  
+  // Setup wishlist migration routes
+  setupWishlistMigration(app);
+  setupWishlistDirect(app);
 
-   // Setup wishlist migration routes
-   setupWishlistMigration(app);
-   setupWishlistDirect(app);
-
-   const httpServer = createServer(app);
-   return httpServer;
- }
+  const httpServer = createServer(app);
+  return httpServer;
+}

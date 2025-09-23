@@ -62,9 +62,7 @@ export interface IStorage {
   updateVehicleActiveStatus(id: string, isActive: boolean): Promise<boolean>;
 
   // Professional accounts and subscriptions
-  checkProfessionalListingQuota(
-    userId: string,
-  ): Promise<{
+  checkListingQuota(userId: string): Promise<{
     canCreate: boolean;
     activeListings: number;
     maxListings: number | null;
@@ -178,7 +176,6 @@ export class SupabaseStorage implements IStorage {
 
     if (!data) return undefined;
 
-    
     // ✅ Ajouter les données professional_accounts
     const enrichedData = {
       ...data, // ← GARDE company_logo de users
@@ -361,8 +358,7 @@ export class SupabaseStorage implements IStorage {
                   verificationStatus:
                     annonce.users.professional_accounts[0]
                       .verification_process_status,
-                  companyLogo:
-                    annonce.users.professional_accounts[0].avatar,
+                  companyLogo: annonce.users.professional_accounts[0].avatar,
                   bannerImage:
                     annonce.users.professional_accounts[0].banner_image,
                 }
@@ -1698,10 +1694,8 @@ export class SupabaseStorage implements IStorage {
       return false;
     }
   }
-
-  async checkProfessionalListingQuota(
-    userId: string,
-  ): Promise<{
+  //
+  async checkListingQuota(userId: string): Promise<{
     canCreate: boolean;
     activeListings: number;
     maxListings: number | null;
@@ -1718,12 +1712,22 @@ export class SupabaseStorage implements IStorage {
         .single();
 
       if (paError || !professionalAccount) {
-        // Utilisateur individuel - pas de limite
-        console.log("👤 Utilisateur individuel détecté - aucune limite");
-        return { canCreate: true, activeListings: 0, maxListings: null };
+        // 👉 Cas Particulier (gratuit par défaut, quota en dur = 5 annonces actives max)
+        const activeListings = await this.countActiveListingsByUser(userId);
+        const maxListings = 5; // quota particulier gratuit (hardcodé)
+
+        return {
+          canCreate: activeListings < maxListings,
+          activeListings,
+          maxListings,
+          message:
+            activeListings >= maxListings
+              ? "Limite atteinte (5 annonces). Passez à un plan supérieur pour publier plus d'annonces."
+              : undefined,
+        };
       }
 
-      // 2. Récupérer l'abonnement actif
+      // 2. Cas Professionnel → récupérer l'abonnement actif
       const { data: subscription, error: subError } = await supabaseServer
         .from("subscriptions")
         .select(
@@ -1742,23 +1746,22 @@ export class SupabaseStorage implements IStorage {
         .single();
 
       if (subError || !subscription) {
-        // Aucun abonnement actif - limite par défaut (ex: 5 annonces gratuites)
-        console.log("📦 Aucun abonnement actif - limite par défaut");
+        // 👉 Pro sans abonnement actif (rare, normalement impossible) → quota par défaut = 5
         const activeListings = await this.countActiveListingsByUser(userId);
-        const defaultLimit = 5; // Limite par défaut pour les comptes pro sans abonnement
+        const maxListings = 5;
 
         return {
-          canCreate: activeListings < defaultLimit,
+          canCreate: activeListings < maxListings,
           activeListings,
-          maxListings: defaultLimit,
+          maxListings,
           message:
-            activeListings >= defaultLimit
-              ? "Limite atteinte. Souscrivez à un abonnement pour publier plus d'annonces."
+            activeListings >= maxListings
+              ? "Aucun abonnement actif. Limite atteinte (5 annonces)."
               : undefined,
         };
       }
 
-      // 3. Vérifier les limites de l'abonnement
+      // 3. Cas Professionnel avec abonnement actif → lire quota dans subscription_plans
       const maxListings = (subscription as any).subscription_plans
         ?.max_listings;
       const activeListings = await this.countActiveListingsByUser(userId);
@@ -1784,7 +1787,7 @@ export class SupabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error("❌ Erreur vérification quota:", error);
-      // En cas d'erreur, autoriser la création (fail-safe)
+      // En cas d'erreur → fail-safe (autoriser la création)
       return {
         canCreate: true,
         activeListings: 0,
