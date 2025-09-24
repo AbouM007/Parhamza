@@ -368,15 +368,7 @@ export default function OverviewSection({
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Car className="h-10 w-10 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Aucune annonce
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Vous n'avez pas encore publié d'annonce.
-            </p>
-            <button className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-              Publier ma première annonce
-            </button>
+            
           </div>
         )}
       </div>
