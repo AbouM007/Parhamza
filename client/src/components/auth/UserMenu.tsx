@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User, LogOut, Settings, Heart, Plus, Shield } from "lucide-react";
 //import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +19,33 @@ export function UserMenu({
   const { user, profile } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef(null); //
+
+  // 👈 Ajout du useEffect pour gérer les clics et les touches
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      // Ferme le menu si le clic est en dehors de l'élément de menu
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    // Ferme le menu si la touche "Escape" est pressée
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      // Nettoyage : retire les écouteurs d'événements
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isOpen]); // On relance l'effet uniquement si l'état du menu change
 
   // La boutique pro sera implémentée avec la nouvelle logique Stripe
 
@@ -46,7 +73,7 @@ export function UserMenu({
   const avatarUrl = profile?.avatar;
 
   return (
-    <div className="relative">
+    <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex flex-col items-center text-gray-600 hover:text-primary-bolt-500 transition-colors"
