@@ -320,23 +320,30 @@ export class SupabaseStorage implements IStorage {
             specialties: safeJsonParse(annonce.users.specialties),
             verified: annonce.users.verified,
             emailVerified: annonce.users.email_verified,
-            contactPreferences: safeJsonParse(annonce.users.contact_preferences),
+            contactPreferences: safeJsonParse(
+              annonce.users.contact_preferences,
+            ),
             createdAt: new Date(annonce.users.created_at),
             lastLoginAt: annonce.users.last_login_at
               ? new Date(annonce.users.last_login_at)
               : undefined,
             professionalAccount: annonce.users.professional_accounts?.[0]
               ? {
-                  companyName: annonce.users.professional_accounts[0].company_name,
+                  companyName:
+                    annonce.users.professional_accounts[0].company_name,
                   phone: annonce.users.professional_accounts[0].phone,
                   email: annonce.users.professional_accounts[0].email,
                   website: annonce.users.professional_accounts[0].website,
-                  description: annonce.users.professional_accounts[0].description,
-                  isVerified: annonce.users.professional_accounts[0].is_verified,
+                  description:
+                    annonce.users.professional_accounts[0].description,
+                  isVerified:
+                    annonce.users.professional_accounts[0].is_verified,
                   verificationStatus:
-                    annonce.users.professional_accounts[0].verification_process_status,
+                    annonce.users.professional_accounts[0]
+                      .verification_process_status,
                   companyLogo: annonce.users.professional_accounts[0].avatar,
-                  bannerImage: annonce.users.professional_accounts[0].banner_image,
+                  bannerImage:
+                    annonce.users.professional_accounts[0].banner_image,
                 }
               : undefined,
           }
@@ -365,7 +372,8 @@ export class SupabaseStorage implements IStorage {
       views: annonce.views ?? 0,
       favorites: annonce.favorites ?? 0,
       status:
-        (annonce.status as "draft" | "pending" | "approved" | "rejected") ?? "draft",
+        (annonce.status as "draft" | "pending" | "approved" | "rejected") ??
+        "draft",
       rejectionReason: annonce.rejection_reason ?? undefined,
       isActive: annonce.is_active !== false,
       isBoosted: annonce.is_boosted ?? false,
@@ -1781,7 +1789,8 @@ export class SupabaseStorage implements IStorage {
         .select("id", { count: "exact" })
         .eq("user_id", userId)
         .eq("is_active", true)
-        .is("deleted_at", null);
+        .is("deleted_at", null)
+        .in("status", ["approved", "pending"]); // ⬅️ clé: exclut "rejected" et "draft"
 
       if (error) {
         console.error("❌ Erreur comptage annonces actives:", error);
