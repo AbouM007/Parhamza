@@ -1,5 +1,6 @@
 import React from "react";
 import { useApp } from "@/contexts/AppContext";
+import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 
 interface FooterProps {
   setCurrentView: (view: string) => void;
@@ -8,10 +9,10 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
   const {
     currentUser,
-    setAuthMode,
-    setShowAuthModal,
-    handleCreateListingWithQuota,
+    openAuthModal,
   } = useApp();
+  
+  const handleCreateListingWithQuota = useCreateListingGuard();
 
   const handleCreateListing = () => {
     handleCreateListingWithQuota(() => {
@@ -21,8 +22,9 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
 
   const handleMyAccountClick = () => {
     if (!currentUser) {
-      setAuthMode("login");
-      setShowAuthModal(true);
+      openAuthModal("login", () => {
+        setCurrentView("dashboard");
+      });
     } else {
       setCurrentView("dashboard");
     }

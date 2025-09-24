@@ -14,10 +14,8 @@ import {
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
-import { useQuotaCheck } from "@/hooks/useQuotaCheck";
-import { useAuthService } from "../services/AuthService";
+import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { UserMenu } from "./auth/UserMenu";
-import { QuotaModal } from "./QuotaModal";
 import logoPath from "@/assets/logo-transparent_1753108744744.png";
 //import accidentIcon from "@/assets/accident_1753354197012.png";
 
@@ -38,21 +36,15 @@ export const Header: React.FC<HeaderProps> = ({
   setDashboardTab,
   onSearch,
 }) => {
-  const { setSearchFilters, setSelectedVehicle, handleCreateListingWithQuota } =
+  const { setSearchFilters, setSelectedVehicle, openAuthModal } =
     useApp();
   const { user, dbUser, isAuthenticated, isLoading } = useAuth();
   const { unreadCount } = useUnreadMessages();
-  const {
-    checkQuotaBeforeAction,
-    isQuotaModalOpen,
-    quotaInfo,
-    closeQuotaModal,
-    isChecking,
-  } = useQuotaCheck(dbUser?.id);
+  const handleCreateListingWithQuota = useCreateListingGuard();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("vehicles");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const { openAuthModal } = useAuthService();
+  // Removed useAuthService - using openAuthModal from useApp() instead
 
   const handleAuthClick = (mode: "signin" | "signup") => {
     const authMode = mode === "signin" ? "login" : "register";
@@ -87,20 +79,19 @@ export const Header: React.FC<HeaderProps> = ({
   const handleCreateListingClick = async () => {
     setActiveCategory(""); // Désactiver le soulignement des catégories principales
     setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
+    setMobileMenuOpen(false);
 
-    // Utiliser la fonction unifiée de l'AppContext
+    // Utiliser le nouveau hook adapté avec API call direct
     handleCreateListingWithQuota(() => {
       setCurrentView("create-listing");
-    });
-
-    setMobileMenuOpen(false);
+    }, "header-button");
   };
 
   // Fonction wrapper pour UserMenu
   const handleUserMenuCreateListing = () => {
     handleCreateListingWithQuota(() => {
       setCurrentView("create-listing");
-    });
+    }, "user-menu");
   };
 
   const handleNavigate = (path: string) => {
@@ -568,17 +559,7 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Auth Modal handled by AuthModal in App.tsx */}
-
-      {/* Quota Modal */}
-      <QuotaModal
-        isOpen={isQuotaModalOpen}
-        onClose={closeQuotaModal}
-        quotaInfo={quotaInfo || { used: 0, maxListings: 5 }}
-        onUpgrade={() => {
-          closeQuotaModal();
-          setCurrentView("subscription-plans");
-        }}
-      />
+      {/* Quota Modal handled centrally by AppContext */}
     </header>
   );
 };
