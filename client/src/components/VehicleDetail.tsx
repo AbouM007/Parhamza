@@ -44,7 +44,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 }) => {
   const {
     currentUser,
-    setShowAuthModal: setGlobalAuthModal,
+    openAuthModal,
     vehicles,
   } = useApp();
   const { user: authUser } = useAuth();
@@ -228,7 +228,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
     if (authUser || currentUser) {
       setShowContactModal(true);
     } else {
-      setGlobalAuthModal(true);
+      openAuthModal('login');
     }
   };
 

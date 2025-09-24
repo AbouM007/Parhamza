@@ -14,8 +14,6 @@ import {
   Trash2,
   Car,
 } from "lucide-react";
-import { useQuotaCheck } from "@/hooks/useQuotaCheck";
-import { QuotaModal } from "../QuotaModal";
 
 interface ListingsSectionProps {
   userVehicles: any[];
@@ -60,8 +58,7 @@ export default function ListingsSection({
   getEmptyStateDescription,
   translateDeletionReason,
 }: ListingsSectionProps) {
-  // Hook pour l'interception quota avec modal
-  const { checkQuotaBeforeAction, isQuotaModalOpen, quotaInfo: quotaModalInfo, closeQuotaModal } = useQuotaCheck(dbUser?.id);
+  // Quota logic handled by parent component via onCreateListing prop
 
   // Filtrer les annonces selon le filtre sélectionné
   const activeVehicles = userVehicles.filter((vehicle) => {
@@ -146,7 +143,7 @@ export default function ListingsSection({
           <div className="flex items-center space-x-4">
             {/* Bouton nouvelle annonce avec interception quota */}
             <button
-              onClick={() => checkQuotaBeforeAction(onCreateListing)}
+              onClick={onCreateListing}
               className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
               data-testid="button-create-listing"
             >
@@ -508,15 +505,7 @@ export default function ListingsSection({
       )}
 
       {/* Quota Modal */}
-      <QuotaModal
-        isOpen={isQuotaModalOpen}
-        onClose={closeQuotaModal}
-        quotaInfo={quotaModalInfo || { used: 0, maxListings: 5 }}
-        onUpgrade={() => {
-          closeQuotaModal();
-          window.location.href = "/subscription-plans";
-        }}
-      />
+      {/* QuotaModal handled centrally by AppContext */}
     </div>
   );
 }

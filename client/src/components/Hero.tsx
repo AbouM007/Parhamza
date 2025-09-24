@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/hooks/useAuth";
+import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { CategorySection } from "./CategorySection";
 import voituresImage from "@/assets/voiture-2_1752056602701.png";
 import motosImage from "@/assets/motos-scooters_1752057126122.png";
@@ -41,11 +42,11 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
   const {
     setSearchFilters,
     setSelectedVehicle,
-    setShowAuthModal,
-    setAuthMode,
     vehicles,
-    handleCreateListingWithQuota,
+    openAuthModal,
   } = useApp();
+  
+  const handleCreateListingWithQuota = useCreateListingGuard();
   const { isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("");
@@ -80,7 +81,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
   const handleCreateListing = () => {
     handleCreateListingWithQuota(() => {
       setCurrentView("create-listing");
-    });
+    }, "hero-button");
   };
 
   const formatPrice = (price: number) => {
