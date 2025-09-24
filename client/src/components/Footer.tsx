@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { useApp } from "@/contexts/AppContext";
 
 interface FooterProps {
@@ -6,20 +6,25 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
-  const { currentUser, setAuthMode, setShowAuthModal, handleCreateListingWithQuota } = useApp();
+  const {
+    currentUser,
+    setAuthMode,
+    setShowAuthModal,
+    handleCreateListingWithQuota,
+  } = useApp();
 
   const handleCreateListing = () => {
     handleCreateListingWithQuota(() => {
-      setCurrentView('create-listing');
+      setCurrentView("create-listing");
     });
   };
 
   const handleMyAccountClick = () => {
     if (!currentUser) {
-      setAuthMode('login');
+      setAuthMode("login");
       setShowAuthModal(true);
     } else {
-      setCurrentView('dashboard');
+      setCurrentView("dashboard");
     }
   };
 
@@ -35,7 +40,8 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
               </div>
             </div>
             <p className="text-gray-400 mb-6">
-              La marketplace de référence pour l'achat et la vente de véhicules d'occasion, accidentés et les pièces détachées.
+              La marketplace de référence pour l'achat et la vente de véhicules
+              d'occasion, accidentés et les pièces détachées.
             </p>
           </div>
 
@@ -43,10 +49,38 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Liens rapides</h4>
             <ul className="space-y-3">
-              <li><button onClick={() => setCurrentView('listings')} className="text-gray-400 hover:text-white transition-colors">Rechercher</button></li>
-              <li><button onClick={() => handleCreateListingWithQuota(() => setCurrentView("create-listing"))} className="text-gray-400 hover:text-white transition-colors">Déposer une annonce</button></li>
-              <li><button onClick={handleMyAccountClick} className="text-gray-400 hover:text-white transition-colors">Espace Pro</button></li>
-              <li><button onClick={handleMyAccountClick} className="text-gray-400 hover:text-white transition-colors">Mon compte</button></li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("listings")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Rechercher
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={handleCreateListing}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Déposer une annonce
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={handleMyAccountClick}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Espace Pro
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={handleMyAccountClick}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Mon compte
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -54,11 +88,46 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Support</h4>
             <ul className="space-y-3">
-              <li><button onClick={() => setCurrentView('help')} className="text-gray-400 hover:text-white transition-colors">Centre d'aide</button></li>
-              <li><button onClick={() => setCurrentView('conseils')} className="text-gray-400 hover:text-white transition-colors">Conseils</button></li>
-              <li><button onClick={() => setCurrentView('help')} className="text-gray-400 hover:text-white transition-colors">Contact</button></li>
-              <li><button onClick={() => setCurrentView('help')} className="text-gray-400 hover:text-white transition-colors">Signaler un problème</button></li>
-              <li><button onClick={() => setCurrentView('safety')} className="text-gray-400 hover:text-white transition-colors">Conseils sécurité</button></li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("help")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Centre d'aide
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("conseils")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Conseils
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("help")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Contact
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("help")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Signaler un problème
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("safety")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Conseils sécurité
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -66,11 +135,46 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Légal</h4>
             <ul className="space-y-3">
-              <li><button onClick={() => setCurrentView('about')} className="text-gray-400 hover:text-white transition-colors">À propos</button></li>
-              <li><button onClick={() => setCurrentView('terms')} className="text-gray-400 hover:text-white transition-colors">CGU</button></li>
-              <li><button onClick={() => setCurrentView('legal')} className="text-gray-400 hover:text-white transition-colors">Mentions légales</button></li>
-              <li><button onClick={() => setCurrentView('privacy')} className="text-gray-400 hover:text-white transition-colors">Confidentialité</button></li>
-              <li><button onClick={() => setCurrentView('admin-login')} className="text-gray-500 hover:text-gray-300 transition-colors text-xs">Administration</button></li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("about")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  À propos
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("terms")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  CGU
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("legal")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Mentions légales
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("privacy")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Confidentialité
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setCurrentView("admin-login")}
+                  className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
+                >
+                  Administration
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -78,7 +182,8 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 mb-4 md:mb-0">
-              © 2025 PassionAuto2Roues.com. Tous droits réservés. Design By Happy Agency
+              © 2025 PassionAuto2Roues.com. Tous droits réservés. Design By
+              Happy Agency
             </p>
           </div>
         </div>

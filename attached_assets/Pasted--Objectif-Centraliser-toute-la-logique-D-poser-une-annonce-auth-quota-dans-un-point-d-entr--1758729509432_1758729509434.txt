@@ -1,0 +1,133 @@
+🎯 Objectif
+
+Centraliser toute la logique “Déposer une annonce” (auth + quota) dans un point d’entrée unique, réutilisable depuis Header, Footer, Hero, UserMenu, Dashboard, avec un seul endpoint backend fiable (excluant rejected, ignorant draft).
+
+📦 Livrables attendus
+
+Hook front unique useCreateListing (orchestrateur auth + quota + reprise post-login).
+
+Endpoint unique /api/users/:id/quota/check (contrat JSON stable).
+
+Montage global des modales AuthModal et QuotaModal au plus haut niveau (App/MainLayout).
+
+Migration de tous les boutons/links “Déposer une annonce” pour utiliser useCreateListing.
+
+Nettoyage des anciennes voies (suppression setAuthMode, setShowAuthModal, appels directs à handleCreateListingWithQuota).
+
+Tests QA + instrumentation (logs/metrics) + plan de rollback.
+
+🧩 Décisions d’architecture (à respecter)
+
+Single Source of Truth côté front : useCreateListing appelle uniquement l’endpoint /quota/check.
+
+Pas de logique métier dans les composants UI (Header/Footer/Hero/etc.).
+
+Intent persistant : après login, l’action “créer une annonce” reprend automatiquement.
+
+Fail-safe réseau : en cas d’erreur API, on autorise l’accès au formulaire (on loggue l’erreur).
+
+Backend décide des limites/plan; le front se contente de canCreate/used/limit.
+
+🛠️ Backend — tâches
+B1) Endpoint unique de quota
+
+Route: GET /api/users/:userId/quota/check
+
+Réponse (200) :
+
+{
+  "canCreate": true,
+  "used": 3,
+  "limit": 5,
+  "remaining": 2,
+  "isLimited": true,
+  "plan": "Starter"  // string informatif seulement
+}
+
+
+Règles de comptage :
+
+Inclure : is_active = true, deleted_at IS NULL, status IN ('approved','pending')
+
+Exclure : status = 'rejected' et status = 'draft'
+
+Perf : index partiel (si non présent)
+
+CREATE INDEX IF NOT EXISTS idx_annonces_quota_count
+ON annonces (user_id)
+WHERE deleted_at IS NULL AND is_active = true AND status IN ('approved','pending');
+
+
+Service Role pour éviter les soucis RLS lors du count.
+
+B2) Point de vérité côté service
+
+Implémenter une fonction de comptage countListingsForQuota(userId) utilisée par l’endpoint.
+
+S’assurer que la logique des plans (5 / 15 / 30 / infini) est centralisée dans un service (ex: getUserPlanLimit(userId)).
+
+🖥️ Frontend — tâches
+F1) Nouveau hook useCreateListing
+
+Responsabilités :
+
+Lire l’état utilisateur (dbUser).
+
+Si non connecté : ouvrir AuthModal (via openAuthModal('login')) et mémoriser l’intent “createListing”.
+
+Si connecté : appeler /api/users/:id/quota/check.
+
+canCreate = true → exécuter onSuccess() (naviguer vers /deposer-annonce ou ouvrir la vue locale).
+
+canCreate = false → ouvrir QuotaModal.
+
+Reprise post-login : si l’intent existe et que l’user vient de se connecter, rejouer la vérification quota et exécuter onSuccess() si OK.
+
+Fail-safe : en cas d’erreur réseau → exécuter onSuccess() et logguer l’erreur.
+
+API du hook (proposée) :
+
+const { createListing, isChecking, quotaInfo, isQuotaModalOpen, closeQuotaModal } = useCreateListing({
+  onSuccess: () => navigate('/deposer-annonce') // ou setCurrentView('create-listing')
+});
+
+
+useCreateListing pourra réutiliser ton useQuotaCheck(userId) en interne (pas besoin de réinventer la roue).
+
+F2) Modales au root
+
+Monter une seule fois AuthModal et QuotaModal dans App.tsx ou MainLayout.tsx.
+
+useCreateListing doit pouvoir piloter l’ouverture/fermeture de QuotaModal.
+
+F3) Migration des points d’entrée
+
+Remplacer les handlers de tous les “Déposer une annonce” pour appeler :
+
+const { createListing } = useCreateListing({ onSuccess: ... });
+<button onClick={createListing}>Déposer une annonce</button>
+
+
+Fichiers visés (à confirmer) :
+
+Header.tsx
+
+Footer.tsx
+
+Hero.tsx (homepage)
+
+UserMenu.tsx
+
+Dashboard → Mes annonces (bouton “Nouvelle annonce”)
+
+Tout CTA redondant éventuel
+
+F4) Nettoyage des anciennes références
+
+Supprimer tous les usages de :
+
+setAuthMode(...)
+
+setShowAuthModal(...)
+
+appels directs à handleCreateListingWithQuota(...) dans les composants UI

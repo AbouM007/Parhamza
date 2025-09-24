@@ -40,6 +40,8 @@ interface AppContextType {
   isQuotaModalOpen: boolean;
   quotaModalInfo: any;
   closeQuotaModal: () => void;
+  setIsQuotaModalOpen: (open: boolean) => void;
+  setQuotaModalInfo: (info: any) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -288,6 +290,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         isQuotaModalOpen,
         quotaModalInfo,
         closeQuotaModal,
+        setIsQuotaModalOpen,
+        setQuotaModalInfo,
       }}
     >
       {children}

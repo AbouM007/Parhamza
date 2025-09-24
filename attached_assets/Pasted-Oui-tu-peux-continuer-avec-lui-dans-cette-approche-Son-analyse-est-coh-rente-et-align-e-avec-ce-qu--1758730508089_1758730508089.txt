@@ -1,0 +1,67 @@
+Oui—tu peux continuer avec lui dans cette approche. Son analyse est cohérente et alignée avec ce qu’on a posé :
+
+Feu vert (pourquoi c’est bon)
+
+Backend OK : /api/users/:id/quota/check existe déjà et countActiveListingsByUser() exclut bien rejected et draft. Pas besoin de recréer.
+
+Ciblage juste : adapter useCreateListingGuard.ts (plutôt que repartir de zéro) va plus vite et limite les régressions.
+
+Unification : un seul hook pour auth + quota + ouverture modales = fin des divergences Header/Footer/etc.
+
+Recommandations à lui transmettre (points d’attention)
+
+Adapter sans casser l’existant
+
+Remplacer react-router-dom par ta nav actuelle (ex. setCurrentView / navigate maison).
+
+Endpoint unique : /api/users/:id/quota/check (ne plus appeler /quota).
+
+Utiliser openAuthModal('login') depuis le AppContext, pas des setters locaux.
+
+Ouvrir QuotaModal via le AppContext (pas d’events window.dispatchEvent).
+
+Reprise après login (intent)
+
+Si l’utilisateur clique “Déposer” déconnecté, ouvrir AuthModal et mémoriser l’intent.
+
+Après login réussi, reprendre automatiquement: re-check quota → aller au formulaire ou montrer QuotaModal.
+
+Fail-safe réseau
+
+Si /quota/check échoue → laisser passer vers le formulaire (et logger l’erreur) pour ne jamais bloquer à tort.
+
+Migration progressive
+
+Remplacer les handlers dans cet ordre : Header → Footer → Hero → UserMenu → Dashboard → autres CTA.
+
+À chaque étape, tester déconnecté / connecté / quota OK / quota KO.
+
+Nettoyage
+
+Supprimer partout : setAuthMode, setShowAuthModal, appels directs à handleCreateListingWithQuota.
+
+Grep de contrôle pour vérifier qu’il ne reste plus de références.
+
+Télémétrie (optionnel mais utile)
+
+Événements: create_listing_click {origin}, auth_required_shown, quota_check_ok/blocked, quota_modal_shown, quota_api_error_fail_safe.
+
+Critères d’acceptation (DoD)
+
+Tous les boutons/links “Déposer une annonce” passent par le hook adapté.
+
+Déconnecté → AuthModal → reprise auto → quota OK ⇒ formulaire / quota KO ⇒ QuotaModal.
+
+rejected ne compte pas, pending compte (vérifié via /quota/check).
+
+Plus aucun usage de setAuthMode / setShowAuthModal / appels directs handleCreateListingWithQuota dans les composants UI.
+
+Ce que tu peux lui demander maintenant
+
+Adapter client/src/hooks/useCreateListingGuard.ts selon les points ci-dessus.
+
+Brancher Header + Footer d’abord, me rendre un mini rapport (captures/logs) des 4 scénarios clés :
+
+déconnecté, connecté quota OK, connecté quota KO, erreur réseau simulée.
+
+Si tu veux, envoie l’arborescence et les chemins exacts de Header/Footer/Hero/UserMenu, je t’écris une checklist par fichier pour qu’il ne rate rien.
