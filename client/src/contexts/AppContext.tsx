@@ -28,10 +28,15 @@ interface AppContextType {
   authMode: "login" | "register";
   setAuthMode: (mode: "login" | "register") => void;
   refreshVehicles: () => Promise<void>;
-  // Nouvelles fonctions pour gestion quota unifiée
+
+  // 🔥 Gestion du quota
   handleCreateListingWithQuota: (onSuccess: () => void) => Promise<void>;
+  refreshQuota: () => Promise<void>;
+
+  // Auth
   openAuthModal: (mode: "login" | "register", onComplete?: () => void) => void;
-  // État pour QuotaModal centralisée
+
+  // QuotaModal centralisé
   isQuotaModalOpen: boolean;
   quotaModalInfo: any;
   closeQuotaModal: () => void;
@@ -51,49 +56,17 @@ interface AppProviderProps {
   children: ReactNode;
 }
 
-// Fetch vehicles from API
+// Fonction utilitaire pour charger les véhicules
 const fetchVehicles = async (): Promise<Vehicle[]> => {
   try {
-    log("🔄 Chargement des données depuis Supabase...");
-    // Add timestamp to prevent caching
-    const timestamp = new Date().getTime();
-    const response = await fetch(`/api/vehicles?t=${timestamp}`, {
+    const response = await fetch(`/api/vehicles?t=${Date.now()}`, {
       cache: "no-cache",
-      headers: {
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
-      },
     });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const vehicles = await response.json();
-    log(
-      "✅ CONFIRMATION SUPABASE: Données chargées:",
-      vehicles.length,
-      "véhicules",
-    );
-    log(
-      "📊 PREUVE SUPABASE - Premiers véhicules:",
-      vehicles.slice(0, 5).map((v: Vehicle) => ({ id: v.id, title: v.title })),
-    );
-
-    // Test spécifique pour vérifier les modifications
-    const modifiedVehicles = vehicles.filter(
-      (v: Vehicle) =>
-        v.title.includes("[SUPABASE]") || v.title.includes("[MODIFIÉ]"),
-    );
-    log(
-      "🔍 VÉHICULES MODIFIÉS TROUVÉS:",
-      modifiedVehicles.map((v: Vehicle) => ({ id: v.id, title: v.title })),
-    );
-    return vehicles;
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
   } catch (error) {
-    console.error("❌ ERREUR CRITIQUE - Échec du chargement Supabase:", error);
-    console.error("❌ ATTENTION: Utilisation des données mock en fallback");
-    // Import dynamically to avoid circular dependency
+    console.error("❌ Impossible de charger depuis Supabase:", error);
     const { mockVehicles } = await import("@/utils/mockData");
-    console.error("❌ MOCK DATA LOADED - NOT FROM SUPABASE!");
     return mockVehicles;
   }
 };
@@ -107,25 +80,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  
-  // Nouveaux états pour gestion quota unifiée
+
+  // 🔥 Nouveaux états pour quota
+  const [userQuota, setUserQuota] = useState<any>(null);
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
   const [quotaModalInfo, setQuotaModalInfo] = useState<any>(null);
   const [authCallback, setAuthCallback] = useState<(() => void) | null>(null);
-  // Commentaire pour expliquer le changement
-  // Les modals d'authentification utilisent maintenant un service centralisé
 
-  // Charge l'utilisateur connecté au démarrage
-  React.useEffect(() => {
+  // Charger l’utilisateur au démarrage
+  useEffect(() => {
     const loadCurrentUser = async () => {
       try {
-        // Vérifier s'il y a un utilisateur dans localStorage
         const savedUser = localStorage.getItem("currentUser");
         if (savedUser) {
           const userData = JSON.parse(savedUser);
-          log("User loaded from localStorage:", userData.email);
-
-          // Vérifier si l'utilisateur existe toujours côté serveur
           const response = await fetch(
             `/api/users/by-email/${encodeURIComponent(userData.email)}`,
           );
@@ -134,12 +102,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             setCurrentUser(user);
             log("User connected:", user.email);
           } else {
-            // Nettoyer localStorage si l'utilisateur n'existe plus
             localStorage.removeItem("currentUser");
-            log("User not found, localStorage cleared");
           }
-        } else {
-          log("No saved user in localStorage");
         }
       } catch (error) {
         console.error("❌ Error loading user:", error);
@@ -150,194 +114,99 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     loadCurrentUser();
   }, []);
 
-  // Sauvegarder l'utilisateur dans localStorage quand il change
-  React.useEffect(() => {
+  // Sauvegarder user dans localStorage
+  useEffect(() => {
     if (currentUser) {
       localStorage.setItem("currentUser", JSON.stringify(currentUser));
-      log("💾 Utilisateur sauvegardé:", currentUser.email);
     } else {
       localStorage.removeItem("currentUser");
-      log("🗑️ Utilisateur supprimé du localStorage");
     }
   }, [currentUser]);
 
-  // Load vehicles on component mount
+  // Charger véhicules
   useEffect(() => {
     const loadVehicles = async () => {
       setIsLoading(true);
-      try {
-        const vehiclesData = await fetchVehicles();
-        setVehicles(vehiclesData);
-      } catch (error) {
-        console.error("❌ Impossible de charger les données Supabase");
-      } finally {
-        setIsLoading(false);
-      }
+      setVehicles(await fetchVehicles());
+      setIsLoading(false);
     };
-
     loadVehicles();
   }, []);
 
-  // Function to manually refresh vehicles
-  const refreshVehicles = async () => {
-    setIsLoading(true);
+  // 🔥 Charger quota quand l’utilisateur change
+  useEffect(() => {
+    refreshQuota();
+  }, [currentUser]);
+
+  // Fonction pour rafraîchir le quota
+  const refreshQuota = async () => {
+    if (!currentUser) {
+      setUserQuota(null);
+      return;
+    }
     try {
-      const vehiclesData = await fetchVehicles();
-      setVehicles(vehiclesData);
-    } catch (error) {
-      console.error("❌ Impossible de charger les données Supabase");
-    } finally {
-      setIsLoading(false);
+      const res = await fetch(`/api/users/${currentUser.id}/quota/check`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserQuota(data);
+      }
+    } catch (e) {
+      console.error("Erreur refresh quota:", e);
     }
   };
 
-  // Nouvelles fonctions pour gestion quota unifiée
+  // Fermer QuotaModal
   const closeQuotaModal = () => {
     setIsQuotaModalOpen(false);
     setQuotaModalInfo(null);
   };
 
-  const openAuthModal = (mode: "login" | "register", onComplete?: () => void) => {
+  // Ouvrir AuthModal
+  const openAuthModal = (
+    mode: "login" | "register",
+    onComplete?: () => void,
+  ) => {
     setAuthMode(mode);
     setShowAuthModal(true);
     setAuthCallback(() => onComplete);
   };
 
+  // Vérifier quota avant création
   const handleCreateListingWithQuota = async (onSuccess: () => void) => {
-    // Vérifier si utilisateur connecté
     if (!currentUser) {
       openAuthModal("login", onSuccess);
       return;
     }
 
-    // Vérifier quota rapidement
-    try {
-      const response = await fetch(`/api/users/${currentUser.id}/quota/check`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const quotaInfo = await response.json();
-      
-      if (quotaInfo.canCreate) {
-        onSuccess(); // Navigation vers create-listing
-      } else {
-        // Afficher QuotaModal
-        setQuotaModalInfo(quotaInfo);
-        setIsQuotaModalOpen(true);
-      }
-    } catch (error) {
-      console.error("Erreur vérification quota:", error);
-      onSuccess(); // Fallback: permettre la navigation
+    if (!userQuota) {
+      console.warn("⚠️ Quota pas encore chargé → on laisse passer");
+      onSuccess();
+      return;
+    }
+
+    if (userQuota.canCreate) {
+      onSuccess();
+    } else {
+      setQuotaModalInfo(userQuota);
+      setIsQuotaModalOpen(true);
     }
   };
 
-  // Filter vehicles based on search criteria
-  const filteredVehicles = vehicles
-    .filter((vehicle) => {
-      // Handle category filtering with main categories and subcategories mapping
-      if (searchFilters.category) {
-        const categoryMap: { [key: string]: string[] } = {
-          "voiture-utilitaire": [
-            "voiture",
-            "utilitaire",
-            "caravane",
-            "remorque",
-          ],
-          "moto-scooter-quad": ["moto", "scooter", "quad"],
-          "nautisme-sport-aerien": ["bateau", "jetski", "aerien"],
-          services: ["reparation", "remorquage", "entretien", "autre-service"],
-          pieces: ["piece-voiture", "piece-moto", "autre-piece"],
-        };
-
-        // Check if it's a main category
-        if (categoryMap[searchFilters.category]) {
-          // Filter by subcategories
-          if (!categoryMap[searchFilters.category].includes(vehicle.category))
-            return false;
-        } else {
-          // Direct subcategory match
-          if (vehicle.category !== searchFilters.category) return false;
-        }
-      }
-
-      // Handle subcategory filtering (refines the main category)
-      if (
-        searchFilters.subcategory &&
-        vehicle.category !== searchFilters.subcategory
-      )
-        return false;
-      if (searchFilters.brand && vehicle.brand !== searchFilters.brand)
-        return false;
-      if (
-        searchFilters.model &&
-        vehicle.model
-          .toLowerCase()
-          .includes(searchFilters.model.toLowerCase()) === false
-      )
-        return false;
-      if (searchFilters.yearFrom && vehicle.year < searchFilters.yearFrom)
-        return false;
-      if (searchFilters.yearTo && vehicle.year > searchFilters.yearTo)
-        return false;
-      if (
-        searchFilters.mileageFrom &&
-        vehicle.mileage &&
-        vehicle.mileage < searchFilters.mileageFrom
-      )
-        return false;
-      if (
-        searchFilters.mileageTo &&
-        vehicle.mileage &&
-        vehicle.mileage > searchFilters.mileageTo
-      )
-        return false;
-      if (searchFilters.priceFrom && vehicle.price < searchFilters.priceFrom)
-        return false;
-      if (searchFilters.priceTo && vehicle.price > searchFilters.priceTo)
-        return false;
-      if (searchFilters.fuelType && vehicle.fuelType !== searchFilters.fuelType)
-        return false;
-      if (
-        searchFilters.condition &&
-        vehicle.condition !== searchFilters.condition
-      )
-        return false;
-      if (
-        searchFilters.location &&
-        vehicle.location
-          .toLowerCase()
-          .includes(searchFilters.location.toLowerCase()) === false
-      )
-        return false;
-      if (
-        searchFilters.searchTerm &&
-        vehicle.title
-          .toLowerCase()
-          .includes(searchFilters.searchTerm.toLowerCase()) === false
-      )
-        return false;
-      return true;
-    })
-    .sort((a, b) => {
-      // Boosted listings first
-      if (a.isBoosted && !b.isBoosted) return -1;
-      if (!a.isBoosted && b.isBoosted) return 1;
-
-      // Then sort by criteria
-      switch (searchFilters.sortBy) {
-        case "price_asc":
-          return a.price - b.price;
-        case "price_desc":
-          return b.price - a.price;
-        case "mileage":
-          return (a.mileage || 0) - (b.mileage || 0);
-        default:
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-      }
-    });
+  // Filtrage des véhicules
+  const filteredVehicles = vehicles.filter((vehicle) => {
+    if (searchFilters.category && vehicle.category !== searchFilters.category)
+      return false;
+    if (searchFilters.brand && vehicle.brand !== searchFilters.brand)
+      return false;
+    if (
+      searchFilters.searchTerm &&
+      !vehicle.title
+        .toLowerCase()
+        .includes(searchFilters.searchTerm.toLowerCase())
+    )
+      return false;
+    return true;
+  });
 
   return (
     <AppContext.Provider
@@ -359,9 +228,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         setShowAuthModal,
         authMode,
         setAuthMode,
-        refreshVehicles,
-        // Nouvelles fonctions pour gestion quota unifiée
+        refreshVehicles: async () => setVehicles(await fetchVehicles()),
+        // 🔥 Quota
         handleCreateListingWithQuota,
+        refreshQuota,
         openAuthModal,
         isQuotaModalOpen,
         quotaModalInfo,
@@ -369,8 +239,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       }}
     >
       {children}
-      
-      {/* QuotaModal centralisée pour toute l'application */}
+
+      {/* Modal centralisé */}
       <QuotaModal
         isOpen={isQuotaModalOpen}
         onClose={closeQuotaModal}
