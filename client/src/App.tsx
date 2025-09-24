@@ -38,6 +38,7 @@ import ProfessionalProfile from "./pages/ProfessionalProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { detectOnboardingState } from "@/utils/onboardingDetector";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
+import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,6 +50,9 @@ function AppContent() {
     "choice" | "personal" | "professional"
   >("choice");
   const [refreshVehicles, setRefreshVehicles] = useState(false);
+
+  // Hook pour gérer la création d'annonce avec vérification quota
+  const handleCreateListingGuard = useCreateListingGuard();
 
   // États pour onboarding intelligent
   const [professionalAccount, setProfessionalAccount] = useState(null);
@@ -293,7 +297,7 @@ function AppContent() {
             <Route path="/dashboard">
               <Dashboard
                 initialTab={dashboardTab}
-                onCreateListing={() => setShowCreateListingModal(true)}
+                onCreateListing={() => handleCreateListingGuard(() => setShowCreateListingModal(true), 'dashboard-button')}
                 onRedirectHome={() => setLocation("/")}
                 onRedirectToSearch={() => setLocation("/search")}
                 setSearchFilters={setSearchFilters}
