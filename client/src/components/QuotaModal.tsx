@@ -26,7 +26,7 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
       onUpgrade();
     } else {
       // Redirection par défaut vers la page des abonnements
-      window.location.href = "/subscription-plans";
+      window.location.href = "/subscription-purchase";
     }
   };
 
