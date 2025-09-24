@@ -21,7 +21,14 @@ interface FormErrors {
 }
 
 export const UnifiedAuthModal: React.FC = () => {
-  const { showAuthModal, setShowAuthModal, authMode, setAuthMode } = useApp();
+  // ⬇️ on retire authMode/setAuthMode (non utilisés ici)
+  const {
+    showAuthModal,
+    setShowAuthModal,
+    runAuthCallbackAfterLogin, // ✅ on l'utilise après login réussi
+    refreshQuota,              // ✅ on l'appelle pour mettre à jour le quota
+  } = useApp();
+
   const { signInWithOAuth } = useAuth();
   const { handleAuthSuccess } = useAuthService();
 
@@ -36,30 +43,23 @@ export const UnifiedAuthModal: React.FC = () => {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false); // false = connexion, true = inscription
+  // ⚠️ on garde ton switch local (isSignUp) pour gérer les vues
+  const [isSignUp, setIsSignUp] = useState(false);
   const [notification, setNotification] = useState<{
     title: string;
     description: string;
     variant: "default" | "destructive";
   } | null>(null);
 
-  // Fonction de réinitialisation du formulaire
   const resetForm = () => {
-    setFormData({
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
+    setFormData({ email: "", password: "", confirmPassword: "" });
     setErrors({});
     setSuccessMessage("");
     setIsPasswordReset(false);
   };
 
-  // Réinitialiser le formulaire quand le modal s'ouvre/ferme
   useEffect(() => {
-    if (showAuthModal) {
-      resetForm();
-    }
+    if (showAuthModal) resetForm();
   }, [showAuthModal]);
 
   if (!showAuthModal) return null;
@@ -70,41 +70,28 @@ export const UnifiedAuthModal: React.FC = () => {
     variant: "default" | "destructive" = "default",
   ) => {
     setNotification({ title, description, variant });
-    setTimeout(() => {
-      setNotification(null);
-    }, 4000);
+    setTimeout(() => setNotification(null), 4000);
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email) {
-      newErrors.email = "L'email est requis";
-    } else if (!emailRegex.test(formData.email)) {
+    if (!formData.email) newErrors.email = "L'email est requis";
+    else if (!emailRegex.test(formData.email))
       newErrors.email = "Format d'email invalide";
-    }
 
-    // Validation mot de passe (sauf pour reset)
     if (!isPasswordReset && !formData.password) {
       newErrors.password = "Le mot de passe est requis";
-    } else if (
-      !isPasswordReset &&
-      formData.password &&
-      formData.password.length < 6
-    ) {
-      newErrors.password =
-        "Le mot de passe doit contenir au moins 6 caractères";
+    } else if (!isPasswordReset && formData.password.length < 6) {
+      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
     }
 
-    // Validation confirmation mot de passe (uniquement pour inscription)
     if (isSignUp && !isPasswordReset) {
-      if (!formData.confirmPassword) {
+      if (!formData.confirmPassword)
         newErrors.confirmPassword = "Veuillez confirmer votre mot de passe";
-      } else if (formData.password !== formData.confirmPassword) {
+      else if (formData.password !== formData.confirmPassword)
         newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
-      }
     }
 
     setErrors(newErrors);
@@ -112,24 +99,13 @@ export const UnifiedAuthModal: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Effacer l'erreur quand l'utilisateur tape
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
+    const { name, value } = e.target as { name: keyof typeof formData; value: string };
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -137,22 +113,13 @@ export const UnifiedAuthModal: React.FC = () => {
 
     try {
       if (isPasswordReset) {
-        // Reset de mot de passe
-        console.log("🔄 Réinitialisation mot de passe pour:", formData.email);
         const { error } = await resetPassword(formData.email);
-
         if (error) {
           setErrors({ general: `Erreur : ${error.message}` });
           return;
         }
-
-        setSuccessMessage(
-          "Un email de réinitialisation a été envoyé à votre adresse.",
-        );
-        showToast(
-          "Email envoyé",
-          "Vérifiez votre boîte mail pour réinitialiser votre mot de passe.",
-        );
+        setSuccessMessage("Un email de réinitialisation a été envoyé.");
+        showToast("Email envoyé", "Vérifiez votre boîte mail.");
         setTimeout(() => {
           setIsPasswordReset(false);
           resetForm();
@@ -161,59 +128,47 @@ export const UnifiedAuthModal: React.FC = () => {
       }
 
       if (isSignUp) {
-        // Inscription
-        console.log("🔄 Inscription avec email:", formData.email);
+        // Inscription → on NE lance PAS la callback (souvent on veut une vérif email)
         const { data, error } = await signUp(formData.email, formData.password);
-
         if (error) {
-          if (error.message.includes("already registered")) {
-            setErrors({
-              general: "Cet email est déjà utilisé. Essayez de vous connecter.",
-            });
+          if (error.message?.includes("already registered")) {
+            setErrors({ general: "Cet email est déjà utilisé. Essayez de vous connecter." });
             setIsSignUp(false);
           } else {
             setErrors({ general: `Erreur d'inscription : ${error.message}` });
           }
           return;
         }
-
-        if (data.user) {
-          console.log("✅ Inscription réussie:", data.user.email);
-          setSuccessMessage(
-            "Compte créé avec succès ! Un email de confirmation a été envoyé à votre adresse.",
-          );
-
-          // Attendre un peu avant de fermer pour que l'utilisateur voit le message
+        if (data?.user) {
+          setSuccessMessage("Compte créé ! Un email de confirmation vous a été envoyé.");
           setTimeout(() => {
             handleAuthSuccess();
             setShowAuthModal(false);
           }, 3000);
         }
       } else {
-        // Connexion
-        console.log("🔄 Connexion avec email:", formData.email);
+        // Connexion → on lance la callback stockée + on rafraîchit le quota
         const { data, error } = await signIn(formData.email, formData.password);
-
         if (error) {
           if (
-            error.message.includes("Invalid login credentials") ||
-            error.message.includes("Email not confirmed")
+            error.message?.includes("Invalid login credentials") ||
+            error.message?.includes("Email not confirmed")
           ) {
             setErrors({
               general:
-                "Email ou mot de passe incorrect. Essayez de créer un compte si vous n'en avez pas.",
+                "Email ou mot de passe incorrect. Ou email non confirmé.",
             });
           } else {
             setErrors({ general: `Erreur de connexion : ${error.message}` });
           }
           return;
         }
-
-        if (data.user) {
-          console.log("✅ Connexion réussie:", data.user.email);
+        if (data?.user) {
           await handleAuthSuccess();
           showToast("Connexion réussie", "Bienvenue !");
-          setShowAuthModal(false);
+          // ✅ mise à jour du quota + exécution de la callback (ouvre le formulaire, etc.)
+          await refreshQuota();
+          runAuthCallbackAfterLogin(); // ferme aussi le modal proprement
         }
       }
     } catch (error) {
@@ -224,23 +179,16 @@ export const UnifiedAuthModal: React.FC = () => {
     }
   };
 
-  // Fonction pour gérer l'authentification Google
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      console.log("🔄 Connexion Google...");
-
       const { error } = await signInWithOAuth("google");
-
       if (error) {
-        console.error("❌ Erreur connexion Google:", error);
         setErrors({ general: `Erreur connexion Google : ${error.message}` });
       } else {
-        console.log("✅ Redirection Google initiée");
-        // Le reste sera géré par le callback d'authentification
+        // Redirection → la suite se gère dans ton callback d’auth côté app
       }
     } catch (error) {
-      console.error("❌ Erreur lors de la connexion avec Google:", error);
       setErrors({ general: "Erreur lors de la connexion avec Google" });
     } finally {
       setIsLoading(false);
@@ -248,20 +196,17 @@ export const UnifiedAuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md relative animate-in fade-in-0 zoom-in-95 duration-300">
-        {/* Header avec bouton fermeture */}
+        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">
-            {isPasswordReset
-              ? "Réinitialiser le mot de passe"
-              : isSignUp
-                ? "Créer un compte"
-                : "Se connecter"}
+            {isPasswordReset ? "Réinitialiser le mot de passe" : isSignUp ? "Créer un compte" : "Se connecter"}
           </h2>
           <button
             onClick={() => setShowAuthModal(false)}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Fermer"
           >
             <X size={24} />
           </button>
@@ -286,9 +231,8 @@ export const UnifiedAuthModal: React.FC = () => {
           </div>
         )}
 
-        {/* Formulaire */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Message de succès */}
           {successMessage && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center">
               <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
@@ -296,7 +240,6 @@ export const UnifiedAuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* Erreur générale */}
           {errors.general && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
               <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
@@ -304,12 +247,9 @@ export const UnifiedAuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* Champ Email */}
+          {/* Email */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Adresse email
             </label>
             <div className="relative">
@@ -336,17 +276,11 @@ export const UnifiedAuthModal: React.FC = () => {
             )}
           </div>
 
-          {/* Champ Mot de passe - seulement si pas en mode reset */}
+          {/* Password */}
           {!isPasswordReset && (
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Mot de passe{" "}
-                {isSignUp && (
-                  <span className="text-gray-500">(min. 6 caractères)</span>
-                )}
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Mot de passe {isSignUp && <span className="text-gray-500">(min. 6 caractères)</span>}
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -380,13 +314,10 @@ export const UnifiedAuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* Champ Confirmation mot de passe - seulement pour inscription */}
+          {/* Confirm password (signup only) */}
           {!isPasswordReset && isSignUp && (
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                 Confirmer le mot de passe
               </label>
               <div className="relative">
@@ -401,9 +332,7 @@ export const UnifiedAuthModal: React.FC = () => {
                   onChange={handleInputChange}
                   placeholder="••••••••"
                   className={`w-full pl-10 pr-3 py-3 rounded-lg border ${
-                    errors.confirmPassword
-                      ? "border-red-500"
-                      : "border-gray-300"
+                    errors.confirmPassword ? "border-red-500" : "border-gray-300"
                   } focus:ring-2 focus:ring-[#0CBFDE] focus:border-[#0CBFDE]`}
                 />
               </div>
@@ -416,7 +345,7 @@ export const UnifiedAuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* Bouton principal */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={isLoading}
@@ -424,18 +353,16 @@ export const UnifiedAuthModal: React.FC = () => {
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            ) : isPasswordReset ? (
+              "Envoyer l'email"
+            ) : isSignUp ? (
+              "Créer le compte"
             ) : (
-              <>
-                {isPasswordReset
-                  ? "Envoyer l'email"
-                  : isSignUp
-                    ? "Créer le compte"
-                    : "Se connecter"}
-              </>
+              "Se connecter"
             )}
           </button>
 
-          {/* Liens de navigation */}
+          {/* Links */}
           <div className="space-y-2 text-center text-sm">
             {!isPasswordReset && (
               <>
@@ -444,9 +371,7 @@ export const UnifiedAuthModal: React.FC = () => {
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-[#0CBFDE] hover:underline"
                 >
-                  {isSignUp
-                    ? "Déjà un compte ? Se connecter"
-                    : "Pas de compte ? Créer un compte"}
+                  {isSignUp ? "Déjà un compte ? Se connecter" : "Pas de compte ? Créer un compte"}
                 </button>
 
                 <div className="border-t pt-2">
@@ -472,40 +397,27 @@ export const UnifiedAuthModal: React.FC = () => {
             )}
           </div>
 
-          {/* Séparateur et authentification Google - seulement si pas en mode reset */}
+          {/* Google */}
           {!isPasswordReset && (
             <>
-              {/* Séparateur */}
               <div className="flex items-center my-6">
                 <div className="flex-1 border-t border-gray-300"></div>
                 <span className="px-4 text-sm text-gray-500">ou</span>
                 <div className="flex-1 border-t border-gray-300"></div>
               </div>
 
-              {/* Bouton Google */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 disabled:bg-gray-100 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
               >
+                {/* logo G */}
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 {isLoading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>

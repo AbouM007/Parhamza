@@ -44,7 +44,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
             <h4 className="text-lg font-semibold mb-6">Liens rapides</h4>
             <ul className="space-y-3">
               <li><button onClick={() => setCurrentView('listings')} className="text-gray-400 hover:text-white transition-colors">Rechercher</button></li>
-              <li><button onClick={handleCreateListing} className="text-gray-400 hover:text-white transition-colors">Déposer une annonce</button></li>
+              <li><button onClick={() => handleCreateListingWithQuota(() => setCurrentView("create-listing"))} className="text-gray-400 hover:text-white transition-colors">Déposer une annonce</button></li>
               <li><button onClick={handleMyAccountClick} className="text-gray-400 hover:text-white transition-colors">Espace Pro</button></li>
               <li><button onClick={handleMyAccountClick} className="text-gray-400 hover:text-white transition-colors">Mon compte</button></li>
             </ul>

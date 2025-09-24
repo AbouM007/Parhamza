@@ -11,7 +11,11 @@ interface UserMenuProps {
   onCreateListingWithQuota?: () => void;
 }
 
-export function UserMenu({ onNavigate, onDashboardNavigate, onCreateListingWithQuota }: UserMenuProps) {
+export function UserMenu({
+  onNavigate,
+  onDashboardNavigate,
+  onCreateListingWithQuota,
+}: UserMenuProps) {
   const { user, profile } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -112,22 +116,6 @@ export function UserMenu({ onNavigate, onDashboardNavigate, onCreateListingWithQ
             </button>
 
             <div className="border-t border-gray-100 my-1"></div>
-
-            <button
-              onClick={() => {
-                if (onCreateListingWithQuota) {
-                  onCreateListingWithQuota();
-                } else {
-                  // Fallback vers l'ancienne méthode si la fonction n'est pas fournie
-                  onNavigate?.("create-listing");
-                }
-                setIsOpen(false);
-              }}
-              className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span>Créer une annonce</span>
-            </button>
 
             {/* Section pour administrateurs et professionnels */}
             {profile?.email === "admin@passionauto2roues.com" && (

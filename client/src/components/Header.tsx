@@ -38,10 +38,17 @@ export const Header: React.FC<HeaderProps> = ({
   setDashboardTab,
   onSearch,
 }) => {
-  const { setSearchFilters, setSelectedVehicle, handleCreateListingWithQuota } = useApp();
+  const { setSearchFilters, setSelectedVehicle, handleCreateListingWithQuota } =
+    useApp();
   const { user, dbUser, isAuthenticated, isLoading } = useAuth();
   const { unreadCount } = useUnreadMessages();
-  const { checkQuotaBeforeAction, isQuotaModalOpen, quotaInfo, closeQuotaModal, isChecking } = useQuotaCheck(dbUser?.id);
+  const {
+    checkQuotaBeforeAction,
+    isQuotaModalOpen,
+    quotaInfo,
+    closeQuotaModal,
+    isChecking,
+  } = useQuotaCheck(dbUser?.id);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("vehicles");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -80,12 +87,12 @@ export const Header: React.FC<HeaderProps> = ({
   const handleCreateListingClick = async () => {
     setActiveCategory(""); // Désactiver le soulignement des catégories principales
     setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
-    
+
     // Utiliser la fonction unifiée de l'AppContext
     handleCreateListingWithQuota(() => {
       setCurrentView("create-listing");
     });
-    
+
     setMobileMenuOpen(false);
   };
 
@@ -232,7 +239,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="hidden lg:flex items-center space-x-6 flex-1 max-w-4xl mx-8">
             {/* Deposit Button */}
             <button
-              onClick={handleCreateListingClick}
+              onClick={() =>
+                handleCreateListingWithQuota(() =>
+                  setCurrentView("create-listing"),
+                )
+              }
               className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
             >
               Déposer une annonce
@@ -557,7 +568,7 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Auth Modal handled by AuthModal in App.tsx */}
-      
+
       {/* Quota Modal */}
       <QuotaModal
         isOpen={isQuotaModalOpen}
