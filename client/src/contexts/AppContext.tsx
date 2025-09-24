@@ -300,10 +300,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         isOpen={isQuotaModalOpen}
         onClose={closeQuotaModal}
         quotaInfo={quotaModalInfo || { used: 0, maxListings: 5 }}
-        onUpgrade={() => {
-          closeQuotaModal();
-          window.location.href = "/subscription-plans";
-        }}
       />
     </AppContext.Provider>
   );
