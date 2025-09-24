@@ -221,7 +221,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
       {/* Plans d'abonnement */}
       <div className={`grid gap-6 ${
         isCompactMode 
-          ? 'grid-cols-1'
+          ? 'grid-cols-1 lg:grid-cols-3'  // Horizontal sur desktop même en compact
           : 'grid-cols-1 lg:grid-cols-3'
       }`}>
         {displayedPlans?.map((plan) => {
@@ -244,7 +244,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
             <div
               key={plan.id}
               className={`bg-white rounded-2xl shadow-lg border-2 relative transition-all duration-300 ${
-                isCompactMode ? 'p-6' : 'p-8'
+                isCompactMode ? 'p-4' : 'p-8'
               } ${
                 isCurrentPlan
                   ? 'border-green-300 bg-green-50 opacity-75'
@@ -271,19 +271,19 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
                 </div>
               )}
 
-              <div className={`text-center ${isCompactMode ? 'mb-6' : 'mb-8'}`}>
+              <div className={`text-center ${isCompactMode ? 'mb-4' : 'mb-8'}`}>
                 <h3 className={`font-bold mb-2 ${planColor.primary} ${
-                  isCompactMode ? 'text-xl' : 'text-2xl'
+                  isCompactMode ? 'text-lg' : 'text-2xl'
                 }`}>
                   {plan.name}
                 </h3>
-                <div className={`font-bold mb-2 ${planColor.primary} ${
-                  isCompactMode ? 'text-3xl' : 'text-5xl'
+                <div className={`font-bold mb-1 ${planColor.primary} ${
+                  isCompactMode ? 'text-2xl' : 'text-5xl'
                 }`}>
                   {plan.price_monthly.toFixed(2)}€
                 </div>
-                <p className="text-gray-600">par mois</p>
-                <p className={`text-sm font-medium ${planColor.secondary} mt-2`}>
+                <p className={`text-gray-600 ${isCompactMode ? 'text-sm' : ''}`}>par mois</p>
+                <p className={`text-xs font-medium ${planColor.secondary} mt-1`}>
                   {plan.max_listings === null || plan.max_listings === -1 
                     ? 'Annonces illimitées' 
                     : `${plan.max_listings} annonces max`}
@@ -316,7 +316,9 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
               <button
                 onClick={() => handleSelectPlan(plan)}
                 disabled={isCurrentPlan || isLoading}
-                className={`w-full py-3 px-6 rounded-xl font-bold transition-all duration-200 ${
+                className={`w-full rounded-xl font-bold transition-all duration-200 ${
+                  isCompactMode ? 'py-2 px-4 text-sm' : 'py-3 px-6'
+                } ${
                   isCurrentPlan
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : isPopular
