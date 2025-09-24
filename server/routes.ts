@@ -109,34 +109,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint rapide pour vérifier le quota d'annonces d'un utilisateur (pour interception)
-  app.get("/api/users/:id/quota/check", async (req, res) => {
-    try {
-      const userId = req.params.id;
-      
-      // Utiliser la méthode existante de vérification quota
-      const quotaInfo = await storage.checkListingQuota(userId);
-      
-      // Retourner les infos nécessaires pour l'interception côté client
-      res.json({
-        canCreate: quotaInfo.canCreate,
-        remaining: quotaInfo.maxListings ? Math.max(0, quotaInfo.maxListings - quotaInfo.activeListings) : null,
-        used: quotaInfo.activeListings,
-        maxListings: quotaInfo.maxListings,
-        message: quotaInfo.message
-      });
-    } catch (error) {
-      console.error("Error checking user quota:", error);
-      // En cas d'erreur, autoriser par défaut (fail-safe)
-      res.json({
-        canCreate: true,
-        remaining: null,
-        used: 0,
-        maxListings: null,
-        message: "Erreur lors de la vérification, autorisation par défaut"
-      });
-    }
-  });
 
   // Endpoint pour synchroniser un utilisateur Supabase Auth avec la table users
   app.post("/api/users/sync-auth", async (req, res) => {
@@ -446,66 +418,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .join(" ") || "Utilisateur"
     );
   }
-/*
-  app.post("/api/vehicles", async (req, res) => {
-    try {
-      const vehicleData = req.body;
-      console.log(
-        "🔍 DONNÉES REÇUES PAR L'API:",
-        JSON.stringify(vehicleData, null, 2),
-      );
-
-      console.log("DEBUG USER ID:", vehicleData.userId);
-      // Vérifier si l'utilisateur existe, sinon le créer automatiquement
-      if (vehicleData.userId) {
-        const userExists = await ensureUserExists(
-          vehicleData.userId,
-          vehicleData.contact?.email || vehicleData.contact_email,
-        );
-
-        if (!userExists) {
-          // Tentative de création avec données de contact
-          const contactEmail =
-            vehicleData.contact?.email ||
-            vehicleData.contact_email ||
-            "user@example.com";
-          const contactPhone =
-            vehicleData.contact?.phone || vehicleData.contact_phone || "";
-          const city = vehicleData.location?.city || vehicleData.location || "";
-          const postalCode =
-            vehicleData.location?.postalCode || vehicleData.postal_code || null;
-
-          await createUserFromAuth(vehicleData.userId, contactEmail, {
-            phone: contactPhone,
-            city: city,
-            postal_code: postalCode,
-          });
-        }
-
-        // 🚦 VÉRIFICATION DU QUOTA POUR LES COMPTES
-        const quotaCheck = await storage.checkListingQuota(vehicleData.userId);
-        console.log(`📊 Résultat vérification quota:`, quotaCheck);
-
-        if (!quotaCheck.canCreate) {
-          return res.status(403).json({
-            error: "Quota d'annonces atteint",
-            message: quotaCheck.message,
-            quota: {
-              activeListings: quotaCheck.activeListings,
-              maxListings: quotaCheck.maxListings,
-            },
-          });
-        }
-      }
-
-      const vehicle = await storage.createVehicle(vehicleData);
-      res.status(201).json(vehicle);
-    } catch (error) {
-      console.error("Error creating vehicle:", error);
-      res.status(500).json({ error: "Failed to create vehicle" });
-    }
-  });
-  */
 
   app.post("/api/vehicles", async (req, res) => {
     try {
@@ -582,6 +494,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating vehicle:", error);
       res.status(500).json({ error: "Failed to update vehicle" });
+    }
+  });
+
+  // Endpoint rapide pour vérifier le quota d'annonces d'un utilisateur (pour interception)
+  app.get("/api/users/:id/quota/check", async (req, res) => {
+    try {
+      const userId = req.params.id;
+
+      // Utiliser la méthode existante de vérification quota
+      const quotaInfo = await storage.checkListingQuota(userId);
+
+      // Retourner les infos nécessaires pour l'interception côté client
+      res.json({
+        canCreate: quotaInfo.canCreate,
+        remaining: quotaInfo.maxListings ? Math.max(0, quotaInfo.maxListings - quotaInfo.activeListings) : null,
+        used: quotaInfo.activeListings,
+        maxListings: quotaInfo.maxListings,
+        message: quotaInfo.message
+      });
+    } catch (error) {
+      console.error("Error checking user quota:", error);
+      // En cas d'erreur, autoriser par défaut (fail-safe)
+      res.json({
+        canCreate: true,
+        remaining: null,
+        used: 0,
+        maxListings: null,
+        message: "Erreur lors de la vérification, autorisation par défaut"
+      });
     }
   });
 
