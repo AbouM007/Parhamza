@@ -33,10 +33,6 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
     }
   };
 
-  const handlePlanSelect = (planId: number) => {
-    onClose();
-    // La logique de paiement Stripe est gérée par PlanSelector
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -152,7 +148,6 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
               
               <PlanSelector
                 mode="compact"
-                onPlanSelect={handlePlanSelect}
                 maxPlansDisplayed={3}
               />
 
