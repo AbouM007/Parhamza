@@ -426,13 +426,6 @@ export default function ListingsSection({
             <p className="text-gray-600 mb-8 text-lg">
               {getEmptyStateDescription(listingFilter)}
             </p>
-            <button
-              onClick={onCreateListing}
-              className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-10 py-4 rounded-xl font-semibold flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
-            >
-              <Plus className="h-6 w-6" />
-              <span>Publier une annonce</span>
-            </button>
           </div>
         )}
       </div>
