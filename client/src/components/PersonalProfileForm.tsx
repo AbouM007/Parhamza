@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
-// import { useToast } from '@/hooks/use-toast'; // Hook non disponible
+import { useToast } from '@/hooks/use-toast';
 
 // Schéma de validation pour le profil personnel
 const personalProfileSchema = z.object({
@@ -42,7 +42,7 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
   onComplete,
   initialData = {},
 }) => {
-  // const { toast } = useToast(); // Hook non disponible
+  const { toast } = useToast();
 
   const form = useForm<PersonalProfileData>({
     resolver: zodResolver(personalProfileSchema),
@@ -80,16 +80,36 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
         }),
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la mise à jour");
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        // 📱 Gestion spécifique pour téléphone existant
+        if (errorData.error === 'PHONE_ALREADY_EXISTS') {
+          toast({
+            title: "Numéro déjà utilisé",
+            description: "Ce numéro de téléphone est déjà associé à un autre compte. Veuillez en choisir un autre.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        throw new Error(errorData.message || "Erreur lors de la mise à jour");
+      }
 
-      alert(
-        "✅ Profil complété !\nVotre compte personnel est maintenant prêt à l'emploi.",
-      );
+      toast({
+        title: "Profil complété !",
+        description: "Votre compte personnel est maintenant prêt à l'emploi.",
+        variant: "default",
+      });
 
       onComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erreur:", error);
-      alert("❌ Erreur\nUne erreur est survenue. Veuillez réessayer.");
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue. Veuillez réessayer.",
+        variant: "destructive",
+      });
     }
   };
 

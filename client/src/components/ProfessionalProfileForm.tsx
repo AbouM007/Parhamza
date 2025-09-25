@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
+import { useToast } from '@/hooks/use-toast';
 
 // ✅ Schéma de validation pour profil professionnel
 const professionalProfileSchema = z.object({
@@ -39,6 +40,7 @@ interface ProfessionalProfileFormProps {
 export const ProfessionalProfileForm: React.FC<
   ProfessionalProfileFormProps
 > = ({ isOpen, onClose, onComplete, initialData = {} }) => {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [savedFormData, setSavedFormData] =
     useState<ProfessionalProfileData | null>(null);
@@ -100,15 +102,31 @@ export const ProfessionalProfileForm: React.FC<
         }),
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la sauvegarde");
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        // 📱 Gestion spécifique pour téléphone existant
+        if (errorData.error === 'PHONE_ALREADY_EXISTS') {
+          toast({
+            title: "Numéro déjà utilisé",
+            description: "Ce numéro de téléphone est déjà associé à un autre compte. Veuillez en choisir un autre.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        throw new Error(errorData.message || "Erreur lors de la sauvegarde");
+      }
 
       setSavedFormData(data);
       setCurrentStep(2);
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erreur sauvegarde profil:", error);
-      alert(
-        "❌ Erreur\nUne erreur est survenue lors de la sauvegarde. Veuillez réessayer.",
-      );
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.",
+        variant: "destructive",
+      });
     }
   };
 
