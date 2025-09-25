@@ -132,20 +132,17 @@ export const ProfessionalVerificationBanner: React.FC = () => {
             </h3>
             <p className="text-sm text-yellow-800 mt-2">
               Merci d’avoir rejoint notre communauté de professionnels 🚀. Votre
-              compte est déjà <span className="font-medium">actif</span> : vous
-              pouvez dès maintenant découvrir toutes les fonctionnalités,
-              publier vos annonces et même les booster pour plus de visibilité.
+              compte est déjà <span className="font-medium">crée</span> : vous
+              pouvez naviguer dans votre dashboard et découvrir les
+              fonctionnalités. Profitez de ce temps pour personnaliser votre
+              profil et préparer votre page pro.
             </p>
             <p className="text-sm text-yellow-800 mt-2">
               🔎 Notre équipe va maintenant vérifier vos documents. Cette étape
-              prend généralement <span className="font-medium">24 à 48h</span>.
-              Une fois validé, vous recevrez automatiquement le{" "}
+              prend généralement <span className="font-medium">24h</span>. Une
+              fois validé, vous recevrez automatiquement le{" "}
               <span className="font-medium">badge "Compte vérifié"</span>, gage
               de confiance auprès des acheteurs.
-            </p>
-            <p className="text-xs text-yellow-700 mt-3">
-              💡 Astuce : profitez de ce temps pour personnaliser votre profil
-              et préparer vos premières annonces.
             </p>
           </div>
           <button
