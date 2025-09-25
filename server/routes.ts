@@ -399,9 +399,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       res.json({ user: newUser, created: true });
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erreur sync immédiate:", error);
-      res.status(500).json({ error: "Erreur de synchronisation" });
+      
+      // 📱 Gestion spécifique pour téléphone existant
+      if (error.message === 'PHONE_ALREADY_EXISTS') {
+        return res.status(409).json({ 
+          error: "PHONE_ALREADY_EXISTS",
+          message: "Ce numéro de téléphone est déjà utilisé par un autre compte."
+        });
+      }
+      
+      // 📧 Gestion spécifique pour email existant
+      if (error.message === 'EMAIL_ALREADY_EXISTS') {
+        return res.status(409).json({ 
+          error: "EMAIL_ALREADY_EXISTS",
+          message: "Cette adresse email est déjà utilisée."
+        });
+      }
+      
+      // ⚠️ Erreur générique
+      res.status(500).json({ 
+        error: "SYNC_ERROR",
+        message: "Erreur lors de la création du compte. Veuillez réessayer."
+      });
     }
   });
 

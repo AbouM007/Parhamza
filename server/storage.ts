@@ -182,6 +182,22 @@ export class SupabaseStorage implements IStorage {
       .single();
 
     if (error) {
+      // 📱 Détecter erreur contrainte téléphone (unique)
+      if (error.code === '23505' && error.message.includes('phone')) {
+        throw new Error('PHONE_ALREADY_EXISTS');
+      }
+      
+      // 📧 Détecter erreur contrainte email (unique)
+      if (error.code === '23505' && error.message.includes('email')) {
+        throw new Error('EMAIL_ALREADY_EXISTS');
+      }
+      
+      // 🚨 Autres erreurs de contrainte
+      if (error.code === '23505') {
+        throw new Error('DUPLICATE_VALUE');
+      }
+      
+      // ⚠️ Erreur générique
       throw new Error(`Error creating user: ${error.message}`);
     }
     return data as User;
