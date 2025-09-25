@@ -1748,13 +1748,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Récup �rer l'abonnement actif depuis la base de données
       const { data: subscription, error } = await supabaseServer
         .from("subscriptions")
-        .select(
-          `
-          *,
-          professional_accounts!inner(user_id)
-        `,
-        )
-        .eq("professional_accounts.user_id", userId)
+        .select("*")
+        .eq("user_id", userId)
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
