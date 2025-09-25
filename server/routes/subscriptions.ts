@@ -195,6 +195,7 @@ router.post("/create", requireAuth, async (req, res) => {
     });
 
     // Créer l'enregistrement d'abonnement en base
+    /*
     const { data: dbSubscription, error: subError } = await supabaseServer
       .from("subscriptions")
       .insert({
@@ -213,6 +214,42 @@ router.post("/create", requireAuth, async (req, res) => {
       console.error("❌ Erreur création abonnement DB:", subError);
       return res.status(500).json({ error: "Erreur création abonnement" });
     }
+    */
+    // 🔎 (NOUVEAU) Tenter de récupérer un compte pro lié à cet user
+    const { data: proAccount, error: proErr } = await supabaseServer
+      .from("professional_accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    // 🧱 Construire la payload d’insertion
+    const insertData: any = {
+      user_id: userId,                    // ✅ toujours
+      plan_id: planId,
+      plan_name: planConfig.name,         // (si colonne existante)
+      price: planConfig.price_monthly,    // (si colonne existante)
+      max_listings: planConfig.max_listings, // (si colonne existante)
+      status: "pending",                  // ⚠️ webhook Stripe passera à "active"
+      stripe_subscription_id: subscription.id,
+    };
+
+    // Si c’est un pro, on relie aussi l’abonnement au compte pro
+    if (proAccount && !proErr) {
+      insertData.professional_account_id = proAccount.id; // ✅ si pro
+    }
+
+    // 💾 Insérer en DB
+    const { data: dbSubscription, error: subError } = await supabaseServer
+      .from("subscriptions")
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (subError) {
+      console.error("❌ Erreur création abonnement DB:", subError);
+      return res.status(500).json({ error: "Erreur création abonnement" });
+    }
+
 
     const latestInvoice = subscription.latest_invoice as any;
     const clientSecret = latestInvoice?.payment_intent?.client_secret;

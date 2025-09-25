@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   whatsapp: text("whatsapp"),
   type: text("type").notNull().default("pending"),
   companyName: text("company_name"),
-  
+
   address: text("address"),
   city: text("city"),
   postalCode: text("postal_code"),
@@ -237,6 +237,9 @@ export const professionalAccounts = pgTable("professional_accounts", {
 
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
+  user_id: text("user_id") // ← AJOUTER cette ligne
+    .references(() => users.id)
+    .notNull(),
   professional_account_id: integer("professional_account_id"),
   plan_id: text("plan_id").notNull(),
   stripe_subscription_id: text("stripe_subscription_id").unique(),
