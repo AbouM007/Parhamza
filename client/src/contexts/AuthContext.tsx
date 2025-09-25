@@ -101,26 +101,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     })
 
     if (!error && data.user) {
-      // Create user profile
-      const profileData = {
-        id: data.user.id,
-        email: data.user.email!,
-        name: userData?.name || data.user.email!.split('@')[0],
-        type: userData?.type || 'individual',
-        verified: false,
-        emailVerified: false,
-      }
-
+      // 👉 Utiliser la nouvelle route avec gestion d'erreurs améliorée
       try {
-        await fetch('/api/users', {
+        const response = await fetch('/api/users/sync-from-signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(profileData),
+          body: JSON.stringify({
+            authUserId: data.user.id,
+            email: data.user.email!,
+            metadata: {
+              name: userData?.name || data.user.email!.split('@')[0],
+              type: userData?.type || 'individual',
+              phone: userData?.phone || null,
+              companyName: userData?.companyName || null
+            }
+          }),
         })
-      } catch (profileError) {
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          
+          // 📱 Retourner erreurs spécifiques pour l'UI
+          if (errorData.error === 'PHONE_ALREADY_EXISTS') {
+            return { 
+              error: { 
+                message: 'PHONE_ALREADY_EXISTS',
+                userMessage: errorData.message 
+              } 
+            }
+          }
+          
+          if (errorData.error === 'EMAIL_ALREADY_EXISTS') {
+            return { 
+              error: { 
+                message: 'EMAIL_ALREADY_EXISTS',
+                userMessage: errorData.message 
+              } 
+            }
+          }
+          
+          // Erreur générique
+          throw new Error(errorData.message || 'Erreur lors de la création du profil')
+        }
+        
+      } catch (profileError: any) {
         console.error('Error creating profile:', profileError)
+        return { 
+          error: { 
+            message: 'PROFILE_CREATION_ERROR',
+            userMessage: profileError.message || 'Erreur lors de la création du profil'
+          }
+        }
       }
     }
 
