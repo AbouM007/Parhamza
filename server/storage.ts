@@ -1689,30 +1689,7 @@ export class SupabaseStorage implements IStorage {
     try {
       console.log(`🔍 Vérification quota pour l'utilisateur: ${userId}`);
 
-      // 1. Vérifier si l'utilisateur a un compte professionnel
-      const { data: professionalAccount, error: paError } = await supabaseServer
-        .from("professional_accounts")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-
-      if (paError || !professionalAccount) {
-        // 👉 Cas Particulier (gratuit par défaut, quota en dur = 5 annonces actives max)
-        const activeListings = await this.countActiveListingsByUser(userId);
-        const maxListings = 5; // quota particulier gratuit (hardcodé)
-
-        return {
-          canCreate: activeListings < maxListings,
-          activeListings,
-          maxListings,
-          message:
-            activeListings >= maxListings
-              ? "Limite atteinte (5 annonces). Passez à un plan supérieur pour publier plus d'annonces."
-              : undefined,
-        };
-      }
-
-      // 2. Cas Professionnel → récupérer l'abonnement actif
+      // 1. Chercher directement un abonnement actif par user_id (pro ou particulier)
       const { data: subscription, error: subError } = await supabaseServer
         .from("subscriptions")
         .select(
@@ -1726,12 +1703,12 @@ export class SupabaseStorage implements IStorage {
           )
         `,
         )
-        .eq("professional_account_id", professionalAccount.id)
+        .eq("user_id", userId)
         .eq("status", "active")
         .single();
 
       if (subError || !subscription) {
-        // 👉 Pro sans abonnement actif (rare, normalement impossible) → quota par défaut = 5
+        // 👉 Pas d'abonnement actif → quota gratuit (5 annonces)
         const activeListings = await this.countActiveListingsByUser(userId);
         const maxListings = 5;
 
@@ -1741,7 +1718,7 @@ export class SupabaseStorage implements IStorage {
           maxListings,
           message:
             activeListings >= maxListings
-              ? "Aucun abonnement actif. Limite atteinte (5 annonces)."
+              ? "Limite atteinte (5 annonces). Passez à un plan supérieur pour publier plus d'annonces."
               : undefined,
         };
       }
