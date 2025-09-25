@@ -1689,7 +1689,27 @@ export class SupabaseStorage implements IStorage {
     try {
       console.log(`🔍 Vérification quota pour l'utilisateur: ${userId}`);
 
-      // 1. Chercher directement un abonnement actif par user_id (pro ou particulier)
+      // 1. Récupérer le type d'utilisateur pour la logique business
+      const { data: user, error: userError } = await supabaseServer
+        .from("users")
+        .select("type")
+        .eq("id", userId)
+        .single();
+
+      if (userError) {
+        console.error("❌ Erreur récupération type utilisateur:", userError);
+        return {
+          canCreate: false,
+          activeListings: 0,
+          maxListings: 0,
+          message: "Erreur vérification compte utilisateur.",
+        };
+      }
+
+      const userType = user?.type;
+      console.log(`👤 Type utilisateur: ${userType}`);
+
+      // 2. Chercher directement un abonnement actif par user_id (pro ou particulier)
       const { data: subscription, error: subError } = await supabaseServer
         .from("subscriptions")
         .select(
@@ -1722,10 +1742,21 @@ export class SupabaseStorage implements IStorage {
       }
       
       if (!subscription) {
-        // 👉 Pas d'abonnement actif → quota gratuit (5 annonces)
+        // 👉 Pas d'abonnement actif
         const activeListings = await this.countActiveListingsByUser(userId);
+        
+        // 🚨 RÈGLE BUSINESS : Les pros DOIVENT avoir un abonnement
+        if (userType === "professional") {
+          return {
+            canCreate: false,
+            activeListings,
+            maxListings: 0,
+            message: "Abonnement requis pour les comptes professionnels. Veuillez souscrire à un plan pour publier des annonces.",
+          };
+        }
+        
+        // ✅ Particuliers : quota gratuit (5 annonces)
         const maxListings = 5;
-
         return {
           canCreate: activeListings < maxListings,
           activeListings,
