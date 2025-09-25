@@ -1750,13 +1750,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("subscriptions")
         .select("*")
         .eq("user_id", userId)
-        .eq("status", "active")
+        .in("status", ["active", "trialing"])
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
-        // PGRST116 = pas de résultat trouvé
+      if (error) {
         console.error("❌ Erreur récupération abonnement:", error);
         return res
           .status(500)

@@ -10,7 +10,10 @@ import {
   uuid,
   pgEnum,
   numeric,
+  uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -244,14 +247,24 @@ export const subscriptions = pgTable("subscriptions", {
   plan_id: text("plan_id").notNull(),
   stripe_subscription_id: text("stripe_subscription_id").unique(),
   status: text("status")
-    .$type<"active" | "cancelled" | "expired" | "pending">()
+    .$type<"active" | "cancelled" | "expired" | "pending" | "trialing">()
     .default("pending"),
   current_period_start: timestamp("current_period_start"),
   current_period_end: timestamp("current_period_end"),
   cancel_at_period_end: boolean("cancel_at_period_end"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index unique : un seul abonnement actif par user
+  uniqueActivePerUser: uniqueIndex("uniq_active_subscription_per_user")
+    .on(table.user_id)
+    .where(sql`status IN ('active', 'trialing')`),
+  
+  // Contrainte : au moins une référence (user_id ou professional_account_id)
+  hasReference: check("subscriptions_has_ref_chk", 
+    sql`user_id IS NOT NULL OR professional_account_id IS NOT NULL`
+  ),
+}));
 
 export const stripeEventsProcessed = pgTable("stripe_events_processed", {
   id: serial("id").primaryKey(),

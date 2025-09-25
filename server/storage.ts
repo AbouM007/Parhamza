@@ -1704,10 +1704,24 @@ export class SupabaseStorage implements IStorage {
         `,
         )
         .eq("user_id", userId)
-        .eq("status", "active")
-        .single();
+        .in("status", ["active", "trialing"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (subError || !subscription) {
+      if (subError) {
+        console.error("❌ Erreur récupération abonnement:", subError);
+        // En cas d'erreur, retourner quota gratuit par sécurité
+        const activeListings = await this.countActiveListingsByUser(userId);
+        return {
+          canCreate: activeListings < 5,
+          activeListings,
+          maxListings: 5,
+          message: "Erreur vérification abonnement. Quota gratuit appliqué.",
+        };
+      }
+      
+      if (!subscription) {
         // 👉 Pas d'abonnement actif → quota gratuit (5 annonces)
         const activeListings = await this.countActiveListingsByUser(userId);
         const maxListings = 5;
