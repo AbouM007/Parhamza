@@ -79,7 +79,6 @@ interface FormData {
   premiumPack: string;
 }
 
-
 interface CreateListingFormProps {
   onSuccess?: () => void;
 }
@@ -680,10 +679,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   // Vérifier si la catégorie nécessite une étape d'état du bien (biens matériels uniquement)
-  const needsConditionStep = () => {
+  //  const needsConditionStep = () => {
+  const needsConditionStep = (): boolean => {
     const category = getSelectedCategory();
     // Seulement pour les biens matériels, excluant services et pièces détachées
-    return (
+    return !!(
       category?.isMaterial &&
       category?.id !== "services" &&
       category?.id !== "pieces"
