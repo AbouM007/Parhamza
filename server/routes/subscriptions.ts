@@ -205,28 +205,6 @@ router.post("/handle-success", async (req, res) => {
       return res.status(404).json({ error: "Plan introuvable" });
     }
 
-    // ✅ IDEMPOTENCE: Vérifier si cette subscription Stripe existe déjà
-    const { data: existingStripeSubscription, error: stripeSubErr } = await supabaseServer
-      .from("subscriptions")
-      .select("id, user_id, status, plan_id")
-      .eq("stripe_subscription_id", fullSub.id)
-      .maybeSingle();
-    
-    if (stripeSubErr) {
-      console.error("❌ Erreur vérification subscription existante:", stripeSubErr);
-      return res.status(500).json({ error: "Erreur vérification subscription" });
-    }
-    
-    if (existingStripeSubscription) {
-      console.log(`♻️ IDEMPOTENCE: Subscription ${fullSub.id} existe déjà - retour succès`);
-      return res.json({
-        success: true,
-        userId: existingStripeSubscription.user_id,
-        subscriptionId: fullSub.id,
-        planName: plan.name,
-        message: "Subscription déjà traitée"
-      });
-    }
 
     // ✅ update-or-insert to satisfy uniq_active_subscription_per_user
     const { data: existing, error: findErr } = await supabaseServer
@@ -278,6 +256,34 @@ router.post("/handle-success", async (req, res) => {
         .from("subscriptions")
         .insert(payload);
       if (insertErr) {
+        // ✅ IDEMPOTENCE: Vérifier si c'est une erreur de contrainte unique sur stripe_subscription_id
+        if (insertErr.code === '23505' && insertErr.message?.includes('stripe_subscription_id')) {
+          console.log(`♻️ IDEMPOTENCE: Détection double appel pour ${fullSub.id} - vérification...`);
+          
+          // Vérifier si la subscription existante est pour le même utilisateur
+          const { data: existingStripeSubscription, error: stripeSubErr } = await supabaseServer
+            .from("subscriptions")
+            .select("id, user_id, status, plan_id")
+            .eq("stripe_subscription_id", fullSub.id)
+            .maybeSingle();
+          
+          if (stripeSubErr) {
+            console.error("❌ Erreur vérification idempotence:", stripeSubErr);
+            return res.status(500).json({ error: "Erreur vérification subscription" });
+          }
+          
+          if (existingStripeSubscription && existingStripeSubscription.user_id === userId) {
+            console.log(`♻️ IDEMPOTENCE: Subscription ${fullSub.id} déjà créée pour même user - succès`);
+            return res.json({
+              success: true,
+              userId,
+              subscriptionId: fullSub.id,
+              planName: plan.name,
+              message: "Subscription déjà traitée (appel double détecté)"
+            });
+          }
+        }
+        
         console.error("❌ DB insert failed in handle-success:", insertErr);
         return res.status(500).json({ error: "DB insert failed" });
       }
