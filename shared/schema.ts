@@ -252,7 +252,7 @@ export const subscriptions = pgTable("subscriptions", {
 
   stripe_subscription_id: text("stripe_subscription_id").unique(),
   status: text("status")
-    .$type<"active" | "cancelled" | "expired" | "pending">()
+    .$type<"active" | "cancelled" | "expired" | "pending" | "trialing">()
     .default("pending"),
   current_period_start: timestamp("current_period_start"),
   current_period_end: timestamp("current_period_end"),

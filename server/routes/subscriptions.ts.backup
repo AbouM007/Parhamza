@@ -205,59 +205,25 @@ router.post("/handle-success", async (req, res) => {
       return res.status(404).json({ error: "Plan introuvable" });
     }
 
-    // ✅ update-or-insert to satisfy uniq_active_subscription_per_user
-    const { data: existing, error: findErr } = await supabaseServer
+    // ✅ upsert strict, on STOPPE en cas d’erreur
+    const { error: upsertErr } = await supabaseServer
       .from("subscriptions")
-      .select("id, stripe_subscription_id")
-      .eq("user_id", userId)
-      .in("status", ["active", "trialing"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (findErr) {
-      console.error("❌ DB select failed in handle-success:", findErr);
-      return res.status(500).json({ error: "DB select failed" });
-    }
+      .upsert(
+        {
+          user_id: userId,
+          plan_id: plan.id,
+          status: "active", // le webhook affinera ensuite
+          stripe_subscription_id: fullSub.id,
+          current_period_start: tsToIso((fullSub as any).current_period_start),
+          current_period_end: tsToIso((fullSub as any).current_period_end),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "stripe_subscription_id" },
+      );
 
-    // Map Stripe status to our schema
-    const mapStripeStatus = (stripeStatus: string): "active" | "trialing" | "pending" => {
-      switch (stripeStatus) {
-        case "active": return "active";
-        case "trialing": return "trialing";
-        default: return "pending";
-      }
-    };
-
-    const payload = {
-      user_id: userId,
-      plan_id: plan.id,
-      status: mapStripeStatus((fullSub as any).status),
-      stripe_subscription_id: fullSub.id,
-      current_period_start: tsToIso((fullSub as any).current_period_start),
-      current_period_end: tsToIso((fullSub as any).current_period_end),
-      updated_at: new Date().toISOString(),
-    };
-
-    if (existing) {
-      // Idempotency: if it's already the same subscription, just refresh fields
-      console.log(`🔄 UPGRADE: User ${userId} - Mise à jour abonnement existant (ID: ${existing.id})`);
-      const { error: updateErr } = await supabaseServer
-        .from("subscriptions")
-        .update(payload)
-        .eq("id", existing.id);
-      if (updateErr) {
-        console.error("❌ DB update failed in handle-success:", updateErr);
-        return res.status(500).json({ error: "DB update failed" });
-      }
-    } else {
-      console.log(`🆕 NOUVEAU: User ${userId} - Création premier abonnement`);
-      const { error: insertErr } = await supabaseServer
-        .from("subscriptions")
-        .insert(payload);
-      if (insertErr) {
-        console.error("❌ DB insert failed in handle-success:", insertErr);
-        return res.status(500).json({ error: "DB insert failed" });
-      }
+    if (upsertErr) {
+      console.error("❌ DB upsert failed in handle-success:", upsertErr);
+      return res.status(500).json({ error: "DB insert failed" });
     }
 
     return res.json({
