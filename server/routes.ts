@@ -49,6 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+      res.setHeader("Cache-Control", "no-store");
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -72,6 +73,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "Failed to fetch professional account" });
       }
 
+      res.setHeader("Cache-Control", "no-store");
       res.json(data || null);
     } catch (error) {
       console.error("Error fetching professional account:", error);
@@ -86,6 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+      res.setHeader("Cache-Control", "no-store");
       res.json(user);
     } catch (error) {
       console.error("Error fetching user by email:", error);

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../storage';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.get('/user/:userId', async (req, res) => {
     const favorites = await storage.getUserFavorites(userId);
 
     console.log('✅ Favoris récupérés:', favorites.length);
+    res.setHeader("Cache-Control", "no-store");
     res.json(favorites);
     
   } catch (error) {
@@ -32,6 +34,7 @@ router.post('/add', async (req, res) => {
     console.log('🔄 Ajout favori:', { userId, vehicleId });
     
     const wishlistItem = {
+      id: crypto.randomUUID(),
       userId,
       vehicleId
     };

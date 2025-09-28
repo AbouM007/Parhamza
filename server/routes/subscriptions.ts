@@ -214,10 +214,6 @@ router.post("/handle-success", async (req, res) => {
           plan_id: plan.id,
           status: "active", // le webhook affinera ensuite
           stripe_subscription_id: fullSub.id,
-          stripe_customer_id:
-            typeof session.customer === "string"
-              ? session.customer
-              : session.customer?.id,
           current_period_start: tsToIso((fullSub as any).current_period_start),
           current_period_end: tsToIso((fullSub as any).current_period_end),
           updated_at: new Date().toISOString(),
