@@ -225,19 +225,45 @@ router.get("/annonce/:annonceId", async (req, res) => {
 
     const images = annonce.images || [];
 
-    // Transformer les chemins en URLs publiques si nécessaire
-    const imageUrls = images.map((imagePath: string) => {
-      if (imagePath.startsWith("http")) {
-        return imagePath; // Déjà une URL complète
-      }
+    // 🔧 AMÉLIORATION: Transformer les chemins en URLs publiques avec gestion d'erreurs robuste
+    const imageUrls = images
+      .map((imagePath: string) => {
+        try {
+          // Vérifier que le chemin est valide
+          if (!imagePath || typeof imagePath !== 'string') {
+            console.warn(`⚠️ Chemin d'image invalide:`, imagePath);
+            return null;
+          }
 
-      // Construire l'URL publique Supabase
-      const { data: publicUrlData } = supabaseServer.storage
-        .from("vehicle-images")
-        .getPublicUrl(imagePath);
+          // Si c'est déjà une URL complète, la valider
+          if (imagePath.startsWith("http")) {
+            try {
+              new URL(imagePath); // Valider l'URL
+              return imagePath;
+            } catch {
+              console.warn(`⚠️ URL malformée:`, imagePath);
+              return null;
+            }
+          }
 
-      return publicUrlData.publicUrl;
-    });
+          // Construire l'URL publique Supabase
+          const { data: publicUrlData } = supabaseServer.storage
+            .from("vehicle-images")
+            .getPublicUrl(imagePath);
+
+          // Vérifier que l'URL a été générée correctement
+          if (!publicUrlData?.publicUrl) {
+            console.warn(`⚠️ Impossible de générer l'URL publique pour:`, imagePath);
+            return null;
+          }
+
+          return publicUrlData.publicUrl;
+        } catch (error) {
+          console.error(`❌ Erreur traitement image ${imagePath}:`, error);
+          return null;
+        }
+      })
+      .filter(Boolean); // Filtrer les URLs nulles
 
     res.json({ success: true, images: imageUrls });
   } catch (error) {
