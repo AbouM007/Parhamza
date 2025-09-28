@@ -1,0 +1,49 @@
+385f-475d-b190-c85be8b931b1
+main.js?attr=TjUZBU121vtkTDfBNCYUXOCMWOtHcvv-QPNb-Y0gjJHRhNNJlyT507V2NDvMzrUvw42jFqbF8tPn5gzSqPvduLbcjt_qoY73Lfkft6Wc0bDTyrG_eZx5a_3bZ58gPaWfkEFQ3yncF4c61Z_8azXqVzDnSquOU-JrvUqgjCIB294BYlb3dGJv8s9JvpPGsYTYNK22v2t6RT0eusVdVbYVBXGRWpOJfD0j9Ulv2LEY-dHRE-yDHv87GezqLvDdCvHh:4911  POST https://4a8ee1ef-f787-43d5-b6d7-e11ecde50787-00-22c32g7a03ui8.janeway.replit.dev/api/subscriptions/handle-success 500 (Internal Server Error)
+fetchCallImpl @ main.js?attr=TjUZBU121vtkTDfBNCYUXOCMWOtHcvv-QPNb-Y0gjJHRhNNJlyT507V2NDvMzrUvw42jFqbF8tPn5gzSqPvduLbcjt_qoY73Lfkft6Wc0bDTyrG_eZx5a_3bZ58gPaWfkEFQ3yncF4c61Z_8azXqVzDnSquOU-JrvUqgjCIB294BYlb3dGJv8s9JvpPGsYTYNK22v2t6RT0eusVdVbYVBXGRWpOJfD0j9Ulv2LEY-dHRE-yDHv87GezqLvDdCvHh:4911
+fetch @ main.js?attr=TjUZBU121vtkTDfBNCYUXOCMWOtHcvv-QPNb-Y0gjJHRhNNJlyT507V2NDvMzrUvw42jFqbF8tPn5gzSqPvduLbcjt_qoY73Lfkft6Wc0bDTyrG_eZx5a_3bZ58gPaWfkEFQ3yncF4c61Z_8azXqVzDnSquOU-JrvUqgjCIB294BYlb3dGJv8s9JvpPGsYTYNK22v2t6RT0eusVdVbYVBXGRWpOJfD0j9Ulv2LEY-dHRE-yDHv87GezqLvDdCvHh:4917
+handleStripeSuccess @ StripeSuccess.tsx:25
+(anonymous) @ StripeSuccess.tsx:43
+commitHookEffectListMount @ chunk-276SZO74.js?v=c1fbe9b2:16915
+invokePassiveEffectMountInDEV @ chunk-276SZO74.js?v=c1fbe9b2:18324
+invokeEffectsInDev @ chunk-276SZO74.js?v=c1fbe9b2:19701
+commitDoubleInvokeEffectsInDEV @ chunk-276SZO74.js?v=c1fbe9b2:19686
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=c1fbe9b2:19503
+flushPassiveEffects @ chunk-276SZO74.js?v=c1fbe9b2:19447
+(anonymous) @ chunk-276SZO74.js?v=c1fbe9b2:19328
+workLoop @ chunk-276SZO74.js?v=c1fbe9b2:197
+flushWork @ chunk-276SZO74.js?v=c1fbe9b2:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=c1fbe9b2:384Understand this error
+main.js?attr=TjUZBU121vtkTDfBNCYUXOCMWOtHcvv-QPNb-Y0gjJHRhNNJlyT507V2NDvMzrUvw42jFqbF8tPn5gzSqPvduLbcjt_qoY73Lfkft6Wc0bDTyrG_eZx5a_3bZ58gPaWfkEFQ3yncF4c61Z_8azXqVzDnSquOU-JrvUqgjCIB294BYlb3dGJv8s9JvpPGsYTYNK22v2t6RT0eusVdVbYVBXGRWpOJfD0j9Ulv2LEY-dHRE-yDHv87GezqLvDdCvHh:4911  POST https://4a8ee1ef-f787-43d5-b6d7-e11ecde50787-00-22c32g7a03ui8.janeway.replit.dev/api/subscriptions/handle-success 500 (Internal Server Error)
+fetchCallImpl @ main.js?attr=TjUZBU121vtkTDfBNCYUXOCMWOtHcvv-QPNb-Y0gjJHRhNNJlyT507V2NDvMzrUvw42jFqbF8tPn5gzSqPvduLbcjt_qoY73Lfkft6Wc0bDTyrG_eZx5a_3bZ58gPaWfkEFQ3yncF4c61Z_8azXqVzDnSquOU-JrvUqgjCIB294BYlb3dGJv8s9JvpPGsYTYNK22v2t6RT0eusVdVbYVBXGRWpOJfD0j9Ulv2LEY-dHRE-yDHv87GezqLvDdCvHh:4911
+fetch @ main.js?attr=TjUZBU121vtkTDfBNCYUXOCMWOtHcvv-QPNb-Y0gjJHRhNNJlyT507V2NDvMzrUvw42jFqbF8tPn5gzSqPvduLbcjt_qoY73Lfkft6Wc0bDTyrG_eZx5a_3bZ58gPaWfkEFQ3yncF4c61Z_8azXqVzDnSquOU-JrvUqgjCIB294BYlb3dGJv8s9JvpPGsYTYNK22v2t6RT0eusVdVbYVBXGRWpOJfD0j9Ulv2LEY-dHRE-yDHv87GezqLvDdCvHh:4917
+handleStripeSuccess @ StripeSuccess.tsx:25
+(anonymous) @ StripeSuccess.tsx:43
+commitHookEffectListMount @ chunk-276SZO74.js?v=c1fbe9b2:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=c1fbe9b2:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=c1fbe9b2:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=c1fbe9b2:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=c1fbe9b2:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=c1fbe9b2:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=c1fbe9b2:19447
+(anonymous) @ chunk-276SZO74.js?v=c1fbe9b2:19328
+workLoop @ chunk-276SZO74.js?v=c1fbe9b2:197
+flushWork @ chunk-276SZO74.js?v=c1fbe9b2:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=c1fbe9b2:384Understand this error
+installHook.js:1 ❌ Erreur chargement données professionnelles: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+overrideMethod @ installHook.js:1
+(anonymous) @ App.tsx:121
+await in (anonymous)
+(anonymous) @ App.tsx:145
+commitHookEffectListMount @ chunk-276SZO74.js?v=c1fbe9b2:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=c1fbe9b2:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=c1fbe9b2:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=c1fbe9b2:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=c1fbe9b2:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=c1fbe9b2:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=c1fbe9b2:19447
+(anonymous) @ chunk-276SZO74.js?v=c1fbe9b2:19328
+workLoop @ chunk-276SZO74.js?v=c1fbe9b2:197
+flushWork @ chunk-276SZO74.js?v=c1fbe9b2:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=c1fbe9b2:384Understand this error
+App.tsx:160 🔧 [Onboarding] User: professional {step: 'completed', sh
