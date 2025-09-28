@@ -85,6 +85,16 @@ export const ProfessionalVerificationBanner: React.FC = () => {
 
   // Bannière pour compte en cours de vérification
   if (professionalAccount.verification_status === "pending") {
+    // Vérifier si c'est la première fois qu'on montre les félicitations pour ce compte pro
+    const proCreationFlagKey = `pro_creation_shown_${professionalAccount.id}`;
+    const hasBeenShown = localStorage.getItem(proCreationFlagKey) === 'true';
+    const shouldShowCongratulations = !hasBeenShown;
+    
+    // Marquer comme vu si on doit montrer les félicitations
+    if (shouldShowCongratulations) {
+      localStorage.setItem(proCreationFlagKey, 'true');
+    }
+    
     return (
       <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-5 mb-6">
         <div className="flex items-start">
@@ -93,7 +103,10 @@ export const ProfessionalVerificationBanner: React.FC = () => {
           </div>
           <div className="flex-1 ml-3">
             <h3 className="text-base font-semibold text-yellow-900">
-              🎉 Félicitations, votre compte professionnel est créé !
+              {shouldShowCongratulations 
+                ? "🎉 Félicitations, votre compte professionnel est créé !"
+                : "⏳ Vérification en cours..."
+              }
             </h3>
             <p className="text-sm text-yellow-800 mt-2">
               Merci d’avoir rejoint notre communauté de professionnels 🚀. Votre
@@ -102,13 +115,15 @@ export const ProfessionalVerificationBanner: React.FC = () => {
               fonctionnalités. Profitez de ce temps pour personnaliser votre
               profil et préparer votre page pro.
             </p>
-            <p className="text-sm text-yellow-800 mt-2">
-              🔎 Notre équipe va maintenant vérifier vos documents. Cette étape
-              prend généralement <span className="font-medium">24h</span>. Une
-              fois validé, vous recevrez automatiquement le{" "}
-              <span className="font-medium">badge "Compte vérifié"</span>, gage
-              de confiance auprès des acheteurs.
-            </p>
+            {shouldShowCongratulations && (
+              <p className="text-sm text-yellow-800 mt-2">
+                🔎 Notre équipe va maintenant vérifier vos documents. Cette étape
+                prend généralement <span className="font-medium">24h</span>. Une
+                fois validé, vous recevrez automatiquement le{" "}
+                <span className="font-medium">badge "Compte vérifié"</span>, gage
+                de confiance auprès des acheteurs.
+              </p>
+            )}
           </div>
           <button
             onClick={handleDismiss}
