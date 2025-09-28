@@ -2074,6 +2074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(
         `✅ Statut professionnel récupéré: ${proAccount.verification_status}`,
       );
+      res.setHeader("Cache-Control", "no-store");
       res.json(proAccount);
     } catch (error) {
       console.error("❌ Erreur vérification statut professionnel:", error);

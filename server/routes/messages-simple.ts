@@ -227,6 +227,9 @@ router.get("/user/:userId", async (req, res) => {
 
     console.log(`✅ Messages trouvés: ${messages.length}`);
 
+    // Empêcher la mise en cache des messages pour avoir des données fraîches
+    res.setHeader("Cache-Control", "no-store");
+
     // Grouper par conversation avec ID canonique et enrichir avec les infos utilisateurs/véhicules
     const conversationsMap = new Map();
 
