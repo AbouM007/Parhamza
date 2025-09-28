@@ -1715,13 +1715,14 @@ export class SupabaseStorage implements IStorage {
           .single(),
         
         // 2. Compter les annonces actives en parallèle (optimisé)
+        // ✅ CORRECTION: Inclure aussi les "draft" dans le quota pour éviter contournement
         supabaseServer
           .from("annonces")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
           .eq("is_active", true)
           .is("deleted_at", null)
-          .in("status", ["approved", "pending"]),
+          .in("status", ["approved", "pending", "draft"]),
         
         // 3. Abonnement actif avec plan
         supabaseServer
