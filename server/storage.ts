@@ -2245,12 +2245,13 @@ export class SupabaseStorage implements IStorage {
           const professionalAccount = professionalAccounts?.find(
             (pa) => pa.id === sub.professional_account_id,
           );
+          // 🔧 CORRECTION: Utiliser le user_id existant dans la subscription au lieu de l'écraser
           const user = users?.find(
-            (u) => u.id === professionalAccount?.user_id,
+            (u) => u.id === (sub.user_id || professionalAccount?.user_id),
           );
           return {
             ...sub,
-            user_id: professionalAccount?.user_id,
+            // Garder le user_id original de la subscription, ne pas l'écraser
             user: user,
           };
         });
