@@ -2348,6 +2348,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Boost plan not found" });
       }
 
+      // 🔐 SÉCURITÉ: Récupérer l'email du propriétaire de l'annonce pour pré-remplir Stripe
+      const { data: annonceOwner, error: userError } = await supabaseServer
+        .from("users")
+        .select("email")
+        .eq("id", annonce.userId)
+        .single();
+
+      if (userError || !annonceOwner?.email) {
+        console.error("❌ Erreur récupération email propriétaire:", userError);
+        return res.status(400).json({ error: "Email utilisateur introuvable" });
+      }
+
       // Créer le log d'achat (en attente de confirmation Stripe)
       const logData = {
         annonceId: parseInt(annonceId),
@@ -2372,9 +2384,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         ],
         mode: "payment",
-        //         success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&type=boost`,
+        // 🔐 SÉCURITÉ: Pré-remplir l'email pour éviter les fraudes
+        customer_email: annonceOwner.email,
         success_url: `${baseUrl}/success-boost?session_id={CHECKOUT_SESSION_ID}`,
-
         cancel_url: `${baseUrl}/dashboard?boost_canceled=true`,
         metadata: {
           type: "boost",

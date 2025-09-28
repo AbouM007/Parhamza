@@ -1,58 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Building2, CheckCircle, Clock, X, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface ProfessionalAccount {
-  id: number;
-  verification_status: "pending" | "approved" | "not_verified" | "not_started";
-  is_verified: boolean;
-  rejected_reason?: string;
-  created_at: string;
-}
+import { useProfessionalAccountStatus } from "@/hooks/useProfessionalAccountStatus";
 
 export const ProfessionalVerificationBanner: React.FC = () => {
   const { profile, user } = useAuth();
-  const [professionalAccount, setProfessionalAccount] =
-    useState<ProfessionalAccount | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Vérifier si l'utilisateur est un professionnel et charger son statut de vérification
+  // Utiliser le hook React Query optimisé au lieu de fetch() direct
+  const { data: professionalAccount, isLoading, error } = useProfessionalAccountStatus(user?.id, profile?.type);
+
+  // Vérifier si le banner a été fermé dans cette session
   useEffect(() => {
-    const checkProfessionalStatus = async () => {
-      if (!user || !profile || profile.type !== "professional") {
-        setIsLoading(false);
-        return;
-      }
-
-      // Vérifier si le banner a été fermé dans cette session
-      const dismissed = sessionStorage.getItem("pro-banner-dismissed");
-      if (dismissed) {
-        setIsDismissed(true);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `/api/professional-accounts/status/${user.id}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setProfessionalAccount(data);
-        }
-      } catch (error) {
-        console.error(
-          "Erreur lors de la vérification du statut professionnel:",
-          error,
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkProfessionalStatus();
-  }, [user, profile]);
+    const dismissed = sessionStorage.getItem("pro-banner-dismissed");
+    if (dismissed) {
+      setIsDismissed(true);
+    }
+  }, []);
 
   const handleDismiss = () => {
     setIsDismissed(true);
@@ -71,8 +35,9 @@ export const ProfessionalVerificationBanner: React.FC = () => {
     return null;
   }
 
-  // Bannière pour professionnel non encore vérifié (pas de demande ou statut not_started)
+  // Bannière pour professionnel non encore vérifié (pas de demande, erreur, ou statut not_started)
   if (
+    error || 
     !professionalAccount ||
     professionalAccount.verification_status === "not_started"
   ) {

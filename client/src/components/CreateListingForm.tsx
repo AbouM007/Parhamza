@@ -3601,7 +3601,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           )}
         </div>
       </div>
-      interface FormData
+
       {/* Modal de succès */}
       <PublishSuccessModal
         isOpen={showSuccessModal}
