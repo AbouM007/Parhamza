@@ -252,7 +252,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
                 isCompactMode ? 'p-4' : 'p-8'
               } ${
                 isCurrentPlan
-                  ? 'border-green-300 bg-green-50 opacity-75'
+                  ? 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
                   : isPopular 
                     ? 'border-orange-300 scale-105 transform hover:scale-105' 
                     : 'border-gray-200 hover:border-gray-300 transform hover:scale-105'
@@ -260,7 +260,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
             >
               {isCurrentPlan && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center space-x-1">
+                  <span className="bg-gray-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center space-x-1">
                     <Check className="h-4 w-4" />
                     <span>Plan actuel</span>
                   </span>
