@@ -41,15 +41,12 @@ router.post(
         `📸 Upload de ${files.length} images pour utilisateur ${userId}`,
       );
 
-      const uploadedImages: Array<{
-        id: string;
-        url: string;
-        path: string;
-        originalName: string;
-        size: number;
-      }> = [];
+      // 🚀 OPTIMISATION PERFORMANCE: Traitement en parallèle des images
+      console.log("⚡ Traitement parallèle des images démarré...");
+      const startTime = Date.now();
 
-      for (const file of files) {
+      // Créer une promesse de traitement pour chaque image
+      const uploadPromises = files.map(async (file) => {
         // Générer un nom unique pour l'image
         const imageId = uuidv4();
         const extension =
@@ -90,8 +87,7 @@ router.post(
             });
           }
 
-          // 2. Ajout du filigrane texte translucide au centre
-          console.log("🏷️  Ajout du filigrane texte au centre...");
+          // 2. Ajout du filigrane texte translucide au centre  
           const watermarkSvg = `
           <svg width="600" height="100" xmlns="http://www.w3.org/2000/svg">
             <text x="50%" y="50%" 
@@ -119,7 +115,7 @@ router.post(
             ])
             .webp({
               quality: 85,
-              effort: 6,
+              effort: 5, // ⚡ OPTIMISATION: Réduire effort de 6 à 5 pour plus de vitesse
               smartSubsample: true,
             })
             .toBuffer();
@@ -139,7 +135,7 @@ router.post(
 
           if (error) {
             console.error(`❌ Erreur upload image ${fileName}:`, error);
-            continue;
+            return null; // Retourner null au lieu de continue
           }
 
           // Obtenir l'URL publique
@@ -147,22 +143,36 @@ router.post(
             .from("vehicle-images")
             .getPublicUrl(filePath);
 
-          uploadedImages.push({
+          console.log(`✅ Image uploadée: ${fileName} (${newSize}KB, -${savings}%)`);
+          
+          return {
             id: imageId,
             url: publicUrlData.publicUrl,
             path: filePath,
             originalName: file.originalname,
             size: processedBuffer.length,
-          });
-
-          console.log(`✅ Image uploadée: ${fileName}`);
+          };
         } catch (imageError) {
           console.error(
             `❌ Erreur traitement image ${file.originalname}:`,
             imageError,
           );
+          return null; // Retourner null en cas d'erreur
         }
-      }
+      });
+
+      // 🚀 Traiter toutes les images EN PARALLÈLE
+      const results = await Promise.all(uploadPromises);
+      const uploadedImages = results.filter((result): result is {
+        id: string;
+        url: string;
+        path: string;
+        originalName: string;
+        size: number;
+      } => result !== null); // Type-safe filter des échecs
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`⚡ Traitement parallèle terminé en ${processingTime}ms (${uploadedImages.length}/${files.length} succès)`);
 
       if (uploadedImages.length === 0) {
         return res
