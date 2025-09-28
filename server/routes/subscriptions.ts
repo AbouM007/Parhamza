@@ -160,9 +160,8 @@ router.post("/handle-success", async (req, res) => {
         .json({ error: "Pas d'abonnement dans la session" });
     }
 
-    const fullSub = await stripe.subscriptions.retrieve(
-      session.subscription as string,
-    );
+    // session.subscription est déjà l'objet complet grâce à expand
+    const fullSub = session.subscription as any;
     const priceObj = fullSub.items.data[0]?.price as any;
     const priceId = typeof priceObj === "string" ? priceObj : priceObj?.id;
     if (!priceId)
@@ -219,7 +218,6 @@ router.post("/handle-success", async (req, res) => {
             typeof session.customer === "string"
               ? session.customer
               : session.customer?.id,
-          // Ligne 207-208, remplacer par :
           current_period_start: tsToIso((fullSub as any).current_period_start),
           current_period_end: tsToIso((fullSub as any).current_period_end),
           updated_at: new Date().toISOString(),
