@@ -12,7 +12,9 @@ export const useQuota = (userId?: string) => {
   return useQuery<QuotaInfo>({
     queryKey: [`/api/users/${userId}/quota/check`],
     enabled: !!userId,
-    staleTime: 30000, // 30 secondes - les quotas changent peu fréquemment
-    refetchInterval: 60000, // Refresh toutes les minutes
+    staleTime: 5 * 60 * 1000, // ⚡ OPTIMISATION: 5 minutes - les quotas changent très rarement
+    refetchInterval: false, // ⚡ OPTIMISATION: Pas de refresh automatique (seulement sur refocus/invalidation)
+    refetchOnWindowFocus: true, // Refresh quand l'utilisateur revient sur l'onglet
+    retry: 1, // ⚡ OPTIMISATION: Moins de retry en cas d'erreur
   });
 };

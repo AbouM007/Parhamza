@@ -1705,12 +1705,47 @@ export class SupabaseStorage implements IStorage {
     try {
       console.log(`🔍 Vérification quota pour l'utilisateur: ${userId}`);
 
-      // 1. Récupérer le type d'utilisateur pour la logique business
-      const { data: user, error: userError } = await supabaseServer
-        .from("users")
-        .select("type")
-        .eq("id", userId)
-        .single();
+      // 🚀 OPTIMISATION: Récupérer type utilisateur ET compter les annonces en parallèle
+      const [userResult, activeListingsCount, subscriptionResult] = await Promise.all([
+        // 1. Type utilisateur
+        supabaseServer
+          .from("users")
+          .select("type")
+          .eq("id", userId)
+          .single(),
+        
+        // 2. Compter les annonces actives en parallèle (optimisé)
+        supabaseServer
+          .from("annonces")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("is_active", true)
+          .is("deleted_at", null)
+          .in("status", ["approved", "pending"]),
+        
+        // 3. Abonnement actif avec plan
+        supabaseServer
+          .from("subscriptions")
+          .select(`
+            id,
+            plan_id,
+            status,
+            subscription_plans (
+              max_listings,
+              name
+            )
+          `)
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ]);
+
+      // Traiter les résultats
+      const { data: user, error: userError } = userResult;
+      const { data: annoncesData, error: annoncesError } = activeListingsCount;
+      const { data: subscription, error: subError } = subscriptionResult;
 
       if (userError) {
         console.error("❌ Erreur récupération type utilisateur:", userError);
@@ -1722,33 +1757,13 @@ export class SupabaseStorage implements IStorage {
         };
       }
 
+      const activeListings = annoncesError ? 0 : (activeListingsCount.count || 0);
       const userType = user?.type;
-      console.log(`👤 Type utilisateur: ${userType}`);
-
-      // 2. Chercher directement un abonnement actif par user_id (pro ou particulier)
-      const { data: subscription, error: subError } = await supabaseServer
-        .from("subscriptions")
-        .select(
-          `
-          id,
-          plan_id,
-          status,
-          subscription_plans (
-            max_listings,
-            name
-          )
-        `,
-        )
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      console.log(`👤 Type utilisateur: ${userType}, Annonces actives: ${activeListings}`);
 
       if (subError) {
         console.error("❌ Erreur récupération abonnement:", subError);
         // En cas d'erreur, retourner quota gratuit par sécurité
-        const activeListings = await this.countActiveListingsByUser(userId);
         return {
           canCreate: activeListings < 5,
           activeListings,
@@ -1759,7 +1774,6 @@ export class SupabaseStorage implements IStorage {
       
       if (!subscription) {
         // 👉 Pas d'abonnement actif
-        const activeListings = await this.countActiveListingsByUser(userId);
         
         // 🚨 RÈGLE BUSINESS : Les pros DOIVENT avoir un abonnement
         if (userType === "professional") {
@@ -1787,7 +1801,7 @@ export class SupabaseStorage implements IStorage {
       // 3. Cas Professionnel avec abonnement actif → lire quota dans subscription_plans
       const maxListings = (subscription as any).subscription_plans
         ?.max_listings;
-      const activeListings = await this.countActiveListingsByUser(userId);
+      // ⚡ OPTIMISATION: activeListings déjà calculé en parallèle ci-dessus
 
       console.log(
         `📊 Quota: ${activeListings}/${maxListings || "illimité"} annonces actives`,
