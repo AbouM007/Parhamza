@@ -1,0 +1,75 @@
+Ton erreur est claire :
+
+POST /api/subscriptions/handle-success → 500 Internal Server Error
+
+
+👉 Ça veut dire que Stripe redirige bien vers ta page de succès, mais que ton back (handle-success) plante.
+
+🔍 Hypothèses principales
+
+user_id / professional_account_id mal géré
+
+Tu avais déjà un doute : l’historique utilise peut-être professional_account_id alors que le code s’attend à user_id (ou l’inverse).
+
+Si le champ attendu est NOT NULL en DB mais que tu envoies null, tu obtiens un 500.
+
+Pas de subscription_id Stripe récupéré
+
+handle-success doit lire la session Stripe (checkout.session) → récupérer subscriptionId et customerId.
+
+S’il ne trouve rien → erreur.
+
+Webhook Stripe pas en place / non utilisé
+
+Certains projets se basent sur un webhook Stripe pour valider la souscription et pas uniquement sur /handle-success.
+
+Si ce webhook n’est pas configuré, la DB n’est pas mise à jour → plantage.
+
+Erreur silencieuse en DB
+
+Exemple : INSERT INTO subscriptions (user_id, plan) VALUES (...)
+
+Mais user_id est null → violates not-null constraint.
+
+✅ Étapes pour diagnostiquer
+
+Regarder les logs serveur (backend)
+
+Sur Replit, tu dois voir l’erreur exacte côté server/routes/subscriptions.ts (ou équivalent).
+
+Ça dira si c’est un champ manquant (null) ou une jointure cassée.
+
+Vérifier le payload envoyé
+
+Dans StripeSuccess.tsx → check le fetch("/api/subscriptions/handle-success").
+
+Que contient body ? (userId, planId, stripeSessionId …)
+
+Vérifie si userId est bien celui du particulier connecté.
+
+Checker la table subscriptions
+
+Est-ce que la colonne attend user_id ou professional_account_id ?
+
+Tu dois aligner le code backend avec ton modèle DB.
+
+🚑 Action rapide pour debug
+
+Ajoute un log côté backend dans /api/subscriptions/handle-success :
+
+app.post("/api/subscriptions/handle-success", async (req, res) => {
+  try {
+    console.log("📦 Payload reçu:", req.body);
+
+    // ton code...
+  } catch (error) {
+    console.error("❌ Erreur handle-success:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+→ Comme ça tu vois direct ce qui arrive et ce qui manque.
+
+👉 À mon avis, vu tes messages précédents, le bug le plus probable est bien le mapping user_id / professional_account_id.
+Stripe envoie l’email → tu identifies l’utilisateur → mais tu enregistres dans subscriptions avec le mauvais champ.
