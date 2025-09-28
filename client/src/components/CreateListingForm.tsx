@@ -752,8 +752,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         userId: dbUser?.id || user?.id,
         title: formData.title || "",
         description: formData.description || "",
-        category: formData.category || "", // ✅ Sauvegarder la vraie catégorie principale 
-        subcategory: formData.subcategory || "", // ✅ Sauvegarder la sous-catégorie
+        category: formData.subcategory || "", // Utiliser la sous-catégorie spécifique comme catégorie principale
+        subcategory: formData.subcategory || "",
         // Tous les champs avec valeurs par défaut pour respecter les contraintes DB
         brand: formData.specificDetails.brand || "Non spécifié",
         model: formData.specificDetails.model || "Non spécifié",
@@ -3612,3 +3612,5 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     </div>
   );
 };
+
+

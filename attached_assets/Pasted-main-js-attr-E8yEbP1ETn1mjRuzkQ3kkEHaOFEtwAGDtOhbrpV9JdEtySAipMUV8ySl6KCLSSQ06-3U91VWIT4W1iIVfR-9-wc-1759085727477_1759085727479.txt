@@ -1,0 +1,42 @@
+main.js?attr=E8yEbP1ETn1mjRuzkQ3kkEHaOFEtwAGDtOhbrpV9JdEtySAipMUV8ySl6KCLSSQ06-3U91VWIT4W1iIVfR-9_wckmxBvKkin0libNB_jx4XxmNL-uHVuUy6wTvm975hTn6a_HOceTPOmoF1vPWHkuA:4911  POST https://4a8ee1ef-f787-43d5-b6d7-e11ecde50787-00-22c32g7a03ui8.janeway.replit.dev/api/subscriptions/create-checkout-session 401 (Unauthorized)
+fetchCallImpl @ main.js?attr=E8yEbP1ETn1mjRuzkQ3kkEHaOFEtwAGDtOhbrpV9JdEtySAipMUV8ySl6KCLSSQ06-3U91VWIT4W1iIVfR-9_wckmxBvKkin0libNB_jx4XxmNL-uHVuUy6wTvm975hTn6a_HOceTPOmoF1vPWHkuA:4911
+fetch @ main.js?attr=E8yEbP1ETn1mjRuzkQ3kkEHaOFEtwAGDtOhbrpV9JdEtySAipMUV8ySl6KCLSSQ06-3U91VWIT4W1iIVfR-9_wckmxBvKkin0libNB_jx4XxmNL-uHVuUy6wTvm975hTn6a_HOceTPOmoF1vPWHkuA:4917
+handleSelectPlan @ PlanSelector.tsx:127
+onClick @ PlanSelector.tsx:317
+callCallback2 @ chunk-276SZO74.js?v=c1fbe9b2:3674
+invokeGuardedCallbackDev @ chunk-276SZO74.js?v=c1fbe9b2:3699
+invokeGuardedCallback @ chunk-276SZO74.js?v=c1fbe9b2:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-276SZO74.js?v=c1fbe9b2:3736
+executeDispatch @ chunk-276SZO74.js?v=c1fbe9b2:7014
+processDispatchQueueItemsInOrder @ chunk-276SZO74.js?v=c1fbe9b2:7034
+processDispatchQueue @ chunk-276SZO74.js?v=c1fbe9b2:7043
+dispatchEventsForPlugins @ chunk-276SZO74.js?v=c1fbe9b2:7051
+(anonymous) @ chunk-276SZO74.js?v=c1fbe9b2:7174
+batchedUpdates$1 @ chunk-276SZO74.js?v=c1fbe9b2:18913
+batchedUpdates @ chunk-276SZO74.js?v=c1fbe9b2:3579
+dispatchEventForPluginEventSystem @ chunk-276SZO74.js?v=c1fbe9b2:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-276SZO74.js?v=c1fbe9b2:5478
+dispatchEvent @ chunk-276SZO74.js?v=c1fbe9b2:5472
+dispatchDiscreteEvent @ chunk-276SZO74.js?v=c1fbe9b2:5449Understand this error
+installHook.js:1 Erreur lors de la préparation du paiement: Error: Token d'authentification manquant
+    at handleSelectPlan (PlanSelector.tsx:140:15)
+overrideMethod @ installHook.js:1
+handleSelectPlan @ PlanSelector.tsx:150
+await in handleSelectPlan
+onClick @ PlanSelector.tsx:317
+callCallback2 @ chunk-276SZO74.js?v=c1fbe9b2:3674
+invokeGuardedCallbackDev @ chunk-276SZO74.js?v=c1fbe9b2:3699
+invokeGuardedCallback @ chunk-276SZO74.js?v=c1fbe9b2:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-276SZO74.js?v=c1fbe9b2:3736
+executeDispatch @ chunk-276SZO74.js?v=c1fbe9b2:7014
+processDispatchQueueItemsInOrder @ chunk-276SZO74.js?v=c1fbe9b2:7034
+processDispatchQueue @ chunk-276SZO74.js?v=c1fbe9b2:7043
+dispatchEventsForPlugins @ chunk-276SZO74.js?v=c1fbe9b2:7051
+(anonymous) @ chunk-276SZO74.js?v=c1fbe9b2:7174
+batchedUpdates$1 @ chunk-276SZO74.js?v=c1fbe9b2:18913
+batchedUpdates @ chunk-276SZO74.js?v=c1fbe9b2:3579
+dispatchEventForPluginEventSystem @ chunk-276SZO74.js?v=c1fbe9b2:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-276SZO74.js?v=c1fbe9b2:5478
+dispatchEvent @ chunk-276SZO74.js?v=c1fbe9b2:5472
+dispatchDiscreteEvent @ chunk-276SZO74.js?v=c1fbe9b2:5449Understand this error
+dashboard:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
