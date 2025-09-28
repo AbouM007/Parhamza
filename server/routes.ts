@@ -519,6 +519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Endpoint rapide pour vérifier le quota d'annonces d'un utilisateur (pour interception)
+  /*
   app.get("/api/users/:id/quota/check", async (req, res) => {
     try {
       const userId = req.params.id;
@@ -546,6 +547,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  */
+  app.get("/api/users/:id/quota/check", async (req, res) => {
+    try {
+      const userId = req.params.id;
+
+      const quotaInfo = await storage.checkListingQuota(userId);
+      const { canCreate, activeListings, maxListings, message } = quotaInfo;
+
+      // remaining: null = illimité ; sinon calcule (y compris 0)
+      const remaining = (maxListings === null)
+        ? null
+        : Math.max(0, (maxListings ?? 0) - (activeListings ?? 0));
+
+      res.setHeader("Cache-Control", "no-store");
+      res.json({
+        canCreate,
+        remaining,                 // 0 = plus rien ; null = illimité
+        used: activeListings,      // alias pour compat
+        activeListings,            // explicite
+        maxListings,               // number | null
+        message,
+      });
+    } catch (error) {
+      console.error("Error checking user quota:", error);
+      res.setHeader("Cache-Control", "no-store");
+      res.json({
+        canCreate: true,
+        remaining: null,
+        used: 0,
+        activeListings: 0,
+        maxListings: null,
+        message: "Erreur lors de la vérification, autorisation par défaut",
+      });
+    }
+  });
+
 
   // Get quota information for professional accounts
   app.get("/api/users/:userId/quota", async (req, res) => {
@@ -1761,6 +1798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Route pour récupérer les informations d'abonnement d'un utilisateur
+  /*
   app.get("/api/subscriptions/status/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
@@ -1799,6 +1837,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Erreur serveur" });
     }
   });
+  */
+  app.get("/api/subscriptions/status/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log(`💳 Vérification abonnement pour user ${userId}...`);
+
+      const { data: subscription, error } = await supabaseServer
+        .from("subscriptions")
+        .select(`
+          id,
+          status,
+          plan_id,
+          cancel_at_period_end,
+          current_period_end,
+          subscription_plans (
+            name,
+            max_listings
+          )
+        `)
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"]) // ajoute "past_due" si période de grâce
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("❌ Erreur récupération abonnement:", error);
+        return res.status(500).json({ error: "Erreur lors de la récupération de l'abonnement" });
+      }
+
+      const planRel = (subscription as any)?.subscription_plans;
+      const plan = Array.isArray(planRel) ? planRel[0] : planRel;
+
+      const subscriptionInfo = {
+        isActive: !!subscription,
+        status: subscription?.status ?? "inactive",
+        planId: subscription?.plan_id ?? null,
+        planName: plan?.name ?? "Free",
+        maxListings: (plan?.max_listings ?? null) as number | null, // null = illimité
+        expiresAt: subscription?.current_period_end ?? null,
+        cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
+      };
+
+
+      console.log("💳 Abonnement récupéré:", subscriptionInfo);
+      res.setHeader("Cache-Control", "no-store");
+      res.json(subscriptionInfo);
+    } catch (error) {
+      console.error("❌ Erreur récupération abonnement:", error);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+
+    
 
   // Route pour récupérer un compte professionnel par ID (plus spécifique d'abord)
   app.get("/api/professional-accounts/:id", async (req, res) => {

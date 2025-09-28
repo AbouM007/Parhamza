@@ -1,0 +1,165 @@
+Tu as bien fait de partager ça. Le diagnostic Replit est pertinent (email manquant, utilisateur introuvable par email, erreurs silencieuses). Mais le vrai problème est architectural : compter sur /handle-success + customer_details.email est fragile. La solution robuste est :
+
+Ne plus dépendre de l’email.
+
+Toujours passer user_id à Stripe (metadata + client_reference_id).
+
+Écrire en base via le webhook Stripe (pas dans /handle-success).
+
+Si tu veux un correctif immédiat (hotfix) sans tout chambouler aujourd’hui, je te donne deux niveaux:
+
+✅ “Best practice” (recommandé) — Webhook + metadata
+A. Création de la session Checkout
+
+Assure-toi que tu passes systématiquement le user_id :
+
+// Dans POST /api/subscriptions/checkout
+const session = await stripe.checkout.sessions.create({
+  mode: "subscription",
+  customer: customerId,            // si tu as déjà le customer
+  client_reference_id: user.id,    // <— IMPORTANT
+  metadata: { user_id: user.id, plan_id: String(planId) },
+  subscription_data: {
+    metadata: { user_id: user.id, plan_id: String(planId) },
+  },
+  line_items: [{ price: planPriceId, quantity: 1 }],
+  success_url: `${APP_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `${APP_URL}/billing/cancel`,
+});
+
+B. Webhook (/api/stripe/webhook) = seule source d’écriture
+
+Écris/maj la table subscriptions sur checkout.session.completed et customer.subscription.* en lisant metadata.user_id (ou client_reference_id en fallback) :
+
+// pseudo-code compact
+if (event.type === "checkout.session.completed") {
+  const s = event.data.object as Stripe.Checkout.Session;
+  const userId = s.metadata?.user_id || s.client_reference_id;
+  const subId = typeof s.subscription === "string" ? s.subscription : s.subscription?.id;
+
+  if (userId && subId) {
+    const sub = await stripe.subscriptions.retrieve(subId);
+    await upsertSubscription({
+      userId,
+      stripeSubscriptionId: sub.id,
+      stripeCustomerId: typeof s.customer === "string" ? s.customer : s.customer?.id,
+      planId: s.metadata?.plan_id ?? null,
+      status: sub.status,
+      currentPeriodStart: new Date(sub.current_period_start * 1000).toISOString(),
+      currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+    });
+  } else {
+    console.error("Webhook sans userId ou subId", { userId, subId });
+  }
+}
+
+
+Et gère aussi customer.subscription.created/updated/deleted pour les mises à jour de statut.
+
+C. /handle-success : affichage uniquement
+
+Ne fais aucune insertion ici. Juste lire et afficher.
+
+D. Garde-fous SQL
+-- Normalise le schéma
+ALTER TABLE subscriptions
+  ALTER COLUMN user_id SET NOT NULL;
+
+ALTER TABLE subscriptions
+  ADD CONSTRAINT subscriptions_stripe_unique UNIQUE (stripe_subscription_id);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+
+🩹 “Hotfix minimal” — si tu dois garder /handle-success aujourd’hui
+
+Si tu veux seulement corriger le fait que user_id n’arrive pas tout de suite, applique ces trois patchs (tu pourras migrer vers le webhook ensuite) :
+
+1) Ne bloque plus sur customer_details.email
+
+Remplace la logique “email obligatoire” par une résolution sans email :
+
+// AVANT
+const userEmail = session.customer_details?.email;
+if (!userEmail) return res.status(400).json({ error: "Email client manquant" });
+
+// APRÈS
+const userIdFromMeta = session.metadata?.user_id || session.client_reference_id;
+let userId = userIdFromMeta ?? null;
+
+if (!userId) {
+  // Fallback via customer -> users.stripe_customer_id
+  const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+  if (customerId) {
+    const { data: found } = await supabaseServer
+      .from("users")
+      .select("id")
+      .eq("stripe_customer_id", customerId)
+      .maybeSingle();
+    userId = found?.id ?? null;
+  }
+}
+
+if (!userId) {
+  console.error("Impossible de déterminer user_id");
+  return res.status(400).json({ error: "user_id introuvable" });
+}
+
+2) Stopper net si l’insertion échoue
+
+Ne loggue pas “silencieusement” :
+
+const { error: insErr } = await supabaseServer
+  .from("subscriptions")
+  .insert(subscriptionRow);
+
+if (insErr) {
+  console.error("Insert subscriptions error", insErr, { subscriptionRow });
+  return res.status(500).json({ error: "DB insert failed" });
+}
+
+3) Récupère l’ID de subscription Stripe de façon sûre
+
+Ne t’appuie pas sur l’email : lis la vraie subscription depuis la session :
+
+const subscriptionId = typeof session.subscription === "string"
+  ? session.subscription
+  : session.subscription?.id;
+
+if (!subscriptionId) {
+  return res.status(400).json({ error: "Aucune subscription Stripe associée à la session" });
+}
+
+const sub = await stripe.subscriptions.retrieve(subscriptionId);
+
+const subscriptionRow = {
+  user_id: userId,                               // <— désormais fiable
+  stripe_subscription_id: sub.id,
+  stripe_customer_id: typeof session.customer === "string" ? session.customer : session.customer?.id,
+  plan_id: session.metadata?.plan_id ?? null,
+  status: sub.status,
+  current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
+  current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+
+Ce hotfix élimine complètement la dépendance à customer_details.email et corrige la ligne vide “user_id”.
+
+Check-list rapide de debug
+
+ Au moment du Checkout : vérifie dans ton code que tu passes bien client_reference_id et metadata.user_id.
+
+ Webhook : signature OK, route en express.raw, statut 200 sur checkout.session.completed.
+
+ Logs : plus de Insert sub err silencieux — on return res.status(500) sur erreur.
+
+ DB : subscriptions.user_id est NOT NULL + unique sur stripe_subscription_id.
+
+Conclusion
+
+Oui, la réponse de Replit est utile pour identifier où ça casse.
+
+Pour corriger durablement, passe par metadata user_id + webhook.
+
+Si tu veux débloquer maintenant sans refonte : applique le hotfix ci-dessus dans /handle-success (remplacer l’email par metadata.user_id / client_reference_id, stopper sur erreur, lire la vraie subscription Stripe).

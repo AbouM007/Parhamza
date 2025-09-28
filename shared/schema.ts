@@ -244,7 +244,12 @@ export const subscriptions = pgTable("subscriptions", {
     .references(() => users.id)
     .notNull(),
   professional_account_id: integer("professional_account_id"),
-  plan_id: text("plan_id").notNull(),
+//  plan_id: text("plan_id").notNull(),
+  plan_id: integer("plan_id")
+  .notNull()
+  .references(() => subscriptionPlans.id),
+
+
   stripe_subscription_id: text("stripe_subscription_id").unique(),
   status: text("status")
     .$type<"active" | "cancelled" | "expired" | "pending">()

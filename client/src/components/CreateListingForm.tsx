@@ -3514,33 +3514,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return null;
     }
   };
-  /*
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p>Chargement de votre session...</p>
-      </div>
-    );
-  }
-  */
-  /*
-  if (!user && !dbUser) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center bg-gray-50 p-8 rounded-xl border border-gray-200">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🔒</span>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Connexion requise
-          </h3>
-          <p className="text-gray-600">
-            Vous devez être connecté pour déposer une annonce.
-          </p>
-        </div>
-      </div>
-    );
-  }*/
 
   return (
     <div className="bg-white">
@@ -3628,7 +3601,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           )}
         </div>
       </div>
-
+      interface FormData
       {/* Modal de succès */}
       <PublishSuccessModal
         isOpen={showSuccessModal}
