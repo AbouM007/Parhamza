@@ -1,0 +1,62 @@
+Summary
+The hairiest file is client/src/components/CreateListingForm.tsx; it spans more than 4,500 lines because it inlines static catalogs, formatting logic, networking, and every step of the multi-stage UI in one place.
+
+Findings
+Issue 1: CreateListingForm.tsx combines massive static datasets (categories, equipment, option lists) and asset imports directly with component logic, obscuring the actual form behaviour and making the file unwieldy to navigate or review.
+
+Tâche suggérée
+Extract listing metadata from CreateListingForm
+
+Démarrer la tâche
+Issue 2: Phone/registration formatters, validation routines, quota checks, fetch calls, and Supabase upload logic all live as anonymous helpers inside the component, which prevents re-use and makes behaviour difficult to unit test in isolation.
+
+Tâche suggérée
+Isolate listing form services and validation
+
+Démarrer la tâche
+Issue 3: Step navigation, conditional gating, and the JSX for every wizard step are packed into renderStepContent, resulting in extensive switch statements and inline event handlers that are hard to reason about or test.
+
+Tâche suggérée
+Refactor CreateListingForm into hook and step components
+
+Démarrer la tâche
+Testing
+⚠️ npm test (not run; QA-only review)
+
+We are working on branch `refactor/listing-form`. 
+Please don’t touch `master`.
+
+Start with the simplest task: 
+Extract all the large static datasets (categories, equipments, option lists, etc.) 
+from `client/src/components/CreateListingForm.tsx` into a new file 
+`client/src/constants/listingMetadata.ts`.
+
+- Replace inline definitions in `CreateListingForm.tsx` with imports from this new file.  
+- Do not change any logic, only move static data.  
+- Show me the full plan before making edits, then apply it step by step.
+Copier
+Plan
+Inventory the data to extract. Move every static structure declared near the top of CreateListingForm.tsx—including CATEGORIES, VEHICLE_EQUIPMENT, VEHICLE_TYPES, TRANSMISSION_TYPES, COLORS, DOORS, UPHOLSTERY_TYPES, EMISSION_CLASSES, LICENSE_TYPES, SERVICE_TYPES, PART_CATEGORIES, PART_CONDITIONS, VEHICLE_CONDITIONS, and the COUNTRY_CODES array—into a dedicated constants module so the component only consumes imports.
+
+Build client/src/constants/listingMetadata.ts. Recreate the existing icon and asset imports that feed those datasets (Car, Bike, etc. plus the PNG assets) in the new file, export each dataset unchanged, and optionally surface helper types for clarity. This keeps the component focused on logic while centralising the shared metadata.
+
+Rewire CreateListingForm.tsx. Replace the inline constant declarations with named imports from listingMetadata.ts, ensuring references like COUNTRY_CODES continue to work without altering runtime behaviour or component state management.
+
+Because this is a read-only QA review environment, I’m not applying the edits myself; the steps above outline exactly how to perform the extraction when write access is available.
+
+Testing
+⚠️ npm test (not run; QA-only review)
+
+after refactor CreateListingForm.tsx i noticed that some filed aren't saved in the database such category, brand and many others ...
+Copier
+Summary
+The publish routine for CreateListingForm overwrites the main category with the selected subcategory before sending data to the backend, which strips the parent category from saved records.
+
+Findings
+Issue: publishListing sets vehicleData.category to formData.subcategory, so the primary category chosen in step 2 is never persisted—only the subcategory (when present) reaches the API.
+
+Tâche suggérée
+Restore top-level category when publishing listings
+
+Démarrer la tâche
+Testing
