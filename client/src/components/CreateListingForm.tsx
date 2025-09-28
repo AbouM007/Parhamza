@@ -3523,7 +3523,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     );
   }
   */
-
+  /*
   if (!user && !dbUser) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -3540,7 +3540,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         </div>
       </div>
     );
-  }
+  }*/
 
   return (
     <div className="bg-white">
