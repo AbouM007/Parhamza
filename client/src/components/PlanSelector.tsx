@@ -79,7 +79,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
   showGeneralBenefits = false,
   className = ''
 }) => {
-  const { user, dbUser } = useAuth();
+  const { user, dbUser, session } = useAuth();
   const [preparingPayment, setPreparingPayment] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
 
@@ -117,6 +117,10 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
         throw new Error('Email utilisateur manquant');
       }
 
+      if (!session?.access_token) {
+        throw new Error('Token d\'authentification manquant');
+      }
+
       // Callback personnalisé si fourni
       if (onPlanSelect) {
         onPlanSelect(plan.id);
@@ -128,6 +132,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           planId: plan.id,
