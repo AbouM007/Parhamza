@@ -271,6 +271,25 @@ export const subscriptions = pgTable("subscriptions", {
   ),
 }));
 
+// Table d'historique des abonnements pour garder trace des upgrades/downgrades
+export const subscriptionHistory = pgTable("subscription_history", {
+  id: serial("id").primaryKey(),
+  user_id: text("user_id")
+    .references(() => users.id)
+    .notNull(),
+  change_type: text("change_type")
+    .$type<"upgrade" | "downgrade" | "new" | "cancelled">()
+    .notNull(),
+  old_plan_id: integer("old_plan_id")
+    .references(() => subscriptionPlans.id),
+  new_plan_id: integer("new_plan_id")
+    .references(() => subscriptionPlans.id),
+  old_stripe_subscription_id: text("old_stripe_subscription_id"),
+  new_stripe_subscription_id: text("new_stripe_subscription_id"),
+  changed_at: timestamp("changed_at").defaultNow().notNull(),
+  metadata: json("metadata").$type<Record<string, any>>(), // Infos supplémentaires si besoin
+});
+
 export const stripeEventsProcessed = pgTable("stripe_events_processed", {
   id: serial("id").primaryKey(),
   stripeEventId: text("stripe_event_id").notNull().unique(),
