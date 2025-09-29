@@ -39,6 +39,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { detectOnboardingState } from "@/utils/onboardingDetector";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
+import { OnboardingEntry } from "@/features/onboardingV2/OnboardingEntry";
+
+// Feature flag pour basculer entre ancien et nouveau système d'onboarding
+const ONBOARDING_V2_ENABLED = true;
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -63,6 +67,7 @@ function AppContent() {
   const { user, profile, loading } = useAuth();
   const isAuthenticated = !!user;
   const isLoading = loading;
+  // Note: refreshDbUser n'a pas d'équivalent direct dans AuthContext
 
   const [location, setLocation] = useLocation();
 
@@ -128,8 +133,11 @@ function AppContent() {
     [profile?.type, onboardingLoading],
   );
 
-  // Nouvelle logique d'onboarding intelligente
+  // Nouvelle logique d'onboarding intelligente (V1 - ancien système)
   React.useEffect(() => {
+    // ✅ Skip si V2 est activé
+    if (ONBOARDING_V2_ENABLED) return;
+    
     if (isLoading || onboardingLoading) return;
 
     // Pas d'utilisateur connecté = rien à faire
@@ -151,8 +159,14 @@ function AppContent() {
     // Détecter l'état d'onboarding avec toutes les données
     const minimalUser = {
       id: profile.id,
-      type: profile.type as "individual" | "professional" | "admin" | null,
-      profile_completed: profile.profileCompleted,
+      type: profile.type as
+        | "pending"
+        | "individual"
+        | "professional"
+        | "admin"
+        | null,
+      //profile_completed: profile.profileCompleted,
+      profileCompleted: profile.profileCompleted,
     };
     const onboardingState = detectOnboardingState(
       minimalUser,
@@ -169,7 +183,7 @@ function AppContent() {
     // Appliquer les décisions
     setShowProfileSetup(onboardingState.shouldShowPopup);
 
-    // Gérer l'étape d'onboarding 
+    // Gérer l'étape d'onboarding pour les pros
     if (profile.type === "professional" && onboardingState.shouldShowPopup) {
       if (onboardingState.step === "profile") {
         setOnboardingStep("choice");
@@ -180,13 +194,6 @@ function AppContent() {
       profile.type === "individual" &&
       onboardingState.shouldShowPopup
     ) {
-      // Pour les utilisateurs individuels, aller directement au formulaire personnel
-      setOnboardingStep("personal");
-    } else if (
-      profile.type === "pending" &&
-      onboardingState.shouldShowPopup
-    ) {
-      // Pour les nouveaux utilisateurs, afficher le choix
       setOnboardingStep("choice");
     }
   }, [
@@ -427,6 +434,11 @@ function AppContent() {
       )}
 
       <UnifiedAuthModal />
+      {/* ✅ NOUVEAU SYSTÈME V2 */}
+      <OnboardingEntry 
+        user={profile} 
+        isEnabled={true}
+      />
 
       {/* Modal choix type de compte */}
       <ProfileSetupModal
@@ -452,15 +464,9 @@ function AppContent() {
         onComplete={async () => {
           setShowProfileSetup(false);
           setOnboardingStep("choice");
+          // Note: refreshDbUser n'est plus disponible dans AuthContext
         }}
-        initialData={{
-          name: profile?.name || "",
-          email: profile?.email || "",
-          phone: profile?.phone || "",
-          city: profile?.city || "",
-          postalCode: profile?.postalCode || "",
-          whatsapp: profile?.whatsapp || "",
-        }}
+        initialData={{ name: profile?.name, email: profile?.email }}
       />
 
       {/* Onboarding pro multi-étapes */}
