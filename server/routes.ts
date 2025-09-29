@@ -45,10 +45,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/:id", async (req, res) => {
     try {
+      console.log("🐞 DEBUG: GET /api/users/:id - userId =", req.params.id);
       const user = await storage.getUser(req.params.id);
       if (!user) {
+        console.log("🐞 DEBUG: User non trouvé pour id:", req.params.id);
         return res.status(404).json({ error: "User not found" });
       }
+      console.log("🐞 DEBUG: User récupéré depuis storage:");
+      console.log("🐞   user.type =", user.type);
+      console.log("🐞   user.profile_completed =", user.profile_completed);
       res.setHeader("Cache-Control", "no-store");
       res.json(user);
     } catch (error) {

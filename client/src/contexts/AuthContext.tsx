@@ -92,10 +92,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log("🐞 DEBUG: fetchProfile - AVANT appel API pour userId:", userId);
       const response = await fetch(`/api/users/${userId}`);
       if (response.ok) {
         const userProfile = await response.json();
+        console.log("🐞 DEBUG: fetchProfile - userProfile reçu:", JSON.stringify(userProfile, null, 2));
+        console.log("🐞 DEBUG: fetchProfile - userProfile.type =", userProfile.type);
+        console.log("🐞 DEBUG: fetchProfile - userProfile.profile_completed =", userProfile.profile_completed);
         setProfile(userProfile);
+        console.log("🐞 DEBUG: fetchProfile - profile mis à jour dans le contexte");
+      } else {
+        console.log("🐞 DEBUG: fetchProfile - réponse non OK:", response.status);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -240,7 +247,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshProfile = async () => {
     if (!user) return;
+    console.log("🐞 DEBUG: refreshProfile - AVANT fetch pour userId:", user.id);
+    console.log("🐞 DEBUG: refreshProfile - profile AVANT refresh:", profile?.type, profile?.profile_completed);
     await fetchProfile(user.id);
+    console.log("🐞 DEBUG: refreshProfile - TERMINÉ");
   };
 
   const value = {
