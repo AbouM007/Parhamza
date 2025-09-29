@@ -1843,7 +1843,7 @@ export class SupabaseStorage implements IStorage {
         .eq("user_id", userId)
         .eq("is_active", true)
         .is("deleted_at", null)
-        .in("status", ["approved", "pending"]); // ⬅️ clé: exclut "rejected" et "draft"
+        .in("status", ["approved", "draft", "pending"]); // ⬅️ clé: exclut "rejected" et "draft"
 
       if (error) {
         console.error("❌ Erreur comptage annonces actives:", error);

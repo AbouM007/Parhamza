@@ -1,0 +1,75 @@
+🎯 ORGANISATION & PRIORISATION DES TÂCHES
+
+🔥 PRIORITÉ 1 - CRITIQUES REVENUS (Urgent + Important)
+💰 PAIEMENTS & MONÉTISATION
+
+✅ Vérifier qu'un particulier peut payer pour dépasser la limite des 5 annonces (RÉSOLU)
+🧪 Tester le processus d'inscription et paiement professionnel (URGENT)
+💎 Ajouter boost payant dans l'ajout d'annonce (REVENUE CRITIQUE)
+
+🚨 PRIORITÉ 2 - FONCTIONNALITÉS CORE (Important + Urgent)
+
+📝 FORMULAIRE D'ANNONCE
+4. 🔧 Corriger les erreurs du refactoring formulaire (BLOQUANT)
+
+🔍 Vérifier enregistrement des champs en BDD (QUALITÉ DONNÉES)
+❤️ SYSTÈME FAVORIS
+
+6. 🐛 Réparer le bouton favoris (EXPÉRIENCE UTILISATEUR)
+
+Enregistrement en BDD
+Synchronisation listing ↔ page annonce
+
+🎨 PRIORITÉ 3 - EXPÉRIENCE UTILISATEUR (Important + Moins urgent)
+🎭 UI/UX & SÉCURITÉ
+7. 🎨 Uniformiser le modal des plans d'abonnement (COHÉRENCE)
+
+🔒 Cacher infos annonceurs pour non-connectés (SÉCURITÉ)
+
+⚡ PRIORITÉ 4 - OPTIMISATION (Moins urgent + Moins important)
+🚀 PERFORMANCE
+9. ⚡ Améliorer performance générale (LONG TERME)
+
+📋 STRATÉGIE D'EXÉCUTION RECOMMANDÉE
+🎯 PHASE 1 (Cette semaine)
+
+Tester paiements professionnels
+Corriger formulaire d'annonce
+Réparer système favoris
+
+🎯 PHASE 2 (Semaine suivante)
+
+Ajouter boost payant
+Uniformiser modals
+Sécuriser infos annonceurs
+
+🎯 PHASE 3 (Plus tard)
+
+Optimisations performance
+Cette organisation maximise les revenus (paiements d'abord) tout en assurant une expérience utilisateur fonctionnelle (formulaires, favoris) avant les améliorations esthétiques.
+
+
+#1 Subscription Management
+Fix quota logic, enable plan upgrades, and make subscription components reusable.
+
+Paid Packs for Individuals : Add a label "Passionné"
+
+#2 Onboarding for pro account & Authentication
+Remember the state where a pro user did not complete the subscription.
+
+#3 Createlistingform
+make the popup form fixed - not moving
+Add the “Boost” step in the last of the form
+When you want to add a listing, sometime a popup appear and disappear with "connexion requise) 
+
+#4 Conditional Display
+Hide seller contact details for non-logged users.
+
+#5 bLur car Number
+
+#6 Car Numer API
+https://rapidapi.com/autowaysnet/api/api-siv-systeme-d-immatriculation-des-vehicules
+
+#7 Performance Optimization
+Improve overall performance (API calls, client rendering, Supabase response times).
+
