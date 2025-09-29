@@ -5,10 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/contexts/AuthContext"; // ✅ déjà importé
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from '@/hooks/use-toast';
 
 export const professionalProfileSchema = z.object({
-  companyName: z.string().min(2, "Le nom de l’entreprise est requis"),
+  companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
   siret: z
     .string()
     .regex(/^\d{14}$/, "Le numéro SIRET doit contenir 14 chiffres"),
@@ -21,67 +22,86 @@ export type ProfessionalProfileData = z.infer<typeof professionalProfileSchema>;
 interface ProfileStepProps {
   onNext: (data: ProfessionalProfileData) => void;
   onCancel: () => void;
+  initialData?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    companyName?: string;
+  };
 }
 
 export const ProfileStep: React.FC<ProfileStepProps> = ({
   onNext,
   onCancel,
+  initialData = {},
 }) => {
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+
   const form = useForm<ProfessionalProfileData>({
     resolver: zodResolver(professionalProfileSchema),
     defaultValues: {
-      companyName: "",
+      companyName: initialData.companyName || profile?.companyName || "",
       siret: "",
-      name: "",
-      phone: "",
+      name: initialData.name || profile?.name || "",
+      phone: initialData.phone || profile?.phone || "",
     },
   });
 
-  const { user, refreshProfile } = useAuth(); // ✅ utilisé directement
-
   const onSubmit = async (data: ProfessionalProfileData) => {
     try {
-      console.log("🔧 Sauvegarde profil professionnel étape 1:", data);
+      console.log("📝 Sauvegarde brouillon profil professionnel étape 1:", data);
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) throw new Error("Session non disponible");
 
-      const response = await fetch("/api/profile/complete", {
+      const response = await fetch("/api/profile/draft", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          companyName: data.companyName,
-          siret: data.siret,
-          phone: data.phone,
-          type: "professional", // 👈 important
+          ...data,
+          type: "professional",
         }),
       });
 
-      if (!response.ok) throw new Error("Erreur lors de la sauvegarde");
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        // 📱 Gestion spécifique pour téléphone existant
+        if (errorData.error === 'PHONE_ALREADY_EXISTS') {
+          toast({
+            title: "Numéro déjà utilisé",
+            description: "Ce numéro de téléphone est déjà associé à un autre compte. Veuillez en choisir un autre.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        throw new Error(errorData.message || "Erreur lors de la sauvegarde");
+      }
 
-      // ✅ AJOUT : mise à jour explicite du statut dans la table users
-      await supabase
-        .from("users")
-        .update({
-          type: "professional",
-          profile_completed: true,
-          onboarding_status: "completed",
-        })
-        .eq("id", user?.id);
+      toast({
+        title: "Étape 1 validée !",
+        description: "Votre profil professionnel a été sauvegardé. Passons à la vérification.",
+        variant: "default",
+      });
 
-      // ✅ AJOUT : rafraîchir le contexte
-      await refreshProfile();
+      console.log("✅ Brouillon professionnel sauvegardé, passage à l'étape suivante");
 
-      // ✅ Passer à l’étape suivante
+      // ✅ Passer à l'étape suivante
       onNext(data);
-    } catch (error) {
-      console.error("❌ Erreur sauvegarde profil:", error);
-      alert("❌ Une erreur est survenue lors de la sauvegarde du profil.");
+    } catch (error: any) {
+      console.error("❌ Erreur sauvegarde brouillon profil:", error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -106,7 +126,7 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
           {/* Nom entreprise */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nom de l’entreprise *
+              Nom de l'entreprise *
             </label>
             <input
               {...form.register("companyName")}

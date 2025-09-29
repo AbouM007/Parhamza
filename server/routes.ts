@@ -919,6 +919,253 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API : Création / Mise à jour compte (perso + pro)
   // ===============================
 
+  // NOUVEAU : Endpoint pour sauvegarder les données de profil en brouillon
+  // (sans marquer profile_completed = true)
+  app.post("/api/profile/draft", async (req, res) => {
+    try {
+      console.log("📝 Sauvegarde brouillon profil...");
+      console.log("📄 Données reçues:", req.body);
+
+      // 1) Authentification
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res
+          .status(401)
+          .json({ error: "Token d'authentification manquant" });
+      }
+      const token = authHeader.replace("Bearer ", "");
+      const {
+        data: { user },
+        error: authError,
+      } = await supabaseServer.auth.getUser(token);
+      if (authError || !user) {
+        console.error("❌ Auth échouée:", authError);
+        return res.status(401).json({ error: "Token invalide" });
+      }
+
+      // 2) Champs reçus
+      const {
+        companyName,
+        siret,
+        companyAddress,
+        phone,
+        website,
+        description,
+        name,
+        city,
+        postalCode,
+        whatsapp,
+        type,
+      } = req.body;
+
+      console.log(`📝 Sauvegarde brouillon pour type: ${type}`);
+
+      // ======================================
+      // CAS 1 : BROUILLON PROFESSIONNEL
+      // ======================================
+      if (type === "professional" && companyName && siret) {
+        console.log("🏢 Sauvegarde brouillon professionnel");
+
+        // Validation SIRET
+        if (!/^\d{14}$/.test(siret)) {
+          return res
+            .status(400)
+            .json({ error: "SIRET invalide (14 chiffres requis)" });
+        }
+
+        // Gestion des erreurs de téléphone existant
+        try {
+          // 1) Mettre à jour les infos communes dans users (SANS profile_completed = true)
+          const { data: updatedUser, error: userErr } = await supabaseServer
+            .from("users")
+            .update({
+              name,
+              phone: phone || null,
+              website: website || null,
+              city: city && city.trim() !== "" ? city : null,
+              postal_code:
+                postalCode && postalCode.trim() !== "" ? postalCode : null,
+              whatsapp: whatsapp || null,
+              // ✅ PAS de profile_completed = true ici ! C'est un brouillon
+              type: "professional",
+              onboarding_status: "in_progress", // ✅ Statut intermédiaire
+            })
+            .eq("id", user.id)
+            .select()
+            .single();
+
+          if (userErr) {
+            console.error("❌ Erreur update user (pro draft):", userErr);
+            
+            // 📱 Gestion spécifique pour téléphone existant
+            if (userErr.message?.includes("duplicate key") && userErr.message?.includes("phone")) {
+              return res.status(409).json({
+                error: "PHONE_ALREADY_EXISTS",
+                message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+              });
+            }
+            
+            return res
+              .status(500)
+              .json({ error: "Erreur mise à jour utilisateur (pro draft)" });
+          }
+
+          // 2) Vérifier si un compte pro existe déjà
+          const { data: existing, error: existingErr } = await supabaseServer
+            .from("professional_accounts")
+            .select("id")
+            .eq("user_id", user.id)
+            .single();
+
+          if (existingErr && existingErr.code !== "PGRST116") {
+            console.error("❌ Erreur recherche compte pro:", existingErr);
+            return res
+              .status(500)
+              .json({ error: "Erreur recherche compte professionnel" });
+          }
+
+          // 3) Insert ou Update professional_accounts
+          let query;
+          if (existing) {
+            query = supabaseServer
+              .from("professional_accounts")
+              .update({
+                company_name: companyName,
+                company_address: companyAddress || null,
+                siret,
+                description: description || null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", existing.id)
+              .select()
+              .single();
+          } else {
+            query = supabaseServer
+              .from("professional_accounts")
+              .insert({
+                user_id: user.id,
+                company_name: companyName,
+                company_address: companyAddress || null,
+                siret,
+                description: description || null,
+                verification_status: "not_started",
+                is_active: false,
+              })
+              .select()
+              .single();
+          }
+
+          const { data: proAccount, error: upsertErr } = await query;
+          if (upsertErr) {
+            console.error("❌ Erreur sauvegarde compte pro (draft):", upsertErr);
+            return res
+              .status(500)
+              .json({ error: "Erreur sauvegarde compte professionnel (draft)" });
+          }
+
+          console.log("✅ Brouillon professionnel sauvegardé:", proAccount.id);
+          return res.json({
+            success: true,
+            type: "professional_draft",
+            user: updatedUser,
+            professionalAccount: proAccount,
+            message: "Brouillon professionnel sauvegardé avec succès",
+          });
+        } catch (error: any) {
+          console.error("❌ Erreur sauvegarde brouillon professionnel:", error);
+          
+          // 📱 Gestion spécifique pour téléphone existant
+          if (error.message?.includes("duplicate key") && error.message?.includes("phone")) {
+            return res.status(409).json({
+              error: "PHONE_ALREADY_EXISTS",
+              message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+            });
+          }
+          
+          return res.status(500).json({
+            error: "Erreur lors de la sauvegarde du brouillon professionnel",
+          });
+        }
+      }
+
+      // ======================================
+      // CAS 2 : BROUILLON PERSONNEL
+      // ======================================
+      if (type === "individual") {
+        console.log("👤 Sauvegarde brouillon personnel");
+
+        if (!name || !phone) {
+          return res.status(400).json({ error: "Nom et téléphone obligatoires" });
+        }
+
+        try {
+          const { data: personal, error: personalErr } = await supabaseServer
+            .from("users")
+            .update({
+              name,
+              phone,
+              city: city && city.trim() !== "" ? city : null,
+              postal_code:
+                postalCode && postalCode.trim() !== "" ? postalCode : null,
+              whatsapp: whatsapp || null,
+              // ✅ PAS de profile_completed = true ici ! C'est un brouillon
+              type: "individual",
+              onboarding_status: "in_progress", // ✅ Statut intermédiaire
+            })
+            .eq("id", user.id)
+            .select()
+            .single();
+
+          if (personalErr) {
+            console.error("❌ Erreur sauvegarde brouillon personnel:", personalErr);
+            
+            // 📱 Gestion spécifique pour téléphone existant
+            if (personalErr.message?.includes("duplicate key") && personalErr.message?.includes("phone")) {
+              return res.status(409).json({
+                error: "PHONE_ALREADY_EXISTS",
+                message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+              });
+            }
+            
+            return res.status(500).json({
+              error: "Erreur sauvegarde brouillon personnel",
+            });
+          }
+
+          console.log("✅ Brouillon personnel sauvegardé:", personal.id);
+          return res.json({
+            success: true,
+            type: "individual_draft",
+            profile: personal,
+            message: "Brouillon personnel sauvegardé avec succès",
+          });
+        } catch (error: any) {
+          console.error("❌ Erreur sauvegarde brouillon personnel:", error);
+          
+          // 📱 Gestion spécifique pour téléphone existant
+          if (error.message?.includes("duplicate key") && error.message?.includes("phone")) {
+            return res.status(409).json({
+              error: "PHONE_ALREADY_EXISTS",
+              message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+            });
+          }
+          
+          return res.status(500).json({
+            error: "Erreur lors de la sauvegarde du brouillon personnel",
+          });
+        }
+      }
+
+      // Si aucun cas ne correspond
+      return res.status(400).json({
+        error: "Type de profil non reconnu ou données manquantes",
+      });
+    } catch (err) {
+      console.error("❌ Erreur API /api/profile/draft:", err);
+      return res.status(500).json({ error: "Erreur serveur interne" });
+    }
+  });
+
   app.post("/api/profile/complete", async (req, res) => {
     try {
       console.log("🔔 Création/MàJ du compte (perso ou pro)...");

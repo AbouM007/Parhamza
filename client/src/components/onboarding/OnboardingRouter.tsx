@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { ProfileStep, ProfessionalProfileData } from "./ProfileStep";
-import { VerificationStep } from "./VerificationStep"; // ✅ ajout
+import { VerificationStep } from "./VerificationStep";
 import { SubscriptionStep } from "./SubscriptionStep";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OnboardingRouterProps {
   setShowProfileSetup: (value: boolean) => void;
@@ -10,6 +11,7 @@ interface OnboardingRouterProps {
 export const OnboardingRouter: React.FC<OnboardingRouterProps> = ({
   setShowProfileSetup,
 }) => {
+  const { profile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [savedFormData, setSavedFormData] = useState<any>({});
 
@@ -35,6 +37,12 @@ export const OnboardingRouter: React.FC<OnboardingRouterProps> = ({
         <ProfileStep
           onNext={handleProfileNext}
           onCancel={() => setShowProfileSetup(false)}
+          initialData={{
+            name: profile?.name,
+            email: profile?.email,
+            phone: profile?.phone,
+            companyName: profile?.companyName,
+          }}
         />
       )}
 

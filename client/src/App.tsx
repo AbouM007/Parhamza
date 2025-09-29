@@ -446,7 +446,14 @@ function AppContent() {
           setShowProfileSetup(false);
           setOnboardingStep("choice");
         }}
-        initialData={{ name: profile?.name, email: profile?.email }}
+        initialData={{
+          name: profile?.name,
+          email: profile?.email,
+          phone: profile?.phone ?? "",
+          city: profile?.city ?? "",
+          postalCode: profile?.postalCode ?? "",
+          whatsapp: profile?.whatsapp ?? "",
+        }}
       />
 
       {/* Onboarding pro multi-étapes */}

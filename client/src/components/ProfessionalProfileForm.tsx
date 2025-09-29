@@ -34,6 +34,12 @@ interface ProfessionalProfileFormProps {
   initialData?: {
     name?: string;
     email?: string;
+    phone?: string;
+    companyName?: string;
+    siret?: string;
+    city?: string;
+    postalCode?: string;
+    website?: string;
   };
 }
 
@@ -51,10 +57,10 @@ export const ProfessionalProfileForm: React.FC<
   const form = useForm<ProfessionalProfileData>({
     resolver: zodResolver(professionalProfileSchema),
     defaultValues: {
-      companyName: "",
-      siret: "",
+      companyName: initialData.companyName || "",
+      siret: initialData.siret || "",
       name: initialData.name || "",
-      phone: "",
+      phone: initialData.phone || "",
     },
   });
 

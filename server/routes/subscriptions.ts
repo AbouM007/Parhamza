@@ -289,6 +289,30 @@ router.post("/handle-success", async (req, res) => {
       }
     }
 
+    // ✅ NOUVELLE LOGIQUE : Finaliser l'onboarding professionnel après paiement réussi
+    try {
+      console.log(`🎯 Finalisation onboarding professionnel pour user: ${userId}`);
+      
+      // Mettre à jour le profil pour marquer l'onboarding comme terminé
+      const { error: profileErr } = await supabaseServer
+        .from("users")
+        .update({
+          profile_completed: true,
+          onboarding_status: "completed",
+        })
+        .eq("id", userId);
+
+      if (profileErr) {
+        console.error("❌ Erreur finalisation profil:", profileErr);
+        // Ne pas faire échouer la requête pour cette erreur, log seulement
+      } else {
+        console.log("✅ Onboarding professionnel finalisé avec succès");
+      }
+    } catch (profileError) {
+      console.error("❌ Erreur lors de la finalisation de l'onboarding:", profileError);
+      // Ne pas faire échouer la requête pour cette erreur
+    }
+
     return res.json({
       success: true,
       userId,

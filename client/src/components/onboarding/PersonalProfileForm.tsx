@@ -29,6 +29,10 @@ interface PersonalProfileFormProps {
   initialData?: {
     name?: string;
     email?: string;
+    phone?: string;
+    city?: string;
+    postalCode?: string;
+    whatsapp?: string;
   };
 }
 
@@ -45,9 +49,9 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
     resolver: zodResolver(personalProfileSchema),
     defaultValues: {
       name: initialData.name || "",
-      phone: "",
-      city: "",
-      postalCode: "",
+      phone: initialData.phone || "",
+      city: initialData.city || "",
+      postalCode: initialData.postalCode || "",
     },
   });
 
@@ -88,7 +92,7 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
       }
 
       toast({
-        title: "Profil complété !",
+        title: "Profil finalisé !",
         description: "Votre compte personnel est maintenant prêt à l'emploi.",
         variant: "default",
       });
@@ -119,7 +123,7 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
               <User className="h-6 w-6 text-blue-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">
-              Compléter mon compte personnel
+              Finaliser mon compte personnel
             </h2>
           </div>
           <button
