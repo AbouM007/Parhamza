@@ -35,7 +35,7 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
   onCancel,
   initialData = {},
 }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<ProfessionalProfileData>({
@@ -50,14 +50,14 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
 
   const onSubmit = async (data: ProfessionalProfileData) => {
     try {
-      console.log("📝 Sauvegarde brouillon profil professionnel étape 1:", data);
+      console.log("📝 Finalisation profil professionnel étape 1:", data);
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) throw new Error("Session non disponible");
 
-      const response = await fetch("/api/profile/draft", {
+      const response = await fetch("/api/profile/complete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,19 +87,22 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
 
       toast({
         title: "Étape 1 validée !",
-        description: "Votre profil professionnel a été sauvegardé. Passons à la vérification.",
+        description: "Votre profil professionnel a été finalisé. Passons à la vérification.",
         variant: "default",
       });
 
-      console.log("✅ Brouillon professionnel sauvegardé, passage à l'étape suivante");
+      console.log("✅ Profil professionnel finalisé, passage à l'étape suivante");
+
+      // ✅ Rafraîchir le profil pour mettre à jour le contexte
+      await refreshProfile();
 
       // ✅ Passer à l'étape suivante
       onNext(data);
     } catch (error: any) {
-      console.error("❌ Erreur sauvegarde brouillon profil:", error);
+      console.error("❌ Erreur finalisation profil:", error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.",
+        description: error.message || "Une erreur est survenue lors de la finalisation. Veuillez réessayer.",
         variant: "destructive",
       });
     }
