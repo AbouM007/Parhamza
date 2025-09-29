@@ -13,14 +13,14 @@ interface ProfileSectionProps {
   profileSuccess: boolean;
   savingProfile: boolean;
   handleSaveProfile: () => void;
-  refreshDbUser: () => void;
+  refreshProfile: () => Promise<void>;
 }
 
 // Dans ProfileSection.tsx (ou utils séparé)
 const handleAvatarUpload = async (
   file: File,
   userId: string,
-  refreshDbUser: () => Promise<void>,
+  refreshProfile: () => Promise<void>,
 ) => {
   // Vérifications format + taille
   const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -46,7 +46,7 @@ const handleAvatarUpload = async (
     });
 
     if (response.ok) {
-      await refreshDbUser();
+      await refreshProfile();
       alert("Photo mise à jour avec succès !");
     }
   } catch (error) {
@@ -64,7 +64,7 @@ export default function ProfileSection({
   profileSuccess,
   savingProfile,
   handleSaveProfile,
-  refreshDbUser,
+  refreshProfile,
 }: ProfileSectionProps) {
   return (
     <div className="space-y-8">
@@ -130,7 +130,7 @@ export default function ProfileSection({
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file && user?.id) {
-                      handleAvatarUpload(file, user.id, refreshDbUser);
+                      handleAvatarUpload(file, user.id, refreshProfile);
                     }
                   }}
                 />

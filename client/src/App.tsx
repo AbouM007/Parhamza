@@ -63,7 +63,6 @@ function AppContent() {
   const { user, profile, loading } = useAuth();
   const isAuthenticated = !!user;
   const isLoading = loading;
-  // Note: refreshDbUser n'a pas d'équivalent direct dans AuthContext
 
   const [location, setLocation] = useLocation();
 
@@ -153,7 +152,7 @@ function AppContent() {
     const minimalUser = {
       id: profile.id,
       type: profile.type as "individual" | "professional" | "admin" | null,
-      profile_completed: profile.profile_completed,
+      profile_completed: profile.profileCompleted,
     };
     const onboardingState = detectOnboardingState(
       minimalUser,
@@ -446,7 +445,6 @@ function AppContent() {
         onComplete={async () => {
           setShowProfileSetup(false);
           setOnboardingStep("choice");
-          // Note: refreshDbUser n'est plus disponible dans AuthContext
         }}
         initialData={{ name: profile?.name, email: profile?.email }}
       />
