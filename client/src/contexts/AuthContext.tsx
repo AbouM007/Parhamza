@@ -99,7 +99,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log("🐞 DEBUG: fetchProfile - userProfile reçu:", JSON.stringify(userProfile, null, 2));
         console.log("🐞 DEBUG: fetchProfile - userProfile.type =", userProfile.type);
         console.log("🐞 DEBUG: fetchProfile - userProfile.profile_completed =", userProfile.profile_completed);
-        setProfile(userProfile);
+        
+        // 🔧 Mapper les propriétés snake_case vers camelCase pour le contexte React
+        const mappedProfile = {
+          ...userProfile,
+          profileCompleted: userProfile.profile_completed,
+          postalCode: userProfile.postal_code,
+          companyName: userProfile.company_name,
+          emailVerified: userProfile.email_verified,
+          lastLoginAt: userProfile.last_login_at,
+          contactPreferences: userProfile.contact_preferences,
+          onboardingStatus: userProfile.onboarding_status,
+          createdAt: userProfile.created_at
+        };
+        
+        console.log("🐞 DEBUG: fetchProfile - mappedProfile.profileCompleted =", mappedProfile.profileCompleted);
+        console.log("🐞 DEBUG: fetchProfile - mappedProfile.type =", mappedProfile.type);
+        setProfile(mappedProfile);
         console.log("🐞 DEBUG: fetchProfile - profile mis à jour dans le contexte");
       } else {
         console.log("🐞 DEBUG: fetchProfile - réponse non OK:", response.status);

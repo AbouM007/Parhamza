@@ -53,9 +53,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.log("🐞 DEBUG: User récupéré depuis storage:");
       console.log("🐞   user.type =", user.type);
-      console.log("🐞   user.profileCompleted =", user.profileCompleted);
+      console.log("🐞   user.profile_completed =", (user as any).profile_completed);
+      
+      // 🔧 Mapper les propriétés snake_case → camelCase pour le frontend
+      const mappedUser = {
+        ...user,
+        profileCompleted: (user as any).profile_completed,
+        postalCode: (user as any).postal_code,
+        companyName: (user as any).company_name,
+        emailVerified: (user as any).email_verified,
+        lastLoginAt: (user as any).last_login_at,
+        contactPreferences: (user as any).contact_preferences,
+        onboardingStatus: (user as any).onboarding_status,
+        createdAt: (user as any).created_at
+      };
+      
+      console.log("🐞 DEBUG: Après mapping:");
+      console.log("🐞   mappedUser.type =", mappedUser.type);
+      console.log("🐞   mappedUser.profileCompleted =", mappedUser.profileCompleted);
+      
       res.setHeader("Cache-Control", "no-store");
-      res.json(user);
+      res.json(mappedUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });

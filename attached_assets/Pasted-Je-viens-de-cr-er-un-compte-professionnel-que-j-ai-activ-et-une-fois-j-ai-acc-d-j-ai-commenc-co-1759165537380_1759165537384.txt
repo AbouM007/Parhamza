@@ -1,0 +1,467 @@
+Je viens de créer un compte professionnel que j'ai activé et une fois j'ai accédé j'ai commencé à compléter le profil j'ai choisi le type de compte professionnel j'ai renseigné le premier step du formulaire contenant le nom de l'entreprise le nom du responsable le numéro de siret et le numéro de téléphone et quand j'ai cliqué sur Suivant je me suis retrouvé avec le pop-up de choix de type de profil
+
+La console Web affiche : 
+logger.ts:3 Auth state changed: INITIAL_SESSION undefined
+(index):1 Not allowed to load local resource: blob:https://4a8ee1ef-f787-43d5-b6d7-e11ecde50787-00-22c32g7a03ui8.janeway.replit.dev/e0b1aa40-035c-425d-aa20-5c9af0690b3f
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:193 🔄 Réinitialisation favoris - aucun utilisateur
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+useFavorites.ts:33 ✅ Favoris rechargés: 0
+logger.ts:3 Auth state changed: SIGNED_IN 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+AuthContext.tsx:95 🐞 DEBUG: fetchProfile - AVANT appel API pour userId: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+onboardingDetector.ts:45 🐞 DEBUG: detectOnboardingState - Paramètres reçus:
+onboardingDetector.ts:46 🐞   user = {id: '6dbb6b9b-68e8-4be7-bce6-427d186ea8d5', type: 'pending', profileCompleted: undefined}
+onboardingDetector.ts:47 🐞   pro = null
+onboardingDetector.ts:48 🐞   sub = null
+onboardingDetector.ts:70 🐞 DEBUG: detectOnboardingState - RÉSULTAT pending: {step: 'profile', reason: 'new_user_pending', canPost: false, shouldShowPopup: true}
+App.tsx:162 🔧 [Onboarding] User: pending {step: 'profile', shouldShowPopup: true, canPost: false, reason: 'new_user_pending'}
+AuthContext.tsx:99 🐞 DEBUG: fetchProfile - userProfile reçu: {
+  "id": "6dbb6b9b-68e8-4be7-bce6-427d186ea8d5",
+  "email": "cmm.saghir+test1@gmail.com",
+  "name": "cmm.saghir+test1",
+  "phone": null,
+  "whatsapp": null,
+  "type": "pending",
+  "company_logo": null,
+  "address": null,
+  "city": null,
+  "postal_code": null,
+  "website": null,
+  "bio": null,
+  "avatar": null,
+  "specialties": null,
+  "verified": null,
+  "email_verified": false,
+  "contact_preferences": null,
+  "last_login_at": null,
+  "profile_completed": false,
+  "role": "user",
+  "created_at": "2025-09-29T18:02:36.845129+00:00",
+  "onboarding_status": "incomplete_profile",
+  "company_name": null
+}
+AuthContext.tsx:100 🐞 DEBUG: fetchProfile - userProfile.type = pending
+AuthContext.tsx:101 🐞 DEBUG: fetchProfile - userProfile.profile_completed = false
+AuthContext.tsx:103 🐞 DEBUG: fetchProfile - profile mis à jour dans le contexte
+onboardingDetector.ts:45 🐞 DEBUG: detectOnboardingState - Paramètres reçus:
+onboardingDetector.ts:46 🐞   user = {id: '6dbb6b9b-68e8-4be7-bce6-427d186ea8d5', type: 'pending', profileCompleted: undefined}
+onboardingDetector.ts:47 🐞   pro = null
+onboardingDetector.ts:48 🐞   sub = null
+onboardingDetector.ts:70 🐞 DEBUG: detectOnboardingState - RÉSULTAT pending: {step: 'profile', reason: 'new_user_pending', canPost: false, shouldShowPopup: true}
+App.tsx:162 🔧 [Onboarding] User: pending {step: 'profile', shouldShowPopup: true, canPost: false, reason: 'new_user_pending'}
+ProfileStep.tsx:53 📝 Finalisation profil professionnel étape 1: {companyName: 'TEST ONE', siret: '15986754845876', name: 'Test ONE', phone: '0626262626'}
+ProfileStep.tsx:94 ✅ Profil professionnel finalisé, passage à l'étape suivante
+ProfileStep.tsx:97 🐞 DEBUG: ProfileStep - profile.type AVANT refreshProfile = pending
+ProfileStep.tsx:98 🐞 DEBUG: ProfileStep - profileCompleted AVANT refreshProfile = undefined
+AuthContext.tsx:250 🐞 DEBUG: refreshProfile - AVANT fetch pour userId: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+AuthContext.tsx:251 🐞 DEBUG: refreshProfile - profile AVANT refresh: pending undefined
+AuthContext.tsx:95 🐞 DEBUG: fetchProfile - AVANT appel API pour userId: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+AuthContext.tsx:99 🐞 DEBUG: fetchProfile - userProfile reçu: {
+  "id": "6dbb6b9b-68e8-4be7-bce6-427d186ea8d5",
+  "email": "cmm.saghir+test1@gmail.com",
+  "name": "Test ONE",
+  "phone": "0626262626",
+  "whatsapp": null,
+  "type": "professional",
+  "company_logo": null,
+  "address": null,
+  "city": null,
+  "postal_code": null,
+  "website": null,
+  "bio": null,
+  "avatar": null,
+  "specialties": null,
+  "verified": null,
+  "email_verified": false,
+  "contact_preferences": null,
+  "last_login_at": null,
+  "profile_completed": true,
+  "role": "user",
+  "created_at": "2025-09-29T18:02:36.845129+00:00",
+  "onboarding_status": "incomplete_profile",
+  "company_name": null
+}
+AuthContext.tsx:100 🐞 DEBUG: fetchProfile - userProfile.type = professional
+AuthContext.tsx:101 🐞 DEBUG: fetchProfile - userProfile.profile_completed = true
+AuthContext.tsx:103 🐞 DEBUG: fetchProfile - profile mis à jour dans le contexte
+AuthContext.tsx:253 🐞 DEBUG: refreshProfile - TERMINÉ
+ProfileStep.tsx:100 🐞 DEBUG: ProfileStep - profile.type APRÈS refreshProfile = pending
+ProfileStep.tsx:101 🐞 DEBUG: ProfileStep - profileCompleted APRÈS refreshProfile = undefined
+installHook.js:1 ❌ Erreur chargement données professionnelles: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+overrideMethod @ installHook.js:1
+(anonymous) @ App.tsx:123
+await in (anonymous)
+(anonymous) @ App.tsx:147
+commitHookEffectListMount @ chunk-UPELNCPK.js?v=046903d5:16915
+commitPassiveMountOnFiber @ chunk-UPELNCPK.js?v=046903d5:18156
+commitPassiveMountEffects_complete @ chunk-UPELNCPK.js?v=046903d5:18129
+commitPassiveMountEffects_begin @ chunk-UPELNCPK.js?v=046903d5:18119
+commitPassiveMountEffects @ chunk-UPELNCPK.js?v=046903d5:18109
+flushPassiveEffectsImpl @ chunk-UPELNCPK.js?v=046903d5:19490
+flushPassiveEffects @ chunk-UPELNCPK.js?v=046903d5:19447
+performSyncWorkOnRoot @ chunk-UPELNCPK.js?v=046903d5:18868
+flushSyncCallbacks @ chunk-UPELNCPK.js?v=046903d5:9119
+commitRootImpl @ chunk-UPELNCPK.js?v=046903d5:19432
+commitRoot @ chunk-UPELNCPK.js?v=046903d5:19277
+finishConcurrentRender @ chunk-UPELNCPK.js?v=046903d5:18805
+performConcurrentWorkOnRoot @ chunk-UPELNCPK.js?v=046903d5:18718
+workLoop @ chunk-UPELNCPK.js?v=046903d5:197
+flushWork @ chunk-UPELNCPK.js?v=046903d5:176
+performWorkUntilDeadline @ chunk-UPELNCPK.js?v=046903d5:384
+onboardingDetector.ts:45 🐞 DEBUG: detectOnboardingState - Paramètres reçus:
+onboardingDetector.ts:46 🐞   user = {id: '6dbb6b9b-68e8-4be7-bce6-427d186ea8d5', type: 'professional', profileCompleted: undefined}
+onboardingDetector.ts:47 🐞   pro = {verification_status: 'not_started'}
+onboardingDetector.ts:48 🐞   sub = null
+onboardingDetector.ts:94 🐞 DEBUG: User type = 'professional', profileCompleted = undefined
+onboardingDetector.ts:104 🐞 DEBUG: detectOnboardingState - RÉSULTAT pro_profile_missing: {step: 'profile', reason: 'pro_profile_missing', canPost: false, shouldShowPopup: true}
+App.tsx:162 🔧 [Onboarding] User: professional {step: 'profile', shouldShowPopup: true, canPost: false, reason: 'pro_profile_missing'}
+
+
+le log server afiche :
+
+
+[dotenv@17.2.1] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+🔗 Connexion Supabase initialisée avec le client officiel
+🔗 Connexion Supabase initialisée avec le client serveur
+🔧 Route messages-simple chargée
+6:01:48 PM [express] serving on port 5000
+🔄 Récupération des annonces ACTIVES avec users depuis Supabase...
+🔄 Récupération des annonces ACTIVES avec users depuis Supabase...
+✅ Annonces ACTIVES avec users récupérées depuis Supabase: 67
+📊 Première annonce Supabase: voiture professionnelle 
+👤 Premier user associé: Demo User
+6:01:59 PM [express] GET /api/vehicles 200 in 639ms :: [{"id":"109","userId":"3e4ab448-8958-4290-bda…
+✅ Annonces ACTIVES avec users récupérées depuis Supabase: 67
+📊 Première annonce Supabase: voiture professionnelle 
+👤 Premier user associé: Demo User
+6:01:59 PM [express] GET /api/vehicles 200 in 630ms :: [{"id":"109","userId":"3e4ab448-8958-4290-bda…
+6:01:59 PM [express] GET /api/users 200 in 152ms :: [{"id":"1277d6de-8b08-439d-81d8-bc10436a51e7","e…
+🔄 Récupération des annonces ACTIVES avec users depuis Supabase...
+🔄 Récupération des annonces ACTIVES avec users depuis Supabase...
+✅ Annonces ACTIVES avec users récupérées depuis Supabase: 67
+📊 Première annonce Supabase: voiture professionnelle 
+👤 Premier user associé: Demo User
+6:02:04 PM [express] GET /api/vehicles 200 in 295ms :: [{"id":"109","userId":"3e4ab448-8958-4290-bda…
+✅ Annonces ACTIVES avec users récupérées depuis Supabase: 67
+📊 Première annonce Supabase: voiture professionnelle 
+👤 Premier user associé: Demo User
+6:02:04 PM [express] GET /api/vehicles 200 in 339ms :: [{"id":"109","userId":"3e4ab448-8958-4290-bda…
+6:02:04 PM [express] GET /api/users 304 in 161ms :: [{"id":"1277d6de-8b08-439d-81d8-bc10436a51e7","e…
+🔄 Sync immédiate demandée pour: cmm.saghir+test1@gmail.com (ID: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 )
+Error fetching user: {
+  code: 'PGRST116',
+  details: 'The result contains 0 rows',
+  hint: null,
+  message: 'JSON object requested, multiple (or no) rows returned'
+}
+✅ Utilisateur synchronisé immédiatement: cmm.saghir+test1 (pending)
+6:02:36 PM [express] POST /api/users/sync-from-signup 200 in 410ms :: {"user":{"id":"6dbb6b9b-68e8-4…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:02:37 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 159ms…
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:37 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 153ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:37 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 173ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:38 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 144ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:38 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 160ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:38 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 139ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:39 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 137ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:39 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 143ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:39 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 148ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:39 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 136ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:40 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 150ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:40 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 134ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:40 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 137ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:41 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 148ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:41 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 152ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:41 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 161ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:41 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 182ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:42 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 163ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:42 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 144ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:42 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 128ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:43 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 156ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:43 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 135ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:43 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 154ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:44 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 163ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:44 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 169ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:44 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 133ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:45 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 159ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:45 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 194ms :: []
+🔄 Récupération favoris pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🔄 Récupération favoris avec table wishlist dédiée pour: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Favoris récupérés depuis table dédiée: []
+✅ Aucun favori trouvé
+✅ Favoris récupérés: 0
+6:02:45 PM [express] GET /api/favorites/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 159ms :: []
+🐞 DEBUG: GET /api/users/:id - userId = 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🐞 DEBUG: User récupéré depuis storage:
+🐞   user.type = pending
+🐞   user.profileCompleted = undefined
+6:03:07 PM [express] GET /api/users/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 196ms :: {"id":"6dbb…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:03:07 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 145ms…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:03:37 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 397ms…
+🔔 Création/MàJ du compte (perso ou pro)...
+📄 Données reçues: {
+  companyName: 'TEST ONE',
+  siret: '15986754845876',
+  name: 'Test ONE',
+  phone: '0626262626',
+  type: 'professional'
+}
+🏢 Détection compte professionnel
+✅ Compte professionnel enregistré: 190
+6:04:00 PM [express] POST /api/profile/complete 200 in 741ms :: {"success":true,"type":"professional…
+🐞 DEBUG: GET /api/users/:id - userId = 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+🐞 DEBUG: User récupéré depuis storage:
+🐞   user.type = professional
+🐞   user.profileCompleted = undefined
+6:04:01 PM [express] GET /api/users/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 143ms :: {"id":"6dbb…
+📊 Vérification statut professionnel pour user 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5...
+✅ Statut professionnel récupéré: not_started
+6:04:01 PM [express] GET /api/professional-accounts/status/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 …
+6:04:01 PM [express] GET /api/subscriptions/by-professional/190 200 in 6ms
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:04:07 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 216ms…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:04:37 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 207ms…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:05:07 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 223ms…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:05:37 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 213ms…
+📬 Récupération messages pour utilisateur: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+📝 ID utilisé directement: 6dbb6b9b-68e8-4be7-bce6-427d186ea8d5
+✅ Messages trouvés: 0
+6:06:07 PM [express] GET /api/messages-simple/user/6dbb6b9b-68e8-4be7-bce6-427d186ea8d5 200 in 294ms…
+
+
+
+Tu en penses quoi de tous cela ??
