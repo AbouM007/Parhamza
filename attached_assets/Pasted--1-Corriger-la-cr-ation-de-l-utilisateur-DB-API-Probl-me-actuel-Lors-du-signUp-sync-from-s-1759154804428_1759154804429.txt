@@ -1,0 +1,83 @@
+⚙️ 1. Corriger la création de l’utilisateur (DB & API)
+Problème actuel
+
+Lors du signUp → sync-from-signup, tu enregistres l’utilisateur avec profile_completed = true et onboarding_status = completed.
+
+Résultat : l’onboarding est court-circuité dès la création.
+
+Correction à faire
+
+👉 Dans ton endpoint /api/users/sync-from-signup :
+
+Par défaut, insérer toujours :
+
+profile_completed = false
+onboarding_status = 'incomplete_profile'
+
+
+C’est seulement après validation du formulaire que tu passes en true + completed.
+
+🖥️ 2. Corriger la logique côté AuthContext / App
+Problème actuel
+
+App.tsx lit profile.profile_completed pour décider de l’onboarding.
+
+Comme la DB envoie déjà true, l’onboarding saute.
+
+Correction à faire
+
+Harmoniser avec le champ camelCase :
+
+const minimalUser = {
+  id: profile.id,
+  type: profile.type as "individual" | "professional" | "admin" | null,
+  profile_completed: profile.profileCompleted, // ✅ camelCase côté TS
+};
+
+
+Ajouter une règle dans detectOnboardingState :
+
+Si profile_completed = false → forcer l’affichage du popup (personal ou professional).
+
+Si profile_completed = true → fermer le popup.
+
+📝 3. Corriger le rendu des formulaires UI
+Problème actuel
+
+Le PersonalProfileForm s’ouvre mais reste vide → tu passes seulement name et email.
+
+Correction à faire
+
+Passer toutes les infos disponibles en initialData :
+
+<PersonalProfileForm
+  isOpen={showProfileSetup && onboardingStep === "personal"}
+  onClose={() => setOnboardingStep("choice")}
+  onComplete={async () => {
+    setShowProfileSetup(false);
+    setOnboardingStep("choice");
+    await refreshProfile(); // ✅ mettre à jour après sauvegarde
+  }}
+  initialData={{
+    name: profile?.name,
+    email: profile?.email,
+    phone: profile?.phone ?? "",
+    city: profile?.city ?? "",
+    postal_code: profile?.postal_code ?? "",
+  }}
+/>
+
+
+Vérifier dans PersonalProfileForm.tsx que ces champs existent et sont bien bindés à initialData.
+
+✅ Résultat attendu
+
+Nouvel utilisateur créé → dans DB : profile_completed = false.
+
+Popup onboarding → s’affiche correctement.
+
+Formulaire personnel → pré-rempli avec email, nom, téléphone, etc.
+
+Étape professionnelle → s’affiche correctement tant que profile_completed = false.
+
+Après validation → API met à jour profile_completed = true + onboarding_status = completed.
