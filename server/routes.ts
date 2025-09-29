@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.log("🐞 DEBUG: User récupéré depuis storage:");
       console.log("🐞   user.type =", user.type);
-      console.log("🐞   user.profile_completed =", user.profile_completed);
+      console.log("🐞   user.profileCompleted =", user.profileCompleted);
       res.setHeader("Cache-Control", "no-store");
       res.json(user);
     } catch (error) {

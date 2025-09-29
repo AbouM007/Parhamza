@@ -94,11 +94,11 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
       console.log("✅ Profil professionnel finalisé, passage à l'étape suivante");
 
       // ✅ Rafraîchir le profil pour mettre à jour le contexte
-      console.log("🐞 DEBUG: ProfileStep - user.type AVANT refreshProfile =", user?.type);
-      console.log("🐞 DEBUG: ProfileStep - profile_completed AVANT refreshProfile =", profile?.profile_completed);
+      console.log("🐞 DEBUG: ProfileStep - profile.type AVANT refreshProfile =", profile?.type);
+      console.log("🐞 DEBUG: ProfileStep - profileCompleted AVANT refreshProfile =", profile?.profileCompleted);
       await refreshProfile();
-      console.log("🐞 DEBUG: ProfileStep - user.type APRÈS refreshProfile =", user?.type);
-      console.log("🐞 DEBUG: ProfileStep - profile_completed APRÈS refreshProfile =", profile?.profile_completed);
+      console.log("🐞 DEBUG: ProfileStep - profile.type APRÈS refreshProfile =", profile?.type);
+      console.log("🐞 DEBUG: ProfileStep - profileCompleted APRÈS refreshProfile =", profile?.profileCompleted);
 
       // ✅ Passer à l'étape suivante
       onNext(data);

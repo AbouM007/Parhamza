@@ -248,7 +248,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshProfile = async () => {
     if (!user) return;
     console.log("🐞 DEBUG: refreshProfile - AVANT fetch pour userId:", user.id);
-    console.log("🐞 DEBUG: refreshProfile - profile AVANT refresh:", profile?.type, profile?.profile_completed);
+    console.log("🐞 DEBUG: refreshProfile - profile AVANT refresh:", profile?.type, profile?.profileCompleted);
     await fetchProfile(user.id);
     console.log("🐞 DEBUG: refreshProfile - TERMINÉ");
   };

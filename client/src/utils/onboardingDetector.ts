@@ -10,7 +10,7 @@ export type OnboardingStep =
 export interface MinimalUser {
   id: string;
   type?: "pending" | "individual" | "professional" | "admin" | null;
-  profile_completed?: boolean | null;
+  profileCompleted?: boolean | null;
 }
 
 export interface MinimalProAccount {
@@ -43,7 +43,7 @@ export function detectOnboardingState(
   sub: MinimalSubscription | null | undefined,
 ): DetectResult {
   console.log("🐞 DEBUG: detectOnboardingState - Paramètres reçus:");
-  console.log("🐞   user =", user ? { id: user.id, type: user.type, profile_completed: user.profile_completed } : null);
+  console.log("🐞   user =", user ? { id: user.id, type: user.type, profileCompleted: user.profileCompleted } : null);
   console.log("🐞   pro =", pro ? { verification_status: pro.verification_status } : null);
   console.log("🐞   sub =", sub ? { status: sub.status } : null);
 
@@ -73,7 +73,7 @@ export function detectOnboardingState(
 
   // Particulier
   if (user.type === "individual") {
-    if (user.profile_completed) {
+    if (user.profileCompleted) {
       return {
         step: "completed",
         reason: "individual_done",
@@ -91,10 +91,10 @@ export function detectOnboardingState(
 
   // Professionnel
   if (user.type === "professional") {
-    console.log("🐞 DEBUG: User type = 'professional', profile_completed =", user.profile_completed);
+    console.log("🐞 DEBUG: User type = 'professional', profileCompleted =", user.profileCompleted);
     
     // Cas A – Juste inscrit
-    if (!user.profile_completed) {
+    if (!user.profileCompleted) {
       const result = {
         step: "profile" as OnboardingStep,
         reason: "pro_profile_missing",
@@ -105,7 +105,7 @@ export function detectOnboardingState(
       return result;
     }
 
-    console.log("🐞 DEBUG: User pro avec profile_completed = true, continuant vers documents...");
+    console.log("🐞 DEBUG: User pro avec profileCompleted = true, continuant vers documents...");
 
     // Profil ok, proAccount inexistant ou pas démarré → Cas B
     const v = pro?.verification_status ?? "not_started";
