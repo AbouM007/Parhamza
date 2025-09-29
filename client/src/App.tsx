@@ -11,7 +11,7 @@ import { VehicleListings } from "@/components/VehicleListings";
 import { VehicleDetail } from "@/components/VehicleDetail";
 import { UnifiedAuthModal } from "@/components/UnifiedAuthModal";
 import { ProfileSetupModal } from "@/components/ProfileSetupModal";
-import { PersonalProfileForm } from "@/components/PersonalProfileForm";
+import { PersonalProfileForm } from "@/components/onboarding/PersonalProfileForm";
 import StripeSuccess from "./pages/StripeSuccess";
 import { Dashboard } from "@/components/dashboard";
 import { CreateListingForm } from "@/components/CreateListingForm";
@@ -300,7 +300,12 @@ function AppContent() {
             <Route path="/dashboard">
               <Dashboard
                 initialTab={dashboardTab}
-                onCreateListing={() => handleCreateListingGuard(() => setShowCreateListingModal(true), 'dashboard-button')}
+                onCreateListing={() =>
+                  handleCreateListingGuard(
+                    () => setShowCreateListingModal(true),
+                    "dashboard-button",
+                  )
+                }
                 onRedirectHome={() => setLocation("/")}
                 onRedirectToSearch={() => setLocation("/search")}
                 setSearchFilters={setSearchFilters}

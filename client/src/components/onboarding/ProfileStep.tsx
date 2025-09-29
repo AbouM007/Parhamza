@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext"; // ✅ déjà importé
 
 export const professionalProfileSchema = z.object({
   companyName: z.string().min(2, "Le nom de l’entreprise est requis"),
@@ -36,6 +37,8 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
     },
   });
 
+  const { user, refreshProfile } = useAuth(); // ✅ utilisé directement
+
   const onSubmit = async (data: ProfessionalProfileData) => {
     try {
       console.log("🔧 Sauvegarde profil professionnel étape 1:", data);
@@ -60,6 +63,19 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({
       });
 
       if (!response.ok) throw new Error("Erreur lors de la sauvegarde");
+
+      // ✅ AJOUT : mise à jour explicite du statut dans la table users
+      await supabase
+        .from("users")
+        .update({
+          type: "professional",
+          profile_completed: true,
+          onboarding_status: "completed",
+        })
+        .eq("id", user?.id);
+
+      // ✅ AJOUT : rafraîchir le contexte
+      await refreshProfile();
 
       // ✅ Passer à l’étape suivante
       onNext(data);

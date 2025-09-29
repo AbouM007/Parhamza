@@ -112,7 +112,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
   // Endpoint pour synchroniser un utilisateur Supabase Auth avec la table users
   app.post("/api/users/sync-auth", async (req, res) => {
     try {
@@ -151,29 +150,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:id/passionate-status", async (req, res) => {
     try {
       const userId = req.params.id;
-      
+
       // Vérifier d'abord que l'utilisateur existe et est un particulier
       const user = await storage.getUser(userId);
-      console.log(`🔍 PASSIONATE DEBUG - User ${userId}:`, { email: user?.email, type: user?.type });
-      
+      console.log(`🔍 PASSIONATE DEBUG - User ${userId}:`, {
+        email: user?.email,
+        type: user?.type,
+      });
+
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       // Si ce n'est pas un particulier, pas de statut Passionné
-      if (user.type !== 'individual') {
-        console.log(`❌ PASSIONATE DEBUG - User ${userId} type: ${user.type} (not individual)`);
+      if (user.type !== "individual") {
+        console.log(
+          `❌ PASSIONATE DEBUG - User ${userId} type: ${user.type} (not individual)`,
+        );
         return res.json({ isPassionate: false });
       }
 
       // Vérifier s'il a un abonnement actif - utiliser join manuel pour éviter les problèmes de relation
       const { data: subscription, error } = await supabaseServer
         .from("subscriptions")
-        .select(`
+        .select(
+          `
           id,
           status,
           plan_id
-        `)
+        `,
+        )
         .eq("user_id", userId)
         .in("status", ["active", "trialing"])
         .order("created_at", { ascending: false })
@@ -192,14 +198,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (error) {
         console.error("Error checking passionate status:", error);
-        return res.status(500).json({ error: "Failed to check passionate status" });
+        return res
+          .status(500)
+          .json({ error: "Failed to check passionate status" });
       }
 
       // Retourner le statut
       const isPassionate = !!subscription;
       const result = {
         isPassionate,
-        planName
+        planName,
       };
 
       res.setHeader("Cache-Control", "max-age=300"); // Cache 5 minutes
@@ -455,6 +463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city: null,
         postal_code: null,
         email_verified: false, // Pas encore confirmé
+        profile_completed: false,
+        onboarding_status: "incomplete_profile",
       };
 
       const newUser = await storage.createUser(userData);
@@ -467,27 +477,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: newUser, created: true });
     } catch (error: any) {
       console.error("❌ Erreur sync immédiate:", error);
-      
+
       // 📱 Gestion spécifique pour téléphone existant
-      if (error.message === 'PHONE_ALREADY_EXISTS') {
-        return res.status(409).json({ 
+      if (error.message === "PHONE_ALREADY_EXISTS") {
+        return res.status(409).json({
           error: "PHONE_ALREADY_EXISTS",
-          message: "Ce numéro de téléphone est déjà utilisé par un autre compte."
+          message:
+            "Ce numéro de téléphone est déjà utilisé par un autre compte.",
         });
       }
-      
+
       // 📧 Gestion spécifique pour email existant
-      if (error.message === 'EMAIL_ALREADY_EXISTS') {
-        return res.status(409).json({ 
+      if (error.message === "EMAIL_ALREADY_EXISTS") {
+        return res.status(409).json({
           error: "EMAIL_ALREADY_EXISTS",
-          message: "Cette adresse email est déjà utilisée."
+          message: "Cette adresse email est déjà utilisée.",
         });
       }
-      
+
       // ⚠️ Erreur générique
-      res.status(500).json({ 
+      res.status(500).json({
         error: "SYNC_ERROR",
-        message: "Erreur lors de la création du compte. Veuillez réessayer."
+        message: "Erreur lors de la création du compte. Veuillez réessayer.",
       });
     }
   });
@@ -562,13 +573,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ Si quota OK → Création
       const vehicle = await storage.createVehicle(vehicleData);
       return res.status(201).json(vehicle);
-
     } catch (error) {
       console.error("❌ Error creating vehicle:", error);
       return res.status(500).json({ error: "Failed to create vehicle" });
     }
   });
-
 
   app.put("/api/vehicles/:id", async (req, res) => {
     try {
@@ -622,17 +631,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { canCreate, activeListings, maxListings, message } = quotaInfo;
 
       // remaining: null = illimité ; sinon calcule (y compris 0)
-      const remaining = (maxListings === null)
-        ? null
-        : Math.max(0, (maxListings ?? 0) - (activeListings ?? 0));
+      const remaining =
+        maxListings === null
+          ? null
+          : Math.max(0, (maxListings ?? 0) - (activeListings ?? 0));
 
       res.setHeader("Cache-Control", "no-store");
       res.json({
         canCreate,
-        remaining,                 // 0 = plus rien ; null = illimité
-        used: activeListings,      // alias pour compat
-        activeListings,            // explicite
-        maxListings,               // number | null
+        remaining, // 0 = plus rien ; null = illimité
+        used: activeListings, // alias pour compat
+        activeListings, // explicite
+        maxListings, // number | null
         message,
       });
     } catch (error) {
@@ -648,7 +658,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-
 
   // Get quota information for professional accounts
   app.get("/api/users/:userId/quota", async (req, res) => {
@@ -1911,7 +1920,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { data: subscription, error } = await supabaseServer
         .from("subscriptions")
-        .select(`
+        .select(
+          `
           id,
           status,
           plan_id,
@@ -1921,7 +1931,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name,
             max_listings
           )
-        `)
+        `,
+        )
         .eq("user_id", userId)
         .in("status", ["active", "trialing"]) // ajoute "past_due" si période de grâce
         .order("created_at", { ascending: false })
@@ -1930,7 +1941,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (error) {
         console.error("❌ Erreur récupération abonnement:", error);
-        return res.status(500).json({ error: "Erreur lors de la récupération de l'abonnement" });
+        return res
+          .status(500)
+          .json({ error: "Erreur lors de la récupération de l'abonnement" });
       }
 
       const planRel = (subscription as any)?.subscription_plans;
@@ -1946,7 +1959,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
       };
 
-
       console.log("💳 Abonnement récupéré:", subscriptionInfo);
       res.setHeader("Cache-Control", "no-store");
       res.json(subscriptionInfo);
@@ -1955,8 +1967,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Erreur serveur" });
     }
   });
-
-    
 
   // Route pour récupérer un compte professionnel par ID (plus spécifique d'abord)
   app.get("/api/professional-accounts/:id", async (req, res) => {
