@@ -1,13 +1,13 @@
 // client/src/pages/StripeSuccess.tsx
 import React, { useEffect, useState } from "react";
 import { Check, AlertCircle } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StripeSuccess: React.FC = () => {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
-  const { dbUser } = useAuth();
+  const { profile } = useAuth();
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const StripeSuccess: React.FC = () => {
         clearTimeout(timer);
       };
     }
-  }, [status, dbUser]);
+  }, [status, profile]);
 
   if (status === "loading") {
     return (

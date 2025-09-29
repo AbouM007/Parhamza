@@ -4,13 +4,13 @@ import { useApp } from "@/contexts/AppContext";
 import { VehicleCard } from '@/components/VehicleCard';
 import { brandsByVehicleType, getBrandsBySubcategory } from '@/utils/mockData';
 import { useSavedSearches } from '@/hooks/useSavedSearches';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import type { SearchFilters } from '@/types';
 
 export const SearchPage: React.FC = () => {
   const { vehicles, searchFilters, setSearchFilters, setSelectedVehicle } = useApp();
   const { saveSearch, loading: savingSearch } = useSavedSearches();
-  const { dbUser } = useAuth();
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState(searchFilters.searchTerm || '');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -310,7 +310,7 @@ export const SearchPage: React.FC = () => {
               
               <div className="flex gap-3">
                 {/* Bouton Sauvegarder la recherche */}
-                {dbUser && hasActiveSearch && (
+                {profile && hasActiveSearch && (
                   <button
                     onClick={() => setShowSaveModal(true)}
                     className="flex items-center space-x-2 px-4 py-4 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-colors"

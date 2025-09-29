@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AlertCircle, Loader } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const ProfessionalVerificationForm: React.FC = () => {
   const { session } = useAuth();

@@ -34,7 +34,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { ArrowLeft } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -133,7 +133,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setSelectedVehicle,
     setSearchFilters: contextSetSearchFilters,
   } = useApp();
-  const { user, dbUser, isLoading, refreshDbUser } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const isLoading = loading;
+  // Note: refreshDbUser n'a pas d'équivalent direct dans AuthContext
 
   const [userVehiclesWithInactive, setUserVehiclesWithInactive] = useState<
     Vehicle[]
@@ -219,37 +221,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Hook pour récupérer les informations du compte professionnel
   const { data: professionalAccount } = useQuery({
-    queryKey: [`/api/professional-accounts/status/${dbUser?.id}`],
-    enabled: !!dbUser?.id && dbUser?.type === "professional",
+    queryKey: [`/api/professional-accounts/status/${profile?.id}`],
+    enabled: !!profile?.id && profile?.type === "professional",
     staleTime: 30000, // 30 secondes
   });
 
   // Hook pour récupérer les informations d'abonnement
   const { data: subscriptionInfo } = useQuery({
-    queryKey: [`/api/subscriptions/status/${dbUser?.id}`],
-    enabled: !!dbUser?.id && dbUser?.type === "professional",
+    queryKey: [`/api/subscriptions/status/${profile?.id}`],
+    enabled: !!profile?.id && profile?.type === "professional",
     staleTime: 30000, // 30 secondes
   });
 
   // Hook pour récupérer les informations de quota
-  const { data: quotaInfo } = useQuota(dbUser?.id);
+  const { data: quotaInfo } = useQuota(profile?.id);
 
   // Ces états sont déjà définis plus haut, pas besoin de les redéfinir
 
   // Hook pour la redirection - DOIT être appelé avant tout return conditionnel
   useEffect(() => {
-    if (!user && !dbUser && !isLoading && onRedirectHome) {
+    if (!user && !profile && !isLoading && onRedirectHome) {
       onRedirectHome();
     }
-  }, [user, dbUser, isLoading, onRedirectHome]);
+  }, [user, profile, isLoading, onRedirectHome]);
 
   // Fonction pour récupérer les véhicules de l'utilisateur (y compris inactifs)
   const fetchUserVehicles = async () => {
-    if (!dbUser?.id) return;
+    if (!profile?.id) return;
 
     try {
       console.log("🔄 Récupération des annonces utilisateur...");
-      const response = await fetch(`/api/vehicles/user/${dbUser.id}`, {
+      const response = await fetch(`/api/vehicles/user/${profile.id}`, {
         cache: "no-cache",
         headers: {
           "Cache-Control": "no-cache",
@@ -271,14 +273,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         );
         // Fallback vers le filtre classique
         setUserVehiclesWithInactive(
-          vehicles.filter((v) => v.userId === dbUser.id),
+          vehicles.filter((v) => v.userId === profile.id),
         );
       }
     } catch (error) {
       console.error("❌ Erreur réseau véhicules utilisateur:", error);
       // Fallback vers le filtre classique
       setUserVehiclesWithInactive(
-        vehicles.filter((v) => v.userId === dbUser.id),
+        vehicles.filter((v) => v.userId === profile.id),
       );
     }
   };
@@ -286,11 +288,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Récupérer les véhicules de l'utilisateur au chargement du composant
   useEffect(() => {
     fetchUserVehicles();
-  }, [dbUser?.id, vehicles]);
+  }, [profile?.id, vehicles]);
 
   // Effet pour recharger les véhicules lorsque refreshVehicles change
   useEffect(() => {
-    if (refreshVehicles && dbUser?.id) {
+    if (refreshVehicles && profile?.id) {
       console.log(
         "🔄 Rechargement des annonces après création d'une nouvelle annonce",
       );
@@ -301,11 +303,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Récupérer les véhicules supprimés de l'utilisateur
   useEffect(() => {
     const fetchDeletedVehicles = async () => {
-      if (!dbUser?.id || activeTab !== "listings") return;
+      if (!profile?.id || activeTab !== "listings") return;
 
       try {
         const response = await fetch(
-          `/api/vehicles/user/${dbUser.id}/deleted`,
+          `/api/vehicles/user/${profile.id}/deleted`,
           {
             cache: "no-cache",
             headers: {
@@ -334,7 +336,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
 
     fetchDeletedVehicles();
-  }, [dbUser?.id, activeTab]);
+  }, [profile?.id, activeTab]);
 
   // Récupérer les statuts boost quand les véhicules changent
   useEffect(() => {
@@ -345,28 +347,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Récupérer l'historique des achats quand l'onglet change
   useEffect(() => {
-    if (activeTab === "purchase-history" && dbUser?.id) {
+    if (activeTab === "purchase-history" && profile?.id) {
       fetchPurchaseHistory();
     }
-  }, [activeTab, dbUser?.id]);
+  }, [activeTab, profile?.id]);
 
   // Initialiser le formulaire profil avec les données existantes
   useEffect(() => {
-    if (dbUser) {
+    if (profile) {
       setProfileForm({
-        name: dbUser.name || "",
-        phone: (dbUser as any)?.phone || "",
-        whatsapp: (dbUser as any)?.whatsapp || "",
-        postalCode: (dbUser as any)?.postal_code || "",
-        city: (dbUser as any)?.city || "",
-        companyName: (dbUser as any)?.company_name || "",
-        address: (dbUser as any)?.address || "",
-        website: (dbUser as any)?.website || "",
-        description: (dbUser as any)?.bio || "",
-        companyLogo: (dbUser as any)?.company_logo || "",
+        name: profile.name || "",
+        phone: (profile as any)?.phone || "",
+        whatsapp: (profile as any)?.whatsapp || "",
+        postalCode: (profile as any)?.postal_code || "",
+        city: (profile as any)?.city || "",
+        companyName: (profile as any)?.company_name || "",
+        address: (profile as any)?.address || "",
+        website: (profile as any)?.website || "",
+        description: (profile as any)?.bio || "",
+        companyLogo: (profile as any)?.company_logo || "",
       });
     }
-  }, [dbUser]);
+  }, [profile]);
 
   // Mettre à jour l'onglet actif quand initialTab change
   useEffect(() => {
@@ -399,10 +401,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Charger les messages pour le dashboard
   useEffect(() => {
     const loadDashboardMessages = async () => {
-      if (!dbUser) return;
+      if (!profile) return;
 
       try {
-        const response = await fetch(`/api/messages-simple/user/${dbUser.id}`);
+        const response = await fetch(`/api/messages-simple/user/${profile.id}`);
         if (response.ok) {
           const data = await response.json();
           setDashboardConversations(data.conversations || []);
@@ -415,12 +417,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
 
     loadDashboardMessages();
-  }, [dbUser]);
+  }, [profile]);
 
   // Marquer les messages comme lus quand l'utilisateur sélectionne une conversation
   useEffect(() => {
     const markMessagesAsRead = async () => {
-      if (!selectedConversation || !dbUser) return;
+      if (!selectedConversation || !profile) return;
 
       // Récupérer les IDs des messages non lus reçus par l'utilisateur actuel
       const unreadMessageIds =
@@ -435,7 +437,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               messageIds: unreadMessageIds,
-              userId: dbUser.id,
+              userId: profile.id,
             }),
           });
 
@@ -453,12 +455,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
 
     markMessagesAsRead();
-  }, [selectedConversation, dbUser, refreshUnreadCount]);
+  }, [selectedConversation, profile, refreshUnreadCount]);
 
   // ✅ Charger les messages quand une conversation est sélectionnée
   useEffect(() => {
     const loadSelectedConversationMessages = async () => {
-      if (!selectedConversation || !dbUser?.id) return;
+      if (!selectedConversation || !profile?.id) return;
 
       console.log(
         "📬 Chargement messages pour conversation sélectionnée:",
@@ -482,7 +484,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
 
     loadSelectedConversationMessages();
-  }, [selectedConversation?.id, dbUser?.id]); // Dépendance sur l'ID de conversation et l'utilisateur
+  }, [selectedConversation?.id, profile?.id]); // Dépendance sur l'ID de conversation et l'utilisateur
 
   // Gérer les paramètres URL (tab et notifications)
   useEffect(() => {
@@ -492,7 +494,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const tabParam = urlParams.get("tab");
     if (
       tabParam &&
-      getDashboardTabs(dbUser?.type, professionalAccount).some(
+      getDashboardTabs(profile?.type, professionalAccount).some(
         (tab) => tab.id === tabParam,
       )
     ) {
@@ -510,29 +512,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
       // Nettoyer l'URL
       window.history.replaceState({}, "", window.location.pathname);
     }
-  }, [dbUser?.type, professionalAccount]); // Se déclenche quand les données utilisateur sont chargées
+  }, [profile?.type, professionalAccount]); // Se déclenche quand les données utilisateur sont chargées
 
   // Pré-remplir le formulaire avec les données existantes quand on entre en mode édition
   useEffect(() => {
-    if (editingProfile && dbUser) {
+    if (editingProfile && profile) {
       setProfileForm({
-        name: dbUser.name || "",
-        phone: (dbUser as any)?.phone || "",
-        whatsapp: (dbUser as any)?.whatsapp || "",
-        postalCode: (dbUser as any)?.postal_code || "",
-        city: (dbUser as any)?.city || "",
-        companyName: (dbUser as any)?.company_name || "",
-        address: (dbUser as any)?.address || "",
-        website: (dbUser as any)?.website || "",
-        description: (dbUser as any)?.bio || "",
-        companyLogo: (dbUser as any)?.company_logo || "",
+        name: profile.name || "",
+        phone: (profile as any)?.phone || "",
+        whatsapp: (profile as any)?.whatsapp || "",
+        postalCode: (profile as any)?.postal_code || "",
+        city: (profile as any)?.city || "",
+        companyName: (profile as any)?.company_name || "",
+        address: (profile as any)?.address || "",
+        website: (profile as any)?.website || "",
+        description: (profile as any)?.bio || "",
+        companyLogo: (profile as any)?.company_logo || "",
       });
     }
-  }, [editingProfile, dbUser]);
+  }, [editingProfile, profile]);
 
   // Fonction pour sauvegarder le profil
   const handleSaveProfile = async () => {
-    if (!dbUser?.id || savingProfile) return;
+    if (!profile?.id || savingProfile) return;
 
     setSavingProfile(true);
     try {
@@ -545,7 +547,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       delete apiData.description; // Supprimer le champ description
       delete apiData.companyLogo; // Supprimer le champ companyLogo
 
-      const response = await fetch(`/api/profile/update/${dbUser.id}`, {
+      const response = await fetch(`/api/profile/update/${profile.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(apiData),
@@ -559,7 +561,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         // Masquer le message de succès après 3 secondes
         setTimeout(() => setProfileSuccess(false), 3000);
         // Rafraîchir les données utilisateur pour refléter les changements
-        await refreshDbUser();
+        // Note: refreshDbUser n'est plus disponible dans AuthContext
         // Important: Mettre à jour le formulaire local avec les nouvelles données
         setProfileForm({
           name: updatedData.name || "",
@@ -592,14 +594,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleSendMessage = async () => {
     if (
       !newMessage.trim() ||
-      !dbUser ||
+      !profile ||
       sendingMessage ||
       !selectedConversation
     )
       return;
 
     console.log("📤 Envoi message:", {
-      from: dbUser.id,
+      from: profile.id,
       to: selectedConversation.otherUserId,
       vehicle: selectedConversation.vehicleId,
       content: newMessage,
@@ -613,7 +615,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fromUserId: dbUser.id,
+          fromUserId: profile.id,
           toUserId: selectedConversation.otherUserId, // ✅ Utilisateur spécifique
           content: newMessage,
           vehicleId: selectedConversation.vehicleId, // ✅ Annonce spécifique
@@ -638,7 +640,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         // Recharger aussi la liste des conversations pour mettre à jour le dernier message
         const refreshResponse = await fetch(
-          `/api/messages-simple/user/${dbUser.id}`,
+          `/api/messages-simple/user/${profile.id}`,
         );
         if (refreshResponse.ok) {
           const data = await refreshResponse.json();
@@ -662,13 +664,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     vehicleId: string,
     otherUserId: string,
   ) => {
-    if (!dbUser?.id) return [];
+    if (!profile?.id) return [];
 
     try {
       console.log("📬 Chargement messages conversation:", {
         vehicleId,
         otherUserId,
-        currentUserId: dbUser.id,
+        currentUserId: profile.id,
       });
 
       const response = await fetch("/api/messages-simple/conversation", {
@@ -676,7 +678,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vehicleId: parseInt(vehicleId), // S'assurer que c'est un nombre
-          user1Id: dbUser.id,
+          user1Id: profile.id,
           user2Id: otherUserId,
         }),
       });
@@ -691,10 +693,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return messages.map((msg: any) => ({
           id: msg.id,
           sender:
-            msg.from_user_id === dbUser.id
+            msg.from_user_id === profile.id
               ? "Vous"
               : msg.sender_name || "Autre utilisateur",
-          isOwn: msg.from_user_id === dbUser.id,
+          isOwn: msg.from_user_id === profile.id,
           content: msg.content,
           timestamp: new Date(msg.created_at),
           sender_name: msg.sender_name,
@@ -731,7 +733,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   }
 
-  if (!user && !dbUser && !isLoading) {
+  if (!user && !profile && !isLoading) {
     return null; // Ne rien afficher pendant la redirection
   }
 
@@ -739,7 +741,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const userVehicles =
     userVehiclesWithInactive.length > 0
       ? userVehiclesWithInactive
-      : vehicles.filter((v) => v.userId === dbUser?.id);
+      : vehicles.filter((v) => v.userId === profile?.id);
   const totalViews = userVehicles.reduce((sum, v) => sum + v.views, 0);
   const totalFavorites = userVehicles.reduce((sum, v) => sum + v.favorites, 0);
   const premiumListings = userVehicles.filter((v) => v.isPremium).length;
@@ -804,11 +806,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Fonction pour récupérer l'historique des achats
   const fetchPurchaseHistory = async () => {
-    if (!dbUser?.id) return;
+    if (!profile?.id) return;
 
     setLoadingPurchaseHistory(true);
     try {
-      const response = await fetch(`/api/purchase-history/user/${dbUser.id}`);
+      const response = await fetch(`/api/purchase-history/user/${profile.id}`);
       if (response.ok) {
         const history = await response.json();
         setPurchaseHistory(history);
@@ -826,7 +828,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Fonction pour sauvegarder la boutique professionnelle
   const handleSaveShop = async () => {
-    if (!dbUser?.id || !professionalAccount?.id || savingShop) return;
+    if (!profile?.id || !professionalAccount?.id || savingShop) return;
 
     setSavingShop(true);
     try {
@@ -846,7 +848,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         setShopSuccess(true);
         // Masquer le message de succès après 3 secondes
         setTimeout(() => setShopSuccess(false), 3000);
-        // Pas besoin de refresher dbUser ici car les données boutique sont séparées
+        // Pas besoin de refresher profile ici car les données boutique sont séparées
       } else {
         const errorData = await response.json();
         console.error(
@@ -973,10 +975,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl font-bold mb-2">
-                Bonjour, {dbUser?.name || user?.email?.split("@")[0]} ! 👋
+                Bonjour, {profile?.name || user?.email?.split("@")[0]} ! 👋
               </h1>
               {/* Affichage du nom de société pour les comptes professionnels */}
-              {dbUser?.type === "professional" &&
+              {profile?.type === "professional" &&
                 professionalAccount?.company_name && (
                   <div className="flex items-center space-x-2 mb-2">
                     <Building2 className="h-5 w-5 text-cyan-200" />
@@ -992,7 +994,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 )}
               <p className="text-cyan-100 text-lg font-medium">
-                {dbUser?.type === "professional"
+                {profile?.type === "professional"
                   ? "Gérez votre activité professionnelle depuis votre tableau de bord"
                   : "Bienvenue sur votre espace personnel"}
               </p>
@@ -1015,8 +1017,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </span>
               </div>
               <p className="text-lg font-bold text-white">
-                {dbUser?.created_at
-                  ? new Date(dbUser.created_at).toLocaleDateString("fr-FR", {
+                {profile?.created_at
+                  ? new Date(profile.created_at).toLocaleDateString("fr-FR", {
                       month: "long",
                       year: "numeric",
                     })
@@ -1033,14 +1035,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </span>
               </div>
               <p className="text-lg font-bold text-white">
-                {dbUser?.type === "professional"
+                {profile?.type === "professional"
                   ? "Professionnel"
                   : "Particulier"}
               </p>
             </div>
 
             {/* Statut de vérification (pour les pros) */}
-            {dbUser?.type === "professional" && (
+            {profile?.type === "professional" && (
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
                 <div className="flex items-center space-x-2 mb-1">
                   <Building2 className="h-4 w-4 text-cyan-200" />
@@ -1061,7 +1063,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             {/* Abonnement (pour les pros) */}
-            {dbUser?.type === "professional" && (
+            {profile?.type === "professional" && (
               <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
                 <div className="flex items-center space-x-2 mb-1">
                   <Crown className="h-4 w-4 text-cyan-200" />
@@ -1091,7 +1093,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
 
             {/* Compte vérifié (pour les particuliers) */}
-            {dbUser?.type !== "professional" && (dbUser as any)?.verified && (
+            {profile?.type !== "professional" && (profile as any)?.verified && (
               <div className="bg-green-500/20 backdrop-blur-sm rounded-lg px-4 py-3 border border-green-400/30">
                 <div className="flex items-center space-x-2 mb-1">
                   <Star className="h-4 w-4 text-green-200" />
@@ -1358,7 +1360,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </p>
 
                 {/* Indicateur de quota pour les comptes professionnels */}
-                {dbUser?.type === "professional" && quotaInfo && (
+                {profile?.type === "professional" && quotaInfo && (
                   <div
                     className={`flex items-center space-x-2 text-sm p-3 rounded-lg ${
                       quotaInfo.canCreate
@@ -1389,7 +1391,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <div className="flex items-center space-x-4">
               {/* Affichage conditionnel du bouton selon le quota */}
-              {dbUser?.type === "professional" &&
+              {profile?.type === "professional" &&
               quotaInfo &&
               !quotaInfo.canCreate ? (
                 <div className="space-y-3">
@@ -2176,28 +2178,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Avatar avec upload pour utilisateurs individuels */}
           <div className="relative">
             <div className="w-24 h-24 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-              {dbUser?.type === "individual" && dbUser?.avatar ? (
+              {profile?.type === "individual" && profile?.avatar ? (
                 <img
-                  src={dbUser.avatar}
+                  src={profile.avatar}
                   alt="Avatar"
                   className="w-full h-full object-cover"
                 />
-              ) : dbUser?.type === "professional" &&
-                (dbUser as any)?.company_logo ? (
+              ) : profile?.type === "professional" &&
+                (profile as any)?.company_logo ? (
                 <img
-                  src={(dbUser as any).company_logo}
+                  src={(profile as any).company_logo}
                   alt="Logo entreprise"
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="text-white font-bold text-3xl">
-                  {(dbUser?.name || user?.email || "U").charAt(0).toUpperCase()}
+                  {(profile?.name || user?.email || "U").charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
 
             {/* Bouton upload avatar pour utilisateurs individuels en mode édition */}
-            {editingProfile && dbUser?.type === "individual" && (
+            {editingProfile && profile?.type === "individual" && (
               <div className="mt-3 text-center">
                 <input
                   type="file"
@@ -2343,7 +2345,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                       if (response.ok) {
                         // Mettre à jour le profil localement - rafraîchir les données utilisateur
-                        await refreshDbUser();
+                        // Note: refreshDbUser n'est plus disponible dans AuthContext
                         alert("Photo de profil mise à jour avec succès !");
                       } else {
                         console.error("Erreur API:", result);
@@ -2401,7 +2403,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   className="inline-flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg text-sm"
                 >
                   <Upload className="h-4 w-4" />
-                  <span>{dbUser?.avatar ? "Changer" : "Ajouter"} photo</span>
+                  <span>{profile?.avatar ? "Changer" : "Ajouter"} photo</span>
                 </label>
                 <p className="text-xs text-gray-600 mt-1">
                   JPG, PNG, WEBP (2MB max)
@@ -2411,16 +2413,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
-              {dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
+              {profile?.name || user?.email?.split("@")[0] || "Utilisateur"}
             </h2>
-            <CompanyNameDisplay userId={dbUser?.id} userType={dbUser?.type} />
+            <CompanyNameDisplay userId={profile?.id} userType={profile?.type} />
             <p className="text-gray-600 text-lg mt-1">
-              {user?.email || dbUser?.email}
+              {user?.email || profile?.email}
             </p>
             <div className="flex items-center space-x-3 mt-4">
-              <ProfessionalVerificationBadge dbUser={dbUser} />
+              <ProfessionalVerificationBadge profile={profile} />
               <span className="px-4 py-2 bg-primary-bolt-100 text-primary-bolt-500 rounded-full text-sm font-semibold border border-primary-bolt-200">
-                {dbUser?.type === "professional"
+                {profile?.type === "professional"
                   ? "🏢 Professionnel"
                   : "👤 Particulier"}
               </span>
@@ -2438,7 +2440,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               value={
                 editingProfile
                   ? profileForm.name
-                  : dbUser?.name || user?.email?.split("@")[0] || ""
+                  : profile?.name || user?.email?.split("@")[0] || ""
               }
               onChange={(e) =>
                 setProfileForm({ ...profileForm, name: e.target.value })
@@ -2454,7 +2456,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </label>
             <input
               type="email"
-              value={user?.email || dbUser?.email || ""}
+              value={user?.email || profile?.email || ""}
               disabled={true}
               className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
               title="L'email ne peut pas être modifié"
@@ -2467,7 +2469,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </label>
             <input
               type="tel"
-              value={(dbUser as any)?.phone || ""}
+              value={(profile as any)?.phone || ""}
               disabled={true} // ✅ Toujours désactivé
               className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
               title="Le téléphone ne peut pas être modifié après la création du compte"
@@ -2487,7 +2489,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               value={
                 editingProfile
                   ? profileForm.whatsapp
-                  : (dbUser as any)?.whatsapp || ""
+                  : (profile as any)?.whatsapp || ""
               }
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, ""); // ✅ Supprimer tout sauf les chiffres
@@ -2539,7 +2541,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               value={
                 editingProfile
                   ? profileForm.postalCode
-                  : (dbUser as any)?.postal_code || ""
+                  : (profile as any)?.postal_code || ""
               }
               onChange={(e) =>
                 setProfileForm({ ...profileForm, postalCode: e.target.value })
@@ -2556,7 +2558,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <input
               type="text"
               value={
-                editingProfile ? profileForm.city : (dbUser as any)?.city || ""
+                editingProfile ? profileForm.city : (profile as any)?.city || ""
               }
               onChange={(e) =>
                 setProfileForm({ ...profileForm, city: e.target.value })
@@ -2568,7 +2570,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Section Entreprise pour les professionnels */}
-        {dbUser?.type === "professional" && (
+        {profile?.type === "professional" && (
           <div className="mt-8 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-200 p-8">
             <div className="flex items-center space-x-3 mb-6">
               <Building2 className="h-6 w-6 text-blue-600" />
@@ -2585,7 +2587,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={(dbUser as any)?.company_name || "Non renseigné"}
+                  value={(profile as any)?.company_name || "Non renseigné"}
                   disabled={true}
                   className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
                   title="Le nom de l'entreprise ne peut pas être modifié"
@@ -2599,7 +2601,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </label>
                 <input
                   type="text"
-                  value={(dbUser as any)?.siret || "Non renseigné"}
+                  value={(profile as any)?.siret || "Non renseigné"}
                   disabled={true}
                   className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
                   title="Le SIRET ne peut pas être modifié"
@@ -2616,7 +2618,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   value={
                     editingProfile
                       ? profileForm.address
-                      : (dbUser as any)?.address || ""
+                      : (profile as any)?.address || ""
                   }
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, address: e.target.value })
@@ -2637,7 +2639,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   value={
                     editingProfile
                       ? profileForm.website
-                      : (dbUser as any)?.website || ""
+                      : (profile as any)?.website || ""
                   }
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, website: e.target.value })
@@ -2657,7 +2659,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   value={
                     editingProfile
                       ? profileForm.description || ""
-                      : (dbUser as any)?.bio || ""
+                      : (profile as any)?.bio || ""
                   }
                   onChange={(e) =>
                     setProfileForm({
@@ -2681,13 +2683,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {/* Affichage du logo actuel */}
                   {(editingProfile
                     ? profileForm.companyLogo
-                    : (dbUser as any)?.company_logo || "") && (
+                    : (profile as any)?.company_logo || "") && (
                     <div className="flex-shrink-0">
                       <img
                         src={
                           editingProfile
                             ? profileForm.companyLogo
-                            : (dbUser as any)?.company_logo || ""
+                            : (profile as any)?.company_logo || ""
                         }
                         alt="Logo entreprise"
                         className="w-20 h-20 rounded-xl object-cover border border-gray-300"
@@ -2705,14 +2707,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         className="hidden"
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (!file || !dbUser?.id) return;
+                          if (!file || !profile?.id) return;
 
                           const formData = new FormData();
                           formData.append("logo", file);
 
                           try {
                             const response = await fetch(
-                              `/api/images/upload-logo/${dbUser.id}`,
+                              `/api/images/upload-logo/${profile.id}`,
                               {
                                 method: "POST",
                                 body: formData,
@@ -2756,7 +2758,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                   {/* Message si pas de logo et pas en mode édition */}
                   {!editingProfile &&
-                    !((dbUser as any)?.company_logo || "") && (
+                    !((profile as any)?.company_logo || "") && (
                       <div className="flex-1 text-gray-600 italic">
                         Aucun logo d'entreprise configuré
                       </div>
@@ -2774,16 +2776,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 setEditingProfile(false);
                 // Réinitialiser le formulaire avec les données originales
                 setProfileForm({
-                  name: dbUser?.name || "",
-                  phone: (dbUser as any)?.phone || "",
-                  whatsapp: (dbUser as any)?.whatsapp || "",
-                  postalCode: (dbUser as any)?.postal_code || "",
-                  city: (dbUser as any)?.city || "",
-                  companyName: (dbUser as any)?.company_name || "",
-                  address: (dbUser as any)?.address || "",
-                  website: (dbUser as any)?.website || "",
-                  description: (dbUser as any)?.bio || "",
-                  companyLogo: (dbUser as any)?.company_logo || "",
+                  name: profile?.name || "",
+                  phone: (profile as any)?.phone || "",
+                  whatsapp: (profile as any)?.whatsapp || "",
+                  postalCode: (profile as any)?.postal_code || "",
+                  city: (profile as any)?.city || "",
+                  companyName: (profile as any)?.company_name || "",
+                  address: (profile as any)?.address || "",
+                  website: (profile as any)?.website || "",
+                  description: (profile as any)?.bio || "",
+                  companyLogo: (profile as any)?.company_logo || "",
                 });
               }}
               className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
@@ -2957,8 +2959,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             onClick={() => {
               // Utiliser directement l'UID utilisateur
-              if (dbUser?.id) {
-                window.open(`/pro/${dbUser.id}`, "_blank");
+              if (profile?.id) {
+                window.open(`/pro/${profile.id}`, "_blank");
               } else {
                 console.error("ID utilisateur non disponible");
               }
@@ -4149,15 +4151,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="p-8 border-b border-gray-200 bg-gradient-to-r from-primary-bolt-50 to-primary-bolt-100">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-                      {dbUser?.avatar ? (
+                      {profile?.avatar ? (
                         <img
-                          src={dbUser.avatar}
+                          src={profile.avatar}
                           alt="Avatar"
                           className="w-full h-full object-cover"
                         />
                       ) : (
                         <span className="text-white font-bold text-xl">
-                          {(dbUser?.name || user?.email || "U")
+                          {(profile?.name || user?.email || "U")
                             .charAt(0)
                             .toUpperCase()}
                         </span>
@@ -4165,12 +4167,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-gray-900">
-                        {dbUser?.name ||
+                        {profile?.name ||
                           user?.email?.split("@")[0] ||
                           "Utilisateur"}
                       </h3>
                       <p className="text-sm text-gray-600 font-medium">
-                        {dbUser?.type === "professional"
+                        {profile?.type === "professional"
                           ? "🏢 Professionnel"
                           : "👤 Particulier"}
                       </p>
@@ -4179,13 +4181,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <nav className="p-4">
-                  {getDashboardTabs(dbUser?.type, professionalAccount)
+                  {getDashboardTabs(profile?.type, professionalAccount)
                     .filter((tab) => {
                       // Masquer les onglets pros pour les utilisateurs individuels
                       if (
                         (tab.id === "subscription" ||
                           tab.id === "manage-subscription") &&
-                        dbUser?.type !== "professional"
+                        profile?.type !== "professional"
                       ) {
                         return false;
                       }

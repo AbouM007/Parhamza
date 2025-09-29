@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "./useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Vehicle } from "@/types";
 
 export function useFavorites() {
@@ -7,11 +7,11 @@ export function useFavorites() {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const lastLoadTimeRef = useRef<number>(0);
-  const { dbUser } = useAuth();
+  const { profile } = useAuth();
 
   // Charger les favoris de l'utilisateur avec cache
   const loadFavorites = async (forceReload = false) => {
-    if (!dbUser?.id) return;
+    if (!profile?.id) return;
 
     const now = Date.now();
     const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
@@ -24,7 +24,7 @@ export function useFavorites() {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/favorites/user/${dbUser.id}`);
+      const response = await fetch(`/api/favorites/user/${profile.id}`);
       if (response.ok) {
         const data = await response.json();
         setFavorites(data);
@@ -41,12 +41,12 @@ export function useFavorites() {
 
   // Ajouter aux favoris avec mise à jour immédiate
   const addToFavorites = async (vehicleId: string) => {
-    if (!dbUser?.id) {
+    if (!profile?.id) {
       console.warn("❌ Pas d'utilisateur connecté pour ajouter favori");
       return false;
     }
 
-    console.log("🔄 Ajout favori API call:", { userId: dbUser.id, vehicleId });
+    console.log("🔄 Ajout favori API call:", { userId: profile.id, vehicleId });
 
     // Mise à jour optimiste immédiate de l'interface
     setFavoriteIds((prev) => {
@@ -60,7 +60,7 @@ export function useFavorites() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: dbUser.id,
+          userId: profile.id,
           vehicleId: vehicleId,
         }),
       });
@@ -94,13 +94,13 @@ export function useFavorites() {
 
   // Supprimer des favoris avec mise à jour immédiate
   const removeFromFavorites = async (vehicleId: string) => {
-    if (!dbUser?.id) {
+    if (!profile?.id) {
       console.warn("❌ Pas d'utilisateur connecté pour supprimer favori");
       return false;
     }
 
     console.log("🔄 Suppression favori API call:", {
-      userId: dbUser.id,
+      userId: profile.id,
       vehicleId,
     });
 
@@ -125,7 +125,7 @@ export function useFavorites() {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: dbUser.id,
+          userId: profile.id,
           vehicleId: vehicleId,
         }),
       });
@@ -179,7 +179,7 @@ export function useFavorites() {
   };
 
   useEffect(() => {
-    if (dbUser?.id) {
+    if (profile?.id) {
       // Délai pour éviter les appels trop rapides lors du changement d'état
       const timer = setTimeout(() => {
         loadFavorites();
@@ -192,7 +192,7 @@ export function useFavorites() {
       setFavoriteIds(new Set());
       console.log("🔄 Réinitialisation favoris - aucun utilisateur");
     }
-  }, [dbUser?.id]);
+  }, [profile?.id]);
 
   return {
     favorites,

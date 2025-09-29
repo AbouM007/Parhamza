@@ -12,7 +12,7 @@ import {
 } from "./create-listing/ListingTypeStep";
 import { VehicleDetailsStep } from "./create-listing/VehicleDetailsStep";
 import { PREMIUM_PACKS } from "@/types/premium";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
 import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
@@ -86,8 +86,8 @@ interface CreateListingFormProps {
 export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   onSuccess,
 }) => {
-  const { user, dbUser } = useAuth();
-  const { data: quotaInfo } = useQuota(dbUser?.id);
+  const { user, profile } = useAuth();
+  const { data: quotaInfo } = useQuota(profile?.id);
   // const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -184,14 +184,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // Pré-remplir avec les données utilisateur via appel API
   useEffect(() => {
     const loadUserContactData = async () => {
-      if ((user || dbUser) && !hasPrefilledData) {
+      if ((user || profile) && !hasPrefilledData) {
         try {
           console.log(
             "🔄 Récupération des données utilisateur depuis Supabase...",
           );
 
           // Appel API pour récupérer les données fraîches de l'utilisateur
-          const userEmail = user?.email || dbUser?.email;
+          const userEmail = user?.email || profile?.email;
           if (!userEmail) return;
 
           const response = await fetch(
@@ -241,7 +241,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     };
 
     loadUserContactData();
-  }, [user, dbUser, hasPrefilledData]);
+  }, [user, profile, hasPrefilledData]);
 
   const updateFormData = (field: string, value: any) => {
     console.log("updateFormData called:", field, value);
@@ -749,7 +749,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       const isSearch = formData.listingType === "search";
 
       const vehicleData = {
-        userId: dbUser?.id || user?.id,
+        userId: profile?.id || user?.id,
         title: formData.title || "",
         description: formData.description || "",
         category: formData.subcategory || "", // Utiliser la sous-catégorie spécifique comme catégorie principale
@@ -841,7 +841,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         formData.append("images", file);
       });
 
-      const userId = dbUser?.id || "anonymous";
+      const userId = profile?.id || "anonymous";
       const response = await fetch(`/api/images/upload/${userId}`, {
         method: "POST",
         body: formData,

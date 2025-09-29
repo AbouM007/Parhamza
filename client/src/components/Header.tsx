@@ -12,7 +12,7 @@ import {
   Car,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { UserMenu } from "./auth/UserMenu";
@@ -38,7 +38,9 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { setSearchFilters, setSelectedVehicle, openAuthModal } =
     useApp();
-  const { user, dbUser, isAuthenticated, isLoading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const isAuthenticated = !!user;
+  const isLoading = loading;
   const { unreadCount } = useUnreadMessages();
   const handleCreateListingWithQuota = useCreateListingGuard();
   const [searchTerm, setSearchTerm] = useState("");

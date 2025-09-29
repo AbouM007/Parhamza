@@ -35,7 +35,7 @@ import SubscriptionPurchase from "./pages/SubscriptionPurchase";
 import { AuthCallback } from "./pages/AuthCallback";
 import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { detectOnboardingState } from "@/utils/onboardingDetector";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
@@ -60,7 +60,10 @@ function AppContent() {
   const [onboardingLoading, setOnboardingLoading] = useState(false);
 
   const { selectedVehicle, setSelectedVehicle, setSearchFilters } = useApp();
-  const { isAuthenticated, dbUser, isLoading, refreshDbUser } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const isAuthenticated = !!user;
+  const isLoading = loading;
+  // Note: refreshDbUser n'a pas d'équivalent direct dans AuthContext
 
   const [location, setLocation] = useLocation();
 
@@ -93,7 +96,7 @@ function AppContent() {
       setOnboardingLoading(true);
       try {
         // Charger compte professionnel si c'est un pro
-        if (dbUser?.type === "professional") {
+        if (profile?.type === "professional") {
           const proResponse = await fetch(
             `/api/professional-accounts/status/${userId}`,
           );
@@ -123,7 +126,7 @@ function AppContent() {
         setOnboardingLoading(false);
       }
     },
-    [dbUser?.type, onboardingLoading],
+    [profile?.type, onboardingLoading],
   );
 
   // Nouvelle logique d'onboarding intelligente
@@ -131,33 +134,33 @@ function AppContent() {
     if (isLoading || onboardingLoading) return;
 
     // Pas d'utilisateur connecté = rien à faire
-    if (!isAuthenticated || !dbUser) {
+    if (!isAuthenticated || !profile) {
       setShowProfileSetup(false);
       return;
     }
 
     // Charger les données professionnelles si nécessaire
     if (
-      dbUser.type === "professional" &&
+      profile.type === "professional" &&
       !professionalAccount &&
       !onboardingLoading
     ) {
-      loadProfessionalData(dbUser.id);
+      loadProfessionalData(profile.id);
       return;
     }
 
     // Détecter l'état d'onboarding avec toutes les données
     const minimalUser = {
-      id: dbUser.id,
-      type: dbUser.type as "individual" | "professional" | "admin" | null,
-      profile_completed: dbUser.profile_completed,
+      id: profile.id,
+      type: profile.type as "individual" | "professional" | "admin" | null,
+      profile_completed: profile.profile_completed,
     };
     const onboardingState = detectOnboardingState(
       minimalUser,
       professionalAccount,
       subscription,
     );
-    console.log(`🔧 [Onboarding] User: ${dbUser.type}`, {
+    console.log(`🔧 [Onboarding] User: ${profile.type}`, {
       step: onboardingState.step,
       shouldShowPopup: onboardingState.shouldShowPopup,
       canPost: onboardingState.canPost,
@@ -168,22 +171,22 @@ function AppContent() {
     setShowProfileSetup(onboardingState.shouldShowPopup);
 
     // Gérer l'étape d'onboarding pour les pros
-    if (dbUser.type === "professional" && onboardingState.shouldShowPopup) {
+    if (profile.type === "professional" && onboardingState.shouldShowPopup) {
       if (onboardingState.step === "profile") {
         setOnboardingStep("choice");
       } else if (onboardingState.step === "docs") {
         setOnboardingStep("professional"); // Redirige vers docs
       }
     } else if (
-      dbUser.type === "individual" &&
+      profile.type === "individual" &&
       onboardingState.shouldShowPopup
     ) {
       setOnboardingStep("choice");
     }
   }, [
     isAuthenticated,
-    dbUser,
-    isLoading,
+    profile,
+    loading,
     onboardingLoading,
     professionalAccount,
     subscription,
@@ -438,9 +441,9 @@ function AppContent() {
         onComplete={async () => {
           setShowProfileSetup(false);
           setOnboardingStep("choice");
-          if (refreshDbUser) await refreshDbUser();
+          // Note: refreshDbUser n'est plus disponible dans AuthContext
         }}
-        initialData={{ name: dbUser?.name, email: dbUser?.email }}
+        initialData={{ name: profile?.name, email: profile?.email }}
       />
 
       {/* Onboarding pro multi-étapes */}

@@ -4,7 +4,7 @@ import {
   Euro, CreditCard, Shield, Building2, MessageCircle, 
   BarChart3, Zap, ArrowRight, Loader2 
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 
 export interface SubscriptionPlan {
@@ -79,7 +79,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
   showGeneralBenefits = false,
   className = ''
 }) => {
-  const { user, dbUser, session } = useAuth();
+  const { user, profile, session } = useAuth();
   const [preparingPayment, setPreparingPayment] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
 
@@ -98,8 +98,8 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
     status: string;
     cancelAtPeriodEnd: boolean;
   }>({
-    queryKey: [`/api/subscriptions/status/${dbUser?.id}`],
-    enabled: !!dbUser?.id && dbUser?.type === 'professional',
+    queryKey: [`/api/subscriptions/status/${profile?.id}`],
+    enabled: !!profile?.id && profile?.type === 'professional',
     staleTime: 30000,
   });
 
