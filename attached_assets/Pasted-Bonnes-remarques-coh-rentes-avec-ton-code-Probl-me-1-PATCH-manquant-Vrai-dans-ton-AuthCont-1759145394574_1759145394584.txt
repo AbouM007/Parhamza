@@ -1,0 +1,71 @@
+Bonnes remarques (cohérentes avec ton code)
+
+Problème #1 – PATCH manquant
+→ Vrai : dans ton AuthContext.updateProfile, il y a bien un fetch("/api/users/:id", { method: 'PATCH' }), mais dans les routes que tu m’as montrées, je n’ai vu que POST /api/users/sync-from-signup.
+👉 Donc oui, cette route PATCH doit être implémentée côté backend, sinon toutes les mises à jour de profil échouent.
+
+Problème #2 – fetchProfile fragile
+→ Vrai aussi : ton fetchProfile ne gère pas le cas où /api/users/:id renvoie 404 (utilisateur pas encore créé).
+👉 Ajouter un fallback (par ex. déclencher /api/users/sync-from-signup) est logique.
+
+Problème #3 – refreshProfile perdu
+→ C’est partiellement vrai. Tu l’as rajouté récemment, mais l’agent a raison : il n’était pas dans l’interface AuthContextType, donc tes composants ne pouvaient pas l’appeler → d’où tes erreurs rouges.
+👉 C’est bien corrigé maintenant, mais son point reste valide.
+
+Solution 4 – Vérifier storage.createUser
+→ Bonne idée : si ton storage.createUser lève une erreur (conflit email, phone, etc.), rien n’est inséré. Et tu as déjà vu que certains champs étaient sensibles (PHONE_ALREADY_EXISTS).
+
+Solution 5 – Charger immédiatement le profil après sync
+→ Ça complète bien le point #2 : au lieu d’attendre un fetchProfile, tu peux directement faire setProfile(syncData.user) après sync.
+👉 Ça accélère la cohérence UI/DB.
+
+⚠️ Ce qu’il a un peu simplifié ou oublié
+
+La logique de déclenchement du popup
+
+Dans onboardingDetector.ts, le popup ne s’affiche que si type === "pending".
+
+Or ton /api/users/sync-from-signup crée déjà l’utilisateur avec type = metadata?.type || "pending".
+👉 Donc si jamais metadata.type est mal envoyé (ex : individual par défaut au lieu de pending), le popup ne s’affichera jamais.
+→ L’agent n’a pas insisté sur ce point clé.
+
+Double logique côté signup
+
+Tu utilises à la fois Supabase Auth et ton API Express → ça crée deux flux à synchroniser.
+
+Le vrai “risque” c’est quand supabase.auth.signUp réussit mais ton /api/users/sync-from-signup échoue → tu te retrouves avec un user dans auth.users mais pas dans users.
+👉 L’agent l’a noté partiellement, mais sans pointer ce décalage critique.
+
+Pas d’analyse des logs actuels
+
+Il propose de “vérifier storage.createUser”, mais il n’a pas vérifié ce que tes logs serveur montraient (🔄 Sync immédiate..., ✅ Utilisateur synchronisé...).
+👉 Donc son diagnostic est théorique, pas validé sur ton exécution réelle.
+
+🎯 Conclusion
+
+👉 Tu peux lui faire confiance sur les grandes lignes :
+
+Oui, la route PATCH manque.
+
+Oui, fetchProfile doit être amélioré.
+
+Oui, refreshProfile doit exister et être utilisable.
+
+Oui, il faut vérifier storage.createUser.
+
+👉 Mais il n’a pas poussé l’analyse assez loin sur :
+
+Le rôle du champ type = "pending" pour déclencher le popup.
+
+Le problème structurel de double synchro (auth vs users).
+
+L’absence de validation par logs concrets.
+
+📌 Mon avis :
+Tu peux le laisser implémenter son plan (c’est une bonne base), mais tu devras ensuite vérifier spécifiquement :
+
+Que users.type = "pending" après signup.
+
+Que les logs /api/users/sync-from-signup confirment bien la création.
+
+Que le popup onboarding se déclenche automatiquement après signup.
