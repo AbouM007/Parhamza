@@ -1,75 +1,99 @@
 🎯 ORGANISATION & PRIORISATION DES TÂCHES
-
 🔥 PRIORITÉ 1 - CRITIQUES REVENUS (Urgent + Important)
+
 💰 PAIEMENTS & MONÉTISATION
 
 ✅ Vérifier qu'un particulier peut payer pour dépasser la limite des 5 annonces (RÉSOLU)
-🧪 Tester le processus d'inscription et paiement professionnel (URGENT)
-💎 Ajouter boost payant dans l'ajout d'annonce (REVENUE CRITIQUE)
+
+✅ Tester le processus d'inscription et paiement professionnel (RÉSOLU – idempotence + webhook fixés)
+
+🟡 Ajouter boost payant dans l'ajout d'annonce (REVENUE CRITIQUE – à développer)
 
 🚨 PRIORITÉ 2 - FONCTIONNALITÉS CORE (Important + Urgent)
 
 📝 FORMULAIRE D'ANNONCE
-4. 🔧 Corriger les erreurs du refactoring formulaire (BLOQUANT)
 
-🔍 Vérifier enregistrement des champs en BDD (QUALITÉ DONNÉES)
+✅ Corriger les erreurs du refactoring formulaire (BLOQUANT résolu, le form compile et sauvegarde)
+
+🟡 Vérifier l’enregistrement de tous les champs en BDD (encore à valider en détail)
+
 ❤️ SYSTÈME FAVORIS
 
-6. 🐛 Réparer le bouton favoris (EXPÉRIENCE UTILISATEUR)
+🔴 Réparer le bouton favoris (EXPÉRIENCE UTILISATEUR)
 
-Enregistrement en BDD
-Synchronisation listing ↔ page annonce
+🔴 Enregistrement correct en BDD
+
+🔴 Synchronisation listing ↔ page annonce
 
 🎨 PRIORITÉ 3 - EXPÉRIENCE UTILISATEUR (Important + Moins urgent)
-🎭 UI/UX & SÉCURITÉ
-7. 🎨 Uniformiser le modal des plans d'abonnement (COHÉRENCE)
 
-🔒 Cacher infos annonceurs pour non-connectés (SÉCURITÉ)
+🎭 UI/UX & SÉCURITÉ
+
+🟡 Uniformiser le modal des plans d'abonnement (en cours)
+
+✅ Cacher infos annonceurs pour non-connectés (SÉCURITÉ – résolu)
 
 ⚡ PRIORITÉ 4 - OPTIMISATION (Moins urgent + Moins important)
+
 🚀 PERFORMANCE
-9. ⚡ Améliorer performance générale (LONG TERME)
+
+🟡 Améliorer performance générale (LONG TERME – optimisation API, Supabase, rendering)
 
 📋 STRATÉGIE D'EXÉCUTION RECOMMANDÉE
+
 🎯 PHASE 1 (Cette semaine)
 
-Tester paiements professionnels
-Corriger formulaire d'annonce
-Réparer système favoris
+✅ Tester paiements professionnels
+
+✅ Corriger formulaire d'annonce
+
+🔴 Réparer système favoris
 
 🎯 PHASE 2 (Semaine suivante)
 
-Ajouter boost payant
-Uniformiser modals
-Sécuriser infos annonceurs
+🟡 Ajouter boost payant
+
+🟡 Uniformiser modals
+
+✅ Sécuriser infos annonceurs
 
 🎯 PHASE 3 (Plus tard)
 
-Optimisations performance
-Cette organisation maximise les revenus (paiements d'abord) tout en assurant une expérience utilisateur fonctionnelle (formulaires, favoris) avant les améliorations esthétiques.
+🟡 Optimisations performance
 
-
+🔎 BACKLOG TECHNIQUE & FEATURES
 #1 Subscription Management
-Fix quota logic, enable plan upgrades, and make subscription components reusable.
 
-Paid Packs for Individuals : Add a label "Passionné"
+✅ Fix quota logic (inclut annonces brouillons)
 
-#2 Onboarding for pro account & Authentication
-Remember the state where a pro user did not complete the subscription.
+✅ Enable plan upgrades
 
-#3 Createlistingform
-make the popup form fixed - not moving
-Add the “Boost” step in the last of the form
-When you want to add a listing, sometime a popup appear and disappear with "connexion requise) 
+✅ Paid Packs for Individuals : label “Passionné” ajouté
+
+#2 Onboarding & Authentication
+
+✅ Gestion état pro non abonné (pending) corrigée
+
+#3 CreateListingForm
+
+🟡 Fixer le popup form (pas de déplacement)
+
+🟡 Ajouter le step “Boost” à la fin du form
+
+🔴 Bug aléatoire : popup qui disparaît avec “connexion requise”
 
 #4 Conditional Display
-Hide seller contact details for non-logged users.
 
-#5 bLur car Number
+✅ Masquer coordonnées vendeur aux non connectés
 
-#6 Car Numer API
-https://rapidapi.com/autowaysnet/api/api-siv-systeme-d-immatriculation-des-vehicules
+#5 Blur Car Number
+
+🔴 Implémenter endpoint /api/images/blur (manquant)
+
+#6 Car Number API (SIV)
+
+🟡 Intégrer API immatriculation (non fait)
 
 #7 Performance Optimization
-Improve overall performance (API calls, client rendering, Supabase response times).
 
+🟡 Améliorer perf globale (API calls, Supabase, client rendering)
