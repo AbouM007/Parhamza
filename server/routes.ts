@@ -973,44 +973,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .json({ error: "SIRET invalide (14 chiffres requis)" });
         }
 
-        // Gestion des erreurs de téléphone existant
+        // Architecture propre : seulement professional_accounts, pas de pollution de users
         try {
-          // 1) Mettre à jour les infos communes dans users (SANS profile_completed = true)
-          const { data: updatedUser, error: userErr } = await supabaseServer
-            .from("users")
-            .update({
-              name,
-              phone: phone || null,
-              website: website || null,
-              city: city && city.trim() !== "" ? city : null,
-              postal_code:
-                postalCode && postalCode.trim() !== "" ? postalCode : null,
-              whatsapp: whatsapp || null,
-              // ✅ PAS de profile_completed = true ici ! C'est un brouillon
-              type: "professional",
-              onboarding_status: "in_progress", // ✅ Statut intermédiaire
-            })
-            .eq("id", user.id)
-            .select()
-            .single();
-
-          if (userErr) {
-            console.error("❌ Erreur update user (pro draft):", userErr);
-            
-            // 📱 Gestion spécifique pour téléphone existant
-            if (userErr.message?.includes("duplicate key") && userErr.message?.includes("phone")) {
-              return res.status(409).json({
-                error: "PHONE_ALREADY_EXISTS",
-                message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
-              });
-            }
-            
-            return res
-              .status(500)
-              .json({ error: "Erreur mise à jour utilisateur (pro draft)" });
-          }
-
-          // 2) Vérifier si un compte pro existe déjà
+          // 1) Vérifier si un compte pro existe déjà
           const { data: existing, error: existingErr } = await supabaseServer
             .from("professional_accounts")
             .select("id")
@@ -1066,21 +1031,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({
             success: true,
             type: "professional_draft",
-            user: updatedUser,
             professionalAccount: proAccount,
             message: "Brouillon professionnel sauvegardé avec succès",
           });
         } catch (error: any) {
           console.error("❌ Erreur sauvegarde brouillon professionnel:", error);
-          
-          // 📱 Gestion spécifique pour téléphone existant
-          if (error.message?.includes("duplicate key") && error.message?.includes("phone")) {
-            return res.status(409).json({
-              error: "PHONE_ALREADY_EXISTS",
-              message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
-            });
-          }
-          
           return res.status(500).json({
             error: "Erreur lors de la sauvegarde du brouillon professionnel",
           });
