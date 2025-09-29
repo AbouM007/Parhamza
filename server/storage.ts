@@ -2160,14 +2160,24 @@ export class SupabaseStorage implements IStorage {
         });
       }
 
-      // Récupérer les abonnements pro via professional_accounts
+      // 🔧 CORRECTION CRITIQUE: Récupérer TOUS les abonnements (particuliers ET professionnels)
+      let subscriptionPurchases = [];
+      
+      // 1. Abonnements directs par user_id (pour les particuliers individual)
+      const { data: directSubscriptions } = await supabaseServer
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      // 2. Abonnements via professional_accounts (pour les professionnels)
       const { data: userProfessionalAccount } = await supabaseServer
         .from("professional_accounts")
         .select("id")
         .eq("user_id", userId)
         .single();
 
-      let subscriptionPurchases = [];
+      let proSubscriptions = [];
       if (userProfessionalAccount) {
         const { data: subscriptions } = await supabaseServer
           .from("subscriptions")
@@ -2175,8 +2185,19 @@ export class SupabaseStorage implements IStorage {
           .eq("professional_account_id", userProfessionalAccount.id)
           .order("created_at", { ascending: false });
 
-        subscriptionPurchases = subscriptions || [];
+        proSubscriptions = subscriptions || [];
       }
+
+      // Combiner tous les abonnements et dédupliquer par ID
+      const allSubscriptions = [...(directSubscriptions || []), ...proSubscriptions];
+      const uniqueSubscriptionIds = new Set();
+      subscriptionPurchases = allSubscriptions.filter(sub => {
+        if (uniqueSubscriptionIds.has(sub.id)) {
+          return false;
+        }
+        uniqueSubscriptionIds.add(sub.id);
+        return true;
+      });
 
       // Récupérer les détails des plans d'abonnement
       let subscriptionHistory = [];

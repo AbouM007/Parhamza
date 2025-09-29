@@ -154,30 +154,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Vérifier d'abord que l'utilisateur existe et est un particulier
       const user = await storage.getUser(userId);
+      console.log(`🔍 PASSIONATE DEBUG - User ${userId}:`, { email: user?.email, type: user?.type });
+      
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
       
       // Si ce n'est pas un particulier, pas de statut Passionné
       if (user.type !== 'individual') {
+        console.log(`❌ PASSIONATE DEBUG - User ${userId} type: ${user.type} (not individual)`);
         return res.json({ isPassionate: false });
       }
 
-      // Vérifier s'il a un abonnement actif
+      // Vérifier s'il a un abonnement actif - utiliser join manuel pour éviter les problèmes de relation
       const { data: subscription, error } = await supabaseServer
         .from("subscriptions")
         .select(`
           id,
           status,
-          subscription_plans (
-            name
-          )
+          plan_id
         `)
         .eq("user_id", userId)
         .in("status", ["active", "trialing"])
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      let planName = null;
+      if (subscription && subscription.plan_id) {
+        const { data: plan } = await supabaseServer
+          .from("subscription_plans")
+          .select("name")
+          .eq("id", subscription.plan_id)
+          .single();
+        planName = plan?.name || null;
+      }
 
       if (error) {
         console.error("Error checking passionate status:", error);
@@ -188,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isPassionate = !!subscription;
       const result = {
         isPassionate,
-        planName: subscription?.subscription_plans?.name || null
+        planName
       };
 
       res.setHeader("Cache-Control", "max-age=300"); // Cache 5 minutes
