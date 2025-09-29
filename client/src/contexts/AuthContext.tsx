@@ -89,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+
   const fetchProfile = async (userId: string) => {
     try {
       const response = await fetch(`/api/users/${userId}`);
@@ -113,21 +114,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!error && data.user) {
       // 👉 Utiliser la nouvelle route avec gestion d'erreurs améliorée
       try {
+        const payload = {
+          authUserId: data.user.id,
+          email: data.user.email!,
+          metadata: {
+            name: userData?.name || data.user.email!.split("@")[0],
+            type: userData?.type || "pending",
+            phone: userData?.phone || null,
+            companyName: userData?.companyName || null,
+          },
+        };
+        
         const response = await fetch("/api/users/sync-from-signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            authUserId: data.user.id,
-            email: data.user.email!,
-            metadata: {
-              name: userData?.name || data.user.email!.split("@")[0],
-              type: userData?.type || "pending",
-              phone: userData?.phone || null,
-              companyName: userData?.companyName || null,
-            },
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -158,7 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           );
         }
       } catch (profileError: any) {
-        console.error("Error creating profile:", profileError);
+        console.error("Error during signup synchronization:", profileError);
         return {
           error: {
             message: "PROFILE_CREATION_ERROR",

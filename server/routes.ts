@@ -459,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: metadata?.type || "pending",
         phone: metadata?.phone || null,
         whatsapp: metadata?.phone || null,
-        companyName: metadata?.companyName || null,
+        company_name: metadata?.companyName || null, // ✅ Corrigé: snake_case comme dans le schéma DB
         city: null,
         postal_code: null,
         email_verified: false, // Pas encore confirmé

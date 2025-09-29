@@ -83,3 +83,25 @@ Preferred communication style: Simple, everyday language.
 - **date-fns**: Date manipulation utilities
 - **uuid**: Unique identifier generation
 - **class-variance-authority**: Utility for conditional CSS classes
+
+## Recent Changes
+
+### Authentication System Unification (September 2024)
+Successfully migrated 15+ components from standalone `useAuth` hook to centralized `AuthContext`, eliminating authentication duplication and conflicts between two parallel systems.
+
+### User Synchronization Debug & Resolution
+**Issue**: New users weren't being created in database after Supabase Auth signup, causing authentication mismatch.
+
+**Root Cause Identified**: Schema inconsistency between Drizzle TypeScript definition and physical database structure:
+- Drizzle schema: `companyName: text("company_name")` 
+- Backend code: Using `companyName` (camelCase) instead of `company_name` (snake_case)
+- Physical DB: Missing `company_name` column entirely
+
+**Resolution Applied**:
+1. ✅ Diagnosed payload flow - confirmed frontend AuthContext.signUp sends data correctly
+2. ✅ Fixed backend schema mapping - corrected `companyName` → `company_name` in server/routes.ts
+3. ✅ Identified missing database column - `company_name` not present in physical users table
+
+**Status**: Code corrections completed. Database migration required: `ALTER TABLE users ADD COLUMN company_name text;`
+
+**Impact**: Authentication flow functions correctly until user creation, where schema mismatch causes failure. Once database column is added, Auth→DB synchronization will be fully restored.
