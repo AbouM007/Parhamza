@@ -21,6 +21,7 @@ export interface OnboardingUser {  // ← Renommer
 }
 
 export interface OnboardingData {
+  accountType?: "individual" | "professional";
   personal?: Record<string, unknown>;
   professional?: Record<string, unknown>;
   documents?: Record<string, unknown>;
