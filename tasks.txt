@@ -1,4 +1,19 @@
 🎯 ORGANISATION & PRIORISATION DES TÂCHES
+
+🎯 Roadmap prioritaire (dans le bon ordre)
+
+Unifier l’authentification (c’est la base, sinon tout le reste est bancal).
+
+Corriger les erreurs LSP pour sécuriser les builds.
+
+Stabiliser l’onboarding pro (important pour la monétisation).
+
+Mettre en place des tests unitaires sur les fonctions critiques (auth, paiements, onboarding).
+
+
+=========================================================================================================
+
+
 🔥 PRIORITÉ 1 - CRITIQUES REVENUS (Urgent + Important)
 
 💰 PAIEMENTS & MONÉTISATION
