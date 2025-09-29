@@ -169,7 +169,7 @@ function AppContent() {
     // Appliquer les décisions
     setShowProfileSetup(onboardingState.shouldShowPopup);
 
-    // Gérer l'étape d'onboarding pour les pros
+    // Gérer l'étape d'onboarding 
     if (profile.type === "professional" && onboardingState.shouldShowPopup) {
       if (onboardingState.step === "profile") {
         setOnboardingStep("choice");
@@ -180,6 +180,13 @@ function AppContent() {
       profile.type === "individual" &&
       onboardingState.shouldShowPopup
     ) {
+      // Pour les utilisateurs individuels, aller directement au formulaire personnel
+      setOnboardingStep("personal");
+    } else if (
+      profile.type === "pending" &&
+      onboardingState.shouldShowPopup
+    ) {
+      // Pour les nouveaux utilisateurs, afficher le choix
       setOnboardingStep("choice");
     }
   }, [
