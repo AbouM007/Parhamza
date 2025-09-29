@@ -1,0 +1,46 @@
+{companyName: 'tess 001', siret: '15495265620000', name: 'cmm.saghir+ts00001', phone: '0658487549'}
+main.js?attr=DDpQ7t-sKcgc2JKiWy6PwlKJXyDa17C987S12htvOAqoS8NeI8OydTbU1ZSEcNMXhHbOPuzz-oe3bpAjFVDDCmKApO9zIBDXcqya6wzukAvvD1z2mRGbrNabaiq8X21f_CT-fFJSxgcNoqx9CiD3uw:4911  POST https://00766ac0-61dd-4c07-a8e2-339362f784b1-00-2wkj0z2vuub3d.janeway.replit.dev/api/profile/draft 500 (Internal Server Error)
+fetchCallImpl @ main.js?attr=DDpQ7t-sKcgc2JKiWy6PwlKJXyDa17C987S12htvOAqoS8NeI8OydTbU1ZSEcNMXhHbOPuzz-oe3bpAjFVDDCmKApO9zIBDXcqya6wzukAvvD1z2mRGbrNabaiq8X21f_CT-fFJSxgcNoqx9CiD3uw:4911
+fetch @ main.js?attr=DDpQ7t-sKcgc2JKiWy6PwlKJXyDa17C987S12htvOAqoS8NeI8OydTbU1ZSEcNMXhHbOPuzz-oe3bpAjFVDDCmKApO9zIBDXcqya6wzukAvvD1z2mRGbrNabaiq8X21f_CT-fFJSxgcNoqx9CiD3uw:4917
+onSubmit @ ProfileStep.tsx:60
+await in onSubmit
+(anonymous) @ chunk-QGVO3AUQ.js?v=046903d5:1465
+await in (anonymous)
+callCallback2 @ chunk-UPELNCPK.js?v=046903d5:3674
+invokeGuardedCallbackDev @ chunk-UPELNCPK.js?v=046903d5:3699
+invokeGuardedCallback @ chunk-UPELNCPK.js?v=046903d5:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-UPELNCPK.js?v=046903d5:3736
+executeDispatch @ chunk-UPELNCPK.js?v=046903d5:7014
+processDispatchQueueItemsInOrder @ chunk-UPELNCPK.js?v=046903d5:7034
+processDispatchQueue @ chunk-UPELNCPK.js?v=046903d5:7043
+dispatchEventsForPlugins @ chunk-UPELNCPK.js?v=046903d5:7051
+(anonymous) @ chunk-UPELNCPK.js?v=046903d5:7174
+batchedUpdates$1 @ chunk-UPELNCPK.js?v=046903d5:18913
+batchedUpdates @ chunk-UPELNCPK.js?v=046903d5:3579
+dispatchEventForPluginEventSystem @ chunk-UPELNCPK.js?v=046903d5:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-UPELNCPK.js?v=046903d5:5478
+dispatchEvent @ chunk-UPELNCPK.js?v=046903d5:5472
+dispatchDiscreteEvent @ chunk-UPELNCPK.js?v=046903d5:5449Understand this error
+installHook.js:1 ❌ Erreur sauvegarde brouillon profil: Error: Erreur lors de la sauvegarde
+    at onSubmit (ProfileStep.tsx:85:15)
+    at async chunk-QGVO3AUQ.js?v=046903d5:1465:9
+overrideMethod @ installHook.js:1
+onSubmit @ ProfileStep.tsx:99
+await in onSubmit
+(anonymous) @ chunk-QGVO3AUQ.js?v=046903d5:1465
+await in (anonymous)
+callCallback2 @ chunk-UPELNCPK.js?v=046903d5:3674
+invokeGuardedCallbackDev @ chunk-UPELNCPK.js?v=046903d5:3699
+invokeGuardedCallback @ chunk-UPELNCPK.js?v=046903d5:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-UPELNCPK.js?v=046903d5:3736
+executeDispatch @ chunk-UPELNCPK.js?v=046903d5:7014
+processDispatchQueueItemsInOrder @ chunk-UPELNCPK.js?v=046903d5:7034
+processDispatchQueue @ chunk-UPELNCPK.js?v=046903d5:7043
+dispatchEventsForPlugins @ chunk-UPELNCPK.js?v=046903d5:7051
+(anonymous) @ chunk-UPELNCPK.js?v=046903d5:7174
+batchedUpdates$1 @ chunk-UPELNCPK.js?v=046903d5:18913
+batchedUpdates @ chunk-UPELNCPK.js?v=046903d5:3579
+dispatchEventForPluginEventSystem @ chunk-UPELNCPK.js?v=046903d5:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-UPELNCPK.js?v=046903d5:5478
+dispatchEvent @ chunk-UPELNCPK.js?v=046903d5:5472
+dispatchDiscreteEvent @ chunk-UPELNCPK.js?v=046903d5:5449Understand this error
