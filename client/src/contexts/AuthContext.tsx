@@ -103,6 +103,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signUp = async (email: string, password: string, userData?: any) => {
+    console.log("🚀 [DEBUG] signUp start:", { email, userData });
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -111,7 +113,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       },
     });
 
+    console.log("📡 [DEBUG] Supabase result:", { 
+      hasUser: !!data?.user, 
+      userID: data?.user?.id,
+      error: error?.message,
+      needsEmailConfirmation: !!data?.user && !data?.session
+    });
+
     if (!error && data.user) {
+      console.log("✅ [DEBUG] Starting sync-from-signup...");
       // 👉 Utiliser la nouvelle route avec gestion d'erreurs améliorée
       try {
         const payload = {
