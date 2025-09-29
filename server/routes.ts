@@ -1049,7 +1049,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 siret,
                 description: description || null,
                 verification_status: "not_started",
-                is_active: false,
               })
               .select()
               .single();
