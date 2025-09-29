@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthService } from "../services/AuthService";
 import { signIn, signUp, resetPassword } from "@/lib/supabase";
 
 interface FormErrors {
@@ -30,7 +29,6 @@ export const UnifiedAuthModal: React.FC = () => {
   } = useApp();
 
   const { signInWithOAuth } = useAuth();
-  const { handleAuthSuccess } = useAuthService();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -142,7 +140,7 @@ export const UnifiedAuthModal: React.FC = () => {
         if (data?.user) {
           setSuccessMessage("Compte créé ! Un email de confirmation vous a été envoyé.");
           setTimeout(() => {
-            handleAuthSuccess();
+            runAuthCallbackAfterLogin();
             setShowAuthModal(false);
           }, 3000);
         }
@@ -164,11 +162,11 @@ export const UnifiedAuthModal: React.FC = () => {
           return;
         }
         if (data?.user) {
-          await handleAuthSuccess();
+          runAuthCallbackAfterLogin();
           showToast("Connexion réussie", "Bienvenue !");
           // ✅ mise à jour du quota + exécution de la callback (ouvre le formulaire, etc.)
           await refreshQuota();
-          runAuthCallbackAfterLogin(); // ferme aussi le modal proprement
+          setShowAuthModal(false);
         }
       }
     } catch (error) {
