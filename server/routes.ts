@@ -147,6 +147,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route pour vérifier le statut "Passionné" d'un utilisateur particulier
+  app.get("/api/users/:id/passionate-status", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      
+      // Vérifier d'abord que l'utilisateur existe et est un particulier
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Si ce n'est pas un particulier, pas de statut Passionné
+      if (user.type !== 'individual') {
+        return res.json({ isPassionate: false });
+      }
+
+      // Vérifier s'il a un abonnement actif
+      const { data: subscription, error } = await supabaseServer
+        .from("subscriptions")
+        .select(`
+          id,
+          status,
+          subscription_plans (
+            name
+          )
+        `)
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking passionate status:", error);
+        return res.status(500).json({ error: "Failed to check passionate status" });
+      }
+
+      // Retourner le statut
+      const isPassionate = !!subscription;
+      const result = {
+        isPassionate,
+        planName: subscription?.subscription_plans?.name || null
+      };
+
+      res.setHeader("Cache-Control", "max-age=300"); // Cache 5 minutes
+      res.json(result);
+    } catch (error) {
+      console.error("Error checking passionate status:", error);
+      res.status(500).json({ error: "Failed to check passionate status" });
+    }
+  });
+
   // Endpoint temporaire pour synchroniser manuellement un utilisateur (DEVELOPMENT ONLY)
   app.post("/api/users/manual-sync", async (req, res) => {
     try {
