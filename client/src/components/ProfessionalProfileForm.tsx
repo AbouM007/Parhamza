@@ -80,43 +80,26 @@ export const ProfessionalProfileForm: React.FC<
     }
   }, [currentStep]);
 
-  // Étape 1 : Sauvegarde du profil
+  // Étape 1 : Sauvegarde temporaire des données (sans finaliser le profil)
   const onSubmitStep1 = async (data: ProfessionalProfileData) => {
     try {
-      console.log("🔧 Sauvegarde profil professionnel étape 1:", data);
+      console.log("🔧 Sauvegarde temporaire profil professionnel étape 1:", data);
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) throw new Error("Session non disponible");
-
-      const response = await fetch("/api/profile/complete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          ...data,
-          type: "professional",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        
-        // 📱 Gestion spécifique pour téléphone existant
-        if (errorData.error === 'PHONE_ALREADY_EXISTS') {
-          toast({
-            title: "Numéro déjà utilisé",
-            description: "Ce numéro de téléphone est déjà associé à un autre compte. Veuillez en choisir un autre.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        throw new Error(errorData.message || "Erreur lors de la sauvegarde");
+      // Validation des données requises
+      if (!data.name || !data.phone || !data.companyName || !data.siret) {
+        throw new Error("Tous les champs obligatoires doivent être remplis");
       }
+
+      // Validation SIRET
+      if (!/^\d{14}$/.test(data.siret)) {
+        throw new Error("SIRET invalide (14 chiffres requis)");
+      }
+
+      toast({
+        title: "Étape 1 validée !",
+        description: "Passons maintenant au choix de votre abonnement.",
+        variant: "default",
+      });
 
       setSavedFormData(data);
       setCurrentStep(2);

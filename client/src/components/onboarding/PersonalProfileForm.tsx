@@ -93,19 +93,10 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
         variant: "default",
       });
 
-      // ✅ AJOUT : mise à jour explicite du statut
-      await supabase
-        .from("users")
-        .update({
-          type: "individual",
-          profile_completed: true,
-          onboarding_status: "completed",
-        })
-        .eq("id", user?.id);
+      // ✅ Mise à jour du profil après sauvegarde
+      await refreshProfile();
 
-      await refreshProfile(); // ✅ AJOUT
-
-      onComplete(); // ✅ déjà présent
+      onComplete();
     } catch (error: any) {
       console.error("❌ Erreur:", error);
       toast({
