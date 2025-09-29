@@ -7,6 +7,8 @@ import { PersonalStep } from "./components/steps/PersonalStep";
 import { ProfessionalStep } from "./components/steps/ProfessionalStep";
 import { useOnboardingV2 } from "./hooks/useOnboardingV2";
 import { OnboardingData, OnboardingState, StepProps, User } from "./types";
+import { useAuth } from "@/contexts/AuthContext"; // ✅ importer le contexte auth
+
 
 interface OnboardingEntryProps {
   user?: User | null;
@@ -17,12 +19,13 @@ interface OnboardingEntryProps {
 const ONBOARDING_V2_FEATURE_FLAG = true;
 
 type OnboardingCheck =
-  | { launch: false; reason: "completed" | "feature_disabled" | "no_user" }
+  | { launch: false; reason: "completed" | "feature_disabled" | "no_user" | "not_authenticated" }
   | { launch: true; reason: "pending" | "incomplete" | "pro_onboarding" };
 
 const checkOnboarding = (
   user: User | null,
   featureEnabled: boolean,
+  isAuthenticated: boolean,
 ): OnboardingCheck => {
   if (!featureEnabled) {
     return { launch: false, reason: "feature_disabled" };
@@ -30,6 +33,10 @@ const checkOnboarding = (
 
   if (!user) {
     return { launch: false, reason: "no_user" };
+  }
+
+  if (!isAuthenticated) {
+    return { launch: false, reason: "not_authenticated" };
   }
 
   if (user.type === "pending") {
@@ -90,10 +97,15 @@ export const OnboardingEntry = ({
   isEnabled,
 }: OnboardingEntryProps) => {
   const featureEnabled = isEnabled ?? ONBOARDING_V2_FEATURE_FLAG;
+
+  // ✅ CORRECT : Utiliser user et session de useAuth
+  const { user: authUser, session } = useAuth();
+  const isAuthenticated = !!session && !!authUser;
   const onboarding = useOnboardingV2({ user, initialData });
+  
   const { currentState, data, advance, goBack, skip, isCompleted } = onboarding;
 
-  const onboardingCheck = checkOnboarding(user, featureEnabled);
+  const onboardingCheck = checkOnboarding(user, featureEnabled, isAuthenticated);
   const shouldRender = onboardingCheck.launch;
 
   const step = useMemo(() => {

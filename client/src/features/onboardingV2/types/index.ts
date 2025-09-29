@@ -1,3 +1,6 @@
+import { User } from "@/types";  // ← Type User local OnboardingV2
+
+
 export type OnboardingState =
   | "choice"
   | "personal"
@@ -7,7 +10,8 @@ export type OnboardingState =
   | "validation"
   | "completed";
 
-export interface User {
+// onboardingV2/types/index.ts
+export interface OnboardingUser {  // ← Renommer
   id: string;
   email: string;
   type: "pending" | "individual" | "professional" | "admin" | null;
