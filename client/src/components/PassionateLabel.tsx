@@ -26,7 +26,7 @@ export const PassionateLabel: React.FC<PassionateLabelProps> = ({
   if (variant === 'full') {
     // Version complète avec icône pour la zone contact
     return (
-      <div className="flex items-center space-x-1 text-orange-600 text-sm">
+      <div className="flex items-center space-x-1 text-orange-600 text-sm" data-testid="passionate-label-full">
         <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
         <span className="font-semibold">Passionné</span>
       </div>
@@ -35,7 +35,10 @@ export const PassionateLabel: React.FC<PassionateLabelProps> = ({
 
   // Version badge pour les cartes d'annonces  
   return (
-    <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs font-semibold rounded">
+    <span 
+      className="px-2 py-1 bg-orange-100 text-orange-600 text-xs font-semibold rounded"
+      data-testid="passionate-label-badge"
+    >
       Passionné
     </span>
   );
