@@ -17,7 +17,7 @@ interface PassionateStatusResponse {
  */
 export const usePassionateStatus = (userId?: string, userType?: string): PassionateStatus => {
   const { data, isLoading, error } = useQuery<PassionateStatusResponse>({
-    queryKey: ['/api/users', userId, 'passionate-status'],
+    queryKey: [`/api/users/${userId}/passionate-status`],
     enabled: !!userId && userType === 'individual',
     staleTime: 5 * 60 * 1000, // 5 minutes de cache
     refetchOnWindowFocus: false,
