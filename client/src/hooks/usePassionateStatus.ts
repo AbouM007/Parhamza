@@ -6,12 +6,17 @@ interface PassionateStatus {
   isLoading: boolean;
 }
 
+interface PassionateStatusResponse {
+  isPassionate: boolean;
+  planName?: string;
+}
+
 /**
  * Hook pour déterminer si un utilisateur particulier a un abonnement actif
  * qui lui donne le statut "Passionné"
  */
 export const usePassionateStatus = (userId?: string, userType?: string): PassionateStatus => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<PassionateStatusResponse>({
     queryKey: ['/api/users', userId, 'passionate-status'],
     enabled: !!userId && userType === 'individual',
     staleTime: 5 * 60 * 1000, // 5 minutes de cache
