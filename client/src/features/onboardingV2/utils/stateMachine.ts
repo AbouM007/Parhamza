@@ -6,12 +6,12 @@ const transitions: StateTransition[] = [
   {
     from: "choice",
     to: "personal",
-    guard: (context) => context.user?.type !== "professional",
+    guard: (context) => context.data.accountType == "individual",
   },
   {
     from: "choice",
     to: "professional",
-    guard: (context) => context.user?.type === "professional",
+    guard: (context) => context.data.accountType === "professional",
   },
   {
     from: "personal",

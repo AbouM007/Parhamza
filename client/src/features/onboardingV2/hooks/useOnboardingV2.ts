@@ -11,8 +11,8 @@ import {
   OnboardingData,
   OnboardingState,
   StepProps,
-  User,
 } from "../types";
+import { User } from "@/types";
 
 interface UseOnboardingParams {
   user?: User | null;
