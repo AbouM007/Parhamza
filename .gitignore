@@ -18,9 +18,11 @@ server/public/
 
 # 📑 Archives / Temp files
 *.tar.gz
+*txt
 
 # 🗂️ Sauvegardes et legacy
 @back/
 
 # ⚡ Logs & divers
 *.log
+attached_assets/
