@@ -22,7 +22,7 @@ export const ValidationStep = ({
   onComplete,
   onBack,
 }: StepProps) => {
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, session } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFinish = async () => {
@@ -30,6 +30,11 @@ export const ValidationStep = ({
     try {
       const docs = currentData.documents as DocumentsData;
       const professional = currentData.professional as ProfessionalData;
+
+      // Vérifier la session
+      if (!session?.access_token) {
+        throw new Error("Session expirée. Veuillez vous reconnecter.");
+      }
 
       // Uploader les documents vers le serveur
       const formData = new FormData();
@@ -55,8 +60,10 @@ export const ValidationStep = ({
       // Envoyer les documents pour vérification (utiliser fetch car FormData incompatible avec apiRequest)
       const response = await fetch("/api/professional-accounts/verify", {
         method: "POST",
+        headers: { 
+          Authorization: `Bearer ${session.access_token}` 
+        },
         body: formData,
-        credentials: "include", // Important pour les cookies de session
       });
 
       if (!response.ok) {
