@@ -162,6 +162,7 @@ router.post("/complete", requireAuth, async (req: any, res) => {
     // Construire l'objet de mise à jour (table users)
     const updateData: any = {
       profile_completed: true,
+      onboarding_status: "completed",
     };
 
     if (name !== undefined) updateData.name = name;

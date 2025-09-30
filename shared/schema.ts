@@ -41,6 +41,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
   profileCompleted: boolean("profile_completed").default(false),
+  onboardingStatus: text("onboarding_status").notNull().default("incomplete_profile"),
 });
 
 export const annonces = pgTable("annonces", {

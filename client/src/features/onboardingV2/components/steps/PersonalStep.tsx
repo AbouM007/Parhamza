@@ -90,7 +90,8 @@ export const PersonalStep = ({
       console.error("Erreur:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la finalisation du profil.",
+        description:
+          "Une erreur est survenue lors de la finalisation du profil.",
         variant: "destructive",
       });
     }
@@ -132,6 +133,7 @@ export const PersonalStep = ({
             <FormInput
               id="phone"
               type="tel"
+              maxLength={10}
               placeholder="0612345678"
               {...form.register("phone")}
               error={form.formState.errors.phone?.message}
