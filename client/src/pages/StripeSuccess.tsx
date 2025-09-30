@@ -53,7 +53,7 @@ const StripeSuccess: React.FC = () => {
 
       const timer = setTimeout(() => {
         window.location.href = "/dashboard";
-      }, 500);
+      }, 5000);
 
       return () => {
         clearInterval(interval);
@@ -85,9 +85,9 @@ const StripeSuccess: React.FC = () => {
   }
 
   // ✅ Succès minimaliste avec compteur
-  return (
+  /*  return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 relative">
-      {/* Logo en haut à gauche */}
+      {/* Logo en haut à gauche */ /*}
 
       <div className="bg-white shadow-lg rounded-xl p-10 text-center max-w-md">
         <Check className="h-12 w-12 text-green-600 mx-auto mb-4" />
@@ -95,13 +95,44 @@ const StripeSuccess: React.FC = () => {
           🎉 Paiement réussi !
         </h1>
         <p className="text-gray-600">
-          Merci pour votre abonnement.
+          Merci pour votre Achat.
           <br />
           Vous allez être redirigé dans{" "}
           <span className="font-semibold text-gray-900">{countdown}</span>{" "}
           seconde
           {countdown > 1 ? "s" : ""}.
         </p>
+      </div>
+    </div>
+  );
+};
+
+export default StripeSuccess;
+
+*/
+  // ✅ Succès avec compteur + bouton
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 relative">
+      <div className="bg-white shadow-lg rounded-xl p-10 text-center max-w-md">
+        <Check className="h-12 w-12 text-green-600 mx-auto mb-4" />
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          🎉 Paiement réussi !
+        </h1>
+        <p className="text-gray-600 mb-4">
+          Merci pour votre achat.
+          <br />
+          Vous allez être redirigé dans{" "}
+          <span className="font-semibold text-gray-900">{countdown}</span>{" "}
+          seconde{countdown > 1 ? "s" : ""}.
+        </p>
+
+        {/* 🚀 Bouton manuel */}
+        <button
+          onClick={() => (window.location.href = "/dashboard")}
+          className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          Aller au tableau de bord
+        </button>
       </div>
     </div>
   );

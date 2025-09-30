@@ -9,7 +9,6 @@ import { useOnboardingV2 } from "./hooks/useOnboardingV2";
 import { OnboardingData, OnboardingState, StepProps, User } from "./types";
 import { useAuth } from "@/contexts/AuthContext"; // ✅ importer le contexte auth
 
-
 interface OnboardingEntryProps {
   user?: User | null;
   initialData?: OnboardingData;
@@ -19,7 +18,14 @@ interface OnboardingEntryProps {
 const ONBOARDING_V2_FEATURE_FLAG = true;
 
 type OnboardingCheck =
-  | { launch: false; reason: "completed" | "feature_disabled" | "no_user" | "not_authenticated" }
+  | {
+      launch: false;
+      reason:
+        | "completed"
+        | "feature_disabled"
+        | "no_user"
+        | "not_authenticated";
+    }
   | { launch: true; reason: "pending" | "incomplete" | "pro_onboarding" };
 
 const checkOnboarding = (
@@ -39,6 +45,21 @@ const checkOnboarding = (
     return { launch: false, reason: "not_authenticated" };
   }
 
+  // 🆕 Bypass onboarding si retour de Stripe (success_url)
+  if (typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pathname = window.location.pathname;
+
+    if (
+      urlParams.has("session_id") ||
+      pathname === "/success" ||
+      pathname === "/stripe-success"
+    ) {
+      console.debug("[Onboarding] Bypass Stripe return");
+      return { launch: false, reason: "completed" }; // ✅ type respecté
+    }
+  }
+
   if (user.type === "pending") {
     return { launch: true, reason: "pending" };
   }
@@ -49,7 +70,9 @@ const checkOnboarding = (
 
   if (user.type === "professional") {
     const validStates: OnboardingState[] = ["docs", "payment"];
-    const userState = (user as any).onboardingState as OnboardingState | undefined;
+    const userState = (user as any).onboardingState as
+      | OnboardingState
+      | undefined;
     if (userState && validStates.includes(userState)) {
       return { launch: true, reason: "pro_onboarding" };
     }
@@ -71,10 +94,14 @@ export const OnboardingEntry = ({
   const { user: authUser, session } = useAuth();
   const isAuthenticated = !!session && !!authUser;
   const onboarding = useOnboardingV2({ user, initialData });
-  
+
   const { currentState, data, advance, goBack, skip, isCompleted } = onboarding;
 
-  const onboardingCheck = checkOnboarding(user, featureEnabled, isAuthenticated);
+  const onboardingCheck = checkOnboarding(
+    user,
+    featureEnabled,
+    isAuthenticated,
+  );
   const shouldRender = onboardingCheck.launch;
 
   const step = useMemo(() => {
