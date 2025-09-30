@@ -1,6 +1,6 @@
 // client/src/config/legalConfig.ts
 export const LEGAL = {
-  COMPANY_NAME: "SOS MON GARAGE",
+  COMPANY_NAME: "SMG",
   COMPANY_LEGAL_FORM: "Société par actions simplifiée (Société à associé unique)",
   COMPANY_CAPITAL: "1 000,00 €",
   COMPANY_RCS: "940 510 381 RCS Paris",
