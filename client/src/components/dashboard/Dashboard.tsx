@@ -2755,7 +2755,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className={activeTab === "messages" ? "w-full" : "flex-1"}>
             {activeTab === "overview" && (
               <OverviewSection
-                profile={profile}
+                dbUser={profile}
                 user={user}
                 professionalAccount={professionalAccount}
                 subscriptionInfo={subscriptionInfo}
