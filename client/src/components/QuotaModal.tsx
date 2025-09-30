@@ -33,24 +33,29 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
     }
   };
 
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transition-all duration-300 ${
-        showPlans 
-          ? 'w-full max-w-sm sm:max-w-3xl lg:max-w-5xl max-h-[98vh] sm:max-h-[95vh] overflow-y-auto' 
-          : 'max-w-md w-full'
-      }`}>
+      <div
+        className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transition-all duration-300 ${
+          showPlans
+            ? "w-full max-w-sm sm:max-w-3xl lg:max-w-5xl max-h-[98vh] sm:max-h-[95vh] overflow-y-auto"
+            : "max-w-md w-full"
+        }`}
+      >
         {/* Header */}
-        <div className={`flex items-center justify-between border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 rounded-t-2xl ${
-          showPlans ? 'p-3 sm:p-4' : 'p-6'
-        }`}>
+        <div
+          className={`flex items-center justify-between border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 rounded-t-2xl ${
+            showPlans ? "p-3 sm:p-4" : "p-6"
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full transition-colors ${
-              showPlans 
-                ? 'bg-green-100 dark:bg-green-900' 
-                : 'bg-orange-100 dark:bg-orange-900'
-            }`}>
+            <div
+              className={`p-2 rounded-full transition-colors ${
+                showPlans
+                  ? "bg-green-100 dark:bg-green-900"
+                  : "bg-orange-100 dark:bg-orange-900"
+              }`}
+            >
               {showPlans ? (
                 <Zap className="h-6 w-6 text-green-600 dark:text-green-400" />
               ) : (
@@ -58,7 +63,9 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
               )}
             </div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {showPlans ? 'Choisissez votre abonnement' : 'Limite d\'annonces atteinte'}
+              {showPlans
+                ? "Choisissez votre abonnement"
+                : "Limite d'annonces atteinte"}
             </h2>
           </div>
           <button
@@ -71,7 +78,7 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className={showPlans ? 'p-2 sm:p-4' : 'p-6'}>
+        <div className={showPlans ? "p-2 sm:p-4" : "p-6"}>
           {!showPlans ? (
             <>
               {/* Intro message */}
@@ -80,12 +87,16 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
                 <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
                   Vous avez publié{" "}
                   <span className="font-bold text-gray-900 dark:text-white">
-                    {quotaInfo.used}/{quotaInfo.maxListings} annonces gratuites
+                    {quotaInfo.used}/{quotaInfo.maxListings} annonces
                   </span>{" "}
                   ce mois.
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 mt-2">
-                  Débloquez <span className="font-bold text-blue-600 dark:text-blue-400">plus d'annonces</span> avec nos abonnements !
+                  Débloquez{" "}
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    plus d'annonces
+                  </span>{" "}
+                  avec nos abonnements !
                 </p>
               </div>
 
@@ -94,25 +105,25 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
                 <div className="flex items-center gap-2 mb-3">
                   <Crown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <span className="font-semibold text-blue-900 dark:text-blue-100">
-                    Avantages Premium
+                    Avantages des Abonnements
                   </span>
                 </div>
                 <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-200">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
-                    Annonces illimitées ou quotas augmentés
+                    Plus d'annonces publiées chaque mois
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
-                    Badge professionnel vérifié
+                    Badge de confiance
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
-                    Visibilité prioritaire dans les recherches
+                    Visibilité prioritaire
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
-                    Statistiques avancées et insights
+                    Statistiques avancées
                   </li>
                 </ul>
               </div>
@@ -142,14 +153,12 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
               {/* Plans selector */}
               <div className="mb-4 text-center">
                 <p className="text-gray-600 dark:text-gray-300">
-                  Sélectionnez le plan qui correspond à vos besoins et commencez à publier plus d'annonces !
+                  Sélectionnez le plan qui correspond à vos besoins et commencez
+                  à publier plus d'annonces !
                 </p>
               </div>
-              
-              <PlanSelector
-                mode="compact"
-                maxPlansDisplayed={3}
-              />
+
+              <PlanSelector mode="compact" maxPlansDisplayed={3} />
 
               {/* Back button */}
               <div className="mt-6 text-center border-t border-gray-200 dark:border-gray-700 pt-4">

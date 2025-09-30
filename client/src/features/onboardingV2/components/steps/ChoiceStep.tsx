@@ -66,6 +66,7 @@ export const ChoiceStep = ({
                 <li>• Accès aux services de base</li>
                 <li>• Messagerie directe</li>
               </ul>
+              <div><br></br><p>Gratuit</p></div>
             </div>
           </div>
           {selectedType === "individual" && (
@@ -117,9 +118,12 @@ export const ChoiceStep = ({
               </p>
               <ul className="mt-3 space-y-1 text-xs text-gray-500">
                 <li>• Annonces illimitées (selon abonnement)</li>
-                <li>• Badges de vérification</li>
+                <li>• Page Boutique PRO</li>
+                <li>• Badge de Confiance</li>                
                 <li>• Outils de gestion avancés</li>
               </ul>
+              <div><br></br><p>A partir de 19,90 €/Mois</p></div>
+              
             </div>
           </div>
           {selectedType === "professional" && (
