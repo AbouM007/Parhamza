@@ -117,15 +117,34 @@ export const PlateBlurModal = ({
     // Convertir les coordonnées canvas vers les coordonnées de l'image originale
     const originalX = (canvasX - imageScale.offsetX) / imageScale.scale;
     const originalY = (canvasY - imageScale.offsetY) / imageScale.scale;
-    const originalWidth = canvasWidth / imageScale.scale;
-    const originalHeight = canvasHeight / imageScale.scale;
+    let originalWidth = canvasWidth / imageScale.scale;
+    let originalHeight = canvasHeight / imageScale.scale;
 
-    // Clamper les valeurs pour éviter les coordonnées négatives ou hors limites
+    // Ajuster width/height si le rectangle déborde à gauche ou en haut
+    if (originalX < 0) {
+      originalWidth += originalX; // Réduire width par la partie négative
+    }
+    if (originalY < 0) {
+      originalHeight += originalY; // Réduire height par la partie négative
+    }
+
+    // Clamper les coordonnées et dimensions finales
+    const clampedX = Math.max(0, Math.round(originalX));
+    const clampedY = Math.max(0, Math.round(originalY));
+    const clampedWidth = Math.min(
+      Math.max(1, Math.round(originalWidth)),
+      imageScale.originalWidth - clampedX
+    );
+    const clampedHeight = Math.min(
+      Math.max(1, Math.round(originalHeight)),
+      imageScale.originalHeight - clampedY
+    );
+
     const maskData = {
-      x: Math.max(0, Math.round(originalX)),
-      y: Math.max(0, Math.round(originalY)),
-      width: Math.min(Math.round(originalWidth), imageScale.originalWidth - Math.max(0, Math.round(originalX))),
-      height: Math.min(Math.round(originalHeight), imageScale.originalHeight - Math.max(0, Math.round(originalY))),
+      x: clampedX,
+      y: clampedY,
+      width: clampedWidth,
+      height: clampedHeight,
     };
 
     onConfirm(maskData);
