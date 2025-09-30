@@ -4,6 +4,7 @@ import { ImageUploader } from "./ImageUploader";
 import { PremiumPackSelector } from "./PremiumPackSelector";
 import { PremiumPayment } from "./PremiumPayment";
 import { PublishSuccessModal } from "./PublishSuccessModal";
+import { BoostModal } from "./BoostModal";
 import { AddressInput } from "./AddressInput";
 import { CategoryStep } from "./create-listing/CategoryStep";
 import {
@@ -91,6 +92,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdVehicle, setCreatedVehicle] = useState<{id: string, title: string} | null>(null);
+  const [showBoostModal, setShowBoostModal] = useState(false);
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -797,6 +800,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         const newVehicle = await response.json();
         console.log("Annonce créée avec succès:", newVehicle);
 
+        // Stocker les infos du véhicule créé
+        setCreatedVehicle({
+          id: newVehicle.id?.toString() || "",
+          title: newVehicle.title || formData.title
+        });
+
         // Afficher le modal de succès
         setShowSuccessModal(true);
       } else {
@@ -824,6 +833,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     if (onSuccess) {
       onSuccess(); // Ferme le formulaire principal
     }
+  };
+
+  // Fonction pour ouvrir le modal de boost
+  const handleBoostListing = () => {
+    setShowSuccessModal(false);
+    setShowBoostModal(true);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -3607,8 +3622,26 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         isOpen={showSuccessModal}
         onClose={handleContinueNavigating}
         onNavigateToDashboard={navigateToDashboard}
+        onBoostListing={createdVehicle ? handleBoostListing : undefined}
+        vehicleId={createdVehicle?.id}
+        vehicleTitle={createdVehicle?.title}
         listingType={formData.listingType === "sale" ? "sell" : "search"}
       />
+
+      {/* Modal de boost */}
+      {createdVehicle && (
+        <BoostModal
+          isOpen={showBoostModal}
+          onClose={() => {
+            setShowBoostModal(false);
+            if (onSuccess) {
+              onSuccess(); // Ferme aussi le formulaire après le boost
+            }
+          }}
+          annonceId={createdVehicle.id}
+          annonceTitle={createdVehicle.title}
+        />
+      )}
     </div>
   );
 };
