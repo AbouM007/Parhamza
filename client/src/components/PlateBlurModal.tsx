@@ -6,7 +6,7 @@ interface PlateBlurModalProps {
   isOpen: boolean;
   imageUrl: string;
   onClose: () => void;
-  onConfirm: (maskData: { x: number; y: number; width: number; height: number }) => void;
+  onConfirm: (maskData: { x: number; y: number; width: number; height: number; angle: number }) => void;
 }
 
 export const PlateBlurModal = ({
@@ -70,7 +70,7 @@ export const PlateBlurModal = ({
       canvas.add(img);
       canvas.sendObjectToBack(img);
 
-      // Créer le rectangle blanc de masquage
+      // Créer le rectangle blanc de masquage (rotation activée)
       const rect = new Rect({
         left: canvasWidth / 2 - 75,
         top: canvasHeight / 2 - 25,
@@ -83,6 +83,7 @@ export const PlateBlurModal = ({
         cornerSize: 10,
         transparentCorners: false,
         borderColor: "#3b82f6",
+        // Rotation activée - pas de lockRotation
       });
 
       canvas.add(rect);
@@ -106,13 +107,14 @@ export const PlateBlurModal = ({
   const handleConfirm = () => {
     if (!maskRect || !fabricCanvas) return;
 
-    // Récupérer les dimensions du rectangle avec scale
+    // Récupérer les dimensions du rectangle avec scale ET rotation
     const rectScaleX = maskRect.scaleX || 1;
     const rectScaleY = maskRect.scaleY || 1;
     const canvasX = maskRect.left || 0;
     const canvasY = maskRect.top || 0;
     const canvasWidth = (maskRect.width || 0) * rectScaleX;
     const canvasHeight = (maskRect.height || 0) * rectScaleY;
+    const rotationAngle = maskRect.angle || 0; // Angle en degrés
 
     // Convertir les coordonnées canvas vers les coordonnées de l'image originale
     const originalX = (canvasX - imageScale.offsetX) / imageScale.scale;
@@ -145,6 +147,7 @@ export const PlateBlurModal = ({
       y: clampedY,
       width: clampedWidth,
       height: clampedHeight,
+      angle: rotationAngle, // Envoyer l'angle de rotation
     };
 
     onConfirm(maskData);
