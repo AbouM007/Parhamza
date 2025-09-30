@@ -1203,7 +1203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             postal_code:
               postalCode && postalCode.trim() !== "" ? postalCode : null,
             whatsapp: whatsapp || null,
-            profile_completed: true, // ✅ évite le retour au choix de compte
+            profile_completed: false, // ❌ RESTE false pour les pros jusqu'à validation finale
             type: "professional", // ✅ marque comme pro
           })
           .eq("id", user.id)
