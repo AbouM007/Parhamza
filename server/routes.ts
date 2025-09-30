@@ -53,8 +53,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.log("🐞 DEBUG: User récupéré depuis storage:");
       console.log("🐞   user.type =", user.type);
-      console.log("🐞   user.profile_completed =", (user as any).profile_completed);
-      
+      console.log(
+        "🐞   user.profile_completed =",
+        (user as any).profile_completed,
+      );
+
       // 🔧 Mapper les propriétés snake_case → camelCase pour le frontend
       const mappedUser = {
         ...user,
@@ -65,13 +68,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastLoginAt: (user as any).last_login_at,
         contactPreferences: (user as any).contact_preferences,
         onboardingStatus: (user as any).onboarding_status,
-        createdAt: (user as any).created_at
+        createdAt: (user as any).created_at,
       };
-      
+
       console.log("🐞 DEBUG: Après mapping:");
       console.log("🐞   mappedUser.type =", mappedUser.type);
-      console.log("🐞   mappedUser.profileCompleted =", mappedUser.profileCompleted);
-      
+      console.log(
+        "🐞   mappedUser.profileCompleted =",
+        mappedUser.profileCompleted,
+      );
+
       res.setHeader("Cache-Control", "no-store");
       res.json(mappedUser);
     } catch (error) {
@@ -144,7 +150,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: authError } = await supabaseServer.auth.getUser(token);
+      const {
+        data: { user },
+        error: authError,
+      } = await supabaseServer.auth.getUser(token);
 
       if (authError || !user) {
         return res.status(401).json({ error: "Invalid token" });
@@ -1080,10 +1089,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const { data: proAccount, error: upsertErr } = await query;
           if (upsertErr) {
-            console.error("❌ Erreur sauvegarde compte pro (draft):", upsertErr);
-            return res
-              .status(500)
-              .json({ error: "Erreur sauvegarde compte professionnel (draft)" });
+            console.error(
+              "❌ Erreur sauvegarde compte pro (draft):",
+              upsertErr,
+            );
+            return res.status(500).json({
+              error: "Erreur sauvegarde compte professionnel (draft)",
+            });
           }
 
           console.log("✅ Brouillon professionnel sauvegardé:", proAccount.id);
@@ -1108,7 +1120,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("👤 Sauvegarde brouillon personnel");
 
         if (!name || !phone) {
-          return res.status(400).json({ error: "Nom et téléphone obligatoires" });
+          return res
+            .status(400)
+            .json({ error: "Nom et téléphone obligatoires" });
         }
 
         try {
@@ -1130,16 +1144,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .single();
 
           if (personalErr) {
-            console.error("❌ Erreur sauvegarde brouillon personnel:", personalErr);
-            
+            console.error(
+              "❌ Erreur sauvegarde brouillon personnel:",
+              personalErr,
+            );
+
             // 📱 Gestion spécifique pour téléphone existant
-            if (personalErr.message?.includes("duplicate key") && personalErr.message?.includes("phone")) {
+            if (
+              personalErr.message?.includes("duplicate key") &&
+              personalErr.message?.includes("phone")
+            ) {
               return res.status(409).json({
                 error: "PHONE_ALREADY_EXISTS",
-                message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+                message:
+                  "Ce numéro de téléphone est déjà utilisé par un autre compte.",
               });
             }
-            
+
             return res.status(500).json({
               error: "Erreur sauvegarde brouillon personnel",
             });
@@ -1154,15 +1175,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } catch (error: any) {
           console.error("❌ Erreur sauvegarde brouillon personnel:", error);
-          
+
           // 📱 Gestion spécifique pour téléphone existant
-          if (error.message?.includes("duplicate key") && error.message?.includes("phone")) {
+          if (
+            error.message?.includes("duplicate key") &&
+            error.message?.includes("phone")
+          ) {
             return res.status(409).json({
               error: "PHONE_ALREADY_EXISTS",
-              message: "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+              message:
+                "Ce numéro de téléphone est déjà utilisé par un autre compte.",
             });
           }
-          
+
           return res.status(500).json({
             error: "Erreur lors de la sauvegarde du brouillon personnel",
           });
@@ -1335,8 +1360,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           postal_code:
             postalCode && postalCode.trim() !== "" ? postalCode : null,
           whatsapp: whatsapp || null,
-          profile_completed: true, // ✅ évite le retour au choix de compte
+          profile_completed: true,
           type: "individual",
+          onboarding_state: "completed",
         })
         .eq("id", user.id)
         .select()
