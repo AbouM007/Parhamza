@@ -140,3 +140,45 @@ Successfully migrated 15+ components from standalone `useAuth` hook to centraliz
 Choice → Professional (company info) → Docs (immediate upload) → Payment (Stripe redirect) → Completed
 
 **Impact**: Professional users now have seamless onboarding with immediate document upload, no confusing debug popups, and proper flow completion after Stripe payment.
+
+### License Plate Masking System (September 30, 2025)
+**Feature**: Implemented privacy protection for vehicle listings with manual license plate masking using draggable white rectangles.
+
+**Technical Implementation**:
+1. **Frontend Canvas Editor** (`client/src/components/PlateBlurModal.tsx`):
+   - Fabric.js v6 integration with modern ES6 imports (Canvas, Rect, FabricImage)
+   - Interactive 800x600 canvas with draggable/resizable white rectangle overlay
+   - Coordinate transformation: Canvas space → Original image dimensions
+   - Edge case handling: Automatic dimension adjustment for rectangles extending beyond image bounds
+   - Memory management: Automatic blob URL revocation on cleanup
+
+2. **Backend Image Processing** (`server/routes/images.ts - POST /api/images/apply-mask`):
+   - Sharp.js composite operation to permanently apply white rectangle mask
+   - WebP conversion with quality optimization (85%, effort 5)
+   - Security: URL domain validation (Supabase, Replit domains only)
+   - Coordinate validation and clamping to prevent out-of-bounds masks
+   - Automatic upload to Supabase Storage with versioned filenames
+
+3. **Integration Flow** (`client/src/components/CreateListingForm.tsx`):
+   - "Flouter" button on each uploaded photo preview
+   - Automatic upload of File objects before masking (resolves blob: URL issue)
+   - State management: Tracks masked images and replaces with processed versions
+   - User experience: Modal workflow → Canvas adjustment → Apply → Automatic replacement
+
+**Technical Challenges Resolved**:
+- ✅ Coordinate mismatch: Canvas display coordinates vs. original image pixels (fixed with scale/offset calculation)
+- ✅ Blob URL limitation: Backend fetch() cannot access browser blob: URLs (fixed with pre-upload strategy)
+- ✅ Format corruption: Sharp buffer uploaded as WebP without conversion (fixed with .webp() pipeline)
+- ✅ Edge overflow: Rectangle dimensions not adjusted when crossing image boundaries (fixed with overflow compensation)
+
+**Dependencies Added**:
+- `fabric@6.x` - Canvas manipulation library with TypeScript support
+
+**User Flow**:
+1. User uploads vehicle photos in listing creation form
+2. Clicks "Flouter" button on any photo showing license plate
+3. Adjusts white rectangle position/size in modal editor
+4. Confirms → Backend applies permanent white mask
+5. Masked image replaces original in form (ready for final submission)
+
+**Future Enhancement Possibility**: Logo overlay on white rectangle (mentioned by user)
