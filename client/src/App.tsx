@@ -40,6 +40,7 @@ import { detectOnboardingState } from "@/utils/onboardingDetector";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboardingV2/OnboardingEntry";
+import { DebugResetOnboarding } from "@/components/DebugResetOnboarding";
 
 // Feature flag pour basculer entre ancien et nouveau système d'onboarding
 const ONBOARDING_V2_ENABLED = true;
@@ -493,6 +494,9 @@ function AppContent() {
           }}
         />
       </DraggableModal>
+
+      {/* Debug: Reset onboarding (dev only) */}
+      <DebugResetOnboarding />
     </div>
   );
 }
