@@ -105,3 +105,38 @@ Successfully migrated 15+ components from standalone `useAuth` hook to centraliz
 **Status**: Code corrections completed. Database migration required: `ALTER TABLE users ADD COLUMN company_name text;`
 
 **Impact**: Authentication flow functions correctly until user creation, where schema mismatch causes failure. Once database column is added, Auth→DB synchronization will be fully restored.
+
+### Professional Onboarding Flow Refactoring (September 30, 2025)
+**Critical Fixes**: Resolved document upload and flow progression issues in professional account onboarding.
+
+**Problems Identified**:
+1. Debug popup displaying raw JSON data before Stripe payment redirect
+2. Documents selected in DocsStep never uploaded to server (stored only in browser memory)
+3. ValidationStep intended to upload documents POST-payment, but users never returned from Stripe
+4. Standalone /professional-verification page worked correctly with immediate upload
+
+**Solutions Implemented**:
+1. **DocsStep Refactored** (`client/src/features/onboardingV2/components/steps/DocsStep.tsx`):
+   - Documents now upload IMMEDIATELY to `/api/professional-accounts/verify` endpoint
+   - Uses Bearer token authentication with company info from ProfessionalStep
+   - Shows loading state during upload with disabled submit button
+   - Matches behavior of standalone ProfessionalVerificationForm component
+
+2. **State Machine Simplified** (`client/src/features/onboardingV2/utils/stateMachine.ts`):
+   - Removed obsolete transition: payment → validation → completed
+   - New direct transition: payment → completed
+   - ValidationStep no longer needed since documents upload in DocsStep
+
+3. **ValidationStep Removed** (`client/src/features/onboardingV2/OnboardingEntry.tsx`):
+   - Deleted debug JSON display step
+   - Updated onboarding state whitelist to exclude "validation"
+   - Prevents legacy users from being stuck in removed state
+
+4. **TypeScript Fixes**:
+   - Re-exported User type for module compatibility
+   - Fixed onboardingState access with proper type casting
+
+**New Professional Onboarding Flow**: 
+Choice → Professional (company info) → Docs (immediate upload) → Payment (Stripe redirect) → Completed
+
+**Impact**: Professional users now have seamless onboarding with immediate document upload, no confusing debug popups, and proper flow completion after Stripe payment.
