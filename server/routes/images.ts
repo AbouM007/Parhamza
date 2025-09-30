@@ -387,4 +387,81 @@ router.post(
   }, 
 );*/
 
+// Appliquer un masque blanc sur une image (pour cacher plaque d'immatriculation)
+router.post("/apply-mask", async (req: Request, res: Response) => {
+  try {
+    const { imageUrl, mask, userId } = req.body;
+
+    if (!imageUrl || !mask) {
+      return res.status(400).json({ error: "Image URL et données de masque requis" });
+    }
+
+    console.log(`🎨 Application masque blanc sur image pour utilisateur ${userId}`);
+    console.log(`📐 Coordonnées masque:`, mask);
+
+    // Télécharger l'image depuis l'URL
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      return res.status(400).json({ error: "Impossible de charger l'image" });
+    }
+
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+
+    // Créer le rectangle blanc SVG
+    const maskSvg = `
+      <svg width="${mask.width}" height="${mask.height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="white"/>
+      </svg>
+    `;
+
+    const maskBuffer = Buffer.from(maskSvg);
+
+    // Appliquer le masque blanc sur l'image
+    const maskedImageBuffer = await sharp(imageBuffer)
+      .composite([
+        {
+          input: maskBuffer,
+          top: mask.y,
+          left: mask.x,
+          blend: "over",
+        },
+      ])
+      .toBuffer();
+
+    // Générer un nouveau nom pour l'image masquée
+    const imageId = uuidv4();
+    const fileName = `${imageId}-masked.webp`;
+    const filePath = `annonces/${userId}/${fileName}`;
+
+    // Upload vers Supabase Storage
+    const { data, error } = await supabaseServer.storage
+      .from("vehicle-images")
+      .upload(filePath, maskedImageBuffer, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
+      });
+
+    if (error) {
+      console.error(`❌ Erreur upload image masquée:`, error);
+      return res.status(500).json({ error: "Erreur lors de l'upload de l'image masquée" });
+    }
+
+    // Obtenir l'URL publique
+    const { data: publicUrlData } = supabaseServer.storage
+      .from("vehicle-images")
+      .getPublicUrl(filePath);
+
+    console.log(`✅ Image masquée uploadée: ${fileName}`);
+
+    res.json({
+      success: true,
+      maskedImageUrl: publicUrlData.publicUrl,
+      message: "Masque appliqué avec succès",
+    });
+  } catch (error) {
+    console.error("❌ Erreur application masque:", error);
+    res.status(500).json({ error: "Erreur serveur lors de l'application du masque" });
+  }
+});
+
 export default router;
