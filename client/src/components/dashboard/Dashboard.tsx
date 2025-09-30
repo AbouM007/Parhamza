@@ -2809,8 +2809,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {activeTab === "profile" && (
               <ProfileSection
-                profile={profile}
+                dbUser={profile}
                 user={user}
+                professionalAccount={professionalAccount}
                 profileForm={profileForm}
                 setProfileForm={setProfileForm}
                 editingProfile={editingProfile}

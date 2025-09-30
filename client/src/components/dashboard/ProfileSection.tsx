@@ -6,6 +6,7 @@ import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge"
 interface ProfileSectionProps {
   dbUser: any;
   user: any;
+  professionalAccount?: any;
   profileForm: any;
   setProfileForm: (form: any) => void;
   editingProfile: boolean;
@@ -57,6 +58,7 @@ const handleAvatarUpload = async (
 export default function ProfileSection({
   dbUser,
   user,
+  professionalAccount,
   profileForm,
   setProfileForm,
   editingProfile,
@@ -149,9 +151,15 @@ export default function ProfileSection({
           </div>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
-              {dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
+              {dbUser?.type === "professional" && professionalAccount?.company_name
+                ? professionalAccount.company_name
+                : dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
             </h2>
-            <CompanyNameDisplay userId={dbUser?.id} userType={dbUser?.type} />
+            {dbUser?.type === "professional" && professionalAccount?.company_name && dbUser?.name && (
+              <p className="text-gray-600 text-base mt-1">
+                Contact: {dbUser.name}
+              </p>
+            )}
             <p className="text-gray-600 text-lg mt-1">
               {user?.email || dbUser?.email}
             </p>
