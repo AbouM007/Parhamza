@@ -18,6 +18,7 @@ export const PlateBlurModal = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
   const [maskRect, setMaskRect] = useState<Rect | null>(null);
+  const [imageScale, setImageScale] = useState({ scale: 1, offsetX: 0, offsetY: 0, originalWidth: 1, originalHeight: 1 });
 
   useEffect(() => {
     if (!isOpen || !canvasRef.current) return;
@@ -37,10 +38,24 @@ export const PlateBlurModal = ({
       const canvasHeight = 600;
 
       // Calculer le ratio pour adapter l'image au canvas
+      const imageWidth = img.width || 1;
+      const imageHeight = img.height || 1;
       const scale = Math.min(
-        canvasWidth / (img.width || 1),
-        canvasHeight / (img.height || 1)
+        canvasWidth / imageWidth,
+        canvasHeight / imageHeight
       );
+
+      const offsetX = (canvasWidth - imageWidth * scale) / 2;
+      const offsetY = (canvasHeight - imageHeight * scale) / 2;
+
+      // Stocker les infos de scale pour la conversion
+      setImageScale({
+        scale,
+        offsetX,
+        offsetY,
+        originalWidth: imageWidth,
+        originalHeight: imageHeight,
+      });
 
       img.scale(scale);
       img.selectable = false;
@@ -48,8 +63,8 @@ export const PlateBlurModal = ({
 
       // Centrer l'image
       img.set({
-        left: (canvasWidth - (img.width || 0) * scale) / 2,
-        top: (canvasHeight - (img.height || 0) * scale) / 2,
+        left: offsetX,
+        top: offsetY,
       });
 
       canvas.add(img);
@@ -79,23 +94,38 @@ export const PlateBlurModal = ({
       console.error("Erreur chargement image:", err);
     });
 
-    // Cleanup
+    // Cleanup: révoquer blob URL si nécessaire
     return () => {
       canvas.dispose();
+      if (imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
+      }
     };
   }, [isOpen, imageUrl]);
 
   const handleConfirm = () => {
     if (!maskRect || !fabricCanvas) return;
 
-    const scaleX = maskRect.scaleX || 1;
-    const scaleY = maskRect.scaleY || 1;
+    // Récupérer les dimensions du rectangle avec scale
+    const rectScaleX = maskRect.scaleX || 1;
+    const rectScaleY = maskRect.scaleY || 1;
+    const canvasX = maskRect.left || 0;
+    const canvasY = maskRect.top || 0;
+    const canvasWidth = (maskRect.width || 0) * rectScaleX;
+    const canvasHeight = (maskRect.height || 0) * rectScaleY;
 
+    // Convertir les coordonnées canvas vers les coordonnées de l'image originale
+    const originalX = (canvasX - imageScale.offsetX) / imageScale.scale;
+    const originalY = (canvasY - imageScale.offsetY) / imageScale.scale;
+    const originalWidth = canvasWidth / imageScale.scale;
+    const originalHeight = canvasHeight / imageScale.scale;
+
+    // Clamper les valeurs pour éviter les coordonnées négatives ou hors limites
     const maskData = {
-      x: Math.round(maskRect.left || 0),
-      y: Math.round(maskRect.top || 0),
-      width: Math.round((maskRect.width || 0) * scaleX),
-      height: Math.round((maskRect.height || 0) * scaleY),
+      x: Math.max(0, Math.round(originalX)),
+      y: Math.max(0, Math.round(originalY)),
+      width: Math.min(Math.round(originalWidth), imageScale.originalWidth - Math.max(0, Math.round(originalX))),
+      height: Math.min(Math.round(originalHeight), imageScale.originalHeight - Math.max(0, Math.round(originalY))),
     };
 
     onConfirm(maskData);

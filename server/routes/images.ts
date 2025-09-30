@@ -396,8 +396,31 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Image URL et données de masque requis" });
     }
 
+    // 🔒 SÉCURITÉ: Valider que l'URL provient d'un domaine autorisé
+    const allowedDomains = [
+      process.env.SUPABASE_URL?.replace('https://', ''),
+      'supabase.co',
+      process.env.REPLIT_DOMAINS || '',
+    ].filter(Boolean);
+
+    const urlObj = new URL(imageUrl);
+    const isAllowed = allowedDomains.some(domain => 
+      urlObj.hostname.includes(domain) || domain.includes(urlObj.hostname)
+    );
+
+    if (!isAllowed) {
+      console.error(`🚫 URL non autorisée: ${imageUrl}`);
+      return res.status(403).json({ error: "URL d'image non autorisée" });
+    }
+
     console.log(`🎨 Application masque blanc sur image pour utilisateur ${userId}`);
     console.log(`📐 Coordonnées masque:`, mask);
+
+    // Valider et clamper les coordonnées du masque
+    const maskX = Math.max(0, Math.round(mask.x));
+    const maskY = Math.max(0, Math.round(mask.y));
+    const maskWidth = Math.max(1, Math.round(mask.width));
+    const maskHeight = Math.max(1, Math.round(mask.height));
 
     // Télécharger l'image depuis l'URL
     const imageResponse = await fetch(imageUrl);
@@ -407,25 +430,37 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
 
     const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 
-    // Créer le rectangle blanc SVG
+    // Obtenir les métadonnées de l'image pour validation
+    const imageInfo = await sharp(imageBuffer).metadata();
+    
+    // Clamper les dimensions du masque aux limites de l'image
+    const clampedWidth = Math.min(maskWidth, (imageInfo.width || 1) - maskX);
+    const clampedHeight = Math.min(maskHeight, (imageInfo.height || 1) - maskY);
+
+    // Créer le rectangle blanc SVG avec dimensions validées
     const maskSvg = `
-      <svg width="${mask.width}" height="${mask.height}" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${clampedWidth}" height="${clampedHeight}" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="white"/>
       </svg>
     `;
 
     const maskBuffer = Buffer.from(maskSvg);
 
-    // Appliquer le masque blanc sur l'image
+    // Appliquer le masque blanc sur l'image ET convertir en WebP
     const maskedImageBuffer = await sharp(imageBuffer)
       .composite([
         {
           input: maskBuffer,
-          top: mask.y,
-          left: mask.x,
+          top: maskY,
+          left: maskX,
           blend: "over",
         },
       ])
+      .webp({
+        quality: 85,
+        effort: 5,
+        smartSubsample: true,
+      })
       .toBuffer();
 
     // Générer un nouveau nom pour l'image masquée

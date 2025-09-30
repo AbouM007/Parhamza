@@ -12,6 +12,7 @@ import {
   ListingTypeValue,
 } from "./create-listing/ListingTypeStep";
 import { VehicleDetailsStep } from "./create-listing/VehicleDetailsStep";
+import { PlateBlurModal } from "./PlateBlurModal";
 import { PREMIUM_PACKS } from "@/types/premium";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
@@ -95,6 +96,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [createdVehicle, setCreatedVehicle] = useState<{id: string, title: string} | null>(null);
   const [showBoostModal, setShowBoostModal] = useState(false);
   const [blurredImages, setBlurredImages] = useState<Set<number>>(new Set());
+  const [plateBlurModal, setPlateBlurModal] = useState<{ isOpen: boolean; photoIndex: number; imageUrl: string }>({
+    isOpen: false,
+    photoIndex: -1,
+    imageUrl: "",
+  });
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -903,10 +909,98 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     }));
   };
 
-  // Fonction pour flouter l'immatriculation (à implémenter plus tard)
-  const handleBlurPlate = (index: number) => {
-    // TODO: Implémenter la détection et le floutage d'immatriculation
-    alert("Fonctionnalité bientôt disponible !\n\nCette option permettra de flouter automatiquement les plaques d'immatriculation sur vos photos.");
+  // Fonction pour ouvrir le modal de floutage d'immatriculation
+  const handleBlurPlate = async (index: number) => {
+    const photo = formData.photos[index];
+    let imageUrl: string;
+
+    // Si c'est un File, il faut d'abord l'uploader
+    if (typeof photo !== "string") {
+      try {
+        // Upload temporaire de l'image
+        const formData = new FormData();
+        formData.append("images", photo);
+
+        const uploadResponse = await fetch(`/api/images/upload/${user?.id}`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Erreur upload image");
+        }
+
+        const { images } = await uploadResponse.json();
+        imageUrl = images[0].url;
+
+        // Mettre à jour le formData avec l'URL uploadée
+        setFormData((prev) => {
+          const newPhotos = [...prev.photos];
+          newPhotos[index] = imageUrl;
+          return {
+            ...prev,
+            photos: newPhotos,
+          };
+        });
+      } catch (error) {
+        console.error("Erreur upload image:", error);
+        alert("Erreur lors de l'upload de l'image. Veuillez réessayer.");
+        return;
+      }
+    } else {
+      imageUrl = photo;
+    }
+    
+    setPlateBlurModal({
+      isOpen: true,
+      photoIndex: index,
+      imageUrl,
+    });
+  };
+
+  // Fonction pour appliquer le masque blanc sur l'image
+  const handleApplyMask = async (maskData: { x: number; y: number; width: number; height: number }) => {
+    try {
+      const { photoIndex, imageUrl } = plateBlurModal;
+      
+      // Appeler l'API backend pour appliquer le masque
+      const response = await fetch("/api/images/apply-mask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl,
+          mask: maskData,
+          userId: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'application du masque");
+      }
+
+      const { maskedImageUrl } = await response.json();
+
+      // Remplacer l'image dans le formulaire par l'image masquée
+      setFormData((prev) => {
+        const newPhotos = [...prev.photos];
+        newPhotos[photoIndex] = maskedImageUrl;
+        return {
+          ...prev,
+          photos: newPhotos,
+        };
+      });
+
+      // Marquer l'image comme floutée
+      setBlurredImages((prev) => new Set(prev).add(photoIndex));
+
+      // Fermer le modal
+      setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" });
+    } catch (error) {
+      console.error("Erreur application masque:", error);
+      alert("Erreur lors de l'application du masque. Veuillez réessayer.");
+    }
   };
 
   const renderSpecificDetailsFields = () => {
@@ -3663,6 +3757,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           annonceTitle={createdVehicle.title}
         />
       )}
+
+      {/* Modal de floutage de plaque d'immatriculation */}
+      <PlateBlurModal
+        isOpen={plateBlurModal.isOpen}
+        imageUrl={plateBlurModal.imageUrl}
+        onClose={() => setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" })}
+        onConfirm={handleApplyMask}
+      />
     </div>
   );
 };
