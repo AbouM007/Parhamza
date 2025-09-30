@@ -16,9 +16,7 @@ export function useFavorites() {
     const now = Date.now();
     const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
 
-    // Éviter les recharges trop fréquentes sauf si forcé
     if (!forceReload && now - lastLoadTimeRef.current < CACHE_DURATION) {
-      //console.log("📋 Favoris récents, pas de rechargement nécessaire");
       return;
     }
 
@@ -42,38 +40,25 @@ export function useFavorites() {
   // Ajouter aux favoris avec mise à jour immédiate
   const addToFavorites = async (vehicleId: string) => {
     if (!profile?.id) {
-      console.warn("❌ Pas d'utilisateur connecté pour ajouter favori");
+      alert("Veuillez vous connecter pour ajouter un favori");
       return false;
     }
 
-    console.log("🔄 Ajout favori API call:", { userId: profile.id, vehicleId });
-
-    // Mise à jour optimiste immédiate de l'interface
-    setFavoriteIds((prev) => {
-      const newSet = new Set([...prev, vehicleId]);
-      console.log("⚡ Mise à jour optimiste favoriteIds:", Array.from(newSet));
-      return newSet;
-    });
+    setFavoriteIds((prev) => new Set([...prev, vehicleId]));
 
     try {
       const response = await fetch("/api/favorites/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: profile.id,
-          vehicleId: vehicleId,
-        }),
+        body: JSON.stringify({ userId: profile.id, vehicleId }),
       });
 
-      const result = await response.json();
-      console.log("📥 Réponse API ajout favori:", result);
-
       if (response.ok) {
-        console.log("✅ Favori ajouté avec succès - UI déjà mise à jour");
+        console.log("✅ Favori ajouté avec succès");
         return true;
       } else {
-        // Annuler la mise à jour optimiste en cas d'erreur
-        console.error("❌ Erreur API ajout favori, annulation UI:", result);
+        const result = await response.json();
+        console.error("❌ Erreur API ajout favori:", result);
         setFavoriteIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(vehicleId);
@@ -81,8 +66,7 @@ export function useFavorites() {
         });
       }
     } catch (error) {
-      console.error("❌ Erreur réseau ajout favori, annulation UI:", error);
-      // Annuler la mise à jour optimiste en cas d'erreur
+      console.error("❌ Erreur réseau ajout favori:", error);
       setFavoriteIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(vehicleId);
@@ -92,30 +76,19 @@ export function useFavorites() {
     return false;
   };
 
-  // Supprimer des favoris avec mise à jour immédiate
+  // Supprimer des favoris
   const removeFromFavorites = async (vehicleId: string) => {
     if (!profile?.id) {
-      console.warn("❌ Pas d'utilisateur connecté pour supprimer favori");
+      alert("Veuillez vous connecter pour supprimer un favori");
       return false;
     }
 
-    console.log("🔄 Suppression favori API call:", {
-      userId: profile.id,
-      vehicleId,
-    });
-
-    // Sauvegarde pour annulation potentielle
     const previousIds = new Set(favoriteIds);
     const previousFavorites = [...favorites];
 
-    // Mise à jour optimiste immédiate de l'interface
     setFavoriteIds((prev) => {
       const newSet = new Set(prev);
       newSet.delete(vehicleId);
-      console.log(
-        "⚡ Mise à jour optimiste suppression favoriteIds:",
-        Array.from(newSet),
-      );
       return newSet;
     });
     setFavorites((prev) => prev.filter((fav) => fav.id !== vehicleId));
@@ -124,74 +97,50 @@ export function useFavorites() {
       const response = await fetch("/api/favorites/remove", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: profile.id,
-          vehicleId: vehicleId,
-        }),
+        body: JSON.stringify({ userId: profile.id, vehicleId }),
       });
 
-      const result = await response.json();
-      console.log("📥 Réponse API suppression favori:", result);
-
       if (response.ok) {
-        console.log("✅ Favori supprimé avec succès - UI déjà mise à jour");
+        console.log("✅ Favori supprimé avec succès");
         return true;
       } else {
-        // Annuler la mise à jour optimiste en cas d'erreur
-        console.error(
-          "❌ Erreur API suppression favori, restauration UI:",
-          result,
-        );
+        const result = await response.json();
+        console.error("❌ Erreur API suppression favori:", result);
         setFavoriteIds(previousIds);
         setFavorites(previousFavorites);
       }
     } catch (error) {
-      console.error(
-        "❌ Erreur réseau suppression favori, restauration UI:",
-        error,
-      );
-      // Annuler la mise à jour optimiste en cas d'erreur
+      console.error("❌ Erreur réseau suppression favori:", error);
       setFavoriteIds(previousIds);
       setFavorites(previousFavorites);
     }
     return false;
   };
 
-  // Basculer favori
+  // Toggle favori
   const toggleFavorite = async (vehicleId: string) => {
-    const isCurrentlyFavorite = favoriteIds.has(vehicleId);
-    console.log("🔄 Toggle favori - état actuel:", isCurrentlyFavorite);
-
-    if (isCurrentlyFavorite) {
-      console.log("➖ Suppression du favori...");
+    if (favoriteIds.has(vehicleId)) {
       return await removeFromFavorites(vehicleId);
     } else {
-      console.log("➕ Ajout du favori...");
       return await addToFavorites(vehicleId);
     }
   };
 
   // Vérifier si un véhicule est en favori
-  const isFavorite = (vehicleId: string) => {
-    const isInFavorites = favoriteIds.has(vehicleId);
-    //console.log('🔍 isFavorite check pour', vehicleId, ':', isInFavorites, 'dans', Array.from(favoriteIds));
-    return isInFavorites;
-  };
+  const isFavorite = (vehicleId: string) => favoriteIds.has(vehicleId);
 
   useEffect(() => {
     if (profile?.id) {
-      // Délai pour éviter les appels trop rapides lors du changement d'état
       const timer = setTimeout(() => {
         loadFavorites();
       }, 100);
-
       return () => clearTimeout(timer);
     } else {
-      // Réinitialiser l'état si aucun utilisateur connecté
-      setFavorites([]);
-      setFavoriteIds(new Set());
+      if (favorites.length > 0) setFavorites([]);
+      if (favoriteIds.size > 0) setFavoriteIds(new Set());
       console.log("🔄 Réinitialisation favoris - aucun utilisateur");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
 
   return {
