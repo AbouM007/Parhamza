@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,6 +7,8 @@ import { FormLabel } from "../shared/FormLabel";
 import { StepButtons } from "../shared/StepButtons";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { StepProps } from "../../types";
 
 const professionalSchema = z.object({
   companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
@@ -18,46 +19,33 @@ const professionalSchema = z.object({
 
 type ProfessionalFormData = z.infer<typeof professionalSchema>;
 
-interface ProfessionalStepProps {
-  onNext: () => void;
-  onBack: () => void;
-}
-
-export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps) {
   const { toast } = useToast();
-  const { user, refreshProfile } = useAuth();
+  const { refreshProfile } = useAuth();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ProfessionalFormData>({
+  const form = useForm<ProfessionalFormData>({
     resolver: zodResolver(professionalSchema),
     defaultValues: {
-      companyName: "",
-      siret: "",
-      name: "",
-      phone: "",
+      companyName: (currentData.professional?.companyName as string) || "",
+      siret: (currentData.professional?.siret as string) || "",
+      name: (currentData.professional?.name as string) || "",
+      phone: (currentData.professional?.phone as string) || "",
     },
   });
 
   const onSubmit = async (data: ProfessionalFormData) => {
-    if (!user?.id) {
-      toast({
-        title: "Erreur",
-        description: "Utilisateur non connecté",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error("Session non disponible");
+
       const response = await fetch("/api/profile/complete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           ...data,
           type: "professional",
@@ -65,17 +53,18 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la sauvegarde");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erreur lors de la mise à jour");
       }
-
-      await refreshProfile();
 
       toast({
         title: "Professionnel enregistré !",
         description: "Passons maintenant à l'upload de vos documents.",
       });
 
-      onNext();
+      await refreshProfile();
+
+      onComplete({ professional: data });
     } catch (error) {
       console.error("Erreur sauvegarde professionnel:", error);
       toast({
@@ -83,8 +72,6 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
         description: "Une erreur est survenue. Veuillez réessayer.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -106,7 +93,7 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
       </div>
 
       {/* Formulaire */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nom entreprise */}
           <div>
@@ -114,8 +101,9 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
             <FormInput
               id="companyName"
               placeholder="Auto Passion SARL, Garage Martin..."
-              error={errors.companyName?.message}
-              {...register("companyName")}
+              error={form.formState.errors.companyName?.message}
+              {...form.register("companyName")}
+              data-testid="input-company-name"
             />
           </div>
 
@@ -127,8 +115,9 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
               type="text"
               maxLength={14}
               placeholder="12345678901234"
-              error={errors.siret?.message}
-              {...register("siret")}
+              error={form.formState.errors.siret?.message}
+              {...form.register("siret")}
+              data-testid="input-siret"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               14 chiffres requis
@@ -141,8 +130,9 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
             <FormInput
               id="name"
               placeholder="Jean Dupont"
-              error={errors.name?.message}
-              {...register("name")}
+              error={form.formState.errors.name?.message}
+              {...form.register("name")}
+              data-testid="input-manager-name"
             />
           </div>
 
@@ -154,8 +144,9 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
               type="tel"
               maxLength={10}
               placeholder="0612345678"
-              error={errors.phone?.message}
-              {...register("phone")}
+              error={form.formState.errors.phone?.message}
+              {...form.register("phone")}
+              data-testid="input-manager-phone"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               10 chiffres requis
@@ -166,9 +157,9 @@ export function ProfessionalStep({ onNext, onBack }: ProfessionalStepProps) {
         {/* Boutons */}
         <StepButtons
           onBack={onBack}
-          onContinue={() => handleSubmit(onSubmit)()}
+          onContinue={() => form.handleSubmit(onSubmit)()}
           continueText="Continuer"
-          continueDisabled={isSubmitting}
+          continueDisabled={form.formState.isSubmitting}
         />
       </form>
     </div>
