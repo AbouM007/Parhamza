@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Camera, Check, Search, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, Search, X, EyeOff } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { PremiumPackSelector } from "./PremiumPackSelector";
 import { PremiumPayment } from "./PremiumPayment";
@@ -94,6 +94,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdVehicle, setCreatedVehicle] = useState<{id: string, title: string} | null>(null);
   const [showBoostModal, setShowBoostModal] = useState(false);
+  const [blurredImages, setBlurredImages] = useState<Set<number>>(new Set());
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -900,6 +901,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index),
     }));
+  };
+
+  // Fonction pour flouter l'immatriculation (à implémenter plus tard)
+  const handleBlurPlate = (index: number) => {
+    // TODO: Implémenter la détection et le floutage d'immatriculation
+    alert("Fonctionnalité bientôt disponible !\n\nCette option permettra de flouter automatiquement les plaques d'immatriculation sur vos photos.");
   };
 
   const renderSpecificDetailsFields = () => {
@@ -2766,9 +2773,23 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                           alt={`Photo ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
+                        
+                        {/* Bouton pour flouter l'immatriculation */}
+                        <button
+                          onClick={() => handleBlurPlate(index)}
+                          className="absolute bottom-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-lg text-xs font-medium hover:bg-blue-600 transition-all opacity-0 group-hover:opacity-100 flex items-center space-x-1"
+                          title="Flouter l'immatriculation (bientôt disponible)"
+                          data-testid={`button-blur-plate-${index}`}
+                        >
+                          <EyeOff className="h-3 w-3" />
+                          <span>Flouter</span>
+                        </button>
+
+                        {/* Bouton de suppression */}
                         <button
                           onClick={() => removePhoto(index)}
                           className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                          data-testid={`button-remove-photo-${index}`}
                         >
                           <X className="h-4 w-4" />
                         </button>
