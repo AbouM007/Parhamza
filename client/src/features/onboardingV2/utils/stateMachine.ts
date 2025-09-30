@@ -28,14 +28,10 @@ const transitions: StateTransition[] = [
   },
   {
     from: "docs",
-    to: "validation",
+    to: "completed",
   },
   {
     from: "payment",
-    to: "validation",
-  },
-  {
-    from: "validation",
     to: "completed",
   },
 ];

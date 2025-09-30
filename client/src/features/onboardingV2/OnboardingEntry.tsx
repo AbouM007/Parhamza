@@ -48,8 +48,9 @@ const checkOnboarding = (
   }
 
   if (user.type === "professional") {
-    const validStates: OnboardingState[] = ["docs", "payment", "validation"];
-    if (user.onboardingState && validStates.includes(user.onboardingState)) {
+    const validStates: OnboardingState[] = ["docs", "payment"];
+    const userState = (user as any).onboardingState as OnboardingState | undefined;
+    if (userState && validStates.includes(userState)) {
       return { launch: true, reason: "pro_onboarding" };
     }
   }
@@ -57,39 +58,7 @@ const checkOnboarding = (
   return { launch: false, reason: "completed" };
 };
 
-const renderValidationStep = (props: StepProps & { onFinish: () => void }) => {
-  const { currentData, onBack, onFinish } = props;
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Validation en cours</h3>
-      <p className="text-sm text-gray-600">
-        Les contrôles automatiques et notifications seront branchés ici.
-      </p>
-      <pre className="rounded bg-gray-100 p-4 text-xs">
-        {JSON.stringify(currentData, null, 2)}
-      </pre>
-      <div className="flex gap-2">
-        {onBack ? (
-          <button
-            type="button"
-            className="rounded bg-gray-200 px-4 py-2 text-gray-700"
-            onClick={onBack}
-          >
-            Retour
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="rounded bg-blue-600 px-4 py-2 text-white"
-          onClick={onFinish}
-        >
-          Terminer
-        </button>
-      </div>
-    </div>
-  );
-};
+// ValidationStep supprimée - les documents sont maintenant uploadés directement dans DocsStep
 
 export const OnboardingEntry = ({
   user = null,
@@ -127,11 +96,6 @@ export const OnboardingEntry = ({
         return <DocsStep {...commonProps} />;
       case "payment":
         return <PaymentStep {...commonProps} />;
-      case "validation":
-        return renderValidationStep({
-          ...commonProps,
-          onFinish: () => advance(),
-        });
       case "completed":
         return null;
       default:

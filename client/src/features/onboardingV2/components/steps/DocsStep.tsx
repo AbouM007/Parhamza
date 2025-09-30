@@ -1,19 +1,22 @@
 import { useState } from "react";
-import { AlertCircle, Upload, FileText, CheckCircle } from "lucide-react";
+import { AlertCircle, Upload, FileText, CheckCircle, Loader } from "lucide-react";
 import { FormLabel } from "../shared/FormLabel";
 import { StepButtons } from "../shared/StepButtons";
 import { StepProps } from "../../types";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const DocsStep = ({
   currentData,
   onComplete,
   onBack,
 }: StepProps) => {
+  const { session } = useAuth();
   const [kbisFile, setKbisFile] = useState<File | null>(null);
   const [cinFormat, setCinFormat] = useState<"pdf" | "images">("pdf");
   const [cinFiles, setCinFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<string | null>(null);
   const [cinError, setCinError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -31,7 +34,7 @@ export const DocsStep = ({
     setErrors(null);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setErrors(null);
     setCinError(null);
 
@@ -67,14 +70,58 @@ export const DocsStep = ({
       }
     }
 
-    // Sauvegarder les fichiers dans les données d'onboarding
-    onComplete({
-      documents: {
-        kbis: kbisFile,
-        cin: cinFiles,
-        cinFormat,
-      },
-    });
+    // Vérifier la session
+    if (!session?.access_token) {
+      setErrors("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+
+    // Uploader les documents immédiatement au serveur
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      
+      // Ajouter les infos professionnelles depuis l'étape précédente
+      const professional = currentData.professional as any;
+      if (professional?.companyName) {
+        formData.append("company_name", professional.companyName);
+      }
+      if (professional?.siret) {
+        formData.append("siret", professional.siret);
+      }
+      
+      // Ajouter les documents
+      formData.append("kbis_document", kbisFile);
+      cinFiles.forEach((file) => {
+        formData.append("cin_document", file);
+      });
+
+      const response = await fetch("/api/professional-accounts/verify", {
+        method: "POST",
+        headers: { 
+          Authorization: `Bearer ${session.access_token}` 
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Erreur lors de l'upload des documents");
+      }
+
+      // Documents uploadés avec succès, passer à l'étape suivante
+      onComplete({
+        documents: {
+          uploaded: true,
+          cinFormat,
+        },
+      });
+    } catch (error) {
+      console.error("❌ Erreur upload documents:", error);
+      setErrors(error instanceof Error ? error.message : "Erreur lors de l'upload des documents. Veuillez réessayer.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -276,8 +323,17 @@ export const DocsStep = ({
       <StepButtons
         onBack={onBack}
         onContinue={handleContinue}
-        continueLabel="Continuer vers le paiement"
+        continueText={isUploading ? "Upload en cours..." : "Continuer vers le paiement"}
+        continueDisabled={isUploading}
       />
+      
+      {/* Upload Progress */}
+      {isUploading && (
+        <div className="flex items-center justify-center gap-2 text-teal-600">
+          <Loader className="animate-spin h-5 w-5" />
+          <span>Envoi des documents au serveur...</span>
+        </div>
+      )}
     </div>
   );
 };

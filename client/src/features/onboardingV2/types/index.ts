@@ -1,5 +1,7 @@
-import { User } from "@/types";  // ← Type User local OnboardingV2
+import { User } from "@/types";
 
+// Réexporter User pour les autres fichiers du module
+export type { User };
 
 export type OnboardingState =
   | "choice"

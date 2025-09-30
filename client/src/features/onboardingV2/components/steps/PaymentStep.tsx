@@ -211,12 +211,16 @@ export const PaymentStep = ({
         </p>
       </div>
 
-      {/* Navigation Buttons */}
-      <StepButtons
-        onBack={onBack}
-        backLabel="Retour aux documents"
-        hideBack={false}
-      />
+      {/* Bouton Retour */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          type="button"
+          className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+        >
+          <span>← Retour aux documents</span>
+        </button>
+      )}
 
       {/* Skip Button (Dev Only) */}
       {import.meta.env.DEV && (
