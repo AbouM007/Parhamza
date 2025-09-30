@@ -4,6 +4,19 @@ import { StepProps } from "../../types";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 
+// Types pour les données de l'onboarding professionnel
+interface ProfessionalData {
+  companyName?: string;
+  siret?: string;
+  contactName?: string;
+  contactPhone?: string;
+}
+
+interface DocumentsData {
+  kbis?: File;
+  cin?: File[];
+}
+
 export const ValidationStep = ({
   currentData,
   onComplete,
@@ -15,17 +28,17 @@ export const ValidationStep = ({
   const handleFinish = async () => {
     setIsSubmitting(true);
     try {
-      const docs = currentData.documents as any;
-      const professional = currentData.professional as any;
+      const docs = currentData.documents as DocumentsData;
+      const professional = currentData.professional as ProfessionalData;
 
       // Uploader les documents vers le serveur
       const formData = new FormData();
       
       if (docs?.kbis) {
-        formData.append("kbis_document", docs.kbis as Blob);
+        formData.append("kbis_document", docs.kbis);
       }
       
-      if (docs?.cin && Array.isArray(docs.cin) && docs.cin.length > 0) {
+      if (docs?.cin && docs.cin.length > 0) {
         docs.cin.forEach((file: File) => {
           formData.append("cin_document", file);
         });
@@ -33,20 +46,22 @@ export const ValidationStep = ({
 
       // Ajouter les infos du compte professionnel (depuis ProfessionalStep)
       if (professional?.companyName) {
-        formData.append("company_name", professional.companyName as string);
+        formData.append("company_name", professional.companyName);
       }
       if (professional?.siret) {
-        formData.append("siret", professional.siret as string);
+        formData.append("siret", professional.siret);
       }
 
-      // Envoyer les documents pour vérification
-      const response = await apiRequest("/api/professional-accounts/verify", {
+      // Envoyer les documents pour vérification (utiliser fetch car FormData incompatible avec apiRequest)
+      const response = await fetch("/api/professional-accounts/verify", {
         method: "POST",
         body: formData,
+        credentials: "include", // Important pour les cookies de session
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de l'envoi des documents");
+        const error = await response.text();
+        throw new Error(`Erreur lors de l'envoi des documents: ${error}`);
       }
 
       // Marquer le profil comme complété
@@ -110,7 +125,7 @@ export const ValidationStep = ({
 
         {/* Payment Status */}
         {(() => {
-          const payment = currentData.payment as any;
+          const payment = currentData.payment as { planName?: string; skipped?: boolean };
           return payment?.planName && !payment?.skipped ? (
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
