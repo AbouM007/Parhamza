@@ -401,7 +401,7 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
       process.env.SUPABASE_URL?.replace('https://', ''),
       'supabase.co',
       process.env.REPLIT_DOMAINS || '',
-    ].filter(Boolean);
+    ].filter((d): d is string => Boolean(d));
 
     const urlObj = new URL(imageUrl);
     const isAllowed = allowedDomains.some(domain => 
@@ -421,6 +421,7 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
     const maskY = Math.max(0, Math.round(mask.y));
     const maskWidth = Math.max(1, Math.round(mask.width));
     const maskHeight = Math.max(1, Math.round(mask.height));
+    const maskAngle = mask.angle || 0; // Angle de rotation en degrés
 
     // Télécharger l'image depuis l'URL
     const imageResponse = await fetch(imageUrl);
@@ -437,14 +438,35 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
     const clampedWidth = Math.min(maskWidth, (imageInfo.width || 1) - maskX);
     const clampedHeight = Math.min(maskHeight, (imageInfo.height || 1) - maskY);
 
-    // Créer le rectangle blanc SVG avec dimensions validées
-    const maskSvg = `
-      <svg width="${clampedWidth}" height="${clampedHeight}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="white"/>
-      </svg>
-    `;
+    let maskBuffer: Buffer;
 
-    const maskBuffer = Buffer.from(maskSvg);
+    if (maskAngle === 0) {
+      // Cas simple: rectangle sans rotation (SVG)
+      const maskSvg = `
+        <svg width="${clampedWidth}" height="${clampedHeight}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="white"/>
+        </svg>
+      `;
+      maskBuffer = Buffer.from(maskSvg);
+    } else {
+      // Cas avec rotation: créer un rectangle blanc et le tourner avec Sharp
+      // Créer un rectangle blanc avec fond transparent
+      const rectBuffer = await sharp({
+        create: {
+          width: clampedWidth,
+          height: clampedHeight,
+          channels: 4,
+          background: { r: 255, g: 255, b: 255, alpha: 1 }
+        }
+      })
+      .png()
+      .toBuffer();
+
+      // Appliquer la rotation avec fond transparent
+      maskBuffer = await sharp(rectBuffer)
+        .rotate(maskAngle, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .toBuffer();
+    }
 
     // Appliquer le masque blanc sur l'image ET convertir en WebP
     const maskedImageBuffer = await sharp(imageBuffer)
