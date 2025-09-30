@@ -83,3 +83,37 @@ Preferred communication style: Simple, everyday language.
 - **date-fns**: Date manipulation utilities
 - **uuid**: Unique identifier generation
 - **class-variance-authority**: Utility for conditional CSS classes
+
+## Replit Environment Setup
+
+### Environment Variables (Required)
+The following environment variables must be configured in Replit Secrets:
+- `DATABASE_URL` - PostgreSQL connection string (Supabase)
+- `VITE_SUPABASE_URL` - Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key for server operations
+- `STRIPE_SECRET_KEY` - Stripe secret key for payment processing
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret for event validation
+- `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key (optional, for frontend)
+
+### Development Workflow
+- **Start Development**: `npm run dev` - Runs Express server on port 5000 with Vite middleware
+- **Build for Production**: `npm run build` - Builds frontend and bundles backend
+- **Start Production**: `npm run start` - Runs production build
+- **Database Sync**: `npm run db:push` - Syncs Drizzle schema to Supabase database
+
+### Server Configuration
+- **Port**: Application runs on port 5000 (both development and production)
+- **Host**: Binds to 0.0.0.0 for Replit proxy compatibility
+- **Vite Proxy**: Configured with `allowedHosts: ["*"]` for Replit iframe preview
+- **Hot Reload**: Vite HMR enabled in development mode
+
+### Deployment Configuration
+- **Type**: Autoscale deployment (stateless web application)
+- **Build Command**: `npm run build`
+- **Start Command**: `npm run start`
+- **Environment**: Production uses compiled JavaScript from dist/
+
+### Recent Changes
+- **2025-09-30**: Configured Replit environment setup, workflow, and deployment settings
+- Application successfully running on Replit with Supabase backend integration
