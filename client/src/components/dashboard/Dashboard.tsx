@@ -830,7 +830,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onSuccess: (data: any) => {
       toast({
         title: "Abonnement annulé",
-        description: `Votre abonnement reste actif jusqu'au ${new Date(data.currentPeriodEnd).toLocaleDateString('fr-FR')}`,
+        description: "Votre abonnement ne sera pas reconduit à la fin de la période.",
       });
       // Rafraîchir l'historique des achats
       fetchPurchaseHistory();
@@ -842,6 +842,35 @@ export const Dashboard: React.FC<DashboardProps> = ({
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'annuler l'abonnement",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation pour réactiver l'abonnement
+  const reactivateSubscriptionMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/subscriptions/modify', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'reactivate' }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Abonnement réactivé",
+        description: "Votre abonnement se renouvellera automatiquement.",
+      });
+      // Rafraîchir l'historique des achats
+      fetchPurchaseHistory();
+      // Rafraîchir aussi le statut d'abonnement
+      queryClient.invalidateQueries({ queryKey: [`/api/subscriptions/status/${profile?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions/current'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de réactiver l'abonnement",
         variant: "destructive",
       });
     },
@@ -1474,14 +1503,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               : purchase.status}
                         </div>
                         
-                        {/* Bouton Annuler / Statut d'annulation pour abonnements actifs */}
-                        {purchase.type === "subscription" && purchase.status === "active" && (
+                        {/* Bouton Annuler / Réactiver / Renouveler pour abonnements */}
+                        {purchase.type === "subscription" && (
                           <div className="mt-2">
-                            {purchase.cancelAtPeriodEnd ? (
-                              <div className="text-sm text-orange-600 font-medium" data-testid={`text-subscription-ending-${purchase.id}`}>
-                                Se termine le {new Date(purchase.currentPeriodEnd).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {/* Abonnement actif mais annulé (cancel_at_period_end = true) */}
+                            {purchase.status === "active" && purchase.cancelAtPeriodEnd ? (
+                              <div className="space-y-2">
+                                <div className="text-sm text-orange-600 font-medium" data-testid={`text-subscription-cancelled-${purchase.id}`}>
+                                  Abonnement annulé - Ne sera pas reconduit
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm("Réactiver votre abonnement ? Il se renouvellera automatiquement à la fin de la période.")) {
+                                      reactivateSubscriptionMutation.mutate();
+                                    }
+                                  }}
+                                  disabled={reactivateSubscriptionMutation.isPending}
+                                  className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  data-testid={`button-reactivate-subscription-${purchase.id}`}
+                                >
+                                  {reactivateSubscriptionMutation.isPending ? "Réactivation..." : "Réactiver l'abonnement"}
+                                </button>
                               </div>
-                            ) : (
+                            ) : 
+                            /* Abonnement actif (peut être annulé) */
+                            purchase.status === "active" ? (
                               <button
                                 onClick={() => {
                                   if (window.confirm("Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu'à la fin de la période en cours.")) {
@@ -1494,7 +1540,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               >
                                 {cancelSubscriptionMutation.isPending ? "Annulation..." : "Annuler l'abonnement"}
                               </button>
-                            )}
+                            ) :
+                            /* Abonnement expiré (peut être renouvelé) */
+                            purchase.status === "cancelled" ? (
+                              <div className="space-y-2">
+                                <div className="text-sm text-gray-600 font-medium" data-testid={`text-subscription-expired-${purchase.id}`}>
+                                  Abonnement expiré
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    // TODO: Rediriger vers checkout Stripe avec le même plan
+                                    alert("Fonctionnalité de renouvellement à implémenter");
+                                  }}
+                                  className="px-3 py-1.5 text-sm bg-primary-bolt-600 text-white rounded-md hover:bg-primary-bolt-700 transition-colors"
+                                  data-testid={`button-renew-subscription-${purchase.id}`}
+                                >
+                                  Renouveler l'abonnement
+                                </button>
+                              </div>
+                            ) : null}
                           </div>
                         )}
                       </div>

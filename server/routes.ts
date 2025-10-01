@@ -2780,12 +2780,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "Failed to fetch purchase history" });
       }
 
-      // 🐞 DEBUG: Log pour voir les données retournées
-      const subscriptions = purchaseHistory?.filter(p => p.type === 'subscription');
-      if (subscriptions && subscriptions.length > 0) {
-        console.log('🐞 DEBUG Abonnements retournés:', JSON.stringify(subscriptions, null, 2));
-      }
-
       res.json(purchaseHistory || []);
     } catch (error) {
       console.error("Error in user purchase history endpoint:", error);

@@ -448,17 +448,17 @@ router.post("/cancel", requireAuth, async (req, res) => {
 
 /* -------------------------------- MODIFY ---------------------------------- */
 
-// POST /api/subscriptions/modify - Route unifiée pour upgrade/downgrade/cancel
+// POST /api/subscriptions/modify - Route unifiée pour upgrade/downgrade/cancel/reactivate
 router.post("/modify", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const { action, newPlanId } = req.body as { 
-      action: 'upgrade' | 'downgrade' | 'cancel'; 
+      action: 'upgrade' | 'downgrade' | 'cancel' | 'reactivate'; 
       newPlanId?: number;
     };
 
-    if (!action || !['upgrade', 'downgrade', 'cancel'].includes(action)) {
-      return res.status(400).json({ error: "Action invalide. Utilisez 'upgrade', 'downgrade' ou 'cancel'" });
+    if (!action || !['upgrade', 'downgrade', 'cancel', 'reactivate'].includes(action)) {
+      return res.status(400).json({ error: "Action invalide. Utilisez 'upgrade', 'downgrade', 'cancel' ou 'reactivate'" });
     }
 
     // 1. Récupérer l'abonnement actif
@@ -496,13 +496,6 @@ router.post("/modify", requireAuth, async (req, res) => {
       if (updatedStripeSubscription) {
         updatePayload.current_period_start = tsToIso(updatedStripeSubscription.current_period_start);
         updatePayload.current_period_end = tsToIso(updatedStripeSubscription.current_period_end);
-        console.log('🐞 DEBUG - Dates récupérées depuis Stripe:');
-        console.log('  current_period_start (timestamp):', updatedStripeSubscription.current_period_start);
-        console.log('  current_period_end (timestamp):', updatedStripeSubscription.current_period_end);
-        console.log('  current_period_start (ISO):', updatePayload.current_period_start);
-        console.log('  current_period_end (ISO):', updatePayload.current_period_end);
-      } else {
-        console.log('⚠️ WARN - updatedStripeSubscription est null, pas de dates à sauvegarder');
       }
 
       await supabaseServer
@@ -523,6 +516,39 @@ router.post("/modify", requireAuth, async (req, res) => {
         success: true,
         message: "Abonnement annulé. Actif jusqu'à la fin de la période.",
         currentPeriodEnd: updatePayload.current_period_end || currentSub.current_period_end
+      });
+    }
+
+    // Réactiver un abonnement annulé (annule l'annulation programmée)
+    if (action === 'reactivate') {
+      if (currentSub.stripe_subscription_id) {
+        // Dire à Stripe de ne PAS annuler l'abonnement
+        await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
+          cancel_at_period_end: false,
+        });
+      }
+
+      // Mettre à jour dans notre base de données
+      await supabaseServer
+        .from("subscriptions")
+        .update({ 
+          cancel_at_period_end: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", currentSub.id);
+
+      // Enregistrer dans l'historique
+      await supabaseServer.from("subscription_history").insert({
+        user_id: userId,
+        action_type: "reactivated",
+        old_plan_id: currentSub.plan_id,
+        old_stripe_subscription_id: currentSub.stripe_subscription_id,
+        metadata: { reactivated: true }
+      });
+
+      return res.json({
+        success: true,
+        message: "Abonnement réactivé. Il se renouvellera automatiquement.",
       });
     }
 
