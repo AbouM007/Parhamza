@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Check, X, Loader2, ArrowUp, ArrowDown, XCircle } from "lucide-react";
+import { Check, X, Loader2, ArrowUp, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ type CurrentSubscription = {
   subscription_plans: SubscriptionPlan;
 } | null;
 
-type ModifyAction = 'upgrade' | 'downgrade' | 'cancel';
+type ModifyAction = 'upgrade' | 'cancel';
 
 export default function SubscriptionManager() {
   const { toast } = useToast();
@@ -98,6 +98,11 @@ export default function SubscriptionManager() {
 
   // Fonction pour déterminer le type de bouton à afficher
   const getActionButton = (plan: SubscriptionPlan) => {
+    // Si pas d'abonnement actuel, rediriger vers le modal de sélection
+    if (!currentPlanId) {
+      return null; // Ce composant est pour gérer un abonnement existant uniquement
+    }
+
     if (plan.id === currentPlanId) {
       // Plan actuel
       if (currentSub?.cancel_at_period_end) {
@@ -119,58 +124,28 @@ export default function SubscriptionManager() {
       );
     }
 
-    if (!currentPlanId) {
-      // Pas d'abonnement actuel
-      return (
-        <button
-          className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors"
-          onClick={() => handleModify('upgrade', plan.id, plan.name)}
-          data-testid={`button-subscribe-${plan.id}`}
-        >
-          Souscrire
-        </button>
-      );
-    }
-
-    // Déterminer si c'est un upgrade ou downgrade
+    // Déterminer si c'est un upgrade (plan plus cher)
     const currentPrice = currentSub?.subscription_plans?.price_monthly || 0;
     const isUpgrade = plan.price_monthly > currentPrice;
-    const isSamePrice = plan.price_monthly === currentPrice;
     
-    // Cas particulier : même prix (désactiver le bouton)
-    if (isSamePrice) {
+    // Si le plan est moins cher ou même prix : afficher message pour annuler d'abord
+    if (!isUpgrade) {
       return (
-        <button
-          disabled
-          className="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-          data-testid={`button-disabled-${plan.id}`}
-        >
-          Même prix
-        </button>
+        <div className="text-sm text-gray-500 dark:text-gray-400 italic">
+          Annulez votre plan actuel pour souscrire à ce plan
+        </div>
       );
     }
     
+    // Upgrade disponible uniquement
     return (
       <button
-        className={`px-4 py-2 rounded-md transition-colors inline-flex items-center gap-2 ${
-          isUpgrade
-            ? 'bg-primary text-white hover:bg-primary/90'
-            : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`}
-        onClick={() => handleModify(isUpgrade ? 'upgrade' : 'downgrade', plan.id, plan.name)}
-        data-testid={`button-${isUpgrade ? 'upgrade' : 'downgrade'}-${plan.id}`}
+        className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+        onClick={() => handleModify('upgrade', plan.id, plan.name)}
+        data-testid={`button-upgrade-${plan.id}`}
       >
-        {isUpgrade ? (
-          <>
-            <ArrowUp className="h-4 w-4" />
-            Passer à ce plan
-          </>
-        ) : (
-          <>
-            <ArrowDown className="h-4 w-4" />
-            Rétrograder
-          </>
-        )}
+        <ArrowUp className="h-4 w-4" />
+        Passer à ce plan
       </button>
     );
   };

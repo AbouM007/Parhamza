@@ -109,8 +109,9 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
   // Récupération de l'abonnement actuel
   const { data: currentSubscription } = useQuery<{
     isActive: boolean;
-    planName: string | number;
-    planType: number;
+    planId: number | null;
+    planName: string;
+    maxListings: number | null;
     expiresAt: string | null;
     status: string;
     cancelAtPeriodEnd: boolean;
@@ -121,8 +122,8 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
   });
 
   const handleSelectPlan = async (plan: SubscriptionPlan) => {
-    // Vérifier si c'est le plan actuel
-    if (currentSubscription && currentSubscription.planName === plan.id) {
+    // Vérifier si c'est le plan actuel - empêcher la sélection
+    if (currentSubscription && currentSubscription.planId === plan.id) {
       return;
     }
 
@@ -272,8 +273,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
         {displayedPlans?.map((plan) => {
           const isCurrentPlan =
             currentSubscription &&
-            (currentSubscription.planName === plan.id ||
-              currentSubscription.planName === plan.id.toString());
+            currentSubscription.planId === plan.id;
 
           // Déterminer les couleurs du plan
           const planKey = plan.name.toLowerCase().includes("starter")
