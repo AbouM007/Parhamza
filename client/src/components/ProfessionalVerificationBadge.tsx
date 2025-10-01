@@ -1,39 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useProfessionalAccountStatus } from '@/hooks/useProfessionalAccountStatus';
 
 interface ProfessionalVerificationBadgeProps {
   dbUser: any;
 }
 
 export const ProfessionalVerificationBadge: React.FC<ProfessionalVerificationBadgeProps> = ({ dbUser }) => {
-  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchVerificationStatus = async () => {
-      if (!dbUser?.id || dbUser?.type !== 'professional') {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/professional-accounts/status/${dbUser.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setVerificationStatus(data.verification_status);
-        } else {
-          // Si 404, le compte professionnel n'existe pas encore
-          setVerificationStatus('not_started');
-        }
-      } catch (error) {
-        console.error('Erreur récupération statut vérification:', error);
-        setVerificationStatus('not_started');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchVerificationStatus();
-  }, [dbUser?.id, dbUser?.type]);
+  const { data: statusData, isLoading, error } = useProfessionalAccountStatus(dbUser?.id, dbUser?.type);
+  
+  // Déterminer le statut de vérification
+  const verificationStatus = error ? 'not_started' : statusData?.verification_status;
 
   // Ne pas afficher de badge pour les particuliers
   if (dbUser?.type !== 'professional') {

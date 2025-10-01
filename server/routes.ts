@@ -45,11 +45,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users/:id", async (req, res) => {
     try {
+      console.log("🐞 DEBUG: GET /api/users/:id - userId =", req.params.id);
       const user = await storage.getUser(req.params.id);
       if (!user) {
+        console.log("🐞 DEBUG: User non trouvé pour id:", req.params.id);
         return res.status(404).json({ error: "User not found" });
       }
-      res.json(user);
+      console.log("🐞 DEBUG: User récupéré depuis storage:");
+      console.log("🐞   user.type =", user.type);
+      console.log(
+        "🐞   user.profile_completed =",
+        (user as any).profile_completed,
+      );
+
+      // 🔧 Mapper les propriétés snake_case → camelCase pour le frontend
+      const mappedUser = {
+        ...user,
+        profileCompleted: (user as any).profile_completed,
+        postalCode: (user as any).postal_code,
+        companyName: (user as any).company_name,
+        emailVerified: (user as any).email_verified,
+        lastLoginAt: (user as any).last_login_at,
+        contactPreferences: (user as any).contact_preferences,
+        onboardingStatus: (user as any).onboarding_status,
+        createdAt: (user as any).created_at,
+      };
+
+      console.log("🐞 DEBUG: Après mapping:");
+      console.log("🐞   mappedUser.type =", mappedUser.type);
+      console.log(
+        "🐞   mappedUser.profileCompleted =",
+        mappedUser.profileCompleted,
+      );
+
+      res.setHeader("Cache-Control", "no-store");
+      res.json(mappedUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });
@@ -72,6 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .json({ error: "Failed to fetch professional account" });
       }
 
+      res.setHeader("Cache-Control", "no-store");
       res.json(data || null);
     } catch (error) {
       console.error("Error fetching professional account:", error);
@@ -86,6 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+      res.setHeader("Cache-Control", "no-store");
       res.json(user);
     } catch (error) {
       console.error("Error fetching user by email:", error);
@@ -108,7 +140,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch user emails" });
     }
   });
-
 
   // Endpoint pour synchroniser un utilisateur Supabase Auth avec la table users
   app.post("/api/users/sync-auth", async (req, res) => {
@@ -141,6 +172,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error syncing user:", error);
       res.status(500).json({ error: "Failed to sync user" });
+    }
+  });
+
+  // Route pour vérifier le statut "Passionné" d'un utilisateur particulier
+  app.get("/api/users/:id/passionate-status", async (req, res) => {
+    try {
+      const userId = req.params.id;
+
+      // Vérifier d'abord que l'utilisateur existe et est un particulier
+      const user = await storage.getUser(userId);
+      console.log(`🔍 PASSIONATE DEBUG - User ${userId}:`, {
+        email: user?.email,
+        type: user?.type,
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Si ce n'est pas un particulier, pas de statut Passionné
+      if (user.type !== "individual") {
+        console.log(
+          `❌ PASSIONATE DEBUG - User ${userId} type: ${user.type} (not individual)`,
+        );
+        return res.json({ isPassionate: false });
+      }
+
+      // Vérifier s'il a un abonnement actif - utiliser join manuel pour éviter les problèmes de relation
+      const { data: subscription, error } = await supabaseServer
+        .from("subscriptions")
+        .select(
+          `
+          id,
+          status,
+          plan_id
+        `,
+        )
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let planName = null;
+      if (subscription && subscription.plan_id) {
+        const { data: plan } = await supabaseServer
+          .from("subscription_plans")
+          .select("name")
+          .eq("id", subscription.plan_id)
+          .single();
+        planName = plan?.name || null;
+      }
+
+      if (error) {
+        console.error("Error checking passionate status:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to check passionate status" });
+      }
+
+      // Retourner le statut
+      const isPassionate = !!subscription;
+      const result = {
+        isPassionate,
+        planName,
+      };
+
+      res.setHeader("Cache-Control", "max-age=300"); // Cache 5 minutes
+      res.json(result);
+    } catch (error) {
+      console.error("Error checking passionate status:", error);
+      res.status(500).json({ error: "Failed to check passionate status" });
     }
   });
 
@@ -385,10 +488,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: metadata?.type || "pending",
         phone: metadata?.phone || null,
         whatsapp: metadata?.phone || null,
-        companyName: metadata?.companyName || null,
+        company_name: metadata?.companyName || null, // ✅ Corrigé: snake_case comme dans le schéma DB
         city: null,
         postal_code: null,
         email_verified: false, // Pas encore confirmé
+        profile_completed: false,
+        onboarding_status: "incomplete_profile",
       };
 
       const newUser = await storage.createUser(userData);
@@ -401,27 +506,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ user: newUser, created: true });
     } catch (error: any) {
       console.error("❌ Erreur sync immédiate:", error);
-      
+
       // 📱 Gestion spécifique pour téléphone existant
-      if (error.message === 'PHONE_ALREADY_EXISTS') {
-        return res.status(409).json({ 
+      if (error.message === "PHONE_ALREADY_EXISTS") {
+        return res.status(409).json({
           error: "PHONE_ALREADY_EXISTS",
-          message: "Ce numéro de téléphone est déjà utilisé par un autre compte."
+          message:
+            "Ce numéro de téléphone est déjà utilisé par un autre compte.",
         });
       }
-      
+
       // 📧 Gestion spécifique pour email existant
-      if (error.message === 'EMAIL_ALREADY_EXISTS') {
-        return res.status(409).json({ 
+      if (error.message === "EMAIL_ALREADY_EXISTS") {
+        return res.status(409).json({
           error: "EMAIL_ALREADY_EXISTS",
-          message: "Cette adresse email est déjà utilisée."
+          message: "Cette adresse email est déjà utilisée.",
         });
       }
-      
+
       // ⚠️ Erreur générique
-      res.status(500).json({ 
+      res.status(500).json({
         error: "SYNC_ERROR",
-        message: "Erreur lors de la création du compte. Veuillez réessayer."
+        message: "Erreur lors de la création du compte. Veuillez réessayer.",
       });
     }
   });
@@ -496,13 +602,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ✅ Si quota OK → Création
       const vehicle = await storage.createVehicle(vehicleData);
       return res.status(201).json(vehicle);
-
     } catch (error) {
       console.error("❌ Error creating vehicle:", error);
       return res.status(500).json({ error: "Failed to create vehicle" });
     }
   });
-
 
   app.put("/api/vehicles/:id", async (req, res) => {
     try {
@@ -518,31 +622,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint rapide pour vérifier le quota d'annonces d'un utilisateur (pour interception)
   app.get("/api/users/:id/quota/check", async (req, res) => {
     try {
       const userId = req.params.id;
 
-      // Utiliser la méthode existante de vérification quota
       const quotaInfo = await storage.checkListingQuota(userId);
+      const { canCreate, activeListings, maxListings, message } = quotaInfo;
 
-      // Retourner les infos nécessaires pour l'interception côté client
+      // remaining: null = illimité ; sinon calcule (y compris 0)
+      const remaining =
+        maxListings === null
+          ? null
+          : Math.max(0, (maxListings ?? 0) - (activeListings ?? 0));
+
+      res.setHeader("Cache-Control", "no-store");
       res.json({
-        canCreate: quotaInfo.canCreate,
-        remaining: quotaInfo.maxListings ? Math.max(0, quotaInfo.maxListings - quotaInfo.activeListings) : null,
-        used: quotaInfo.activeListings,
-        maxListings: quotaInfo.maxListings,
-        message: quotaInfo.message
+        canCreate,
+        remaining, // 0 = plus rien ; null = illimité
+        used: activeListings, // alias pour compat
+        activeListings, // explicite
+        maxListings, // number | null
+        message,
       });
     } catch (error) {
       console.error("Error checking user quota:", error);
-      // En cas d'erreur, autoriser par défaut (fail-safe)
+      res.setHeader("Cache-Control", "no-store");
       res.json({
         canCreate: true,
         remaining: null,
         used: 0,
+        activeListings: 0,
         maxListings: null,
-        message: "Erreur lors de la vérification, autorisation par défaut"
+        message: "Erreur lors de la vérification, autorisation par défaut",
       });
     }
   });
@@ -807,6 +918,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API : Création / Mise à jour compte (perso + pro)
   // ===============================
 
+  // NOUVEAU : Endpoint pour sauvegarder les données de profil en brouillon
+  // (sans marquer profile_completed = true)
+  app.post("/api/profile/draft", async (req, res) => {
+    try {
+      console.log("📝 Sauvegarde brouillon profil...");
+      console.log("📄 Données reçues:", req.body);
+
+      // 1) Authentification
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res
+          .status(401)
+          .json({ error: "Token d'authentification manquant" });
+      }
+      const token = authHeader.replace("Bearer ", "");
+      const {
+        data: { user },
+        error: authError,
+      } = await supabaseServer.auth.getUser(token);
+      if (authError || !user) {
+        console.error("❌ Auth échouée:", authError);
+        return res.status(401).json({ error: "Token invalide" });
+      }
+
+      // 2) Champs reçus
+      const {
+        companyName,
+        siret,
+        companyAddress,
+        phone,
+        website,
+        description,
+        name,
+        city,
+        postalCode,
+        whatsapp,
+        type,
+      } = req.body;
+
+      console.log(`📝 Sauvegarde brouillon pour type: ${type}`);
+
+      // ======================================
+      // CAS 1 : BROUILLON PROFESSIONNEL
+      // ======================================
+      if (type === "professional" && companyName && siret) {
+        console.log("🏢 Sauvegarde brouillon professionnel");
+
+        // Validation SIRET
+        if (!/^\d{14}$/.test(siret)) {
+          return res
+            .status(400)
+            .json({ error: "SIRET invalide (14 chiffres requis)" });
+        }
+
+        // Architecture propre : seulement professional_accounts, pas de pollution de users
+        try {
+          // 1) Vérifier si un compte pro existe déjà
+          const { data: existing, error: existingErr } = await supabaseServer
+            .from("professional_accounts")
+            .select("id")
+            .eq("user_id", user.id)
+            .single();
+
+          if (existingErr && existingErr.code !== "PGRST116") {
+            console.error("❌ Erreur recherche compte pro:", existingErr);
+            return res
+              .status(500)
+              .json({ error: "Erreur recherche compte professionnel" });
+          }
+
+          // 3) Insert ou Update professional_accounts
+          let query;
+          if (existing) {
+            query = supabaseServer
+              .from("professional_accounts")
+              .update({
+                company_name: companyName,
+                company_address: companyAddress || null,
+                siret,
+                description: description || null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", existing.id)
+              .select()
+              .single();
+          } else {
+            query = supabaseServer
+              .from("professional_accounts")
+              .insert({
+                user_id: user.id,
+                company_name: companyName,
+                company_address: companyAddress || null,
+                siret,
+                description: description || null,
+                verification_status: "not_started",
+              })
+              .select()
+              .single();
+          }
+
+          const { data: proAccount, error: upsertErr } = await query;
+          if (upsertErr) {
+            console.error(
+              "❌ Erreur sauvegarde compte pro (draft):",
+              upsertErr,
+            );
+            return res.status(500).json({
+              error: "Erreur sauvegarde compte professionnel (draft)",
+            });
+          }
+
+          console.log("✅ Brouillon professionnel sauvegardé:", proAccount.id);
+          return res.json({
+            success: true,
+            type: "professional_draft",
+            professionalAccount: proAccount,
+            message: "Brouillon professionnel sauvegardé avec succès",
+          });
+        } catch (error: any) {
+          console.error("❌ Erreur sauvegarde brouillon professionnel:", error);
+          return res.status(500).json({
+            error: "Erreur lors de la sauvegarde du brouillon professionnel",
+          });
+        }
+      }
+
+      // ======================================
+      // CAS 2 : BROUILLON PERSONNEL
+      // ======================================
+      if (type === "individual") {
+        console.log("👤 Sauvegarde brouillon personnel");
+
+        if (!name || !phone) {
+          return res
+            .status(400)
+            .json({ error: "Nom et téléphone obligatoires" });
+        }
+
+        try {
+          const { data: personal, error: personalErr } = await supabaseServer
+            .from("users")
+            .update({
+              name,
+              phone,
+              city: city && city.trim() !== "" ? city : null,
+              postal_code:
+                postalCode && postalCode.trim() !== "" ? postalCode : null,
+              whatsapp: whatsapp || null,
+              // ✅ PAS de profile_completed = true ici ! C'est un brouillon
+              type: "individual",
+              onboarding_status: "in_progress", // ✅ Statut intermédiaire
+            })
+            .eq("id", user.id)
+            .select()
+            .single();
+
+          if (personalErr) {
+            console.error(
+              "❌ Erreur sauvegarde brouillon personnel:",
+              personalErr,
+            );
+
+            // 📱 Gestion spécifique pour téléphone existant
+            if (
+              personalErr.message?.includes("duplicate key") &&
+              personalErr.message?.includes("phone")
+            ) {
+              return res.status(409).json({
+                error: "PHONE_ALREADY_EXISTS",
+                message:
+                  "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+              });
+            }
+
+            return res.status(500).json({
+              error: "Erreur sauvegarde brouillon personnel",
+            });
+          }
+
+          console.log("✅ Brouillon personnel sauvegardé:", personal.id);
+          return res.json({
+            success: true,
+            type: "individual_draft",
+            profile: personal,
+            message: "Brouillon personnel sauvegardé avec succès",
+          });
+        } catch (error: any) {
+          console.error("❌ Erreur sauvegarde brouillon personnel:", error);
+
+          // 📱 Gestion spécifique pour téléphone existant
+          if (
+            error.message?.includes("duplicate key") &&
+            error.message?.includes("phone")
+          ) {
+            return res.status(409).json({
+              error: "PHONE_ALREADY_EXISTS",
+              message:
+                "Ce numéro de téléphone est déjà utilisé par un autre compte.",
+            });
+          }
+
+          return res.status(500).json({
+            error: "Erreur lors de la sauvegarde du brouillon personnel",
+          });
+        }
+      }
+
+      // Si aucun cas ne correspond
+      return res.status(400).json({
+        error: "Type de profil non reconnu ou données manquantes",
+      });
+    } catch (err) {
+      console.error("❌ Erreur API /api/profile/draft:", err);
+      return res.status(500).json({ error: "Erreur serveur interne" });
+    }
+  });
+
   app.post("/api/profile/complete", async (req, res) => {
     try {
       console.log("🔔 Création/MàJ du compte (perso ou pro)...");
@@ -867,7 +1195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             postal_code:
               postalCode && postalCode.trim() !== "" ? postalCode : null,
             whatsapp: whatsapp || null,
-            profile_completed: true, // ✅ évite le retour au choix de compte
+            profile_completed: false, // ❌ RESTE false pour les pros jusqu'à validation finale
             type: "professional", // ✅ marque comme pro
           })
           .eq("id", user.id)
@@ -963,8 +1291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           postal_code:
             postalCode && postalCode.trim() !== "" ? postalCode : null,
           whatsapp: whatsapp || null,
-          profile_completed: true, // ✅ évite le retour au choix de compte
+          profile_completed: true,
           type: "individual",
+          onboarding_status: "completed",
         })
         .eq("id", user.id)
         .select()
@@ -1761,6 +2090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Route pour récupérer les informations d'abonnement d'un utilisateur
+  /*
   app.get("/api/subscriptions/status/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
@@ -1793,6 +2123,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log("💳 Abonnement récupéré:", subscriptionInfo);
+      res.json(subscriptionInfo);
+    } catch (error) {
+      console.error("❌ Erreur récupération abonnement:", error);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+  */
+  app.get("/api/subscriptions/status/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log(`💳 Vérification abonnement pour user ${userId}...`);
+
+      const { data: subscription, error } = await supabaseServer
+        .from("subscriptions")
+        .select(
+          `
+          id,
+          status,
+          plan_id,
+          cancel_at_period_end,
+          current_period_end,
+          subscription_plans (
+            name,
+            max_listings
+          )
+        `,
+        )
+        .eq("user_id", userId)
+        .in("status", ["active", "trialing"]) // ajoute "past_due" si période de grâce
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("❌ Erreur récupération abonnement:", error);
+        return res
+          .status(500)
+          .json({ error: "Erreur lors de la récupération de l'abonnement" });
+      }
+
+      const planRel = (subscription as any)?.subscription_plans;
+      const plan = Array.isArray(planRel) ? planRel[0] : planRel;
+
+      const subscriptionInfo = {
+        isActive: !!subscription,
+        status: subscription?.status ?? "inactive",
+        planId: subscription?.plan_id ?? null,
+        planName: plan?.name ?? "Free",
+        maxListings: (plan?.max_listings ?? null) as number | null, // null = illimité
+        expiresAt: subscription?.current_period_end ?? null,
+        cancelAtPeriodEnd: subscription?.cancel_at_period_end ?? false,
+      };
+
+      console.log("💳 Abonnement récupéré:", subscriptionInfo);
+      res.setHeader("Cache-Control", "no-store");
       res.json(subscriptionInfo);
     } catch (error) {
       console.error("❌ Erreur récupération abonnement:", error);
@@ -1979,6 +2364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(
         `✅ Statut professionnel récupéré: ${proAccount.verification_status}`,
       );
+      res.setHeader("Cache-Control", "no-store");
       res.json(proAccount);
     } catch (error) {
       console.error("❌ Erreur vérification statut professionnel:", error);
@@ -2252,6 +2638,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Boost plan not found" });
       }
 
+      // 🔐 SÉCURITÉ: Récupérer l'email du propriétaire de l'annonce pour pré-remplir Stripe
+      const { data: annonceOwner, error: userError } = await supabaseServer
+        .from("users")
+        .select("email")
+        .eq("id", annonce.userId)
+        .single();
+
+      if (userError || !annonceOwner?.email) {
+        console.error("❌ Erreur récupération email propriétaire:", userError);
+        return res.status(400).json({ error: "Email utilisateur introuvable" });
+      }
+
       // Créer le log d'achat (en attente de confirmation Stripe)
       const logData = {
         annonceId: parseInt(annonceId),
@@ -2276,9 +2674,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         ],
         mode: "payment",
-        //         success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}&type=boost`,
+        // 🔐 SÉCURITÉ: Pré-remplir l'email pour éviter les fraudes
+        customer_email: annonceOwner.email,
         success_url: `${baseUrl}/success-boost?session_id={CHECKOUT_SESSION_ID}`,
-
         cancel_url: `${baseUrl}/dashboard?boost_canceled=true`,
         metadata: {
           type: "boost",

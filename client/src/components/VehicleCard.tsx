@@ -15,6 +15,7 @@ import brandIcon from "@/assets/Brand_1752260033631.png";
 import { OptimizedImage } from "./OptimizedImage";
 import { FavoriteButton } from "./FavoriteButton";
 import { VerifiedBadge } from "./VerifiedBadge";
+import { PassionateLabel } from "./PassionateLabel";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface VehicleCardProps {
@@ -137,6 +138,16 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
                 <VerifiedBadge
                   userId={vehicle.userId}
                   userType={vehicle.user?.type}
+                />
+              </div>
+            )}
+            
+            {vehicle.user?.type === "individual" && (
+              <div className="flex flex-col items-end space-y-1">
+                <PassionateLabel
+                  userId={vehicle.userId}
+                  userType={vehicle.user?.type}
+                  variant="badge"
                 />
               </div>
             )}

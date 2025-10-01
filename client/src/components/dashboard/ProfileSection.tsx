@@ -6,6 +6,7 @@ import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge"
 interface ProfileSectionProps {
   dbUser: any;
   user: any;
+  professionalAccount?: any;
   profileForm: any;
   setProfileForm: (form: any) => void;
   editingProfile: boolean;
@@ -13,14 +14,14 @@ interface ProfileSectionProps {
   profileSuccess: boolean;
   savingProfile: boolean;
   handleSaveProfile: () => void;
-  refreshDbUser: () => void;
+  refreshProfile: () => Promise<void>;
 }
 
 // Dans ProfileSection.tsx (ou utils séparé)
 const handleAvatarUpload = async (
   file: File,
   userId: string,
-  refreshDbUser: () => Promise<void>,
+  refreshProfile: () => Promise<void>,
 ) => {
   // Vérifications format + taille
   const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -46,7 +47,7 @@ const handleAvatarUpload = async (
     });
 
     if (response.ok) {
-      await refreshDbUser();
+      await refreshProfile();
       alert("Photo mise à jour avec succès !");
     }
   } catch (error) {
@@ -57,6 +58,7 @@ const handleAvatarUpload = async (
 export default function ProfileSection({
   dbUser,
   user,
+  professionalAccount,
   profileForm,
   setProfileForm,
   editingProfile,
@@ -64,7 +66,7 @@ export default function ProfileSection({
   profileSuccess,
   savingProfile,
   handleSaveProfile,
-  refreshDbUser,
+  refreshProfile,
 }: ProfileSectionProps) {
   return (
     <div className="space-y-8">
@@ -130,7 +132,7 @@ export default function ProfileSection({
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file && user?.id) {
-                      handleAvatarUpload(file, user.id, refreshDbUser);
+                      handleAvatarUpload(file, user.id, refreshProfile);
                     }
                   }}
                 />
@@ -149,9 +151,15 @@ export default function ProfileSection({
           </div>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
-              {dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
+              {dbUser?.type === "professional" && professionalAccount?.company_name
+                ? professionalAccount.company_name
+                : dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
             </h2>
-            <CompanyNameDisplay userId={dbUser?.id} userType={dbUser?.type} />
+            {dbUser?.type === "professional" && professionalAccount?.company_name && dbUser?.name && (
+              <p className="text-gray-600 text-base mt-1">
+                Contact: {dbUser.name}
+              </p>
+            )}
             <p className="text-gray-600 text-lg mt-1">
               {user?.email || dbUser?.email}
             </p>

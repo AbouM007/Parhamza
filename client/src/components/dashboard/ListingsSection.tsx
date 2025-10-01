@@ -111,7 +111,7 @@ export default function ListingsSection({
               </p>
 
               {/* Indicateur de quota pour les comptes professionnels */}
-              {dbUser?.type === "professional" && quotaInfo && (
+              {quotaInfo && (
                 <div
                   className={`flex items-center space-x-2 text-sm p-3 rounded-lg ${
                     quotaInfo.canCreate

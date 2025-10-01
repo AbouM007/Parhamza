@@ -1,58 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Building2, CheckCircle, Clock, X, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-
-interface ProfessionalAccount {
-  id: number;
-  verification_status: "pending" | "approved" | "not_verified" | "not_started";
-  is_verified: boolean;
-  rejected_reason?: string;
-  created_at: string;
-}
+import { useProfessionalAccountStatus } from "@/hooks/useProfessionalAccountStatus";
 
 export const ProfessionalVerificationBanner: React.FC = () => {
   const { profile, user } = useAuth();
-  const [professionalAccount, setProfessionalAccount] =
-    useState<ProfessionalAccount | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Vérifier si l'utilisateur est un professionnel et charger son statut de vérification
+  // Utiliser le hook React Query optimisé au lieu de fetch() direct
+  const { data: professionalAccount, isLoading, error } = useProfessionalAccountStatus(user?.id, profile?.type);
+
+  // Vérifier si le banner a été fermé dans cette session
   useEffect(() => {
-    const checkProfessionalStatus = async () => {
-      if (!user || !profile || profile.type !== "professional") {
-        setIsLoading(false);
-        return;
-      }
-
-      // Vérifier si le banner a été fermé dans cette session
-      const dismissed = sessionStorage.getItem("pro-banner-dismissed");
-      if (dismissed) {
-        setIsDismissed(true);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `/api/professional-accounts/status/${user.id}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setProfessionalAccount(data);
-        }
-      } catch (error) {
-        console.error(
-          "Erreur lors de la vérification du statut professionnel:",
-          error,
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkProfessionalStatus();
-  }, [user, profile]);
+    const dismissed = sessionStorage.getItem("pro-banner-dismissed");
+    if (dismissed) {
+      setIsDismissed(true);
+    }
+  }, []);
 
   const handleDismiss = () => {
     setIsDismissed(true);
@@ -71,8 +35,9 @@ export const ProfessionalVerificationBanner: React.FC = () => {
     return null;
   }
 
-  // Bannière pour professionnel non encore vérifié (pas de demande ou statut not_started)
+  // Bannière pour professionnel non encore vérifié (pas de demande, erreur, ou statut not_started)
   if (
+    error || 
     !professionalAccount ||
     professionalAccount.verification_status === "not_started"
   ) {
@@ -120,6 +85,16 @@ export const ProfessionalVerificationBanner: React.FC = () => {
 
   // Bannière pour compte en cours de vérification
   if (professionalAccount.verification_status === "pending") {
+    // Vérifier si c'est la première fois qu'on montre les félicitations pour ce compte pro
+    const proCreationFlagKey = `pro_creation_shown_${professionalAccount.id}`;
+    const hasBeenShown = localStorage.getItem(proCreationFlagKey) === 'true';
+    const shouldShowCongratulations = !hasBeenShown;
+    
+    // Marquer comme vu si on doit montrer les félicitations
+    if (shouldShowCongratulations) {
+      localStorage.setItem(proCreationFlagKey, 'true');
+    }
+    
     return (
       <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-5 mb-6">
         <div className="flex items-start">
@@ -128,7 +103,10 @@ export const ProfessionalVerificationBanner: React.FC = () => {
           </div>
           <div className="flex-1 ml-3">
             <h3 className="text-base font-semibold text-yellow-900">
-              🎉 Félicitations, votre compte professionnel est créé !
+              {shouldShowCongratulations 
+                ? "🎉 Félicitations, votre compte professionnel est créé !"
+                : "⏳ Vérification en cours..."
+              }
             </h3>
             <p className="text-sm text-yellow-800 mt-2">
               Merci d’avoir rejoint notre communauté de professionnels 🚀. Votre
@@ -137,13 +115,15 @@ export const ProfessionalVerificationBanner: React.FC = () => {
               fonctionnalités. Profitez de ce temps pour personnaliser votre
               profil et préparer votre page pro.
             </p>
-            <p className="text-sm text-yellow-800 mt-2">
-              🔎 Notre équipe va maintenant vérifier vos documents. Cette étape
-              prend généralement <span className="font-medium">24h</span>. Une
-              fois validé, vous recevrez automatiquement le{" "}
-              <span className="font-medium">badge "Compte vérifié"</span>, gage
-              de confiance auprès des acheteurs.
-            </p>
+            {shouldShowCongratulations && (
+              <p className="text-sm text-yellow-800 mt-2">
+                🔎 Notre équipe va maintenant vérifier vos documents. Cette étape
+                prend généralement <span className="font-medium">24h</span>. Une
+                fois validé, vous recevrez automatiquement le{" "}
+                <span className="font-medium">badge "Compte vérifié"</span>, gage
+                de confiance auprès des acheteurs.
+              </p>
+            )}
           </div>
           <button
             onClick={handleDismiss}

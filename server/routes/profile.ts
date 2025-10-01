@@ -142,6 +142,7 @@ router.post("/complete", requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.id;
     console.log("🔧 Finalisation profil pour user:", userId);
+    console.log("🐞 DEBUG: req.body reçu =", JSON.stringify(req.body, null, 2));
 
     const {
       name,
@@ -161,6 +162,7 @@ router.post("/complete", requireAuth, async (req: any, res) => {
     // Construire l'objet de mise à jour (table users)
     const updateData: any = {
       profile_completed: true,
+      onboarding_status: "completed",
     };
 
     if (name !== undefined) updateData.name = name;
@@ -172,6 +174,8 @@ router.post("/complete", requireAuth, async (req: any, res) => {
     if (address !== undefined) updateData.address = address;
     if (website !== undefined) updateData.website = website;
     if (specialties !== undefined) updateData.specialties = specialties;
+
+    console.log("🐞 DEBUG: updateData avant Supabase =", JSON.stringify(updateData, null, 2));
 
     const { data, error } = await supabaseServer
       .from("users")
@@ -186,6 +190,8 @@ router.post("/complete", requireAuth, async (req: any, res) => {
     }
 
     console.log("✅ Profil utilisateur finalisé pour:", data.email);
+    console.log("🐞 DEBUG: data.type après mise à jour =", data.type);
+    console.log("🐞 DEBUG: data.profile_completed après mise à jour =", data.profile_completed);
 
     // 🔹 Si pro → créer ou mettre à jour professional_accounts
     if (type === "professional") {

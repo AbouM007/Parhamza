@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, Send, User, ArrowLeft, Clock } from "lucide-react";
 import { useMessaging } from "@/hooks/useMessaging";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Conversation {
   id: string;
@@ -37,13 +37,13 @@ export function Messages() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const { sendMessage } = useMessaging();
-  const { dbUser, isLoading: authLoading } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
 
   // Ref pour le scroll automatique vers le bas
   const endRef = useRef<HTMLDivElement>(null);
 
   // Si pas d'utilisateur connecté, ne pas définir currentUserId
-  const currentUserId = dbUser?.id?.toString();
+  const currentUserId = profile?.id?.toString();
 
   useEffect(() => {
     loadConversations();
@@ -176,7 +176,7 @@ export function Messages() {
   }
 
   // Écran de connexion si pas d'utilisateur connecté
-  if (!dbUser || !currentUserId) {
+  if (!profile || !currentUserId) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
@@ -341,10 +341,10 @@ export function Messages() {
                           const isCurrentUser =
                             message.sender_id === currentUserId;
                           const senderAvatar = isCurrentUser
-                            ? dbUser?.avatar
+                            ? profile?.avatar
                             : conv?.other_user?.avatar;
                           const senderName = isCurrentUser
-                            ? dbUser?.name
+                            ? profile?.name
                             : conv?.other_user?.name;
                           const senderInitial =
                             senderName?.charAt(0)?.toUpperCase() || "U";

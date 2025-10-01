@@ -25,6 +25,7 @@ import { Footer } from "./Footer";
 import { ContactSellerModal } from "./ContactSellerModal";
 import { ShareModal } from "./ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { PassionateLabel } from "./PassionateLabel";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 
 interface VehicleDetailProps {
@@ -558,6 +559,17 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                           <span>Vérifié</span>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Label Passionné pour les particuliers avec abonnement */}
+                  {vehicle.user?.type === "individual" && (
+                    <div className="mt-2">
+                      <PassionateLabel
+                        userId={vehicle.userId}
+                        userType={vehicle.user?.type}
+                        variant="full"
+                      />
                     </div>
                   )}
                 </div>

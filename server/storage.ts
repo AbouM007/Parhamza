@@ -1705,12 +1705,48 @@ export class SupabaseStorage implements IStorage {
     try {
       console.log(`🔍 Vérification quota pour l'utilisateur: ${userId}`);
 
-      // 1. Récupérer le type d'utilisateur pour la logique business
-      const { data: user, error: userError } = await supabaseServer
-        .from("users")
-        .select("type")
-        .eq("id", userId)
-        .single();
+      // 🚀 OPTIMISATION: Récupérer type utilisateur ET compter les annonces en parallèle
+      const [userResult, activeListingsCount, subscriptionResult] = await Promise.all([
+        // 1. Type utilisateur
+        supabaseServer
+          .from("users")
+          .select("type")
+          .eq("id", userId)
+          .single(),
+        
+        // 2. Compter les annonces actives en parallèle (optimisé)
+        // ✅ CORRECTION: Inclure aussi les "draft" dans le quota pour éviter contournement
+        supabaseServer
+          .from("annonces")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("is_active", true)
+          .is("deleted_at", null)
+          .in("status", ["approved", "pending", "draft"]),
+        
+        // 3. Abonnement actif avec plan
+        supabaseServer
+          .from("subscriptions")
+          .select(`
+            id,
+            plan_id,
+            status,
+            subscription_plans (
+              max_listings,
+              name
+            )
+          `)
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ]);
+
+      // Traiter les résultats
+      const { data: user, error: userError } = userResult;
+      const { data: annoncesData, error: annoncesError } = activeListingsCount;
+      const { data: subscription, error: subError } = subscriptionResult;
 
       if (userError) {
         console.error("❌ Erreur récupération type utilisateur:", userError);
@@ -1722,33 +1758,13 @@ export class SupabaseStorage implements IStorage {
         };
       }
 
+      const activeListings = annoncesError ? 0 : (activeListingsCount.count || 0);
       const userType = user?.type;
-      console.log(`👤 Type utilisateur: ${userType}`);
-
-      // 2. Chercher directement un abonnement actif par user_id (pro ou particulier)
-      const { data: subscription, error: subError } = await supabaseServer
-        .from("subscriptions")
-        .select(
-          `
-          id,
-          plan_id,
-          status,
-          subscription_plans (
-            max_listings,
-            name
-          )
-        `,
-        )
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      console.log(`👤 Type utilisateur: ${userType}, Annonces actives: ${activeListings}`);
 
       if (subError) {
         console.error("❌ Erreur récupération abonnement:", subError);
         // En cas d'erreur, retourner quota gratuit par sécurité
-        const activeListings = await this.countActiveListingsByUser(userId);
         return {
           canCreate: activeListings < 5,
           activeListings,
@@ -1759,7 +1775,6 @@ export class SupabaseStorage implements IStorage {
       
       if (!subscription) {
         // 👉 Pas d'abonnement actif
-        const activeListings = await this.countActiveListingsByUser(userId);
         
         // 🚨 RÈGLE BUSINESS : Les pros DOIVENT avoir un abonnement
         if (userType === "professional") {
@@ -1787,7 +1802,7 @@ export class SupabaseStorage implements IStorage {
       // 3. Cas Professionnel avec abonnement actif → lire quota dans subscription_plans
       const maxListings = (subscription as any).subscription_plans
         ?.max_listings;
-      const activeListings = await this.countActiveListingsByUser(userId);
+      // ⚡ OPTIMISATION: activeListings déjà calculé en parallèle ci-dessus
 
       console.log(
         `📊 Quota: ${activeListings}/${maxListings || "illimité"} annonces actives`,
@@ -1828,7 +1843,7 @@ export class SupabaseStorage implements IStorage {
         .eq("user_id", userId)
         .eq("is_active", true)
         .is("deleted_at", null)
-        .in("status", ["approved", "pending"]); // ⬅️ clé: exclut "rejected" et "draft"
+        .in("status", ["approved", "draft", "pending"]); // ⬅️ clé: exclut "rejected" et "draft"
 
       if (error) {
         console.error("❌ Erreur comptage annonces actives:", error);
@@ -2145,14 +2160,24 @@ export class SupabaseStorage implements IStorage {
         });
       }
 
-      // Récupérer les abonnements pro via professional_accounts
+      // 🔧 CORRECTION CRITIQUE: Récupérer TOUS les abonnements (particuliers ET professionnels)
+      let subscriptionPurchases = [];
+      
+      // 1. Abonnements directs par user_id (pour les particuliers individual)
+      const { data: directSubscriptions } = await supabaseServer
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      // 2. Abonnements via professional_accounts (pour les professionnels)
       const { data: userProfessionalAccount } = await supabaseServer
         .from("professional_accounts")
         .select("id")
         .eq("user_id", userId)
         .single();
 
-      let subscriptionPurchases = [];
+      let proSubscriptions = [];
       if (userProfessionalAccount) {
         const { data: subscriptions } = await supabaseServer
           .from("subscriptions")
@@ -2160,8 +2185,19 @@ export class SupabaseStorage implements IStorage {
           .eq("professional_account_id", userProfessionalAccount.id)
           .order("created_at", { ascending: false });
 
-        subscriptionPurchases = subscriptions || [];
+        proSubscriptions = subscriptions || [];
       }
+
+      // Combiner tous les abonnements et dédupliquer par ID
+      const allSubscriptions = [...(directSubscriptions || []), ...proSubscriptions];
+      const uniqueSubscriptionIds = new Set();
+      subscriptionPurchases = allSubscriptions.filter(sub => {
+        if (uniqueSubscriptionIds.has(sub.id)) {
+          return false;
+        }
+        uniqueSubscriptionIds.add(sub.id);
+        return true;
+      });
 
       // Récupérer les détails des plans d'abonnement
       let subscriptionHistory = [];
@@ -2245,12 +2281,13 @@ export class SupabaseStorage implements IStorage {
           const professionalAccount = professionalAccounts?.find(
             (pa) => pa.id === sub.professional_account_id,
           );
+          // 🔧 CORRECTION: Utiliser le user_id existant dans la subscription au lieu de l'écraser
           const user = users?.find(
-            (u) => u.id === professionalAccount?.user_id,
+            (u) => u.id === (sub.user_id || professionalAccount?.user_id),
           );
           return {
             ...sub,
-            user_id: professionalAccount?.user_id,
+            // Garder le user_id original de la subscription, ne pas l'écraser
             user: user,
           };
         });

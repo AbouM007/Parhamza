@@ -41,6 +41,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
   profileCompleted: boolean("profile_completed").default(false),
+  onboardingStatus: text("onboarding_status").notNull().default("incomplete_profile"),
 });
 
 export const annonces = pgTable("annonces", {
@@ -244,10 +245,15 @@ export const subscriptions = pgTable("subscriptions", {
     .references(() => users.id)
     .notNull(),
   professional_account_id: integer("professional_account_id"),
-  plan_id: text("plan_id").notNull(),
+//  plan_id: text("plan_id").notNull(),
+  plan_id: integer("plan_id")
+  .notNull()
+  .references(() => subscriptionPlans.id),
+
+
   stripe_subscription_id: text("stripe_subscription_id").unique(),
   status: text("status")
-    .$type<"active" | "cancelled" | "expired" | "pending">()
+    .$type<"active" | "cancelled" | "expired" | "pending" | "trialing">()
     .default("pending"),
   current_period_start: timestamp("current_period_start"),
   current_period_end: timestamp("current_period_end"),
@@ -265,6 +271,25 @@ export const subscriptions = pgTable("subscriptions", {
     sql`user_id IS NOT NULL OR professional_account_id IS NOT NULL`
   ),
 }));
+
+// Table d'historique des abonnements pour garder trace des upgrades/downgrades
+export const subscriptionHistory = pgTable("subscription_history", {
+  id: serial("id").primaryKey(),
+  user_id: text("user_id")
+    .references(() => users.id)
+    .notNull(),
+  change_type: text("change_type")
+    .$type<"upgrade" | "downgrade" | "new" | "cancelled">()
+    .notNull(),
+  old_plan_id: integer("old_plan_id")
+    .references(() => subscriptionPlans.id),
+  new_plan_id: integer("new_plan_id")
+    .references(() => subscriptionPlans.id),
+  old_stripe_subscription_id: text("old_stripe_subscription_id"),
+  new_stripe_subscription_id: text("new_stripe_subscription_id"),
+  changed_at: timestamp("changed_at").defaultNow().notNull(),
+  metadata: json("metadata").$type<Record<string, any>>(), // Infos supplémentaires si besoin
+});
 
 export const stripeEventsProcessed = pgTable("stripe_events_processed", {
   id: serial("id").primaryKey(),

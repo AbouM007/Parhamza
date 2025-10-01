@@ -10,8 +10,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthService } from "../services/AuthService";
-import { signIn, signUp, resetPassword } from "@/lib/supabase";
+import { resetPassword } from "@/lib/supabase";
 
 interface FormErrors {
   email?: string;
@@ -29,8 +28,7 @@ export const UnifiedAuthModal: React.FC = () => {
     refreshQuota,              // ✅ on l'appelle pour mettre à jour le quota
   } = useApp();
 
-  const { signInWithOAuth } = useAuth();
-  const { handleAuthSuccess } = useAuthService();
+  const { signInWithOAuth, signUp, signIn } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -129,7 +127,7 @@ export const UnifiedAuthModal: React.FC = () => {
 
       if (isSignUp) {
         // Inscription → on NE lance PAS la callback (souvent on veut une vérif email)
-        const { data, error } = await signUp(formData.email, formData.password);
+        const { error } = await signUp(formData.email, formData.password);
         if (error) {
           if (error.message?.includes("already registered")) {
             setErrors({ general: "Cet email est déjà utilisé. Essayez de vous connecter." });
@@ -139,16 +137,15 @@ export const UnifiedAuthModal: React.FC = () => {
           }
           return;
         }
-        if (data?.user) {
-          setSuccessMessage("Compte créé ! Un email de confirmation vous a été envoyé.");
-          setTimeout(() => {
-            handleAuthSuccess();
-            setShowAuthModal(false);
-          }, 3000);
-        }
+        // ✅ Si pas d'erreur, l'inscription a réussi
+        setSuccessMessage("Compte créé ! Un email de confirmation vous a été envoyé.");
+        setTimeout(() => {
+          runAuthCallbackAfterLogin();
+          setShowAuthModal(false);
+        }, 3000);
       } else {
         // Connexion → on lance la callback stockée + on rafraîchit le quota
-        const { data, error } = await signIn(formData.email, formData.password);
+        const { error } = await signIn(formData.email, formData.password);
         if (error) {
           if (
             error.message?.includes("Invalid login credentials") ||
@@ -163,13 +160,12 @@ export const UnifiedAuthModal: React.FC = () => {
           }
           return;
         }
-        if (data?.user) {
-          await handleAuthSuccess();
-          showToast("Connexion réussie", "Bienvenue !");
-          // ✅ mise à jour du quota + exécution de la callback (ouvre le formulaire, etc.)
-          await refreshQuota();
-          runAuthCallbackAfterLogin(); // ferme aussi le modal proprement
-        }
+        // ✅ Si pas d'erreur, la connexion a réussi
+        runAuthCallbackAfterLogin();
+        showToast("Connexion réussie", "Bienvenue !");
+        // ✅ mise à jour du quota + exécution de la callback (ouvre le formulaire, etc.)
+        await refreshQuota();
+        setShowAuthModal(false);
       }
     } catch (error) {
       console.error("Erreur auth:", error);

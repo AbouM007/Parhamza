@@ -1,15 +1,15 @@
 // client/src/hooks/useCreateListingGuard.ts
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useApp } from "@/contexts/AppContext";
 
 export function useCreateListingGuard() {
-  const { dbUser } = useAuth();
+  const { profile, loading } = useAuth();
   const { 
     openAuthModal, 
     isQuotaModalOpen,
     setIsQuotaModalOpen, 
     setQuotaModalInfo,
-    isLoading 
+    isLoading: appLoading 
   } = useApp();
 
   return async function handleCreateListingWithQuota(
@@ -17,13 +17,13 @@ export function useCreateListingGuard() {
     origin?: string
   ) {
     // 0) Protéger contre les états transitoires
-    if (isLoading) {
+    if (loading || appLoading) {
       console.log("⏳ Auth state loading, ignoring click");
       return;
     }
 
     // 1) Pas connecté → ouvrir modal auth avec intent persistant
-    if (!dbUser?.id) {
+    if (!profile?.id) {
       console.log("🔒 User not authenticated, opening auth modal");
       openAuthModal('login', () => {
         // Callback après login réussi : relancer la vérification
@@ -33,10 +33,10 @@ export function useCreateListingGuard() {
     }
 
     // 2) Vérifier le quota via appel API direct (recommandation ChatGPT-5)
-    console.log("📊 Checking quota for user:", dbUser.id);
+    console.log("📊 Checking quota for user:", profile.id);
     
     try {
-      const response = await fetch(`/api/users/${dbUser.id}/quota/check`);
+      const response = await fetch(`/api/users/${profile.id}/quota/check`);
       
       if (!response.ok) {
         console.error("❌ Quota check failed:", response.status);

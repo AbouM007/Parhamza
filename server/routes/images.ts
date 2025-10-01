@@ -41,15 +41,12 @@ router.post(
         `📸 Upload de ${files.length} images pour utilisateur ${userId}`,
       );
 
-      const uploadedImages: Array<{
-        id: string;
-        url: string;
-        path: string;
-        originalName: string;
-        size: number;
-      }> = [];
+      // 🚀 OPTIMISATION PERFORMANCE: Traitement en parallèle des images
+      console.log("⚡ Traitement parallèle des images démarré...");
+      const startTime = Date.now();
 
-      for (const file of files) {
+      // Créer une promesse de traitement pour chaque image
+      const uploadPromises = files.map(async (file) => {
         // Générer un nom unique pour l'image
         const imageId = uuidv4();
         const extension =
@@ -90,8 +87,7 @@ router.post(
             });
           }
 
-          // 2. Ajout du filigrane texte translucide au centre
-          console.log("🏷️  Ajout du filigrane texte au centre...");
+          // 2. Ajout du filigrane texte translucide au centre  
           const watermarkSvg = `
           <svg width="600" height="100" xmlns="http://www.w3.org/2000/svg">
             <text x="50%" y="50%" 
@@ -119,7 +115,7 @@ router.post(
             ])
             .webp({
               quality: 85,
-              effort: 6,
+              effort: 5, // ⚡ OPTIMISATION: Réduire effort de 6 à 5 pour plus de vitesse
               smartSubsample: true,
             })
             .toBuffer();
@@ -139,7 +135,7 @@ router.post(
 
           if (error) {
             console.error(`❌ Erreur upload image ${fileName}:`, error);
-            continue;
+            return null; // Retourner null au lieu de continue
           }
 
           // Obtenir l'URL publique
@@ -147,22 +143,36 @@ router.post(
             .from("vehicle-images")
             .getPublicUrl(filePath);
 
-          uploadedImages.push({
+          console.log(`✅ Image uploadée: ${fileName} (${newSize}KB, -${savings}%)`);
+          
+          return {
             id: imageId,
             url: publicUrlData.publicUrl,
             path: filePath,
             originalName: file.originalname,
             size: processedBuffer.length,
-          });
-
-          console.log(`✅ Image uploadée: ${fileName}`);
+          };
         } catch (imageError) {
           console.error(
             `❌ Erreur traitement image ${file.originalname}:`,
             imageError,
           );
+          return null; // Retourner null en cas d'erreur
         }
-      }
+      });
+
+      // 🚀 Traiter toutes les images EN PARALLÈLE
+      const results = await Promise.all(uploadPromises);
+      const uploadedImages = results.filter((result): result is {
+        id: string;
+        url: string;
+        path: string;
+        originalName: string;
+        size: number;
+      } => result !== null); // Type-safe filter des échecs
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`⚡ Traitement parallèle terminé en ${processingTime}ms (${uploadedImages.length}/${files.length} succès)`);
 
       if (uploadedImages.length === 0) {
         return res
@@ -225,19 +235,45 @@ router.get("/annonce/:annonceId", async (req, res) => {
 
     const images = annonce.images || [];
 
-    // Transformer les chemins en URLs publiques si nécessaire
-    const imageUrls = images.map((imagePath: string) => {
-      if (imagePath.startsWith("http")) {
-        return imagePath; // Déjà une URL complète
-      }
+    // 🔧 AMÉLIORATION: Transformer les chemins en URLs publiques avec gestion d'erreurs robuste
+    const imageUrls = images
+      .map((imagePath: string) => {
+        try {
+          // Vérifier que le chemin est valide
+          if (!imagePath || typeof imagePath !== 'string') {
+            console.warn(`⚠️ Chemin d'image invalide:`, imagePath);
+            return null;
+          }
 
-      // Construire l'URL publique Supabase
-      const { data: publicUrlData } = supabaseServer.storage
-        .from("vehicle-images")
-        .getPublicUrl(imagePath);
+          // Si c'est déjà une URL complète, la valider
+          if (imagePath.startsWith("http")) {
+            try {
+              new URL(imagePath); // Valider l'URL
+              return imagePath;
+            } catch {
+              console.warn(`⚠️ URL malformée:`, imagePath);
+              return null;
+            }
+          }
 
-      return publicUrlData.publicUrl;
-    });
+          // Construire l'URL publique Supabase
+          const { data: publicUrlData } = supabaseServer.storage
+            .from("vehicle-images")
+            .getPublicUrl(imagePath);
+
+          // Vérifier que l'URL a été générée correctement
+          if (!publicUrlData?.publicUrl) {
+            console.warn(`⚠️ Impossible de générer l'URL publique pour:`, imagePath);
+            return null;
+          }
+
+          return publicUrlData.publicUrl;
+        } catch (error) {
+          console.error(`❌ Erreur traitement image ${imagePath}:`, error);
+          return null;
+        }
+      })
+      .filter(Boolean); // Filtrer les URLs nulles
 
     res.json({ success: true, images: imageUrls });
   } catch (error) {
@@ -350,5 +386,212 @@ router.post(
     }
   }, 
 );*/
+
+// Appliquer un masque blanc sur une image (pour cacher plaque d'immatriculation)
+router.post("/apply-mask", async (req: Request, res: Response) => {
+  try {
+    const { imageUrl, mask, userId } = req.body;
+
+    if (!imageUrl || !mask) {
+      return res.status(400).json({ error: "Image URL et données de masque requis" });
+    }
+
+    // 🔒 SÉCURITÉ: Valider que l'URL provient d'un domaine autorisé
+    const allowedDomains = [
+      process.env.SUPABASE_URL?.replace('https://', ''),
+      'supabase.co',
+      process.env.REPLIT_DOMAINS || '',
+    ].filter((d): d is string => Boolean(d));
+
+    const urlObj = new URL(imageUrl);
+    const isAllowed = allowedDomains.some(domain => 
+      urlObj.hostname.includes(domain) || domain.includes(urlObj.hostname)
+    );
+
+    if (!isAllowed) {
+      console.error(`🚫 URL non autorisée: ${imageUrl}`);
+      return res.status(403).json({ error: "URL d'image non autorisée" });
+    }
+
+    console.log(`🎨 Application masque blanc sur image pour utilisateur ${userId}`);
+    console.log(`📐 Coordonnées masque:`, mask);
+
+    // Récupérer les paramètres du masque (coordonnées du CENTRE)
+    const maskWidth = Math.max(1, Math.round(mask.width));
+    const maskHeight = Math.max(1, Math.round(mask.height));
+    const maskAngle = mask.angle || 0; // Angle de rotation en degrés
+
+    // Télécharger l'image depuis l'URL
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+      return res.status(400).json({ error: "Impossible de charger l'image" });
+    }
+
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+
+    // Obtenir les métadonnées de l'image pour validation
+    const imageInfo = await sharp(imageBuffer).metadata();
+    const imgWidth = imageInfo.width || 1;
+    const imgHeight = imageInfo.height || 1;
+
+    // Clamper le centre dans les limites de l'image
+    // Pour images de 1px, centerX peut être 0
+    const centerX = Math.max(0, Math.min(Math.round(mask.centerX), imgWidth - 1));
+    const centerY = Math.max(0, Math.min(Math.round(mask.centerY), imgHeight - 1));
+
+    let maskBuffer: Buffer;
+    let compositeLeft: number;
+    let compositeTop: number;
+
+    if (maskAngle === 0) {
+      // Cas simple: rectangle sans rotation
+      // Approche symétrique: UN SEUL demi-espace pour garantir le centrage
+      
+      // Demi-dimensions maximales symétriques autour du centre
+      const visibleHalfWidth = Math.min(
+        Math.floor(maskWidth / 2),  // Taille souhaitée
+        centerX,                     // Distance au bord gauche
+        imgWidth - centerX          // Distance au bord droit
+      );
+      const visibleHalfHeight = Math.min(
+        Math.floor(maskHeight / 2),
+        centerY,
+        imgHeight - centerY
+      );
+      
+      // Dimensions finales limitées à la taille de l'image (minimum 1px)
+      const finalWidth = Math.max(1, Math.min(visibleHalfWidth * 2, imgWidth));
+      const finalHeight = Math.max(1, Math.min(visibleHalfHeight * 2, imgHeight));
+      
+      // Position ajustée pour garantir les limites
+      compositeLeft = Math.max(0, Math.min(centerX - Math.floor(finalWidth / 2), imgWidth - finalWidth));
+      compositeTop = Math.max(0, Math.min(centerY - Math.floor(finalHeight / 2), imgHeight - finalHeight));
+
+      const maskSvg = `
+        <svg width="${finalWidth}" height="${finalHeight}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="white"/>
+        </svg>
+      `;
+      maskBuffer = Buffer.from(maskSvg);
+    } else {
+      // Cas avec rotation: créer et tourner le rectangle
+      const rectBuffer = await sharp({
+        create: {
+          width: maskWidth,
+          height: maskHeight,
+          channels: 4,
+          background: { r: 255, g: 255, b: 255, alpha: 1 }
+        }
+      })
+      .png()
+      .toBuffer();
+
+      // Appliquer la rotation avec fond transparent
+      const rotatedBuffer = await sharp(rectBuffer)
+        .rotate(maskAngle, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .toBuffer();
+
+      // Obtenir les dimensions du masque après rotation
+      const rotatedInfo = await sharp(rotatedBuffer).metadata();
+      const rotatedWidth = rotatedInfo.width || maskWidth;
+      const rotatedHeight = rotatedInfo.height || maskHeight;
+
+      // Approche symétrique: UN SEUL demi-espace pour garantir le centrage
+      const visibleHalfWidth = Math.min(
+        Math.floor(rotatedWidth / 2),
+        centerX,
+        imgWidth - centerX
+      );
+      const visibleHalfHeight = Math.min(
+        Math.floor(rotatedHeight / 2),
+        centerY,
+        imgHeight - centerY
+      );
+      
+      // Dimensions limitées à la taille de l'image (minimum 1px)
+      const cropWidth = Math.max(1, Math.min(visibleHalfWidth * 2, imgWidth));
+      const cropHeight = Math.max(1, Math.min(visibleHalfHeight * 2, imgHeight));
+      
+      // Position ajustée pour garantir les limites
+      compositeLeft = Math.max(0, Math.min(centerX - Math.floor(cropWidth / 2), imgWidth - cropWidth));
+      compositeTop = Math.max(0, Math.min(centerY - Math.floor(cropHeight / 2), imgHeight - cropHeight));
+      
+      // Calculer le crop symétrique du buffer centré
+      const halfRotatedWidth = Math.floor(rotatedWidth / 2);
+      const halfRotatedHeight = Math.floor(rotatedHeight / 2);
+      const halfCropWidth = Math.floor(cropWidth / 2);
+      const halfCropHeight = Math.floor(cropHeight / 2);
+      
+      const cropLeft = Math.max(0, halfRotatedWidth - halfCropWidth);
+      const cropTop = Math.max(0, halfRotatedHeight - halfCropHeight);
+
+      // Toujours cropper si les dimensions ne correspondent pas exactement
+      // Cela évite les débordements avec les dimensions impaires
+      if (cropWidth !== rotatedWidth || cropHeight !== rotatedHeight) {
+        maskBuffer = await sharp(rotatedBuffer)
+          .extract({
+            left: cropLeft,
+            top: cropTop,
+            width: cropWidth,
+            height: cropHeight
+          })
+          .toBuffer();
+      } else {
+        maskBuffer = rotatedBuffer;
+      }
+    }
+
+    // Appliquer le masque blanc sur l'image ET convertir en WebP
+    const maskedImageBuffer = await sharp(imageBuffer)
+      .composite([
+        {
+          input: maskBuffer,
+          top: compositeTop,
+          left: compositeLeft,
+          blend: "over",
+        },
+      ])
+      .webp({
+        quality: 85,
+        effort: 5,
+        smartSubsample: true,
+      })
+      .toBuffer();
+
+    // Générer un nouveau nom pour l'image masquée
+    const imageId = uuidv4();
+    const fileName = `${imageId}-masked.webp`;
+    const filePath = `annonces/${userId}/${fileName}`;
+
+    // Upload vers Supabase Storage
+    const { data, error } = await supabaseServer.storage
+      .from("vehicle-images")
+      .upload(filePath, maskedImageBuffer, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
+      });
+
+    if (error) {
+      console.error(`❌ Erreur upload image masquée:`, error);
+      return res.status(500).json({ error: "Erreur lors de l'upload de l'image masquée" });
+    }
+
+    // Obtenir l'URL publique
+    const { data: publicUrlData } = supabaseServer.storage
+      .from("vehicle-images")
+      .getPublicUrl(filePath);
+
+    console.log(`✅ Image masquée uploadée: ${fileName}`);
+
+    res.json({
+      success: true,
+      maskedImageUrl: publicUrlData.publicUrl,
+      message: "Masque appliqué avec succès",
+    });
+  } catch (error) {
+    console.error("❌ Erreur application masque:", error);
+    res.status(500).json({ error: "Erreur serveur lors de l'application du masque" });
+  }
+});
 
 export default router;

@@ -2,17 +2,69 @@ import { Router } from "express";
 import Stripe from "stripe";
 import { supabaseServer } from "../supabase";
 import { requireAuth } from "../middleware/auth";
+import express from "express";
 
 const router = Router();
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("Missing required Stripe secret: STRIPE_SECRET_KEY");
 }
+if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  console.warn(
+    "⚠️ STRIPE_WEBHOOK_SECRET missing (webhook will fail signature check)",
+  );
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+/* --------------------------------- HELPERS -------------------------------- */
+
+async function mapPriceToPlanId(priceId: string): Promise<number | null> {
+  const { data: plan, error } = await supabaseServer
+    .from("subscription_plans")
+    .select("id")
+    .eq("stripe_price_id", priceId)
+    .maybeSingle();
+  if (error) {
+    console.error("❌ mapPriceToPlanId error:", error);
+    return null;
+  }
+  return plan?.id ?? null;
+}
+
+async function getActiveSubscriptionByUserId(userId: string) {
+  const { data, error } = await supabaseServer
+    .from("subscriptions")
+    .select(
+      `
+      id,
+      status,
+      plan_id,
+      cancel_at_period_end,
+      current_period_end,
+      subscription_plans ( name, max_listings )
+    `,
+    )
+    .eq("user_id", userId)
+    .in("status", ["active", "trialing"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("❌ getActiveSubscriptionByUserId error:", error);
+    return null;
+  }
+  return data;
+}
+
+function tsToIso(tsSec?: number | null) {
+  return tsSec ? new Date(tsSec * 1000).toISOString() : null;
+}
+
+/* ---------------------------- SUBSCRIPTION PLANS --------------------------- */
+
 // GET /api/subscription-plans - Récupérer tous les plans disponibles
-router.get("/plans", async (req, res) => {
+router.get("/plans", async (_req, res) => {
   try {
     const { data: plans, error } = await supabaseServer
       .from("subscription_plans")
@@ -32,23 +84,19 @@ router.get("/plans", async (req, res) => {
   }
 });
 
-// POST /api/create-checkout-session - Créer session Stripe Checkout
-router.post("/create-checkout-session", async (req, res) => {
-  try {
-    const { planId, userEmail } = req.body;
+/* --------------------------- CHECKOUT + SUCCESS ---------------------------- */
 
-    // Validation des paramètres
-    if (!planId || !userEmail) {
-      return res.status(400).json({
-        error: "planId et userEmail sont requis",
-      });
+// POST /api/create-checkout-session - Créer session Stripe Checkout
+// remplace la route actuelle
+router.post("/create-checkout-session", requireAuth, async (req, res) => {
+  try {
+    const { planId, userEmail } = req.body; // userEmail optionnel (UX), NE SERT PAS À L'ID
+    const userId = req.user!.id; // 🔐 source de vérité
+
+    if (!planId) {
+      return res.status(400).json({ error: "planId est requis" });
     }
 
-    console.log(
-      `🔄 Création session checkout pour plan ${planId}, user ${userEmail}`,
-    );
-
-    // Récupérer le plan depuis la base de données
     const { data: plan, error: planError } = await supabaseServer
       .from("subscription_plans")
       .select("*")
@@ -56,712 +104,456 @@ router.post("/create-checkout-session", async (req, res) => {
       .eq("is_active", true)
       .single();
 
-    if (planError || !plan) {
-      console.error("❌ Plan non trouvé:", planError);
-      return res.status(400).json({
-        error: "Plan d'abonnement invalide ou inactif",
-      });
+    if (planError || !plan?.stripe_price_id) {
+      return res
+        .status(400)
+        .json({ error: "Plan invalide/inactif ou sans Stripe Price" });
     }
 
-    if (!plan.stripe_price_id) {
-      console.error("❌ Plan sans Price ID Stripe:", plan);
-      return res.status(500).json({
-        error: "Configuration Stripe manquante pour ce plan",
-      });
-    }
-
-    // Créer la session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",
-      line_items: [
-        {
-          price: plan.stripe_price_id,
-          quantity: 1,
+      line_items: [{ price: plan.stripe_price_id, quantity: 1 }],
+      // Email purement cosmétique (facultatif)
+      customer_email: userEmail || undefined,
+
+      // 🔑 attache toujours l'identité côté Stripe
+      client_reference_id: String(userId),
+      metadata: {
+        user_id: String(userId),
+        plan_id: String(planId),
+        plan_name: plan.name,
+      },
+      subscription_data: {
+        metadata: {
+          user_id: String(userId),
+          plan_id: String(planId),
+          plan_name: plan.name,
         },
-      ],
-      customer_email: userEmail,
+      },
+
       success_url: `${process.env.FRONTEND_URL || "https://" + req.get("host")}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL || "https://" + req.get("host")}/plans`,
-      metadata: {
-        planId: planId.toString(),
-        userEmail: userEmail,
-        planName: plan.name,
-      },
     });
 
-    console.log(`✅ Session checkout créée: ${session.id}`);
-
-    res.json({
-      sessionUrl: session.url,
-    });
+    return res.json({ sessionUrl: session.url });
   } catch (error) {
     console.error("❌ Erreur création session checkout:", error);
     res.status(500).json({ error: "Erreur création session de paiement" });
   }
 });
 
-/*
-// Plans d'abonnements avec tarifs serveur (sécurisé)
-const SUBSCRIPTION_PLANS = {
-  'starter-monthly': {
-    name: 'Starter Pro',
-    price: 19.90,
-    maxListings: 20,
-    stripe_price_id: process.env.STRIPE_PRICE_STARTER
-  },
-  'business-monthly': {
-    name: 'Business Pro', 
-    price: 39.90,
-    maxListings: 50,
-    stripe_price_id: process.env.STRIPE_PRICE_BUSINESS
-  },
-  'premium-monthly': {
-    name: 'Premium Pro',
-    price: 79.90, 
-    maxListings: -1,
-    stripe_price_id: process.env.STRIPE_PRICE_PREMIUM
-  }
-};
-*/
-
-// POST /api/subscriptions/create - Créer un nouvel abonnement
-router.post("/create", requireAuth, async (req, res) => {
+// POST /api/subscriptions/handle-success - Traiter le retour de succès Stripe
+// remplace intégralement le handler actuel
+router.post("/handle-success", async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const { sessionId } = req.body;
+    if (!sessionId)
+      return res.status(400).json({ error: "Session ID manquant" });
 
-    const { planId } = req.body;
-
-    // Récupérer le plan depuis la base de données
-    const { data: planConfig, error: planError } = await supabaseServer
-      .from("subscription_plans")
-      .select("*")
-      .eq("id", planId)
-      .eq("is_active", true)
-      .single();
-
-    if (planError || !planConfig) {
-      console.error("❌ Plan non trouvé:", planError);
-      return res.status(400).json({ error: "Plan d'abonnement invalide" });
-    }
-
-    // Récupérer l'utilisateur avec customer Stripe
-    const { data: user, error: userError } = await supabaseServer
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .single();
-
-    if (userError || !user) {
-      return res.status(404).json({ error: "Utilisateur non trouvé" });
-    }
-
-    // Créer ou récupérer le customer Stripe
-    let customerId = user.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name,
-        metadata: {
-          userId: userId,
-        },
-      });
-      customerId = customer.id;
-
-      // Sauvegarder l'ID customer
-      await supabaseServer
-        .from("users")
-        .update({ stripeCustomerId: customerId })
-        .eq("id", userId);
-    }
-
-    // Créer la subscription Stripe (récurrente)
-    const subscription = await stripe.subscriptions.create({
-      customer: customerId,
-      items: [
-        {
-          price: planConfig.stripe_price_id,
-        },
-      ],
-      payment_behavior: "default_incomplete",
-      payment_settings: {
-        save_default_payment_method: "on_subscription",
-      },
-      expand: ["latest_invoice.payment_intent"],
-      metadata: {
-        planId: planId,
-        userId: userId,
-      },
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["subscription", "customer"],
     });
-
-    // Créer l'enregistrement d'abonnement en base
-    /*
-    const { data: dbSubscription, error: subError } = await supabaseServer
-      .from("subscriptions")
-      .insert({
-        user_id: userId,
-        plan_id: planId,
-        plan_name: planConfig.name,
-        price: planConfig.price_monthly,
-        max_listings: planConfig.max_listings,
-        status: "pending",
-        stripe_subscription_id: subscription.id,
-      })
-      .select()
-      .single();
-
-    if (subError) {
-      console.error("❌ Erreur création abonnement DB:", subError);
-      return res.status(500).json({ error: "Erreur création abonnement" });
+    if (!session.subscription) {
+      return res
+        .status(400)
+        .json({ error: "Pas d'abonnement dans la session" });
     }
-    */
-    // 🔎 (NOUVEAU) Tenter de récupérer un compte pro lié à cet user
-    const { data: proAccount, error: proErr } = await supabaseServer
-      .from("professional_accounts")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle();
 
-    // 🧱 Construire la payload d’insertion
-    const insertData: any = {
-      user_id: userId,                    // ✅ toujours
-      plan_id: planId,
-      plan_name: planConfig.name,         // (si colonne existante)
-      price: planConfig.price_monthly,    // (si colonne existante)
-      max_listings: planConfig.max_listings, // (si colonne existante)
-      status: "pending",                  // ⚠️ webhook Stripe passera à "active"
-      stripe_subscription_id: subscription.id,
+    // session.subscription est déjà l'objet complet grâce à expand
+    const fullSub = session.subscription as any;
+    const priceObj = fullSub.items.data[0]?.price as any;
+    const priceId = typeof priceObj === "string" ? priceObj : priceObj?.id;
+    if (!priceId)
+      return res.status(400).json({ error: "Price ID introuvable" });
+
+    // ✅ Résolution user_id sans email
+    let userId: string | null =
+      (session.metadata as any)?.user_id ||
+      (session.client_reference_id
+        ? String(session.client_reference_id)
+        : null) ||
+      null;
+
+    if (!userId) {
+      const customerId =
+        typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id;
+      if (customerId) {
+        const { data: found } = await supabaseServer
+          .from("users")
+          .select("id")
+          .eq("stripe_customer_id", customerId)
+          .maybeSingle();
+        userId = found?.id ?? null;
+      }
+    }
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ error: "user_id introuvable depuis la session" });
+    }
+
+    const { data: plan, error: planError } = await supabaseServer
+      .from("subscription_plans")
+      .select("id, name")
+      .eq("stripe_price_id", priceId)
+      .maybeSingle();
+    if (planError || !plan) {
+      console.error("❌ Plan introuvable pour price:", priceId, planError);
+      return res.status(404).json({ error: "Plan introuvable" });
+    }
+
+
+    // ✅ update-or-insert to satisfy uniq_active_subscription_per_user
+    const { data: existing, error: findErr } = await supabaseServer
+      .from("subscriptions")
+      .select("id, stripe_subscription_id")
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (findErr) {
+      console.error("❌ DB select failed in handle-success:", findErr);
+      return res.status(500).json({ error: "DB select failed" });
+    }
+
+    // Map Stripe status to our schema
+    const mapStripeStatus = (stripeStatus: string): "active" | "trialing" | "pending" => {
+      switch (stripeStatus) {
+        case "active": return "active";
+        case "trialing": return "trialing";
+        default: return "pending";
+      }
     };
 
-    // Si c’est un pro, on relie aussi l’abonnement au compte pro
-    if (proAccount && !proErr) {
-      insertData.professional_account_id = proAccount.id; // ✅ si pro
+    const payload = {
+      user_id: userId,
+      plan_id: plan.id,
+      status: mapStripeStatus((fullSub as any).status),
+      stripe_subscription_id: fullSub.id,
+      current_period_start: tsToIso((fullSub as any).current_period_start),
+      current_period_end: tsToIso((fullSub as any).current_period_end),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existing) {
+      // Idempotency: if it's already the same subscription, just refresh fields
+      console.log(`🔄 UPGRADE: User ${userId} - Mise à jour abonnement existant (ID: ${existing.id})`);
+      const { error: updateErr } = await supabaseServer
+        .from("subscriptions")
+        .update(payload)
+        .eq("id", existing.id);
+      if (updateErr) {
+        console.error("❌ DB update failed in handle-success:", updateErr);
+        return res.status(500).json({ error: "DB update failed" });
+      }
+    } else {
+      console.log(`🆕 NOUVEAU: User ${userId} - Création premier abonnement`);
+      const { error: insertErr } = await supabaseServer
+        .from("subscriptions")
+        .insert(payload);
+      if (insertErr) {
+        // ✅ IDEMPOTENCE: Vérifier si c'est une erreur de contrainte unique sur stripe_subscription_id
+        if (insertErr.code === '23505' && insertErr.message?.includes('stripe_subscription_id')) {
+          console.log(`♻️ IDEMPOTENCE: Détection double appel pour ${fullSub.id} - vérification...`);
+          
+          // Vérifier si la subscription existante est pour le même utilisateur
+          const { data: existingStripeSubscription, error: stripeSubErr } = await supabaseServer
+            .from("subscriptions")
+            .select("id, user_id, status, plan_id")
+            .eq("stripe_subscription_id", fullSub.id)
+            .maybeSingle();
+          
+          if (stripeSubErr) {
+            console.error("❌ Erreur vérification idempotence:", stripeSubErr);
+            return res.status(500).json({ error: "Erreur vérification subscription" });
+          }
+          
+          if (existingStripeSubscription && existingStripeSubscription.user_id === userId) {
+            console.log(`♻️ IDEMPOTENCE: Subscription ${fullSub.id} déjà créée pour même user - succès`);
+            return res.json({
+              success: true,
+              userId,
+              subscriptionId: fullSub.id,
+              planName: plan.name,
+              message: "Subscription déjà traitée (appel double détecté)"
+            });
+          }
+        }
+        
+        console.error("❌ DB insert failed in handle-success:", insertErr);
+        return res.status(500).json({ error: "DB insert failed" });
+      }
     }
 
-    // 💾 Insérer en DB
-    const { data: dbSubscription, error: subError } = await supabaseServer
-      .from("subscriptions")
-      .insert(insertData)
-      .select()
-      .single();
+    // ✅ NOUVELLE LOGIQUE : Finaliser l'onboarding professionnel après paiement réussi
+    try {
+      console.log(`🎯 Finalisation onboarding professionnel pour user: ${userId}`);
+      
+      // Mettre à jour le profil pour marquer l'onboarding comme terminé
+      const { error: profileErr } = await supabaseServer
+        .from("users")
+        .update({
+          profile_completed: true,
+          onboarding_status: "completed",
+        })
+        .eq("id", userId);
 
-    if (subError) {
-      console.error("❌ Erreur création abonnement DB:", subError);
-      return res.status(500).json({ error: "Erreur création abonnement" });
+      if (profileErr) {
+        console.error("❌ Erreur finalisation profil:", profileErr);
+        // Ne pas faire échouer la requête pour cette erreur, log seulement
+      } else {
+        console.log("✅ Onboarding professionnel finalisé avec succès");
+      }
+    } catch (profileError) {
+      console.error("❌ Erreur lors de la finalisation de l'onboarding:", profileError);
+      // Ne pas faire échouer la requête pour cette erreur
     }
 
-
-    const latestInvoice = subscription.latest_invoice as any;
-    const clientSecret = latestInvoice?.payment_intent?.client_secret;
-
-    res.json({
-      subscriptionId: subscription.id,
-      clientSecret: clientSecret,
+    return res.json({
+      success: true,
+      userId,
+      subscriptionId: fullSub.id,
+      planName: plan.name,
     });
   } catch (error) {
-    console.error("❌ Erreur création abonnement Stripe:", error);
+    console.error("❌ Erreur handle-success:", error);
+    res.status(500).json({ error: "Erreur lors du traitement succès" });
+  }
+});
+
+/* --------------------------------- STATUS --------------------------------- */
+
+// GET /api/subscriptions/status/:userId - statut simplifié pour l’UI
+router.get("/status/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const sub = await getActiveSubscriptionByUserId(userId);
+
+    const planRel = (sub as any)?.subscription_plans;
+    const plan = Array.isArray(planRel) ? planRel[0] : planRel;
+
+    const dto = {
+      isActive: !!sub,
+      status: sub?.status ?? "inactive",
+      planId: sub?.plan_id ?? null,
+      planName: plan?.name ?? "Free",
+      maxListings: (plan?.max_listings ?? null) as number | null, // null = illimité
+      expiresAt: sub?.current_period_end ?? null,
+      cancelAtPeriodEnd: sub?.cancel_at_period_end ?? false,
+    };
+
+    res.setHeader("Cache-Control", "no-store");
+    return res.json(dto);
+  } catch (error) {
+    console.error("❌ Erreur status:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// GET /api/subscriptions/current - Récupérer l'abonnement actuel de l'utilisateur
+/* -------------------------------- CURRENT --------------------------------- */
+
+// GET /api/subscriptions/current - Récupérer l'abonnement actuel (user_id)
 router.get("/current", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-
-    // Récupérer le professional_account_id de l'utilisateur
-    const { data: professionalAccount, error: proAccountError } =
-      await supabaseServer
-        .from("professional_accounts")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-
-    if (proAccountError || !professionalAccount) {
-      return res.json(null); // Pas de compte professionnel = pas d'abonnement
-    }
-
-    const { data: subscription, error } = await supabaseServer
-      .from("subscriptions")
-      .select("*")
-      .eq("professional_account_id", professionalAccount.id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error && error.code !== "PGRST116") {
-      console.error("❌ Erreur récupération abonnement:", error);
-      return res.status(500).json({ error: "Erreur serveur" });
-    }
-
-    res.json(subscription || null);
+    const sub = await getActiveSubscriptionByUserId(userId);
+    res.setHeader("Cache-Control", "no-store");
+    return res.json(sub || null);
   } catch (error) {
-    console.error("❌ Erreur récupération abonnement:", error);
+    console.error("❌ Erreur current:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// POST /api/subscriptions/cancel - Annuler un abonnement
+/* --------------------------------- CANCEL --------------------------------- */
+
+// POST /api/subscriptions/cancel - Annuler un abonnement (facultatif)
 router.post("/cancel", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
 
-    // Récupérer le professional_account_id de l'utilisateur
-    const { data: professionalAccount, error: proAccountError } =
-      await supabaseServer
-        .from("professional_accounts")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-
-    if (proAccountError || !professionalAccount) {
-      return res
-        .status(404)
-        .json({ error: "Compte professionnel introuvable" });
-    }
-
-    // Récupérer l'abonnement actif
-    const { data: subscription, error: subError } = await supabaseServer
+    const { data: sub, error: subError } = await supabaseServer
       .from("subscriptions")
       .select("*")
-      .eq("professional_account_id", professionalAccount.id)
-      .eq("status", "active")
-      .single();
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (subError || !subscription) {
+    if (subError || !sub) {
       return res.status(404).json({ error: "Aucun abonnement actif trouvé" });
     }
 
-    // Annuler chez Stripe (ne facture plus mais reste actif jusqu'à la fin de période)
-    if (subscription.stripe_subscription_id) {
-      await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+    if (sub.stripe_subscription_id) {
+      await stripe.subscriptions.update(sub.stripe_subscription_id, {
         cancel_at_period_end: true,
       });
     }
 
-    // Marquer l'abonnement comme annulé (reste actif jusqu'à la fin de la période)
     const { error: updateError } = await supabaseServer
       .from("subscriptions")
-      .update({
-        status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-      })
-      .eq("id", subscription.id);
+      .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+      .eq("id", sub.id);
 
     if (updateError) {
       console.error("❌ Erreur annulation abonnement:", updateError);
       return res.status(500).json({ error: "Erreur annulation" });
     }
 
-    // Mettre à jour le membership à 'canceled'
-    if (subscription.professional_account_id) {
-      const { error: membershipError } = await supabaseServer
-        .from("professional_accounts")
-        .update({ membership: "canceled" })
-        .eq("id", subscription.professional_account_id);
-
-      if (membershipError) {
-        console.error(
-          "⚠️ Erreur mise à jour membership (non critique):",
-          membershipError,
-        );
-      } else {
-        console.log("✅ Membership mis à jour: canceled");
-      }
-    }
-
     res.json({
-      message:
-        "Abonnement annulé avec succès. Il restera actif jusqu'à la fin de la période en cours.",
+      message: "Abonnement annulé. Actif jusqu'à la fin de la période.",
     });
   } catch (error) {
-    console.error("❌ Erreur annulation abonnement:", error);
+    console.error("❌ Erreur annulation:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// Webhook Stripe pour confirmer les paiements (nécessite raw body)
-router.post("/webhook", async (req, res) => {
-  const sig = req.headers["stripe-signature"] as string;
-  let event;
+/* -------------------------------- WEBHOOK --------------------------------- */
 
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!,
-    );
-  } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+// Webhook Stripe (requiert raw body dans Express)
+router.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const sig = req.headers["stripe-signature"] as string;
+    let event: Stripe.Event;
 
-  // Idempotency: éviter les traitements multiples
-  const { data: processedEvent } = await supabaseServer
-    .from("stripe_events_processed")
-    .select("id")
-    .eq("stripe_event_id", event.id)
-    .single();
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET!,
+      );
+    } catch (err: any) {
+      console.error("❌ Webhook signature verification failed:", err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
-  if (processedEvent) {
-    return res.json({ received: true, message: "Already processed" });
-  }
+    // Idempotency
+    const { data: processed } = await supabaseServer
+      .from("stripe_events_processed")
+      .select("id")
+      .eq("stripe_event_id", event.id)
+      .maybeSingle();
+    if (processed)
+      return res.json({ received: true, message: "Already processed" });
 
-  try {
-    switch (event.type) {
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-        const subscription = event.data.object as any;
+    try {
+      switch (event.type) {
+        case "customer.subscription.created":
+        case "customer.subscription.updated": {
+          const s = event.data.object as any;
+          const stripeSubId = s.id;
 
-        await supabaseServer
-          .from("subscriptions")
-          .update({
-            status: subscription.status === "active" ? "active" : "pending",
-            current_period_start: new Date(
-              subscription.current_period_start * 1000,
-            ).toISOString(),
-            current_period_end: new Date(
-              subscription.current_period_end * 1000,
-            ).toISOString(),
-            activated_at:
-              subscription.status === "active"
-                ? new Date().toISOString()
-                : null,
-          })
-          .eq("stripe_subscription_id", subscription.id);
+          // Compléter statut + dates
+          const updates: any = {
+            status:
+              s.status === "active"
+                ? "active"
+                : s.status === "trialing"
+                  ? "trialing"
+                  : "pending",
+            current_period_start: tsToIso(s.current_period_start),
+            current_period_end: tsToIso(s.current_period_end),
+            cancel_at_period_end: !!s.cancel_at_period_end,
+            updated_at: new Date().toISOString(),
+          };
 
-        console.log(`✅ Subscription ${subscription.status}:`, subscription.id);
-        break;
+          // Sécuriser user_id si manquant
+          const { data: row } = await supabaseServer
+            .from("subscriptions")
+            .select("id, user_id")
+            .eq("stripe_subscription_id", stripeSubId)
+            .maybeSingle();
 
-      case "customer.subscription.deleted":
-        const deletedSub = event.data.object as any;
+          if (!row?.user_id) {
+            // 1) metadata userId
+            if (s.metadata?.userId) {
+              updates.user_id = s.metadata.userId;
+            } else {
+              // 2) fallback customer -> email -> users.id
+              try {
+                const customer = await stripe.customers.retrieve(
+                  s.customer as string,
+                );
+                const email = (customer as any)?.email;
+                if (email) {
+                  const { data: u } = await supabaseServer
+                    .from("users")
+                    .select("id")
+                    .eq("email", email)
+                    .maybeSingle();
+                  if (u?.id) updates.user_id = u.id;
+                }
+              } catch (e) {
+                console.warn(
+                  "⚠️ Webhook: unable to resolve user_id from customer",
+                  e,
+                );
+              }
+            }
+          }
 
-        // Récupérer la subscription pour avoir le professional_account_id
-        const { data: deletedSubscription } = await supabaseServer
-          .from("subscriptions")
-          .select("professional_account_id")
-          .eq("stripe_subscription_id", deletedSub.id)
-          .single();
+          // (optionnel) plan_id via price
+          const priceId = s.items?.data?.[0]?.price?.id;
+          if (priceId) {
+            const planId = await mapPriceToPlanId(priceId);
+            if (planId) updates.plan_id = planId;
+          }
 
-        await supabaseServer
-          .from("subscriptions")
-          .update({
-            status: "expired",
-            cancelled_at: new Date().toISOString(),
-          })
-          .eq("stripe_subscription_id", deletedSub.id);
-
-        // Mettre à jour le membership à 'canceled' si on a trouvé le compte professionnel
-        if (deletedSubscription?.professional_account_id) {
           await supabaseServer
-            .from("professional_accounts")
-            .update({ membership: "canceled" })
-            .eq("id", deletedSubscription.professional_account_id);
+            .from("subscriptions")
+            .update(updates)
+            .eq("stripe_subscription_id", stripeSubId);
 
-          console.log(
-            "✅ Membership mis à jour: canceled pour compte pro",
-            deletedSubscription.professional_account_id,
-          );
+          break;
         }
 
-        console.log("✅ Subscription expired:", deletedSub.id);
-        break;
+        case "customer.subscription.deleted": {
+          const s = event.data.object as any;
+          await supabaseServer
+            .from("subscriptions")
+            .update({
+              status: "expired",
+              cancelled_at: new Date().toISOString(),
+            })
+            .eq("stripe_subscription_id", s.id);
+          break;
+        }
 
-      case "invoice.payment_succeeded":
-        const invoice = event.data.object as any;
-        if (invoice.subscription) {
-          // Renouvellement réussi
+        case "invoice.payment_succeeded": {
+          const inv = event.data.object as any;
           console.log(
             "✅ Payment succeeded for subscription:",
-            invoice.subscription,
+            inv.subscription,
           );
+          break;
         }
-        break;
 
-      case "invoice.payment_failed":
-        const failedInvoice = event.data.object as any;
-        if (failedInvoice.subscription) {
-          // TODO: Gérer les échecs de paiement (alertes utilisateur, grace period)
-          console.log(
-            "❌ Payment failed for subscription:",
-            failedInvoice.subscription,
-          );
+        case "invoice.payment_failed": {
+          const inv = event.data.object as any;
+          console.log("❌ Payment failed for subscription:", inv.subscription);
+          break;
         }
-        break;
-    }
-
-    // Marquer l'événement comme traité
-    await supabaseServer.from("stripe_events_processed").insert({
-      stripe_event_id: event.id,
-      processed_at: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error("❌ Erreur traitement webhook:", error);
-    return res.status(500).json({ error: "Webhook processing error" });
-  }
-
-  res.json({ received: true });
-});
-
-// POST /api/subscriptions/handle-success - Traiter le retour de succès Stripe
-router.post("/handle-success", async (req, res) => {
-  try {
-    const { sessionId } = req.body;
-
-    if (!sessionId) {
-      return res.status(400).json({ error: "Session ID manquant" });
-    }
-
-    console.log("🔄 Traitement du succès Stripe, session:", sessionId);
-
-    // Récupérer les détails de la session Stripe (sans expansion trop profonde)
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["subscription"],
-    });
-
-    if (!session.subscription) {
-      return res
-        .status(400)
-        .json({ error: "Pas d'abonnement trouvé dans la session" });
-    }
-
-    const subscription = session.subscription as any;
-    const customerEmail = session.customer_details?.email;
-
-    if (!customerEmail) {
-      return res.status(400).json({ error: "Email client manquant" });
-    }
-
-    console.log("📧 Email client:", customerEmail);
-    console.log("💳 Abonnement Stripe:", subscription.id);
-
-    // Récupérer les détails de l'abonnement sans expansion
-    const fullSubscription = await stripe.subscriptions.retrieve(
-      subscription.id,
-    );
-
-    // Debug : afficher la structure des données
-    console.log(
-      "🔍 Structure subscription:",
-      JSON.stringify(fullSubscription.items.data[0], null, 2),
-    );
-
-    // Récupérer les détails du prix séparément
-    const priceData = fullSubscription.items.data[0].price as any;
-    const priceId = typeof priceData === "string" ? priceData : priceData.id;
-    const priceDetails = await stripe.prices.retrieve(priceId);
-
-    const amount = (priceDetails.unit_amount || 0) / 100; // Convertir de centimes
-
-    console.log("🎯 Détails produit - Prix:", priceId, "Montant:", amount);
-
-    // Trouver ou créer l'utilisateur dans notre table users
-    let { data: user, error: userError } = await supabaseServer
-      .from("users")
-      .select("id, email, name")
-      .eq("email", customerEmail)
-      .single();
-
-    if (userError && userError.code === "PGRST116") {
-      // L'utilisateur n'existe pas dans notre table, récupérons-le depuis auth
-      console.log(
-        "🔄 Utilisateur non trouvé dans table users, recherche dans auth...",
-      );
-
-      const { data: authUsers, error: authError } =
-        await supabaseServer.auth.admin.listUsers();
-
-      if (authError || !authUsers.users) {
-        console.error("❌ Erreur récupération auth users:", authError);
-        return res
-          .status(404)
-          .json({ error: "Utilisateur introuvable dans auth" });
       }
 
-      const authUser = authUsers.users.find((u) => u.email === customerEmail);
-      if (!authUser) {
-        console.error("❌ Utilisateur introuvable dans auth:", customerEmail);
-        return res.status(404).json({ error: "Utilisateur introuvable" });
-      }
-
-      // Créer l'utilisateur dans notre table
-      const { data: createdUser, error: createError } = await supabaseServer
-        .from("users")
-        .insert({
-          id: authUser.id,
-          email: authUser.email!,
-          name: authUser.user_metadata?.name || authUser.email!.split("@")[0],
-          created_at: new Date().toISOString(),
-        })
-        .select("id, email, name")
-        .single();
-
-      if (createError) {
-        console.error("❌ Erreur création utilisateur:", createError);
-        return res.status(500).json({ error: "Erreur création utilisateur" });
-      }
-
-      user = createdUser;
-      console.log("✅ Utilisateur créé dans table users:", user.id);
-    } else if (userError) {
-      console.error("❌ Erreur récupération utilisateur:", userError);
-      return res.status(500).json({ error: "Erreur récupération utilisateur" });
+      await supabaseServer.from("stripe_events_processed").insert({
+        stripe_event_id: event.id,
+        processed_at: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ Erreur traitement webhook:", error);
+      return res.status(500).json({ error: "Webhook processing error" });
     }
 
-    // Trouver le plan d'abonnement correspondant
-    const { data: plan, error: planError } = await supabaseServer
-      .from("subscription_plans")
-      .select("*")
-      .eq("stripe_price_id", priceId)
-      .single();
-
-    if (planError || !plan) {
-      console.error("❌ Plan introuvable:", planError);
-      return res.status(404).json({ error: "Plan d'abonnement introuvable" });
-    }
-
-    console.log("📋 Plan trouvé:", plan.name);
-
-    // Récupérer le professional_account de l'utilisateur
-    const { data: professionalAccount, error: proAccountError } =
-      await supabaseServer
-        .from("professional_accounts")
-        .select("id")
-        .eq("user_id", user!.id)
-        .single();
-
-    if (proAccountError || !professionalAccount) {
-      console.error(
-        "❌ Compte professionnel introuvable pour l'utilisateur:",
-        user!.id,
-      );
-      return res
-        .status(404)
-        .json({ error: "Compte professionnel introuvable" });
-    }
-
-    console.log("🏢 Compte professionnel trouvé:", professionalAccount.id);
-
-    // Vérifier si un abonnement existe déjà avec ce stripe_subscription_id
-    const { data: existingSubscription } = await supabaseServer
-      .from("subscriptions")
-      .select("id")
-      .eq("stripe_subscription_id", fullSubscription.id)
-      .single();
-
-    // Créer ou mettre à jour l'abonnement en base avec professional_account_id
-    const subscriptionData = {
-      professional_account_id: professionalAccount.id,
-      plan_id: plan.id.toString(),
-      stripe_subscription_id: fullSubscription.id,
-      status: "active" as const,
-      // Les dates Stripe seront mises à jour par webhook plus tard
-      current_period_start: null,
-      current_period_end: null,
-    };
-
-    if (existingSubscription) {
-      console.log("⚠️ Mise à jour abonnement existant...");
-      const { error: updateError } = await supabaseServer
-        .from("subscriptions")
-        .update(subscriptionData)
-        .eq("id", existingSubscription.id);
-
-      if (updateError) {
-        console.error(
-          "⚠️ Erreur mise à jour abonnement (non critique):",
-          updateError,
-        );
-      } else {
-        console.log("✅ Abonnement mis à jour");
-      }
-    } else {
-      console.log("🆕 Création nouvel abonnement...");
-      const { error: insertError } = await supabaseServer
-        .from("subscriptions")
-        .insert(subscriptionData);
-
-      if (insertError) {
-        console.error(
-          "⚠️ Erreur création abonnement (non critique):",
-          insertError,
-        );
-      } else {
-        console.log("✅ Nouvel abonnement créé");
-      }
-    }
-
-    // Mettre à jour le membership du compte professionnel
-    console.log("🔄 Mise à jour membership -> paid...");
-    const { error: membershipError } = await supabaseServer
-      .from("professional_accounts")
-      .update({ membership: "paid" })
-      .eq("id", professionalAccount.id);
-
-    if (membershipError) {
-      console.error(
-        "⚠️ Erreur mise à jour membership (non critique):",
-        membershipError,
-      );
-    } else {
-      console.log("✅ Membership mis à jour: paid");
-    }
-
-    console.log("✅ Paiement Stripe confirmé - Abonnement traité");
-
-    console.log("✅ Abonnement traité avec succès");
-
-    // Marquer le profil utilisateur comme complété s'il ne l'est pas
-    console.log("🔄 Mise à jour profil utilisateur...");
-    const { error: profileError } = await supabaseServer
-      .from("users")
-      .update({ profile_completed: true })
-      .eq("id", user!.id);
-
-    if (profileError) {
-      console.error(
-        "⚠️ Erreur mise à jour profil (non critique):",
-        profileError,
-      );
-    }
-
-    console.log("✅ Profil utilisateur marqué comme complété");
-
-    // ➕ NOUVELLE LOGIQUE :
-    // Mettre à jour le type utilisateur vers "professional" après paiement réussi
-    if (user!.type !== "professional") {
-      console.log(
-        `🔄 Mise à jour type utilisateur: ${user!.type} -> professional...`,
-      );
-      const { error: typeError } = await supabaseServer
-        .from("users")
-        .update({ type: "professional" })
-        .eq("id", user!.id);
-
-      if (typeError) {
-        console.error("⚠️ Erreur mise à jour type (non critique):", typeError);
-      } else {
-        console.log("✅ Type utilisateur mis à jour: professional");
-      }
-    }
-
-    // Réponse avec les détails pour l'interface
-    res.json({
-      success: true,
-      planName: plan.name,
-      amount: amount,
-      period: "mensuel",
-      userId: user!.id,
-      subscriptionId: fullSubscription.id,
-    });
-  } catch (error) {
-    console.error("❌ Erreur traitement succès Stripe:", error);
-    res.status(500).json({
-      error: "Erreur lors du traitement du paiement",
-      details: error instanceof Error ? error.message : "Erreur inconnue",
-    });
-  }
-});
+    res.json({ received: true });
+  },
+);
 
 export { router as subscriptionsRouter };

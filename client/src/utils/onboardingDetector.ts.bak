@@ -10,7 +10,7 @@ export type OnboardingStep =
 export interface MinimalUser {
   id: string;
   type?: "pending" | "individual" | "professional" | "admin" | null;
-  profile_completed?: boolean | null;
+  profileCompleted?: boolean | null;
 }
 
 export interface MinimalProAccount {
@@ -42,29 +42,38 @@ export function detectOnboardingState(
   pro: MinimalProAccount | null | undefined,
   sub: MinimalSubscription | null | undefined,
 ): DetectResult {
+  console.log("🐞 DEBUG: detectOnboardingState - Paramètres reçus:");
+  console.log("🐞   user =", user ? { id: user.id, type: user.type, profileCompleted: user.profileCompleted } : null);
+  console.log("🐞   pro =", pro ? { verification_status: pro.verification_status } : null);
+  console.log("🐞   sub =", sub ? { status: sub.status } : null);
+
   // Non connecté → laisse la logique existante gérer (ou rediriger vers login)
   if (!user) {
-    return {
-      step: "profile",
+    const result = {
+      step: "profile" as OnboardingStep,
       reason: "no_user",
       canPost: false,
       shouldShowPopup: true,
     };
+    console.log("🐞 DEBUG: detectOnboardingState - RÉSULTAT no_user:", result);
+    return result;
   }
 
   // Cas nouvel utilisateur "pending"
   if (user.type === "pending") {
-    return {
-      step: "profile",
+    const result = {
+      step: "profile" as OnboardingStep,
       reason: "new_user_pending",
       canPost: false,
       shouldShowPopup: true, // 👈 ouvrir le popup directement
     };
+    console.log("🐞 DEBUG: detectOnboardingState - RÉSULTAT pending:", result);
+    return result;
   }
 
   // Particulier
   if (user.type === "individual") {
-    if (user.profile_completed) {
+    if (user.profileCompleted) {
       return {
         step: "completed",
         reason: "individual_done",
@@ -82,15 +91,21 @@ export function detectOnboardingState(
 
   // Professionnel
   if (user.type === "professional") {
+    console.log("🐞 DEBUG: User type = 'professional', profileCompleted =", user.profileCompleted);
+    
     // Cas A – Juste inscrit
-    if (!user.profile_completed) {
-      return {
-        step: "profile",
+    if (!user.profileCompleted) {
+      const result = {
+        step: "profile" as OnboardingStep,
         reason: "pro_profile_missing",
         canPost: false,
         shouldShowPopup: true,
       };
+      console.log("🐞 DEBUG: detectOnboardingState - RÉSULTAT pro_profile_missing:", result);
+      return result;
     }
+
+    console.log("🐞 DEBUG: User pro avec profileCompleted = true, continuant vers documents...");
 
     // Profil ok, proAccount inexistant ou pas démarré → Cas B
     const v = pro?.verification_status ?? "not_started";

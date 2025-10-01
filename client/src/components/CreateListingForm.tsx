@@ -2,33 +2,30 @@ import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Upload,
-  X,
-  Check,
-  Car,
-  Bike,
-  Wrench,
-  Package,
   Camera,
+  Check,
   Search,
-  Truck,
-  Ship,
-  Waves,
-  Settings,
-  Anchor,
-  Sailboat,
-  Mountain,
-  CreditCard,
+  X,
+  EyeOff,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { PremiumPackSelector } from "./PremiumPackSelector";
 import { PremiumPayment } from "./PremiumPayment";
 import { PublishSuccessModal } from "./PublishSuccessModal";
+import { BoostModal } from "./BoostModal";
 import { AddressInput } from "./AddressInput";
+import { CategoryStep } from "./create-listing/CategoryStep";
+import {
+  ListingTypeStep,
+  ListingTypeValue,
+} from "./create-listing/ListingTypeStep";
+import { VehicleDetailsStep } from "./create-listing/VehicleDetailsStep";
+import { PlateBlurModal } from "./PlateBlurModal";
 import { PREMIUM_PACKS } from "@/types/premium";
-import { useApp } from "@/contexts/AppContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
+import { useListingNavigation } from "@/hooks/useListingNavigation";
+import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
 // Temporairement commenté pour éviter l'erreur d'import
 // import { useToast } from '../../hooks/use-toast';
 import {
@@ -36,38 +33,26 @@ import {
   fuelTypes,
   carModelsByBrand,
 } from "@/utils/mockData";
-// Nouvelles images des catégories principales
-import voitureImage from "@/assets/voiture-2_1752244968736.png";
-import motosImage from "@/assets/motos-scooters_1752244968742.png";
-import piecesImage from "@/assets/pieces-detachees_1752244968743.png";
-import servicesImage from "@/assets/services-entretien_1752244968744.png";
-
-// Images des sous-catégories voitures-utilitaires
-import voitureIcon from "@/assets/voiture-_1752249166092.png";
-import utilitaireIcon from "@/assets/utilitaire_1752249166091.png";
-import remorqueIcon from "@/assets/remorque_1752249166090.png";
-import caravaneIcon from "@/assets/caravane_1752249166091.png";
-// Images des sous-catégories motos-quad-marine
-import motosIcon from "@/assets/motos-scooters_1752244968742.png"; // Utiliser l'image de la catégorie principale
-import scooterIcon from "@/assets/scooter_1752088210843.png";
-import quadIcon from "@/assets/Quad_1752249742337.png";
-import jetskiIcon from "@/assets/Jetski_1752249742334.png";
-import bateauIcon from "@/assets/bateau_1752249742336.png";
-import aerienIcon from "@/assets/aerien_1753810777764.png";
-
-// Images des sous-catégories services
-import reparationIcon from "@/assets/reparation_1752251142655.png";
-import remorquageIcon from "@/assets/remorquage_1752251142654.png";
-import entretienIcon from "@/assets/entretien_1752251142651.png";
-import autreServiceIcon from "@/assets/autre_1752251142652.png";
-
-// Images pour les boutons "Je vends" et "Je cherche"
-import vendreIcon from "@/assets/vendre_1752258100618.png";
-import chercherIcon from "@/assets/chercher_1752258100621.png";
+import { CATEGORIES } from "@/data/categories";
+import { COUNTRY_CODES } from "@/data/contact";
+import {
+  COLORS,
+  DOORS,
+  EMISSION_CLASSES,
+  LICENSE_TYPES,
+  PART_CATEGORIES,
+  PART_CONDITIONS,
+  SERVICE_TYPES,
+  TRANSMISSION_TYPES,
+  UPHOLSTERY_TYPES,
+  VEHICLE_CONDITIONS,
+  VEHICLE_EQUIPMENT,
+  VEHICLE_TYPES,
+} from "@/data/vehicle";
 
 interface FormData {
   // Étape 1: Type d'annonce
-  listingType: "sale" | "search" | "";
+  listingType: ListingTypeValue | "";
 
   // Étape 2: Famille principale
   category: string;
@@ -97,486 +82,15 @@ interface FormData {
   contact: {
     phone: string;
     email: string;
-    hidePhone: boolean;
     whatsapp: string;
+    hidePhone: boolean;
     sameAsPhone: boolean;
+    showPhone: boolean;
+    showWhatsapp: boolean;
+    showInternal: boolean;
   };
   premiumPack: string;
 }
-
-const CATEGORIES = [
-  {
-    id: "voiture-utilitaire",
-    name: "Voitures - Utilitaires",
-    icon: Car,
-    image: voitureImage,
-    color: "from-blue-500 to-blue-600",
-    isMaterial: true, // Bien matériel
-    subcategories: [
-      {
-        id: "voiture",
-        name: "Voiture",
-        image: voitureIcon,
-        color: "text-blue-500",
-        bgColor: "bg-blue-100",
-      },
-      {
-        id: "utilitaire",
-        name: "Utilitaire",
-        image: utilitaireIcon,
-        color: "text-gray-600",
-        bgColor: "bg-gray-100",
-      },
-      {
-        id: "caravane",
-        name: "Caravane",
-        image: caravaneIcon,
-        color: "text-green-600",
-        bgColor: "bg-green-100",
-      },
-      {
-        id: "remorque",
-        name: "Remorque",
-        image: remorqueIcon,
-        color: "text-orange-600",
-        bgColor: "bg-orange-100",
-      },
-    ],
-  },
-  {
-    id: "moto-scooter-quad",
-    name: "Motos, Scooters, Quads",
-    icon: Bike,
-    image: motosImage,
-    color: "from-green-500 to-green-600",
-    isMaterial: true, // Bien matériel
-    subcategories: [
-      {
-        id: "moto",
-        name: "Moto",
-        image: motosIcon,
-        color: "text-red-500",
-        bgColor: "bg-red-100",
-      },
-      {
-        id: "scooter",
-        name: "Scooter",
-        image: scooterIcon,
-        color: "text-purple-500",
-        bgColor: "bg-purple-100",
-      },
-      {
-        id: "quad",
-        name: "Quad",
-        image: quadIcon,
-        color: "text-yellow-600",
-        bgColor: "bg-yellow-100",
-      },
-    ],
-  },
-  {
-    id: "nautisme-sport-aerien",
-    name: "Nautisme, Sport et Plein air",
-    icon: Anchor,
-    image: bateauIcon,
-    color: "from-cyan-500 to-blue-600",
-    isMaterial: true, // Bien matériel
-    subcategories: [
-      {
-        id: "bateau",
-        name: "Bateau",
-        image: bateauIcon,
-        color: "text-blue-600",
-        bgColor: "bg-blue-100",
-      },
-      {
-        id: "jetski",
-        name: "Jet ski",
-        image: jetskiIcon,
-        color: "text-cyan-500",
-        bgColor: "bg-cyan-100",
-      },
-      {
-        id: "aerien",
-        name: "Aérien",
-        image: aerienIcon,
-        color: "text-sky-600",
-        bgColor: "bg-sky-100",
-      },
-    ],
-  },
-  {
-    id: "services",
-    name: "Services",
-    icon: Wrench,
-    image: servicesImage,
-    color: "from-orange-500 to-orange-600",
-    isMaterial: false, // Pas un bien matériel
-    subcategories: [
-      {
-        id: "reparation",
-        name: "Réparation",
-        image: reparationIcon,
-        color: "text-orange-500",
-        bgColor: "bg-orange-100",
-      },
-      {
-        id: "remorquage",
-        name: "Remorquage",
-        image: remorquageIcon,
-        color: "text-red-600",
-        bgColor: "bg-red-100",
-      },
-      {
-        id: "entretien",
-        name: "Entretien",
-        image: entretienIcon,
-        color: "text-green-500",
-        bgColor: "bg-green-100",
-      },
-      {
-        id: "autre-service",
-        name: "Autre",
-        image: autreServiceIcon,
-        color: "text-gray-500",
-        bgColor: "bg-gray-100",
-      },
-    ],
-  },
-  {
-    id: "pieces",
-    name: "Pièces détachées",
-    icon: Package,
-    image: piecesImage,
-    color: "from-purple-500 to-purple-600",
-    isMaterial: false, // Pas un bien matériel (pièces détachées)
-    subcategories: [
-      {
-        id: "piece-moto",
-        name: "Pièces moto",
-        image: motosImage, // Utiliser l'image de la catégorie Motos, scooters
-        color: "text-purple-500",
-        bgColor: "bg-purple-100",
-      },
-      {
-        id: "piece-voiture",
-        name: "Pièces voiture",
-        image: voitureImage, // Utiliser l'image de la catégorie Voitures - utilitaires
-        color: "text-blue-500",
-        bgColor: "bg-blue-100",
-      },
-      {
-        id: "autre-piece",
-        name: "Autres pièces",
-        image: piecesImage,
-        color: "text-purple-500",
-        bgColor: "bg-purple-100",
-      },
-    ],
-  },
-];
-
-// Équipements prédéfinis pour les véhicules
-const VEHICLE_EQUIPMENT = {
-  car: [
-    "Toit ouvrant / Toit panoramique",
-    "Climatisation",
-    "GPS",
-    "Sièges chauffants",
-    "Caméra de recul",
-    "Radar de recul",
-    "Jantes alliage",
-    "Feux LED / Xénon",
-    "Vitres électriques",
-    "Airbags",
-    "Sièges électriques",
-    "Attelage",
-    "Régulateur de vitesse",
-    "Bluetooth",
-    "Système audio premium",
-    "Cuir",
-  ],
-  motorcycle: [
-    "ABS",
-    "Contrôle de traction",
-    "Modes de conduite",
-    "Éclairage LED",
-    "Quickshifter",
-    "Chauffage poignées",
-    "Pare-brise",
-    "Top case",
-    "Sacoches",
-    "Antivol",
-    "Compteur digital",
-    "USB",
-  ],
-  utility: [
-    "Climatisation",
-    "GPS",
-    "Caméra de recul",
-    "Radar de recul",
-    "Attelage",
-    "Cloison de séparation",
-    "Hayon arrière",
-    "Porte latérale",
-    "Plancher bois",
-    "Éclairage LED cargo",
-    "Prise 12V",
-    "Radio Bluetooth",
-  ],
-  caravan: [
-    "Chauffage",
-    "Eau courante",
-    "WC",
-    "Douche",
-    "Frigo",
-    "Plaques de cuisson",
-    "Four",
-    "TV",
-    "Auvent",
-    "Climatisation",
-    "Panneaux solaires",
-    "Antenne satellite",
-  ],
-  trailer: [
-    "Bâche de protection",
-    "Ridelles amovibles",
-    "Rampes de chargement",
-    "Sangles d'arrimage",
-    "Roue de secours",
-    "Éclairage LED",
-    "Plancher antidérapant",
-    "Support vélo",
-  ],
-  scooter: [
-    "ABS",
-    "Coffre sous selle",
-    "Éclairage LED",
-    "Prise USB",
-    "Pare-brise",
-    "Top case",
-    "Antivol",
-    "Compteur digital",
-  ],
-  quad: [
-    "Suspension sport",
-    "Freins à disque",
-    "Démarreur électrique",
-    "Pneus tout-terrain",
-    "Treuil",
-    "Protection",
-    "Éclairage LED",
-    "Attelage",
-  ],
-  jetski: [
-    "Système audio",
-    "GPS",
-    "Éclairage LED",
-    "Compartiments étanches",
-    "Échelle de remontée",
-    "Remorque incluse",
-    "Housse de protection",
-  ],
-  boat: [
-    "GPS",
-    "Sondeur",
-    "Radio VHF",
-    "Pilote automatique",
-    "Éclairage LED",
-    "Taud de soleil",
-    "Échelle de bain",
-    "Douche de pont",
-    "WC",
-    "Cuisine",
-    "Couchettes",
-  ],
-  aircraft: [
-    "Parachute de secours",
-    "GPS",
-    "Radio",
-    "Variomètre",
-    "Sac de portage",
-    "Kit d'entretien",
-    "Housse de protection",
-    "Manuel d'utilisation",
-  ],
-};
-
-// Options pour les différents types
-const VEHICLE_TYPES = {
-  car: [
-    "Citadine",
-    "Berline",
-    "SUV",
-    "Break",
-    "Coupé",
-    "Cabriolet",
-    "Monospace",
-    "Pickup",
-  ],
-  utility: [
-    "Camionnette",
-    "Fourgon",
-    "Plateau",
-    "Benne",
-    "Frigorifique",
-    "Hayon",
-    "Autre",
-  ],
-  caravan: [
-    "Caravane pliante",
-    "Caravane rigide",
-    "Camping-car",
-    "Cellule amovible",
-    "Autre",
-  ],
-  trailer: [
-    "Remorque bagagère",
-    "Remorque porte-voiture",
-    "Remorque plateau",
-    "Remorque benne",
-    "Remorque fermée",
-    "Autre",
-  ],
-  motorcycle: [
-    "Sportive",
-    "Routière",
-    "Trail",
-    "Custom",
-    "Roadster",
-    "Enduro",
-    "Cross",
-    "Autre",
-  ],
-  scooter: [
-    "Scooter 50cc",
-    "Scooter 125cc",
-    "Scooter 250cc",
-    "Maxi-scooter",
-    "Scooter électrique",
-    "Scooter vintage",
-    "Autre",
-  ],
-  quad: [
-    "Quad sport",
-    "Quad utilitaire",
-    "Quad enfant",
-    "Side-by-side",
-    "Autre",
-  ],
-  aircraft: [
-    "ULM pendulaire",
-    "ULM multiaxe",
-    "Parapente",
-    "Paramoteur",
-    "Planeur",
-    "Avion léger",
-    "Hélicoptère",
-    "Autre",
-  ],
-  boat: [
-    "Bateau à moteur",
-    "Voilier",
-    "Semi-rigide",
-    "Pneumatique",
-    "Catamaran",
-    "Pêche promenade",
-    "Runabout",
-    "Autre",
-  ],
-  jetski: ["Jet à bras", "Jet assis", "Jet 3 places", "Jet de course", "Autre"],
-};
-
-const TRANSMISSION_TYPES = [
-  { value: "manual", label: "Manuelle" },
-  { value: "automatic", label: "Automatique" },
-  { value: "semi-automatic", label: "Semi-automatique" },
-];
-
-const COLORS = [
-  "Blanc",
-  "Noir",
-  "Gris",
-  "Argent",
-  "Rouge",
-  "Bleu",
-  "Vert",
-  "Jaune",
-  "Orange",
-  "Violet",
-  "Marron",
-  "Beige",
-  "Autre",
-];
-
-const DOORS = [2, 3, 4, 5];
-
-const UPHOLSTERY_TYPES = [
-  { value: "tissu", label: "Tissu" },
-  { value: "cuir_partiel", label: "Cuir partiel" },
-  { value: "cuir", label: "Cuir" },
-  { value: "velours", label: "Velours" },
-  { value: "alcantara", label: "Alcantara" },
-];
-
-const EMISSION_CLASSES = [
-  { value: "euro1", label: "Euro 1" },
-  { value: "euro2", label: "Euro 2" },
-  { value: "euro3", label: "Euro 3" },
-  { value: "euro4", label: "Euro 4" },
-  { value: "euro5", label: "Euro 5" },
-  { value: "euro6", label: "Euro 6" },
-];
-
-const LICENSE_TYPES = [
-  { value: "A", label: "Permis A" },
-  { value: "A1", label: "Permis A1" },
-  { value: "A2", label: "Permis A2" },
-  { value: "AL", label: "Permis AL" },
-  { value: "sans_permis", label: "Sans permis" },
-];
-
-const SERVICE_TYPES = [
-  "Réparation mécanique",
-  "Réparation carrosserie",
-  "Entretien",
-  "Révision",
-  "Contrôle technique",
-  "Remorquage",
-  "Dépannage",
-  "Autre",
-];
-
-const PART_CATEGORIES = [
-  "Moteur",
-  "Transmission",
-  "Freinage",
-  "Suspension",
-  "Électronique",
-  "Carrosserie",
-  "Intérieur",
-  "Éclairage",
-  "Pneumatiques",
-  "Autre",
-];
-
-const PART_CONDITIONS = [
-  { value: "new", label: "Neuf" },
-  { value: "used", label: "Occasion" },
-];
-
-const VEHICLE_CONDITIONS = [
-  {
-    value: "en_circulation",
-    label: "Roulant",
-    description: "Véhicule en état de circulation",
-  },
-  {
-    value: "accidente",
-    label: "Accidenté",
-    description: "Véhicule accidenté, vendu en l'état",
-  },
-];
 
 interface CreateListingFormProps {
   onSuccess?: () => void;
@@ -585,83 +99,26 @@ interface CreateListingFormProps {
 export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   onSuccess,
 }) => {
-  const { user, dbUser } = useAuth();
-  const { data: quotaInfo } = useQuota(dbUser?.id);
+  const { user, profile } = useAuth();
+  const { data: quotaInfo } = useQuota(profile?.id);
   // const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  // Configuration des pays supportés
-  const COUNTRY_CODES = [
-    {
-      code: "+33",
-      name: "France",
-      length: 9,
-      format: (num: string) =>
-        num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
-    },
-    {
-      code: "+1",
-      name: "États-Unis/Canada",
-      length: 10,
-      format: (num: string) =>
-        num.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3"),
-    },
-    {
-      code: "+44",
-      name: "Royaume-Uni",
-      length: 10,
-      format: (num: string) => num.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3"),
-    },
-    {
-      code: "+49",
-      name: "Allemagne",
-      length: 10,
-      format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3"),
-    },
-    {
-      code: "+34",
-      name: "Espagne",
-      length: 9,
-      format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3"),
-    },
-    {
-      code: "+39",
-      name: "Italie",
-      length: 10,
-      format: (num: string) => num.replace(/(\d{3})(\d{3})(\d{4})/, "$1 $2 $3"),
-    },
-    {
-      code: "+32",
-      name: "Belgique",
-      length: 9,
-      format: (num: string) =>
-        num.replace(/(\d{3})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4"),
-    },
-    {
-      code: "+41",
-      name: "Suisse",
-      length: 9,
-      format: (num: string) =>
-        num.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "$1 $2 $3 $4"),
-    },
-    {
-      code: "+212",
-      name: "Maroc",
-      length: 9,
-      format: (num: string) =>
-        num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
-    },
-    {
-      code: "+213",
-      name: "Algérie",
-      length: 9,
-      format: (num: string) =>
-        num.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5"),
-    },
-  ];
+  const [createdVehicle, setCreatedVehicle] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [showBoostModal, setShowBoostModal] = useState(false);
+  const [blurredImages, setBlurredImages] = useState<Set<number>>(new Set());
+  const [plateBlurModal, setPlateBlurModal] = useState<{
+    isOpen: boolean;
+    photoIndex: number;
+    imageUrl: string;
+  }>({
+    isOpen: false,
+    photoIndex: -1,
+    imageUrl: "",
+  });
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -722,6 +179,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       hidePhone: false,
       whatsapp: "",
       sameAsPhone: false,
+      showPhone: true, // affiché par défaut
+      showWhatsapp: true, // affiché par défaut
+      showInternal: true, // activé par défaut (ou false si tu veux)
     },
     premiumPack: "free", // Gardé pour compatibilité mais plus utilisé dans le flux
   });
@@ -755,14 +215,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // Pré-remplir avec les données utilisateur via appel API
   useEffect(() => {
     const loadUserContactData = async () => {
-      if ((user || dbUser) && !hasPrefilledData) {
+      if ((user || profile) && !hasPrefilledData) {
         try {
           console.log(
             "🔄 Récupération des données utilisateur depuis Supabase...",
           );
 
           // Appel API pour récupérer les données fraîches de l'utilisateur
-          const userEmail = user?.email || dbUser?.email;
+          const userEmail = user?.email || profile?.email;
           if (!userEmail) return;
 
           const response = await fetch(
@@ -812,41 +272,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     };
 
     loadUserContactData();
-  }, [user, dbUser, hasPrefilledData]);
-
-  // Avancement automatique des étapes - seulement si l'auto-avancement est activé
-  useEffect(() => {
-    if (autoAdvanceEnabled && currentStep === 1 && formData.listingType) {
-      setTimeout(() => setCurrentStep(2), 300);
-    }
-  }, [formData.listingType, currentStep, autoAdvanceEnabled]);
-
-  useEffect(() => {
-    if (autoAdvanceEnabled && currentStep === 2 && formData.category) {
-      // Depuis famille principale, aller toujours à sous-famille (étape 3)
-      setTimeout(() => setCurrentStep(3), 300);
-    }
-  }, [formData.category, currentStep, autoAdvanceEnabled]);
-
-  useEffect(() => {
-    if (autoAdvanceEnabled && currentStep === 3 && formData.subcategory) {
-      // Depuis sous-famille : si bien matériel nécessitant état -> étape 4, sinon -> étape 5 (titre)
-      const nextStep = needsConditionStep() ? 4 : 5;
-      setTimeout(() => setCurrentStep(nextStep), 300);
-    }
-  }, [formData.subcategory, currentStep, autoAdvanceEnabled]);
-
-  useEffect(() => {
-    if (
-      autoAdvanceEnabled &&
-      currentStep === 4 &&
-      formData.condition &&
-      needsConditionStep()
-    ) {
-      // Depuis état du bien, aller au titre (étape 5)
-      setTimeout(() => setCurrentStep(5), 300);
-    }
-  }, [formData.subcategory, currentStep, autoAdvanceEnabled]);
+  }, [user, profile, hasPrefilledData]);
 
   const updateFormData = (field: string, value: any) => {
     console.log("updateFormData called:", field, value);
@@ -884,7 +310,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Réactiver l'auto-avancement quand l'utilisateur fait un nouveau choix
     if (!autoAdvanceEnabled) {
-      setAutoAdvanceEnabled(true);
+      enableAutoAdvance();
     }
 
     // Auto-avancement immédiat pour l'état du bien
@@ -898,70 +324,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       ...prev,
       specificDetails: { ...prev.specificDetails, [field]: value },
     }));
-  };
-
-  // Validation du format d'immatriculation française
-  const validateRegistrationNumber = (
-    regNumber: string,
-  ): { isValid: boolean; message: string } => {
-    if (!regNumber) return { isValid: true, message: "" };
-
-    // Nettoyer la chaîne (supprimer espaces et tirets)
-    const cleaned = regNumber.replace(/[\s-]/g, "").toUpperCase();
-
-    // Format SIV actuel (depuis 2009): AA-123-AA
-    const sivPattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
-
-    // Format FNI ancien (avant 2009): 1234 AB 56
-    const fniPattern = /^[0-9]{1,4}[A-Z]{1,3}[0-9]{1,3}$/;
-
-    if (sivPattern.test(cleaned)) {
-      return { isValid: true, message: "Format SIV valide (AA-123-AA)" };
-    } else if (fniPattern.test(cleaned)) {
-      return { isValid: true, message: "Format FNI valide (1234 AB 56)" };
-    } else {
-      return {
-        isValid: false,
-        message:
-          "Format invalide. Utilisez le format SIV (AA-123-AA) ou FNI (1234 AB 56)",
-      };
-    }
-  };
-
-  // Formater automatiquement l'immatriculation
-  const formatRegistrationNumber = (value: string): string => {
-    if (!value) return "";
-
-    // Nettoyer la chaîne
-    const cleaned = value.replace(/[\s-]/g, "").toUpperCase();
-
-    // Tentative de formatage SIV (AA123AA -> AA-123-AA)
-    if (cleaned.length >= 5) {
-      const sivPattern = /^([A-Z]{2})([0-9]{3})([A-Z]{0,2}).*$/;
-      const match = cleaned.match(sivPattern);
-      if (match) {
-        const [, letters1, numbers, letters2] = match;
-        if (letters2.length === 2) {
-          return `${letters1}-${numbers}-${letters2}`;
-        } else if (letters2.length === 1) {
-          return `${letters1}-${numbers}-${letters2}`;
-        } else {
-          return `${letters1}-${numbers}`;
-        }
-      }
-    }
-
-    // Tentative de formatage FNI (1234AB56 -> 1234 AB 56)
-    if (cleaned.length >= 6) {
-      const fniPattern = /^([0-9]{1,4})([A-Z]{1,3})([0-9]{1,3}).*$/;
-      const match = cleaned.match(fniPattern);
-      if (match) {
-        const [, numbers1, letters, numbers2] = match;
-        return `${numbers1} ${letters} ${numbers2}`;
-      }
-    }
-
-    return cleaned;
   };
 
   // Validation du numéro de téléphone international
@@ -1110,63 +472,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const nextStepHandler = () => {
-    const selectedCategory = getSelectedCategory();
-    let nextStepNumber = currentStep + 1;
-
-    // Nouvelle logique conditionnelle : Type → Famille → Sous-famille → État (si matériel) → Titre
-    if (currentStep === 2) {
-      // Depuis famille principale -> sous-famille (3)
-      nextStepNumber = 3;
-    } else if (currentStep === 3) {
-      // Depuis sous-famille : si bien matériel nécessitant état -> état du bien (4), sinon -> titre (5)
-      nextStepNumber = needsConditionStep() ? 4 : 5;
-    } else if (currentStep === 4) {
-      // Depuis état du bien -> titre (5)
-      nextStepNumber = 5;
-    } else {
-      // Logique existante pour les étapes suivantes (réajustées pour le nouveau schéma)
-      if (isSearchForParts()) {
-        if (currentStep === 5) {
-          // Après le titre (étape 5), aller directement à la description (étape 7)
-          nextStepNumber = 7;
-        } else if (currentStep === 7) {
-          // Après la description (étape 7), aller aux photos (étape 8)
-          nextStepNumber = 8;
-        } else if (currentStep === 8) {
-          // Après les photos (étape 8), aller directement aux contacts (étape 11)
-          nextStepNumber = 11;
-        }
-      } else if (isServiceCategory()) {
-        // Pour les services, ignorer l'étape 6 (Détails spécifiques)
-        if (currentStep === 5) {
-          // Après le titre (étape 5), aller directement à la description (étape 7)
-          nextStepNumber = 7;
-        }
-      } else if (isSearchListing()) {
-        // Pour les annonces de recherche, ignorer l'étape prix (étape 9)
-        if (currentStep === 8) {
-          // Après les photos (étape 8), aller directement à la localisation (étape 10)
-          nextStepNumber = 10;
-        }
-      }
-      // Autres logiques selon les besoins
-    }
-
-    if (nextStepNumber <= totalSteps) {
-      setCurrentStep(nextStepNumber);
-    }
+    goToNextStep();
   };
 
   const prevStepHandler = () => {
     // Désactiver l'auto-avancement temporairement
-    setAutoAdvanceEnabled(false);
+    disableAutoAdvance();
 
     // Effacer seulement les données de navigation (pas les contenus saisis par l'utilisateur)
     switch (currentStep) {
       case 2:
-        // En revenant de l'étape famille principale, on efface le type d'annonce
+        // En revenant de l'étape catégorie, on efface le type d'annonce
         setFormData((prev) => ({ ...prev, listingType: "" }));
         break;
+
       case 3:
         // En revenant de l'étape sous-famille, on efface la famille principale
         setFormData((prev) => ({ ...prev, category: "" }));
@@ -1190,54 +509,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       // Pour les étapes 6 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
     }
 
-    const selectedCategory = getSelectedCategory();
-
-    let previousStepNumber = currentStep - 1;
-
-    // Nouvelle logique de navigation arrière selon le nouveau schéma
-    const category = getSelectedCategory();
-
-    if (currentStep === 4 && !needsConditionStep()) {
-      // Si on revient de l'étape titre et qu'il n'y a pas d'étape état du bien, retourner à sous-famille (étape 3)
-      previousStepNumber = 3;
-    } else if (currentStep === 5) {
-      // Depuis titre, revenir à état du bien (étape 4) ou à sous-famille (étape 3) selon le cas
-      previousStepNumber = needsConditionStep() ? 4 : 3;
-    } else {
-      // Logique existante pour les étapes suivantes
-      if (isSearchForParts()) {
-        if (currentStep === 11) {
-          // Depuis les contacts (étape 11), revenir aux photos (étape 8)
-          previousStepNumber = 8;
-        } else if (currentStep === 8) {
-          // Depuis les photos (étape 8), revenir à la description (étape 7)
-          previousStepNumber = 7;
-        } else if (currentStep === 7) {
-          // Depuis la description (étape 7), revenir au titre (étape 5)
-          previousStepNumber = 5;
-        }
-      } else if (isServiceCategory()) {
-        // Pour les services, gérer la navigation en arrière en sautant l'étape 6
-        if (currentStep === 7) {
-          // Depuis la description (étape 7), revenir au titre (étape 5)
-          previousStepNumber = 5;
-        }
-      } else if (isSearchListing()) {
-        // Pour les annonces de recherche, gérer la navigation en arrière en sautant l'étape 9
-        if (currentStep === 10) {
-          // Depuis la localisation (étape 10), revenir aux photos (étape 8)
-          previousStepNumber = 8;
-        }
-      }
-    }
-
-    if (previousStepNumber >= 1) {
-      setCurrentStep(previousStepNumber);
-    }
+    goToPreviousStep();
 
     // Réactiver l'auto-avancement après un délai
     setTimeout(() => {
-      setAutoAdvanceEnabled(true);
+      enableAutoAdvance();
     }, 500);
   };
 
@@ -1434,10 +710,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   // Vérifier si la catégorie nécessite une étape d'état du bien (biens matériels uniquement)
-  const needsConditionStep = () => {
+  //  const needsConditionStep = () => {
+  const needsConditionStep = (): boolean => {
     const category = getSelectedCategory();
     // Seulement pour les biens matériels, excluant services et pièces détachées
-    return (
+    return !!(
       category?.isMaterial &&
       category?.id !== "services" &&
       category?.id !== "pieces"
@@ -1459,15 +736,30 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     return formData.listingType === "search";
   };
 
-  // Vérifier si on est dans le cas d'une recherche de véhicules moto/quad/marine qui n'ont pas besoin d'étape condition
-  const isSearchForMotorizedVehicles = () => {
-    return (
-      formData.listingType === "search" &&
-      ["motorcycle", "scooter", "quad", "jetski", "boat"].includes(
-        formData.subcategory,
-      )
-    );
-  };
+  const {
+    autoAdvanceEnabled,
+    currentStep,
+    disableAutoAdvance,
+    enableAutoAdvance,
+    goToNextStep,
+    goToPreviousStep,
+    setCurrentStep,
+  } = useListingNavigation({
+    totalSteps,
+    formState: {
+      listingType: formData.listingType,
+      category: formData.category,
+      subcategory: formData.subcategory,
+      condition: formData.condition,
+    },
+    needsConditionStep,
+    isSearchForParts,
+    isServiceCategory,
+    isSearchListing,
+  });
+
+  const { formatRegistrationNumber, validateRegistrationNumber } =
+    useRegistrationNumber();
 
   // Fonction pour publier l'annonce
   const publishListing = async () => {
@@ -1488,7 +780,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       const isSearch = formData.listingType === "search";
 
       const vehicleData = {
-        userId: dbUser?.id || user?.id,
+        userId: profile?.id || user?.id,
         title: formData.title || "",
         description: formData.description || "",
         category: formData.subcategory || "", // Utiliser la sous-catégorie spécifique comme catégorie principale
@@ -1513,7 +805,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
         contactWhatsapp: formData.contact.whatsapp || "",
-        hidePhone: formData.contact.hidePhone || false,
+        hidePhone: !formData.contact.showPhone, 
+        //hidePhone: formData.contact.hidePhone || false,
         isPremium: false,
         status: "draft", // Initialement en brouillon
         listingType: formData.listingType || "sale",
@@ -1535,6 +828,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       if (response.ok) {
         const newVehicle = await response.json();
         console.log("Annonce créée avec succès:", newVehicle);
+
+        // Stocker les infos du véhicule créé
+        setCreatedVehicle({
+          id: newVehicle.id?.toString() || "",
+          title: newVehicle.title || formData.title,
+        });
 
         // Afficher le modal de succès
         setShowSuccessModal(true);
@@ -1565,6 +864,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     }
   };
 
+  // Fonction pour ouvrir le modal de boost
+  const handleBoostListing = () => {
+    setShowSuccessModal(false);
+    setShowBoostModal(true);
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -1580,7 +885,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         formData.append("images", file);
       });
 
-      const userId = dbUser?.id || "anonymous";
+      const userId = profile?.id || "anonymous";
       const response = await fetch(`/api/images/upload/${userId}`, {
         method: "POST",
         body: formData,
@@ -1624,6 +929,106 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index),
     }));
+  };
+
+  // Fonction pour ouvrir le modal de floutage d'immatriculation
+  const handleBlurPlate = async (index: number) => {
+    const photo = formData.photos[index];
+    let imageUrl: string;
+
+    // Si c'est un File, il faut d'abord l'uploader
+    if (typeof photo !== "string") {
+      try {
+        // Upload temporaire de l'image
+        const formData = new FormData();
+        formData.append("images", photo);
+
+        const uploadResponse = await fetch(`/api/images/upload/${user?.id}`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Erreur upload image");
+        }
+
+        const { images } = await uploadResponse.json();
+        imageUrl = images[0].url;
+
+        // Mettre à jour le formData avec l'URL uploadée
+        setFormData((prev) => {
+          const newPhotos = [...prev.photos];
+          newPhotos[index] = imageUrl;
+          return {
+            ...prev,
+            photos: newPhotos,
+          };
+        });
+      } catch (error) {
+        console.error("Erreur upload image:", error);
+        alert("Erreur lors de l'upload de l'image. Veuillez réessayer.");
+        return;
+      }
+    } else {
+      imageUrl = photo;
+    }
+
+    setPlateBlurModal({
+      isOpen: true,
+      photoIndex: index,
+      imageUrl,
+    });
+  };
+
+  // Fonction pour appliquer le masque blanc sur l'image
+  const handleApplyMask = async (maskData: {
+    centerX: number;
+    centerY: number;
+    width: number;
+    height: number;
+    angle: number;
+  }) => {
+    try {
+      const { photoIndex, imageUrl } = plateBlurModal;
+
+      // Appeler l'API backend pour appliquer le masque
+      const response = await fetch("/api/images/apply-mask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl,
+          mask: maskData,
+          userId: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'application du masque");
+      }
+
+      const { maskedImageUrl } = await response.json();
+
+      // Remplacer l'image dans le formulaire par l'image masquée
+      setFormData((prev) => {
+        const newPhotos = [...prev.photos];
+        newPhotos[photoIndex] = maskedImageUrl;
+        return {
+          ...prev,
+          photos: newPhotos,
+        };
+      });
+
+      // Marquer l'image comme floutée
+      setBlurredImages((prev) => new Set(prev).add(photoIndex));
+
+      // Fermer le modal
+      setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" });
+    } catch (error) {
+      console.error("Erreur application masque:", error);
+      alert("Erreur lors de l'application du masque. Veuillez réessayer.");
+    }
   };
 
   const renderSpecificDetailsFields = () => {
@@ -3094,219 +2499,33 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Type d'annonce
-              </h2>
-              <p className="text-gray-600">Que souhaitez-vous faire ?</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <button
-                onClick={() => updateFormData("listingType", "sale")}
-                className={`relative p-8 rounded-2xl border-2 transition-all duration-200 text-center ${
-                  formData.listingType === "sale"
-                    ? "border-primary-bolt-500 bg-primary-bolt-50"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <div className="mb-4">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-                    <img
-                      src={vendreIcon}
-                      alt="Je vends"
-                      className="w-18 h-18"
-                    />
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Je vends
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Déposer une annonce pour vendre un véhicule, une pièce
-                  détachée ou proposer un service
-                </p>
-
-                {formData.listingType === "sale" && (
-                  <div className="absolute top-4 right-4">
-                    <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
-                      <Check className="h-4 w-4 text-white" />
-                    </div>
-                  </div>
-                )}
-              </button>
-
-              <button
-                onClick={() => updateFormData("listingType", "search")}
-                className={`relative p-8 rounded-2xl border-2 transition-all duration-200 text-center ${
-                  formData.listingType === "search"
-                    ? "border-primary-bolt-500 bg-primary-bolt-50"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <div className="mb-4">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-                    <img
-                      src={chercherIcon}
-                      alt="Je cherche"
-                      className="w-18 h-18"
-                    />
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Je cherche
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Publier une demande de recherche pour trouver un véhicule, une
-                  pièce ou un service spécifique
-                </p>
-
-                {formData.listingType === "search" && (
-                  <div className="absolute top-4 right-4">
-                    <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
-                      <Check className="h-4 w-4 text-white" />
-                    </div>
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
+          <ListingTypeStep
+            value={formData.listingType}
+            onSelect={(value) => updateFormData("listingType", value)}
+          />
         );
 
       case 2:
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Choisissez une catégorie
-              </h2>
-              <p className="text-gray-600">
-                Sélectionnez la catégorie qui correspond le mieux à votre{" "}
-                {formData.listingType === "sale" ? "annonce" : "recherche"}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {CATEGORIES.map((category) => {
-                const IconComponent = category.icon;
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => updateFormData("category", category.id)}
-                    className={`relative p-6 rounded-2xl border-2 transition-all duration-200 text-left ${
-                      formData.category === category.id
-                        ? "border-primary-bolt-500 bg-primary-bolt-50"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className="p-3 flex items-center justify-center">
-                        {category.image ? (
-                          <img
-                            src={category.image}
-                            alt={category.name}
-                            className="h-12 w-12 object-contain"
-                          />
-                        ) : (
-                          <div
-                            className={`p-3 rounded-xl bg-gradient-to-r ${category.color} shadow-lg flex items-center justify-center`}
-                          >
-                            <IconComponent className="h-6 w-6 text-white" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {category.name}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {category.subcategories
-                            .map((sub) => sub.name)
-                            .join(", ")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {formData.category === category.id && (
-                      <div className="absolute top-4 right-4">
-                        <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
-                          <Check className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <CategoryStep
+            categories={CATEGORIES}
+            selectedCategoryId={formData.category}
+            listingType={formData.listingType}
+            onSelect={(categoryId) => updateFormData("category", categoryId)}
+          />
         );
 
       case 3:
-        // Étape sous-catégorie
         if (!selectedCategory) return null;
 
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Choisissez une sous-famille
-              </h2>
-              <p className="text-gray-600">
-                Précisez le type de {selectedCategory.name.toLowerCase()}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {selectedCategory.subcategories.map((subcategory) => {
-                return (
-                  <button
-                    key={subcategory.id}
-                    onClick={() =>
-                      updateFormData("subcategory", subcategory.id)
-                    }
-                    className={`relative p-4 rounded-xl border-2 transition-all duration-200 text-center ${
-                      formData.subcategory === subcategory.id
-                        ? "border-primary-bolt-500 bg-primary-bolt-50"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {/* Icône ou image */}
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      {subcategory.image ? (
-                        <img
-                          src={subcategory.image}
-                          alt={subcategory.name}
-                          className="h-14 w-14 object-contain"
-                        />
-                      ) : (
-                        <div
-                          className={`w-12 h-12 ${subcategory.bgColor} rounded-xl flex items-center justify-center`}
-                        >
-                          {/* Icône de substitution si pas d'image */}
-                          <div className={`h-6 w-6 ${subcategory.color}`}>
-                            ⚪
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <h3 className="font-semibold text-gray-900">
-                      {subcategory.name}
-                    </h3>
-
-                    {formData.subcategory === subcategory.id && (
-                      <div className="absolute top-2 right-2">
-                        <div className="w-6 h-6 bg-primary-bolt-500 rounded-full flex items-center justify-center">
-                          <Check className="h-4 w-4 text-white" />
-                        </div>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <VehicleDetailsStep
+            category={selectedCategory}
+            selectedSubcategoryId={formData.subcategory}
+            onSelect={(subcategoryId) =>
+              updateFormData("subcategory", subcategoryId)
+            }
+          />
         );
 
       case 4:
@@ -3676,9 +2895,23 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                           alt={`Photo ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
+
+                        {/* Bouton pour flouter l'immatriculation */}
+                        <button
+                          onClick={() => handleBlurPlate(index)}
+                          className="absolute bottom-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-lg text-xs font-medium hover:bg-blue-600 transition-all opacity-0 group-hover:opacity-100 flex items-center space-x-1"
+                          title="Flouter l'immatriculation (bientôt disponible)"
+                          data-testid={`button-blur-plate-${index}`}
+                        >
+                          <EyeOff className="h-3 w-3" />
+                          <span>Flouter</span>
+                        </button>
+
+                        {/* Bouton de suppression */}
                         <button
                           onClick={() => removePhoto(index)}
                           className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                          data-testid={`button-remove-photo-${index}`}
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -3799,183 +3032,92 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Informations de contact
+                Préférences de contact
               </h2>
               <p className="text-gray-600">
                 Comment les{" "}
                 {formData.listingType === "sale" ? "acheteurs" : "vendeurs"}{" "}
                 peuvent-ils vous contacter ?
               </p>
-              {(formData.contact.phone ||
-                formData.contact.whatsapp ||
-                formData.contact.email) && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    ℹ️ Informations pré-remplies depuis votre profil. Vous
-                    pouvez les modifier pour cette annonce uniquement.
-                  </p>
-                </div>
-              )}
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  ℹ️ Vos coordonnées sont définies dans votre profil. Vous
+                  pouvez choisir par quel canal vous souhaitez être contacté.
+                </p>
+              </div>
             </div>
 
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Téléphone * (avec indicatif international)
-                </label>
-                <div className="text-xs text-gray-500 mb-2">
-                  Exemples : +33 (France), +1 (USA/Canada), +44 (UK), +49
-                  (Allemagne), +34 (Espagne)
-                </div>
-                <input
-                  type="tel"
-                  value={formData.contact.phone}
-                  onChange={(e) => {
-                    const formatted = formatPhoneNumber(e.target.value);
-                    const updatedContact = {
-                      ...formData.contact,
-                      phone: formatted,
-                    };
-
-                    // Si "même numéro WhatsApp" est coché, copier automatiquement
-                    if (formData.contact.sameAsPhone) {
-                      updatedContact.whatsapp = formatted;
-                    }
-
-                    updateFormData("contact", updatedContact);
-                  }}
-                  onBlur={(e) => {
-                    // Validation lors de la perte de focus
-                    const validation = validatePhoneNumber(e.target.value);
-                    if (!validation.isValid) {
-                      console.log(
-                        "Erreur de validation téléphone:",
-                        validation.message,
-                      );
-                    }
-                  }}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                    formData.contact.phone &&
-                    !validatePhoneNumber(formData.contact.phone).isValid
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="+33 6 12 34 56 78 (France par défaut)"
-                  maxLength={25}
-                />
-                {formData.contact.phone && (
-                  <p
-                    className={`text-sm mt-1 ${
-                      validatePhoneNumber(formData.contact.phone).isValid
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {validatePhoneNumber(formData.contact.phone).message}
-                  </p>
-                )}
-
-                {/* Checkbox pour masquer le téléphone - déplacée ici */}
-                <div className="flex items-center mt-3">
+              {/* Téléphone */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Téléphone :</span>{" "}
+                  {profile?.phone || "Non renseigné"}
+                </p>
+                <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    id="hidePhone"
-                    checked={formData.contact.hidePhone}
+                    checked={formData.contact.showPhone}
                     onChange={(e) =>
                       updateFormData("contact", {
                         ...formData.contact,
-                        hidePhone: e.target.checked,
+                        showPhone: e.target.checked,
                       })
                     }
-                    className="h-4 w-4 text-primary-bolt-600 focus:ring-primary-bolt-500 border-gray-300 rounded"
+                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
                   />
-                  <label
-                    htmlFor="hidePhone"
-                    className="ml-2 text-sm text-gray-700"
-                  >
-                    Masquer le Téléphone dans l'annonce
-                  </label>
-                </div>
+                  <span className="text-sm text-gray-700">
+                    Afficher mon numéro sur l’annonce
+                  </span>
+                </label>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  WhatsApp
+              {/* WhatsApp */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">WhatsApp :</span>{" "}
+                  {profile?.whatsapp || profile?.phone || "Non renseigné"}
+                </p>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.contact.showWhatsapp}
+                    onChange={(e) =>
+                      updateFormData("contact", {
+                        ...formData.contact,
+                        showWhatsapp: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Afficher mon WhatsApp sur l’annonce
+                  </span>
                 </label>
+              </div>
 
-                <div className="mb-3">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.contact.sameAsPhone}
-                      onChange={(e) => {
-                        const sameAsPhone = e.target.checked;
-                        updateFormData("contact", {
-                          ...formData.contact,
-                          sameAsPhone,
-                          whatsapp: sameAsPhone ? formData.contact.phone : "",
-                        });
-                      }}
-                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Utiliser ce numéro pour WhatsApp
-                    </span>
-                  </label>
-                </div>
-
-                {!formData.contact.sameAsPhone && (
-                  <div>
-                    <input
-                      type="tel"
-                      value={formData.contact.whatsapp}
-                      onChange={(e) => {
-                        const formatted = formatPhoneNumber(e.target.value);
-                        updateFormData("contact", {
-                          ...formData.contact,
-                          whatsapp: formatted,
-                        });
-                      }}
-                      onBlur={(e) => {
-                        const validation = validatePhoneNumber(e.target.value);
-                        if (!validation.isValid && e.target.value) {
-                          console.log(
-                            "Erreur de validation WhatsApp:",
-                            validation.message,
-                          );
-                        }
-                      }}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                        formData.contact.whatsapp &&
-                        !validatePhoneNumber(formData.contact.whatsapp).isValid
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="+33 6 12 34 56 78 (WhatsApp)"
-                      maxLength={25}
-                    />
-                    {formData.contact.whatsapp && (
-                      <p
-                        className={`text-sm mt-1 ${
-                          validatePhoneNumber(formData.contact.whatsapp).isValid
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {validatePhoneNumber(formData.contact.whatsapp).message}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {formData.contact.sameAsPhone && formData.contact.phone && (
-                  <div className="bg-gray-50 p-3 rounded-xl">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">WhatsApp :</span>{" "}
-                      {formData.contact.phone}
-                    </p>
-                  </div>
-                )}
+              {/* Messagerie interne */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Messagerie interne :</span>{" "}
+                  Toujours disponible
+                </p>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.contact.showInternal}
+                    onChange={(e) =>
+                      updateFormData("contact", {
+                        ...formData.contact,
+                        showInternal: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Autoriser les messages via la plateforme
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -4439,71 +3581,47 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return null;
     }
   };
-  /*
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p>Chargement de votre session...</p>
-      </div>
-    );
-  }
-  */
-
-  if (!user && !dbUser) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center bg-gray-50 p-8 rounded-xl border border-gray-200">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🔒</span>
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Connexion requise
-          </h3>
-          <p className="text-gray-600">
-            Vous devez être connecté pour déposer une annonce.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-white">
-      <div className="max-w-full mx-auto px-6 py-6">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {formData.listingType === "sale"
-                ? "Vente"
-                : formData.listingType === "search"
-                  ? "Recherche"
-                  : "Déposer une annonce"}
-              {formData.listingType && " - Déposer une annonce"}
-            </h1>
-            <span className="text-sm font-medium text-gray-600">
-              Étape {currentStep} sur {totalSteps}
-            </span>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-6 py-6">
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {formData.listingType === "sale"
+                  ? "Vente"
+                  : formData.listingType === "search"
+                    ? "Recherche"
+                    : "Déposer une annonce"}
+                {formData.listingType && " - Déposer une annonce"}
+              </h1>
+              <span className="text-sm font-medium text-gray-600">
+                Étape {currentStep} sur {totalSteps}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              ></div>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-            ></div>
+
+          {/* Form Content */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-32">
+            {renderStepContent()}
           </div>
         </div>
+      </div>
 
-        {/* Form Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          {renderStepContent()}
-        </div>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
+      {/* Navigation sticky */}
+      <div className="sticky bottom-0 bg-white border-t shadow-lg px-6 py-4">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <button
             onClick={() => {
               if (currentStep === 13 && showPayment) {
-                // Retour depuis le paiement vers la sélection des packs
                 setShowPayment(false);
               } else {
                 prevStepHandler();
@@ -4517,19 +3635,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </button>
 
           {currentStep === 12 ? (
-            // Étape récapitulatif - afficher uniquement l'option de publication gratuite
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={() => {
-                  // Publication gratuite directe
-                  publishListing();
-                }}
-                className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Check className="h-4 w-4" />
-                <span>Publier l'annonce</span>
-              </button>
-            </div>
+            <button
+              onClick={publishListing}
+              className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <Check className="h-4 w-4" />
+              <span>Publier l'annonce</span>
+            </button>
           ) : currentStep < totalSteps ? (
             <button
               onClick={nextStepHandler}
@@ -4541,10 +3653,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             </button>
           ) : (
             <button
-              onClick={() => {
-                // Publication directe
-                publishListing();
-              }}
+              onClick={publishListing}
               disabled={!canProceed()}
               className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
@@ -4554,12 +3663,36 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         </div>
       </div>
 
-      {/* Modal de succès */}
+      {/* Modals */}
       <PublishSuccessModal
         isOpen={showSuccessModal}
         onClose={handleContinueNavigating}
         onNavigateToDashboard={navigateToDashboard}
+        onBoostListing={createdVehicle ? handleBoostListing : undefined}
+        vehicleId={createdVehicle?.id}
+        vehicleTitle={createdVehicle?.title}
         listingType={formData.listingType === "sale" ? "sell" : "search"}
+      />
+
+      {createdVehicle && (
+        <BoostModal
+          isOpen={showBoostModal}
+          onClose={() => {
+            setShowBoostModal(false);
+            if (onSuccess) onSuccess();
+          }}
+          annonceId={createdVehicle.id}
+          annonceTitle={createdVehicle.title}
+        />
+      )}
+
+      <PlateBlurModal
+        isOpen={plateBlurModal.isOpen}
+        imageUrl={plateBlurModal.imageUrl}
+        onClose={() =>
+          setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" })
+        }
+        onConfirm={handleApplyMask}
       />
     </div>
   );

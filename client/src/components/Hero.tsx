@@ -21,7 +21,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { CategorySection } from "./CategorySection";
 import voituresImage from "@/assets/voiture-2_1752056602701.png";
@@ -47,7 +47,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
   } = useApp();
   
   const handleCreateListingWithQuota = useCreateListingGuard();
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("");
   const [currentAdIndex, setCurrentAdIndex] = useState(0);

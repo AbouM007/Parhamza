@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface SavedSearch {
   id: string;
@@ -13,15 +13,15 @@ export interface SavedSearch {
 export function useSavedSearches() {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [loading, setLoading] = useState(false);
-  const { dbUser } = useAuth();
+  const { profile } = useAuth();
 
   // Charger les recherches sauvegardées
   const loadSavedSearches = async () => {
-    if (!dbUser?.id) return;
+    if (!profile?.id) return;
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/saved-searches/user/${dbUser.id}`);
+      const response = await fetch(`/api/saved-searches/user/${profile.id}`);
       if (response.ok) {
         const data = await response.json();
         setSavedSearches(data);
@@ -35,14 +35,14 @@ export function useSavedSearches() {
 
   // Sauvegarder une nouvelle recherche
   const saveSearch = async (name: string, filters: any, alertsEnabled: boolean = false) => {
-    if (!dbUser?.id) return false;
+    if (!profile?.id) return false;
     
     try {
       const response = await fetch('/api/saved-searches/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: dbUser.id,
+          userId: profile.id,
           name,
           filters,
           alertsEnabled
@@ -64,13 +64,13 @@ export function useSavedSearches() {
 
   // Supprimer une recherche sauvegardée
   const deleteSearch = async (searchId: string) => {
-    if (!dbUser?.id) return false;
+    if (!profile?.id) return false;
     
     try {
       const response = await fetch(`/api/saved-searches/${searchId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: dbUser.id })
+        body: JSON.stringify({ userId: profile.id })
       });
       
       if (response.ok) {
@@ -85,14 +85,14 @@ export function useSavedSearches() {
 
   // Activer/désactiver les alertes pour une recherche
   const toggleAlerts = async (searchId: string, alertsEnabled: boolean) => {
-    if (!dbUser?.id) return false;
+    if (!profile?.id) return false;
     
     try {
       const response = await fetch(`/api/saved-searches/${searchId}/alerts`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: dbUser.id,
+          userId: profile.id,
           alertsEnabled
         })
       });
@@ -114,10 +114,10 @@ export function useSavedSearches() {
   };
 
   useEffect(() => {
-    if (dbUser?.id) {
+    if (profile?.id) {
       loadSavedSearches();
     }
-  }, [dbUser?.id]);
+  }, [profile?.id]);
 
   return {
     savedSearches,

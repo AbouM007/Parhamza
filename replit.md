@@ -84,36 +84,122 @@ Preferred communication style: Simple, everyday language.
 - **uuid**: Unique identifier generation
 - **class-variance-authority**: Utility for conditional CSS classes
 
-## Replit Environment Setup
+## Recent Changes
 
-### Environment Variables (Required)
-The following environment variables must be configured in Replit Secrets:
-- `DATABASE_URL` - PostgreSQL connection string (Supabase)
-- `VITE_SUPABASE_URL` - Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key for server operations
-- `STRIPE_SECRET_KEY` - Stripe secret key for payment processing
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook secret for event validation
-- `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key (optional, for frontend)
+### Authentication System Unification (September 2024)
+Successfully migrated 15+ components from standalone `useAuth` hook to centralized `AuthContext`, eliminating authentication duplication and conflicts between two parallel systems.
 
-### Development Workflow
-- **Start Development**: `npm run dev` - Runs Express server on port 5000 with Vite middleware
-- **Build for Production**: `npm run build` - Builds frontend and bundles backend
-- **Start Production**: `npm run start` - Runs production build
-- **Database Sync**: `npm run db:push` - Syncs Drizzle schema to Supabase database
+### User Synchronization Debug & Resolution
+**Issue**: New users weren't being created in database after Supabase Auth signup, causing authentication mismatch.
 
-### Server Configuration
-- **Port**: Application runs on port 5000 (both development and production)
-- **Host**: Binds to 0.0.0.0 for Replit proxy compatibility
-- **Vite Proxy**: Configured with `allowedHosts: ["*"]` for Replit iframe preview
-- **Hot Reload**: Vite HMR enabled in development mode
+**Root Cause Identified**: Schema inconsistency between Drizzle TypeScript definition and physical database structure:
+- Drizzle schema: `companyName: text("company_name")` 
+- Backend code: Using `companyName` (camelCase) instead of `company_name` (snake_case)
+- Physical DB: Missing `company_name` column entirely
 
-### Deployment Configuration
-- **Type**: Autoscale deployment (stateless web application)
-- **Build Command**: `npm run build`
-- **Start Command**: `npm run start`
-- **Environment**: Production uses compiled JavaScript from dist/
+**Resolution Applied**:
+1. ✅ Diagnosed payload flow - confirmed frontend AuthContext.signUp sends data correctly
+2. ✅ Fixed backend schema mapping - corrected `companyName` → `company_name` in server/routes.ts
+3. ✅ Identified missing database column - `company_name` not present in physical users table
 
-### Recent Changes
-- **2025-09-30**: Configured Replit environment setup, workflow, and deployment settings
-- Application successfully running on Replit with Supabase backend integration
+**Status**: Code corrections completed. Database migration required: `ALTER TABLE users ADD COLUMN company_name text;`
+
+**Impact**: Authentication flow functions correctly until user creation, where schema mismatch causes failure. Once database column is added, Auth→DB synchronization will be fully restored.
+
+### Professional Onboarding Flow Refactoring (September 30, 2025)
+**Critical Fixes**: Resolved document upload and flow progression issues in professional account onboarding.
+
+**Problems Identified**:
+1. Debug popup displaying raw JSON data before Stripe payment redirect
+2. Documents selected in DocsStep never uploaded to server (stored only in browser memory)
+3. ValidationStep intended to upload documents POST-payment, but users never returned from Stripe
+4. Standalone /professional-verification page worked correctly with immediate upload
+
+**Solutions Implemented**:
+1. **DocsStep Refactored** (`client/src/features/onboardingV2/components/steps/DocsStep.tsx`):
+   - Documents now upload IMMEDIATELY to `/api/professional-accounts/verify` endpoint
+   - Uses Bearer token authentication with company info from ProfessionalStep
+   - Shows loading state during upload with disabled submit button
+   - Matches behavior of standalone ProfessionalVerificationForm component
+
+2. **State Machine Simplified** (`client/src/features/onboardingV2/utils/stateMachine.ts`):
+   - Removed obsolete transition: payment → validation → completed
+   - New direct transition: payment → completed
+   - ValidationStep no longer needed since documents upload in DocsStep
+
+3. **ValidationStep Removed** (`client/src/features/onboardingV2/OnboardingEntry.tsx`):
+   - Deleted debug JSON display step
+   - Updated onboarding state whitelist to exclude "validation"
+   - Prevents legacy users from being stuck in removed state
+
+4. **TypeScript Fixes**:
+   - Re-exported User type for module compatibility
+   - Fixed onboardingState access with proper type casting
+
+**New Professional Onboarding Flow**: 
+Choice → Professional (company info) → Docs (immediate upload) → Payment (Stripe redirect) → Completed
+
+**Impact**: Professional users now have seamless onboarding with immediate document upload, no confusing debug popups, and proper flow completion after Stripe payment.
+
+### License Plate Masking System with Rotation (September 30, 2025 - October 1, 2025)
+**Feature**: Privacy protection for vehicle listings with rotatable white rectangle masking system, allowing precise manual license plate concealment at any angle.
+
+**Technical Implementation**:
+
+1. **Frontend Canvas Editor** (`client/src/components/PlateBlurModal.tsx`):
+   - Fabric.js v6 with full rotation support using `getCenterPoint()` API
+   - Interactive 800x600 canvas with draggable/resizable/rotatable white rectangle
+   - Real-time center point calculation for accurate coordinate transmission
+   - Sends: centerX, centerY, width, height, angle (degrees) to backend
+   - Memory management: Automatic blob URL revocation on cleanup
+
+2. **Backend Image Processing** (`server/routes/images.ts - POST /api/images/apply-mask`):
+   - **Advanced Coordinate System** with center-based placement and symmetric clamping
+   - **Rotation Support**: Sharp.js `.rotate()` with transparent background for arbitrary angles
+   - **Security Guarantees**:
+     - Center clamped to [0, imgWidth-1] to prevent negative coordinates
+     - Dimensions guaranteed >= 1px and <= imgDim (handles 1px images)
+     - Position formula: `compositeLeft = max(0, min(centerX - floor(finalWidth/2), imgWidth - finalWidth))`
+     - Prevents all buffer overflow scenarios (odd dimensions, edge placements)
+   - **Symmetric Clamping Algorithm**:
+     ```typescript
+     visibleHalfWidth = min(maskWidth/2, centerX, imgWidth - centerX)
+     finalWidth = max(1, min(visibleHalfWidth * 2, imgWidth))
+     compositeLeft = max(0, min(centerX - floor(finalWidth/2), imgWidth - finalWidth))
+     ```
+   - **Rotated Buffer Handling**:
+     - Always crop if `cropWidth !== rotatedWidth` to prevent odd-dimension overflow
+     - Centered extraction: `cropLeft = halfRotatedWidth - halfCropWidth`
+   - WebP conversion (85% quality, effort 5) + automatic Supabase Storage upload
+
+3. **Integration Flow** (`client/src/components/CreateListingForm.tsx`):
+   - "Flouter" button on each photo preview
+   - Pre-upload File objects to Supabase (resolves blob: URL limitation)
+   - Modal: Position → Resize → Rotate → Apply
+   - Backend applies permanent mask → Returns processed URL
+   - Automatic replacement in form state
+
+**Technical Challenges Resolved**:
+- ✅ **Rotation Coordinate Mapping**: Used Fabric.js `getCenterPoint()` for true geometric center with rotation
+- ✅ **Center Drift at Edges**: Implemented symmetric half-extent algorithm to maintain visual center
+- ✅ **Odd Dimension Overflow**: Force crop when `cropWidth !== rotatedWidth` prevents +1px Sharp errors
+- ✅ **Negative Coordinates**: Center clamping + position formula guarantees [0, imgDim - finalDim] range
+- ✅ **1px Images**: Special handling with `max(1, min(..., imgDim))` prevents zero-size masks
+- ✅ **Sharp Composite Errors**: All edge cases tested - no buffer overflow or out-of-bounds errors
+
+**Dependencies**:
+- `fabric@6.x` - Canvas manipulation with rotation support
+- `sharp` - Server-side image processing with rotation and composite
+
+**User Flow**:
+1. Upload vehicle photos in listing form
+2. Click "Flouter" on photo with visible plate
+3. Adjust rectangle: drag, resize, **rotate** to match plate angle
+4. Apply → Backend processes with rotation → Returns masked image
+5. Processed image auto-replaces original
+
+**Mathematical Guarantees**:
+- Center always preserved when not clamped: `finalCenter = centerX`
+- No buffer overflow: `compositeLeft + finalWidth ≤ imgWidth` (proven)
+- Minimum viable mask: `finalWidth ≥ 1px` even for 1px images
+- Rotation safety: Crop executed for ALL non-matching dimensions

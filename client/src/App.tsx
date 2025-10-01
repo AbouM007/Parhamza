@@ -1,4 +1,3 @@
-import { OnboardingRouter } from "@/components/onboarding/OnboardingRouter";
 import React, { useState, useCallback } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -10,8 +9,6 @@ import { Hero } from "@/components/Hero";
 import { VehicleListings } from "@/components/VehicleListings";
 import { VehicleDetail } from "@/components/VehicleDetail";
 import { UnifiedAuthModal } from "@/components/UnifiedAuthModal";
-import { ProfileSetupModal } from "@/components/ProfileSetupModal";
-import { PersonalProfileForm } from "@/components/PersonalProfileForm";
 import StripeSuccess from "./pages/StripeSuccess";
 import { Dashboard } from "@/components/dashboard";
 import { CreateListingForm } from "@/components/CreateListingForm";
@@ -35,32 +32,27 @@ import SubscriptionPurchase from "./pages/SubscriptionPurchase";
 import { AuthCallback } from "./pages/AuthCallback";
 import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
-import { useAuth } from "@/hooks/useAuth";
-import { detectOnboardingState } from "@/utils/onboardingDetector";
+import { useAuth } from "@/contexts/AuthContext";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
+import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
+
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCreateListingModal, setShowCreateListingModal] = useState(false);
   const [dashboardTab, setDashboardTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
-  const [onboardingStep, setOnboardingStep] = useState<
-    "choice" | "personal" | "professional"
-  >("choice");
   const [refreshVehicles, setRefreshVehicles] = useState(false);
 
   // Hook pour gérer la création d'annonce avec vérification quota
   const handleCreateListingGuard = useCreateListingGuard();
 
-  // États pour onboarding intelligent
-  const [professionalAccount, setProfessionalAccount] = useState(null);
-  const [subscription, setSubscription] = useState(null);
-  const [onboardingLoading, setOnboardingLoading] = useState(false);
-
   const { selectedVehicle, setSelectedVehicle, setSearchFilters } = useApp();
-  const { isAuthenticated, dbUser, isLoading, refreshDbUser } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const isAuthenticated = !!user;
+  const isLoading = loading;
+  // Note: refreshDbUser n'a pas d'équivalent direct dans AuthContext
 
   const [location, setLocation] = useLocation();
 
@@ -85,110 +77,6 @@ function AppContent() {
     [setLocation],
   );
 
-  // Charger données professionnelles
-  const loadProfessionalData = useCallback(
-    async (userId: string) => {
-      if (onboardingLoading) return; // Éviter les appels multiples
-
-      setOnboardingLoading(true);
-      try {
-        // Charger compte professionnel si c'est un pro
-        if (dbUser?.type === "professional") {
-          const proResponse = await fetch(
-            `/api/professional-accounts/status/${userId}`,
-          );
-          if (proResponse.ok) {
-            const proData = await proResponse.json();
-            setProfessionalAccount(proData);
-
-            // Charger abonnement si compte pro existe
-            if (proData?.id) {
-              const subResponse = await fetch(
-                `/api/subscriptions/by-professional/${proData.id}`,
-              );
-              if (subResponse.ok) {
-                const subData = await subResponse.json();
-                setSubscription(subData);
-              }
-            }
-          } else if (proResponse.status === 404) {
-            // Pas de compte pro trouvé
-            setProfessionalAccount(null);
-            setSubscription(null);
-          }
-        }
-      } catch (error) {
-        console.error("❌ Erreur chargement données professionnelles:", error);
-      } finally {
-        setOnboardingLoading(false);
-      }
-    },
-    [dbUser?.type, onboardingLoading],
-  );
-
-  // Nouvelle logique d'onboarding intelligente
-  React.useEffect(() => {
-    if (isLoading || onboardingLoading) return;
-
-    // Pas d'utilisateur connecté = rien à faire
-    if (!isAuthenticated || !dbUser) {
-      setShowProfileSetup(false);
-      return;
-    }
-
-    // Charger les données professionnelles si nécessaire
-    if (
-      dbUser.type === "professional" &&
-      !professionalAccount &&
-      !onboardingLoading
-    ) {
-      loadProfessionalData(dbUser.id);
-      return;
-    }
-
-    // Détecter l'état d'onboarding avec toutes les données
-    const minimalUser = {
-      id: dbUser.id,
-      type: dbUser.type as "individual" | "professional" | "admin" | null,
-      profile_completed: dbUser.profile_completed,
-    };
-    const onboardingState = detectOnboardingState(
-      minimalUser,
-      professionalAccount,
-      subscription,
-    );
-    console.log(`🔧 [Onboarding] User: ${dbUser.type}`, {
-      step: onboardingState.step,
-      shouldShowPopup: onboardingState.shouldShowPopup,
-      canPost: onboardingState.canPost,
-      reason: onboardingState.reason,
-    });
-
-    // Appliquer les décisions
-    setShowProfileSetup(onboardingState.shouldShowPopup);
-
-    // Gérer l'étape d'onboarding pour les pros
-    if (dbUser.type === "professional" && onboardingState.shouldShowPopup) {
-      if (onboardingState.step === "profile") {
-        setOnboardingStep("choice");
-      } else if (onboardingState.step === "docs") {
-        setOnboardingStep("professional"); // Redirige vers docs
-      }
-    } else if (
-      dbUser.type === "individual" &&
-      onboardingState.shouldShowPopup
-    ) {
-      setOnboardingStep("choice");
-    }
-  }, [
-    isAuthenticated,
-    dbUser,
-    isLoading,
-    onboardingLoading,
-    professionalAccount,
-    subscription,
-    loadProfessionalData,
-  ]);
 
   // Auto-sélection véhicule via URL (admin)
   React.useEffect(() => {
@@ -262,195 +150,179 @@ function AppContent() {
 */
 
   const isAdminRoute = location.startsWith("/admin");
+  
+  const shouldMaskHomepage = !isAdminRoute && (
+    loading || 
+    (user && profile?.profileCompleted !== true)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {!isAdminRoute && (
-        <Header
-          currentView={getCurrentView()}
-          setCurrentView={setCurrentView}
-          mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen}
-          setDashboardTab={setDashboardTab}
-          onSearch={handleSearch}
-        />
-      )}
-
-      {selectedVehicle ? (
-        <VehicleDetail
-          vehicle={selectedVehicle}
-          onBack={handleBack}
-          onVehicleSelect={setSelectedVehicle}
-          onNavigate={handleBreadcrumbNavigation}
-          setCurrentView={setCurrentView}
-        />
+      {shouldMaskHomepage ? (
+        <div className="min-h-screen bg-gray-50" />
       ) : (
         <>
-          <Switch>
-            <Route path="/pro/:shopId">{() => <ProShop />}</Route>
-            <Route path="/professional/:id">
-              <ProfessionalProfile />
-            </Route>
-            <Route path="/listings">
-              <VehicleListings />
-            </Route>
-            <Route path="/dashboard">
-              <Dashboard
-                initialTab={dashboardTab}
-                onCreateListing={() => handleCreateListingGuard(() => setShowCreateListingModal(true), 'dashboard-button')}
-                onRedirectHome={() => setLocation("/")}
-                onRedirectToSearch={() => setLocation("/search")}
-                setSearchFilters={setSearchFilters}
-                setCurrentView={setCurrentView}
-                refreshVehicles={refreshVehicles}
-              />
-            </Route>
-            <Route path="/create-listing">
-              <Hero setCurrentView={setCurrentView} />
-            </Route>
-            <Route path="/conseils">
-              <Conseils />
-            </Route>
-            <Route path="/about">
-              <AboutPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/terms">
-              <TermsPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/privacy">
-              <PrivacyPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/legal">
-              <LegalPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/help">
-              <HelpPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/safety">
-              <SafetyTipsPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/search">
-              <SearchPage />
-            </Route>
-            <Route path="/search-old">
-              <SearchResults
-                searchQuery={searchQuery}
-                onBack={() => setLocation("/")}
-                onVehicleSelect={setSelectedVehicle}
-              />
-            </Route>
-            <Route path="/messages">
-              <Messages />
-            </Route>
-            <Route path="/professional-verification">
-              <ProfessionalVerification />
-            </Route>
-            <Route path="/admin">
-              {() => {
-                const isAdminAuth =
-                  localStorage.getItem("admin_authenticated") === "true";
-                return isAdminAuth ? (
-                  <AdminDashboardClean onBack={() => setLocation("/")} />
-                ) : (
+          {!isAdminRoute && (
+            <Header
+              currentView={getCurrentView()}
+              setCurrentView={setCurrentView}
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+              setDashboardTab={setDashboardTab}
+              onSearch={handleSearch}
+            />
+          )}
+
+          {selectedVehicle ? (
+            <VehicleDetail
+              vehicle={selectedVehicle}
+              onBack={handleBack}
+              onVehicleSelect={setSelectedVehicle}
+              onNavigate={handleBreadcrumbNavigation}
+              setCurrentView={setCurrentView}
+            />
+          ) : (
+            <>
+              <Switch>
+                <Route path="/pro/:shopId">{() => <ProShop />}</Route>
+                <Route path="/professional/:id">
+                  <ProfessionalProfile />
+                </Route>
+                <Route path="/listings">
+                  <VehicleListings />
+                </Route>
+                <Route path="/dashboard">
+                  <Dashboard
+                    initialTab={dashboardTab}
+                    onCreateListing={() =>
+                      handleCreateListingGuard(
+                        () => setShowCreateListingModal(true),
+                        "dashboard-button",
+                      )
+                    }
+                    onRedirectHome={() => setLocation("/")}
+                    onRedirectToSearch={() => setLocation("/search")}
+                    setSearchFilters={setSearchFilters}
+                    setCurrentView={setCurrentView}
+                    refreshVehicles={refreshVehicles}
+                  />
+                </Route>
+                <Route path="/create-listing">
+                  <Hero setCurrentView={setCurrentView} />
+                </Route>
+                <Route path="/conseils">
+                  <Conseils />
+                </Route>
+                <Route path="/about">
+                  <AboutPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/terms">
+                  <TermsPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/privacy">
+                  <PrivacyPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/legal">
+                  <LegalPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/help">
+                  <HelpPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/safety">
+                  <SafetyTipsPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/search">
+                  <SearchPage />
+                </Route>
+                <Route path="/search-old">
+                  <SearchResults
+                    searchQuery={searchQuery}
+                    onBack={() => setLocation("/")}
+                    onVehicleSelect={setSelectedVehicle}
+                  />
+                </Route>
+                <Route path="/messages">
+                  <Messages />
+                </Route>
+                <Route path="/professional-verification">
+                  <ProfessionalVerification />
+                </Route>
+                <Route path="/admin">
+                  {() => {
+                    const isAdminAuth =
+                      localStorage.getItem("admin_authenticated") === "true";
+                    return isAdminAuth ? (
+                      <AdminDashboardClean onBack={() => setLocation("/")} />
+                    ) : (
+                      <AdminLogin
+                        onLoginSuccess={() => setLocation("/admin")}
+                        onBack={() => setLocation("/")}
+                      />
+                    );
+                  }}
+                </Route>
+                <Route path="/success">
+                  <StripeSuccess />
+                </Route>
+                <Route path="/success-boost">
+                  <StripeSuccessBoost />
+                </Route>
+                <Route path="/admin-login">
                   <AdminLogin
                     onLoginSuccess={() => setLocation("/admin")}
                     onBack={() => setLocation("/")}
                   />
-                );
-              }}
-            </Route>
-            <Route path="/success">
-              <StripeSuccess />
-            </Route>
-            <Route path="/success-boost">
-              <StripeSuccessBoost />
-            </Route>
-            <Route path="/admin-login">
-              <AdminLogin
-                onLoginSuccess={() => setLocation("/admin")}
-                onBack={() => setLocation("/")}
-              />
-            </Route>
-            <Route path="/admin-test">
-              <AdminTest />
-            </Route>
-            <Route path="/create-pro-account">
-              <div className="p-8 text-center">
-                <h2 className="text-2xl font-bold">Compte Professionnel</h2>
-                <p className="mt-4">Page en développement...</p>
-              </div>
-            </Route>
-            <Route path="/auth/callback">
-              <AuthCallback />
-            </Route>
-            <Route path="/subscription-purchase">
-              <SubscriptionPurchase onBack={() => setLocation("/dashboard")} />
-            </Route>
-            <Route path="/">
-              <Hero setCurrentView={setCurrentView} />
-            </Route>
-          </Switch>
-          {!isAdminRoute && <Footer setCurrentView={setCurrentView} />}
+                </Route>
+                <Route path="/admin-test">
+                  <AdminTest />
+                </Route>
+                <Route path="/create-pro-account">
+                  <div className="p-8 text-center">
+                    <h2 className="text-2xl font-bold">Compte Professionnel</h2>
+                    <p className="mt-4">Page en développement...</p>
+                  </div>
+                </Route>
+                <Route path="/auth/callback">
+                  <AuthCallback />
+                </Route>
+                <Route path="/subscription-purchase">
+                  <SubscriptionPurchase onBack={() => setLocation("/dashboard")} />
+                </Route>
+                <Route path="/">
+                  <Hero setCurrentView={setCurrentView} />
+                </Route>
+              </Switch>
+              {!isAdminRoute && <Footer setCurrentView={setCurrentView} />}
+            </>
+          )}
         </>
       )}
 
       <UnifiedAuthModal />
-
-      {/* Modal choix type de compte */}
-      <ProfileSetupModal
-        isOpen={showProfileSetup && onboardingStep === "choice"}
-        onClose={() => {
-          setShowProfileSetup(false);
-          setOnboardingStep("choice");
-        }}
-        onPersonalAccount={() => {
-          setOnboardingStep("personal");
-        }}
-        onProfessionalAccount={() => {
-          setOnboardingStep("professional");
-        }}
+      
+      {/* ✅ Système d'onboarding V2 */}
+      <OnboardingEntry 
+        user={profile} 
+        isEnabled={true}
       />
-
-      {/* Formulaire compte personnel */}
-      <PersonalProfileForm
-        isOpen={showProfileSetup && onboardingStep === "personal"}
-        onClose={() => {
-          setOnboardingStep("choice");
-        }}
-        onComplete={async () => {
-          setShowProfileSetup(false);
-          setOnboardingStep("choice");
-          if (refreshDbUser) await refreshDbUser();
-        }}
-        initialData={{ name: dbUser?.name, email: dbUser?.email }}
-      />
-
-      {/* Onboarding pro multi-étapes */}
-      {showProfileSetup && onboardingStep === "professional" && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
-            <OnboardingRouter setShowProfileSetup={setShowProfileSetup} />
-          </div>
-        </div>
-      )}
 
       {/* Modal création annonce */}
       <DraggableModal

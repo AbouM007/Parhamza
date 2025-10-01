@@ -17,6 +17,7 @@ export interface User {
   specialties?: string[];
   verified: boolean;
   emailVerified?: boolean;
+  profileCompleted?: boolean;
   contactPreferences?: ("whatsapp" | "phone" | "email")[];
   createdAt: Date;
   lastLoginAt?: Date;

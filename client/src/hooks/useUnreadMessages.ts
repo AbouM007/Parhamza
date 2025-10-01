@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useUnreadMessages() {
   const [unreadCount, setUnreadCount] = useState(0);
-  const { dbUser } = useAuth();
+  const { profile } = useAuth();
 
   const fetchUnreadCount = useCallback(async () => {
-    if (!dbUser?.id) {
+    if (!profile?.id) {
       setUnreadCount(0);
       return;
     }
 
     try {
-      const response = await fetch(`/api/messages-simple/user/${dbUser.id}`);
+      const response = await fetch(`/api/messages-simple/user/${profile.id}`);
       if (response.ok) {
         const data = await response.json();
         const conversations = data.conversations || [];
@@ -28,7 +28,7 @@ export function useUnreadMessages() {
       console.error('Erreur lors du comptage des messages non lus:', error);
       setUnreadCount(0);
     }
-  }, [dbUser?.id]);
+  }, [profile?.id]);
 
   useEffect(() => {
     fetchUnreadCount();
