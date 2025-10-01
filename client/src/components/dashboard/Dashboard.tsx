@@ -60,6 +60,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useQuota } from "@/hooks/useQuota";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PlanSelector } from "@/components/PlanSelector";
 
 // Helper function to translate deletion reasons from English to French
 const translateDeletionReason = (reason: string): string => {
@@ -1848,8 +1849,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Options Premium</h1>
         <p className="text-gray-600 mt-2 text-lg">
-          Boostez la visibilité de vos annonces
+          Gérez votre abonnement et boostez vos annonces
         </p>
+      </div>
+
+      {/* Plans d'abonnement */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Plans d'abonnement</h2>
+        <PlanSelector 
+          mode="compact"
+          showHeader={false}
+          className="mb-8"
+        />
+      </div>
+
+      {/* Options de boost */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Options de boost</h2>
+        <p className="text-gray-600 mb-6">Mettez vos annonces en avant</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
