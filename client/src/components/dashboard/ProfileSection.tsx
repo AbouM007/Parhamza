@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit, Upload, Building2 } from "lucide-react";
+import { Edit, Upload } from "lucide-react";
 import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 
@@ -312,90 +312,6 @@ export default function ProfileSection({
             />
           </div>
         </div>
-
-        {/* Section Entreprise pour les professionnels */}
-        {dbUser?.type === "professional" && (
-          <div className="mt-8 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border border-blue-200 p-8">
-            <div className="flex items-center space-x-3 mb-6">
-              <Building2 className="h-6 w-6 text-blue-600" />
-              <h3 className="text-2xl font-bold text-gray-900">
-                Informations Entreprise
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Nom entreprise - Lecture seule */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Nom de l'entreprise
-                </label>
-                <input
-                  type="text"
-                  value={(dbUser as any)?.company_name || "Non renseigné"}
-                  disabled={true}
-                  className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
-                  title="Le nom de l'entreprise ne peut pas être modifié"
-                />
-              </div>
-
-              {/* SIRET - Lecture seule */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  SIRET
-                </label>
-                <input
-                  type="text"
-                  value={(dbUser as any)?.siret || "Non renseigné"}
-                  disabled={true}
-                  className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
-                  title="Le SIRET ne peut pas être modifié"
-                />
-              </div>
-
-              {/* Adresse entreprise - Éditable */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Adresse entreprise
-                </label>
-                <input
-                  type="text"
-                  value={
-                    editingProfile
-                      ? profileForm.address
-                      : (dbUser as any)?.address || ""
-                  }
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, address: e.target.value })
-                  }
-                  disabled={!editingProfile}
-                  className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
-                  placeholder="Adresse de votre entreprise"
-                />
-              </div>
-
-              {/* Site web - Éditable */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Site web
-                </label>
-                <input
-                  type="url"
-                  value={
-                    editingProfile
-                      ? profileForm.website
-                      : (dbUser as any)?.website || ""
-                  }
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, website: e.target.value })
-                  }
-                  disabled={!editingProfile}
-                  className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
-                  placeholder="https://www.monentreprise.com"
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         {editingProfile && (
           <div className="mt-10 flex justify-end space-x-4">
