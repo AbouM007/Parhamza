@@ -414,6 +414,160 @@ router.post("/cancel", requireAuth, async (req, res) => {
   }
 });
 
+/* -------------------------------- MODIFY ---------------------------------- */
+
+// POST /api/subscriptions/modify - Route unifiée pour upgrade/downgrade/cancel
+router.post("/modify", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { action, newPlanId } = req.body as { 
+      action: 'upgrade' | 'downgrade' | 'cancel'; 
+      newPlanId?: number;
+    };
+
+    if (!action || !['upgrade', 'downgrade', 'cancel'].includes(action)) {
+      return res.status(400).json({ error: "Action invalide. Utilisez 'upgrade', 'downgrade' ou 'cancel'" });
+    }
+
+    // 1. Récupérer l'abonnement actif
+    const { data: currentSub, error: subError } = await supabaseServer
+      .from("subscriptions")
+      .select("*, subscription_plans(*)")
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (subError || !currentSub) {
+      return res.status(404).json({ error: "Aucun abonnement actif trouvé" });
+    }
+
+    // 2. Traiter selon l'action
+    if (action === 'cancel') {
+      // Annulation à la fin de période
+      if (currentSub.stripe_subscription_id) {
+        await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
+          cancel_at_period_end: true,
+        });
+      }
+
+      await supabaseServer
+        .from("subscriptions")
+        .update({ 
+          cancel_at_period_end: true,
+          updated_at: new Date().toISOString() 
+        })
+        .eq("id", currentSub.id);
+
+      // Enregistrer dans l'historique
+      await supabaseServer.from("subscription_history").insert({
+        user_id: userId,
+        action_type: "cancelled",
+        old_plan_id: currentSub.plan_id,
+        old_stripe_subscription_id: currentSub.stripe_subscription_id,
+        metadata: { cancelled_at_period_end: true }
+      });
+
+      return res.json({
+        success: true,
+        message: "Abonnement annulé. Actif jusqu'à la fin de la période.",
+        currentPeriodEnd: currentSub.current_period_end
+      });
+    }
+
+    // Pour upgrade/downgrade, on a besoin du nouveau plan
+    if (!newPlanId) {
+      return res.status(400).json({ error: "newPlanId requis pour upgrade/downgrade" });
+    }
+
+    // 3. Récupérer le nouveau plan
+    const { data: newPlan, error: planError } = await supabaseServer
+      .from("subscription_plans")
+      .select("*")
+      .eq("id", newPlanId)
+      .eq("is_active", true)
+      .single();
+
+    if (planError || !newPlan?.stripe_price_id) {
+      return res.status(400).json({ error: "Plan invalide ou inactif" });
+    }
+
+    // Vérifier que ce n'est pas le même plan
+    if (currentSub.plan_id === newPlanId) {
+      return res.status(400).json({ error: "Vous êtes déjà sur ce plan" });
+    }
+
+    // 4. Modifier l'abonnement Stripe avec proration
+    if (!currentSub.stripe_subscription_id) {
+      return res.status(400).json({ error: "Pas de stripe_subscription_id" });
+    }
+
+    const stripeSubscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id);
+    
+    // Guard : vérifier qu'il y a au moins un item
+    if (!stripeSubscription.items.data[0]) {
+      return res.status(400).json({ error: "Abonnement Stripe invalide (aucun item)" });
+    }
+
+    const updatedSubscription = await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
+      items: [{
+        id: stripeSubscription.items.data[0].id,
+        price: newPlan.stripe_price_id,
+      }],
+      cancel_at_period_end: false, // ✅ Clear toute annulation programmée
+      proration_behavior: 'create_prorations', // Calcul prorata automatique
+      billing_cycle_anchor: 'unchanged', // Garde la même date de facturation
+    }) as Stripe.Subscription;
+
+    // 5. Mettre à jour dans la DB (clear cancel_at_period_end aussi)
+    await supabaseServer
+      .from("subscriptions")
+      .update({
+        plan_id: newPlanId,
+        cancel_at_period_end: false, // ✅ Clear toute annulation programmée en DB
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", currentSub.id);
+
+    // 6. Enregistrer dans l'historique
+    const currentPlan = Array.isArray(currentSub.subscription_plans) 
+      ? currentSub.subscription_plans[0] 
+      : currentSub.subscription_plans;
+
+    await supabaseServer.from("subscription_history").insert({
+      user_id: userId,
+      action_type: action,
+      old_plan_id: currentSub.plan_id,
+      new_plan_id: newPlanId,
+      old_stripe_subscription_id: currentSub.stripe_subscription_id,
+      new_stripe_subscription_id: updatedSubscription.id,
+      metadata: {
+        old_plan_name: currentPlan?.name,
+        new_plan_name: newPlan.name,
+        proration_applied: true
+      }
+    });
+
+    const nextBillingTimestamp = (updatedSubscription as any).current_period_end as number | undefined;
+    
+    return res.json({
+      success: true,
+      message: `Abonnement modifié de ${currentPlan?.name} vers ${newPlan.name}`,
+      newPlan: {
+        id: newPlan.id,
+        name: newPlan.name,
+        priceMonthly: newPlan.price_monthly
+      },
+      nextBillingDate: tsToIso(nextBillingTimestamp)
+    });
+
+  } catch (error) {
+    console.error("❌ Erreur modification abonnement:", error);
+    res.status(500).json({ error: "Erreur lors de la modification de l'abonnement" });
+  }
+});
+
 /* -------------------------------- WEBHOOK --------------------------------- */
 
 // Webhook Stripe (requiert raw body dans Express)
