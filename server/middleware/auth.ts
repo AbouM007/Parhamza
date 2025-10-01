@@ -19,12 +19,18 @@ export const authenticateUser = async (
   next: NextFunction,
 ) => {
   try {
+    console.log('🔐 [AUTH] Headers reçus:', Object.keys(req.headers));
+    console.log('🔐 [AUTH] Authorization header:', req.headers.authorization);
+    
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log('❌ [AUTH] Token manquant ou invalide');
       return res
         .status(401)
         .json({ error: "Token d'authentification manquant" });
     }
+    
+    console.log('✅ [AUTH] Token trouvé, vérification en cours...');
 
     const token = authHeader.substring(7);
 
