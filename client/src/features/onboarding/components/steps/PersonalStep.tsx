@@ -80,13 +80,11 @@ export const PersonalStep = ({
       }
 
       setShowSuccessDialog(true);
-      await refreshProfile();
       
-      setTimeout(() => {
+      setTimeout(async () => {
+        await refreshProfile();
         setLocation("/dashboard");
       }, 2500);
-
-      onComplete({ personal: data });
     } catch (error) {
       console.error("Erreur:", error);
       toast({
