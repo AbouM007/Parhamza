@@ -150,11 +150,15 @@ function AppContent() {
 */
 
   const isAdminRoute = location.startsWith("/admin");
-  const isOnboardingActive = profile && !profile.profileCompleted;
+  
+  const shouldMaskHomepage = !isAdminRoute && (
+    loading || 
+    (user && profile?.profileCompleted !== true)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {isOnboardingActive ? (
+      {shouldMaskHomepage ? (
         <div className="min-h-screen bg-gray-50" />
       ) : (
         <>
