@@ -38,7 +38,7 @@ export default function SubscriptionManager() {
 
   // Récupérer tous les plans disponibles
   const { data: plans = [], isLoading: loadingPlans } = useQuery<SubscriptionPlan[]>({
-    queryKey: ['/api/subscription-plans'],
+    queryKey: ['/api/subscriptions/plans'],
   });
 
   // Récupérer l'abonnement actuel
@@ -62,7 +62,7 @@ export default function SubscriptionManager() {
       });
       // Invalider à la fois l'abonnement actuel ET les plans (au cas où features/disponibilité change)
       queryClient.invalidateQueries({ queryKey: ['/api/subscriptions/current'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/subscription-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions/plans'] });
       setConfirmDialog({ open: false, action: 'upgrade' });
     },
     onError: (error: any) => {
