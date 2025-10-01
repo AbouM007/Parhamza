@@ -2221,6 +2221,8 @@ export class SupabaseStorage implements IStorage {
             status: sub.status,
             date: sub.created_at,
             stripeId: sub.stripe_subscription_id,
+            cancelAtPeriodEnd: sub.cancel_at_period_end,
+            currentPeriodEnd: sub.current_period_end,
           };
         });
       }

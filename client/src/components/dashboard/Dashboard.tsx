@@ -1474,21 +1474,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               : purchase.status}
                         </div>
                         
-                        {/* Bouton Annuler pour abonnements actifs */}
+                        {/* Bouton Annuler / Statut d'annulation pour abonnements actifs */}
                         {purchase.type === "subscription" && purchase.status === "active" && (
                           <div className="mt-2">
-                            <button
-                              onClick={() => {
-                                if (window.confirm("Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu'à la fin de la période en cours.")) {
-                                  cancelSubscriptionMutation.mutate();
-                                }
-                              }}
-                              disabled={cancelSubscriptionMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              data-testid={`button-cancel-subscription-${purchase.id}`}
-                            >
-                              {cancelSubscriptionMutation.isPending ? "Annulation..." : "Annuler l'abonnement"}
-                            </button>
+                            {purchase.cancelAtPeriodEnd ? (
+                              <div className="text-sm text-orange-600 font-medium" data-testid={`text-subscription-ending-${purchase.id}`}>
+                                Se termine le {new Date(purchase.currentPeriodEnd).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  if (window.confirm("Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu'à la fin de la période en cours.")) {
+                                    cancelSubscriptionMutation.mutate();
+                                  }
+                                }}
+                                disabled={cancelSubscriptionMutation.isPending}
+                                className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                data-testid={`button-cancel-subscription-${purchase.id}`}
+                              >
+                                {cancelSubscriptionMutation.isPending ? "Annulation..." : "Annuler l'abonnement"}
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
