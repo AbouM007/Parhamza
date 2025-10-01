@@ -6,7 +6,7 @@ interface PlateBlurModalProps {
   isOpen: boolean;
   imageUrl: string;
   onClose: () => void;
-  onConfirm: (maskData: { x: number; y: number; width: number; height: number; angle: number }) => void;
+  onConfirm: (maskData: { centerX: number; centerY: number; width: number; height: number; angle: number }) => void;
 }
 
 export const PlateBlurModal = ({
@@ -107,47 +107,36 @@ export const PlateBlurModal = ({
   const handleConfirm = () => {
     if (!maskRect || !fabricCanvas) return;
 
-    // Récupérer les dimensions du rectangle avec scale ET rotation
+    // Récupérer le VRAI centre du rectangle avec Fabric.js API (gère la rotation correctement)
+    const centerPoint = maskRect.getCenterPoint();
+    const canvasCenterX = centerPoint.x;
+    const canvasCenterY = centerPoint.y;
+
+    // Récupérer les dimensions NON tournées du rectangle
     const rectScaleX = maskRect.scaleX || 1;
     const rectScaleY = maskRect.scaleY || 1;
-    const canvasX = maskRect.left || 0;
-    const canvasY = maskRect.top || 0;
     const canvasWidth = (maskRect.width || 0) * rectScaleX;
     const canvasHeight = (maskRect.height || 0) * rectScaleY;
     const rotationAngle = maskRect.angle || 0; // Angle en degrés
 
-    // Convertir les coordonnées canvas vers les coordonnées de l'image originale
-    const originalX = (canvasX - imageScale.offsetX) / imageScale.scale;
-    const originalY = (canvasY - imageScale.offsetY) / imageScale.scale;
-    let originalWidth = canvasWidth / imageScale.scale;
-    let originalHeight = canvasHeight / imageScale.scale;
+    // Convertir les coordonnées du centre vers l'image originale
+    const originalCenterX = (canvasCenterX - imageScale.offsetX) / imageScale.scale;
+    const originalCenterY = (canvasCenterY - imageScale.offsetY) / imageScale.scale;
+    const originalWidth = canvasWidth / imageScale.scale;
+    const originalHeight = canvasHeight / imageScale.scale;
 
-    // Ajuster width/height si le rectangle déborde à gauche ou en haut
-    if (originalX < 0) {
-      originalWidth += originalX; // Réduire width par la partie négative
-    }
-    if (originalY < 0) {
-      originalHeight += originalY; // Réduire height par la partie négative
-    }
-
-    // Clamper les coordonnées et dimensions finales
-    const clampedX = Math.max(0, Math.round(originalX));
-    const clampedY = Math.max(0, Math.round(originalY));
-    const clampedWidth = Math.min(
-      Math.max(1, Math.round(originalWidth)),
-      imageScale.originalWidth - clampedX
-    );
-    const clampedHeight = Math.min(
-      Math.max(1, Math.round(originalHeight)),
-      imageScale.originalHeight - clampedY
-    );
+    // Clamper le centre dans les limites de l'image
+    const clampedCenterX = Math.max(0, Math.min(Math.round(originalCenterX), imageScale.originalWidth));
+    const clampedCenterY = Math.max(0, Math.min(Math.round(originalCenterY), imageScale.originalHeight));
+    const clampedWidth = Math.max(1, Math.round(originalWidth));
+    const clampedHeight = Math.max(1, Math.round(originalHeight));
 
     const maskData = {
-      x: clampedX,
-      y: clampedY,
+      centerX: clampedCenterX,
+      centerY: clampedCenterY,
       width: clampedWidth,
       height: clampedHeight,
-      angle: rotationAngle, // Envoyer l'angle de rotation
+      angle: rotationAngle,
     };
 
     onConfirm(maskData);

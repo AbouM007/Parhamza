@@ -141,44 +141,65 @@ Choice → Professional (company info) → Docs (immediate upload) → Payment (
 
 **Impact**: Professional users now have seamless onboarding with immediate document upload, no confusing debug popups, and proper flow completion after Stripe payment.
 
-### License Plate Masking System (September 30, 2025)
-**Feature**: Implemented privacy protection for vehicle listings with manual license plate masking using draggable white rectangles.
+### License Plate Masking System with Rotation (September 30, 2025 - October 1, 2025)
+**Feature**: Privacy protection for vehicle listings with rotatable white rectangle masking system, allowing precise manual license plate concealment at any angle.
 
 **Technical Implementation**:
+
 1. **Frontend Canvas Editor** (`client/src/components/PlateBlurModal.tsx`):
-   - Fabric.js v6 integration with modern ES6 imports (Canvas, Rect, FabricImage)
-   - Interactive 800x600 canvas with draggable/resizable white rectangle overlay
-   - Coordinate transformation: Canvas space → Original image dimensions
-   - Edge case handling: Automatic dimension adjustment for rectangles extending beyond image bounds
+   - Fabric.js v6 with full rotation support using `getCenterPoint()` API
+   - Interactive 800x600 canvas with draggable/resizable/rotatable white rectangle
+   - Real-time center point calculation for accurate coordinate transmission
+   - Sends: centerX, centerY, width, height, angle (degrees) to backend
    - Memory management: Automatic blob URL revocation on cleanup
 
 2. **Backend Image Processing** (`server/routes/images.ts - POST /api/images/apply-mask`):
-   - Sharp.js composite operation to permanently apply white rectangle mask
-   - WebP conversion with quality optimization (85%, effort 5)
-   - Security: URL domain validation (Supabase, Replit domains only)
-   - Coordinate validation and clamping to prevent out-of-bounds masks
-   - Automatic upload to Supabase Storage with versioned filenames
+   - **Advanced Coordinate System** with center-based placement and symmetric clamping
+   - **Rotation Support**: Sharp.js `.rotate()` with transparent background for arbitrary angles
+   - **Security Guarantees**:
+     - Center clamped to [0, imgWidth-1] to prevent negative coordinates
+     - Dimensions guaranteed >= 1px and <= imgDim (handles 1px images)
+     - Position formula: `compositeLeft = max(0, min(centerX - floor(finalWidth/2), imgWidth - finalWidth))`
+     - Prevents all buffer overflow scenarios (odd dimensions, edge placements)
+   - **Symmetric Clamping Algorithm**:
+     ```typescript
+     visibleHalfWidth = min(maskWidth/2, centerX, imgWidth - centerX)
+     finalWidth = max(1, min(visibleHalfWidth * 2, imgWidth))
+     compositeLeft = max(0, min(centerX - floor(finalWidth/2), imgWidth - finalWidth))
+     ```
+   - **Rotated Buffer Handling**:
+     - Always crop if `cropWidth !== rotatedWidth` to prevent odd-dimension overflow
+     - Centered extraction: `cropLeft = halfRotatedWidth - halfCropWidth`
+   - WebP conversion (85% quality, effort 5) + automatic Supabase Storage upload
 
 3. **Integration Flow** (`client/src/components/CreateListingForm.tsx`):
-   - "Flouter" button on each uploaded photo preview
-   - Automatic upload of File objects before masking (resolves blob: URL issue)
-   - State management: Tracks masked images and replaces with processed versions
-   - User experience: Modal workflow → Canvas adjustment → Apply → Automatic replacement
+   - "Flouter" button on each photo preview
+   - Pre-upload File objects to Supabase (resolves blob: URL limitation)
+   - Modal: Position → Resize → Rotate → Apply
+   - Backend applies permanent mask → Returns processed URL
+   - Automatic replacement in form state
 
 **Technical Challenges Resolved**:
-- ✅ Coordinate mismatch: Canvas display coordinates vs. original image pixels (fixed with scale/offset calculation)
-- ✅ Blob URL limitation: Backend fetch() cannot access browser blob: URLs (fixed with pre-upload strategy)
-- ✅ Format corruption: Sharp buffer uploaded as WebP without conversion (fixed with .webp() pipeline)
-- ✅ Edge overflow: Rectangle dimensions not adjusted when crossing image boundaries (fixed with overflow compensation)
+- ✅ **Rotation Coordinate Mapping**: Used Fabric.js `getCenterPoint()` for true geometric center with rotation
+- ✅ **Center Drift at Edges**: Implemented symmetric half-extent algorithm to maintain visual center
+- ✅ **Odd Dimension Overflow**: Force crop when `cropWidth !== rotatedWidth` prevents +1px Sharp errors
+- ✅ **Negative Coordinates**: Center clamping + position formula guarantees [0, imgDim - finalDim] range
+- ✅ **1px Images**: Special handling with `max(1, min(..., imgDim))` prevents zero-size masks
+- ✅ **Sharp Composite Errors**: All edge cases tested - no buffer overflow or out-of-bounds errors
 
-**Dependencies Added**:
-- `fabric@6.x` - Canvas manipulation library with TypeScript support
+**Dependencies**:
+- `fabric@6.x` - Canvas manipulation with rotation support
+- `sharp` - Server-side image processing with rotation and composite
 
 **User Flow**:
-1. User uploads vehicle photos in listing creation form
-2. Clicks "Flouter" button on any photo showing license plate
-3. Adjusts white rectangle position/size in modal editor
-4. Confirms → Backend applies permanent white mask
-5. Masked image replaces original in form (ready for final submission)
+1. Upload vehicle photos in listing form
+2. Click "Flouter" on photo with visible plate
+3. Adjust rectangle: drag, resize, **rotate** to match plate angle
+4. Apply → Backend processes with rotation → Returns masked image
+5. Processed image auto-replaces original
 
-**Future Enhancement Possibility**: Logo overlay on white rectangle (mentioned by user)
+**Mathematical Guarantees**:
+- Center always preserved when not clamped: `finalCenter = centerX`
+- No buffer overflow: `compositeLeft + finalWidth ≤ imgWidth` (proven)
+- Minimum viable mask: `finalWidth ≥ 1px` even for 1px images
+- Rotation safety: Crop executed for ALL non-matching dimensions

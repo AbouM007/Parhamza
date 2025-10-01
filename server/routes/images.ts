@@ -416,9 +416,7 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
     console.log(`🎨 Application masque blanc sur image pour utilisateur ${userId}`);
     console.log(`📐 Coordonnées masque:`, mask);
 
-    // Valider et clamper les coordonnées du masque
-    const maskX = Math.max(0, Math.round(mask.x));
-    const maskY = Math.max(0, Math.round(mask.y));
+    // Récupérer les paramètres du masque (coordonnées du CENTRE)
     const maskWidth = Math.max(1, Math.round(mask.width));
     const maskHeight = Math.max(1, Math.round(mask.height));
     const maskAngle = mask.angle || 0; // Angle de rotation en degrés
@@ -433,28 +431,54 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
 
     // Obtenir les métadonnées de l'image pour validation
     const imageInfo = await sharp(imageBuffer).metadata();
-    
-    // Clamper les dimensions du masque aux limites de l'image
-    const clampedWidth = Math.min(maskWidth, (imageInfo.width || 1) - maskX);
-    const clampedHeight = Math.min(maskHeight, (imageInfo.height || 1) - maskY);
+    const imgWidth = imageInfo.width || 1;
+    const imgHeight = imageInfo.height || 1;
+
+    // Clamper le centre dans les limites de l'image
+    // Pour images de 1px, centerX peut être 0
+    const centerX = Math.max(0, Math.min(Math.round(mask.centerX), imgWidth - 1));
+    const centerY = Math.max(0, Math.min(Math.round(mask.centerY), imgHeight - 1));
 
     let maskBuffer: Buffer;
+    let compositeLeft: number;
+    let compositeTop: number;
 
     if (maskAngle === 0) {
-      // Cas simple: rectangle sans rotation (SVG)
+      // Cas simple: rectangle sans rotation
+      // Approche symétrique: UN SEUL demi-espace pour garantir le centrage
+      
+      // Demi-dimensions maximales symétriques autour du centre
+      const visibleHalfWidth = Math.min(
+        Math.floor(maskWidth / 2),  // Taille souhaitée
+        centerX,                     // Distance au bord gauche
+        imgWidth - centerX          // Distance au bord droit
+      );
+      const visibleHalfHeight = Math.min(
+        Math.floor(maskHeight / 2),
+        centerY,
+        imgHeight - centerY
+      );
+      
+      // Dimensions finales limitées à la taille de l'image (minimum 1px)
+      const finalWidth = Math.max(1, Math.min(visibleHalfWidth * 2, imgWidth));
+      const finalHeight = Math.max(1, Math.min(visibleHalfHeight * 2, imgHeight));
+      
+      // Position ajustée pour garantir les limites
+      compositeLeft = Math.max(0, Math.min(centerX - Math.floor(finalWidth / 2), imgWidth - finalWidth));
+      compositeTop = Math.max(0, Math.min(centerY - Math.floor(finalHeight / 2), imgHeight - finalHeight));
+
       const maskSvg = `
-        <svg width="${clampedWidth}" height="${clampedHeight}" xmlns="http://www.w3.org/2000/svg">
+        <svg width="${finalWidth}" height="${finalHeight}" xmlns="http://www.w3.org/2000/svg">
           <rect width="100%" height="100%" fill="white"/>
         </svg>
       `;
       maskBuffer = Buffer.from(maskSvg);
     } else {
-      // Cas avec rotation: créer un rectangle blanc et le tourner avec Sharp
-      // Créer un rectangle blanc avec fond transparent
+      // Cas avec rotation: créer et tourner le rectangle
       const rectBuffer = await sharp({
         create: {
-          width: clampedWidth,
-          height: clampedHeight,
+          width: maskWidth,
+          height: maskHeight,
           channels: 4,
           background: { r: 255, g: 255, b: 255, alpha: 1 }
         }
@@ -463,9 +487,58 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
       .toBuffer();
 
       // Appliquer la rotation avec fond transparent
-      maskBuffer = await sharp(rectBuffer)
+      const rotatedBuffer = await sharp(rectBuffer)
         .rotate(maskAngle, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
         .toBuffer();
+
+      // Obtenir les dimensions du masque après rotation
+      const rotatedInfo = await sharp(rotatedBuffer).metadata();
+      const rotatedWidth = rotatedInfo.width || maskWidth;
+      const rotatedHeight = rotatedInfo.height || maskHeight;
+
+      // Approche symétrique: UN SEUL demi-espace pour garantir le centrage
+      const visibleHalfWidth = Math.min(
+        Math.floor(rotatedWidth / 2),
+        centerX,
+        imgWidth - centerX
+      );
+      const visibleHalfHeight = Math.min(
+        Math.floor(rotatedHeight / 2),
+        centerY,
+        imgHeight - centerY
+      );
+      
+      // Dimensions limitées à la taille de l'image (minimum 1px)
+      const cropWidth = Math.max(1, Math.min(visibleHalfWidth * 2, imgWidth));
+      const cropHeight = Math.max(1, Math.min(visibleHalfHeight * 2, imgHeight));
+      
+      // Position ajustée pour garantir les limites
+      compositeLeft = Math.max(0, Math.min(centerX - Math.floor(cropWidth / 2), imgWidth - cropWidth));
+      compositeTop = Math.max(0, Math.min(centerY - Math.floor(cropHeight / 2), imgHeight - cropHeight));
+      
+      // Calculer le crop symétrique du buffer centré
+      const halfRotatedWidth = Math.floor(rotatedWidth / 2);
+      const halfRotatedHeight = Math.floor(rotatedHeight / 2);
+      const halfCropWidth = Math.floor(cropWidth / 2);
+      const halfCropHeight = Math.floor(cropHeight / 2);
+      
+      const cropLeft = Math.max(0, halfRotatedWidth - halfCropWidth);
+      const cropTop = Math.max(0, halfRotatedHeight - halfCropHeight);
+
+      // Toujours cropper si les dimensions ne correspondent pas exactement
+      // Cela évite les débordements avec les dimensions impaires
+      if (cropWidth !== rotatedWidth || cropHeight !== rotatedHeight) {
+        maskBuffer = await sharp(rotatedBuffer)
+          .extract({
+            left: cropLeft,
+            top: cropTop,
+            width: cropWidth,
+            height: cropHeight
+          })
+          .toBuffer();
+      } else {
+        maskBuffer = rotatedBuffer;
+      }
     }
 
     // Appliquer le masque blanc sur l'image ET convertir en WebP
@@ -473,8 +546,8 @@ router.post("/apply-mask", async (req: Request, res: Response) => {
       .composite([
         {
           input: maskBuffer,
-          top: maskY,
-          left: maskX,
+          top: compositeTop,
+          left: compositeLeft,
           blend: "over",
         },
       ])

@@ -959,7 +959,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   // Fonction pour appliquer le masque blanc sur l'image
-  const handleApplyMask = async (maskData: { x: number; y: number; width: number; height: number; angle: number }) => {
+  const handleApplyMask = async (maskData: { centerX: number; centerY: number; width: number; height: number; angle: number }) => {
     try {
       const { photoIndex, imageUrl } = plateBlurModal;
       
