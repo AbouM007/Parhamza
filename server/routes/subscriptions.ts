@@ -478,18 +478,29 @@ router.post("/modify", requireAuth, async (req, res) => {
     // 2. Traiter selon l'action
     if (action === 'cancel') {
       // Annulation à la fin de période
+      let updatedStripeSubscription: Stripe.Subscription | null = null;
+      
       if (currentSub.stripe_subscription_id) {
-        await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
+        // ✅ Mettre à jour Stripe et récupérer les dates de période
+        updatedStripeSubscription = await stripe.subscriptions.update(currentSub.stripe_subscription_id, {
           cancel_at_period_end: true,
         });
       }
 
+      // ✅ Persister les dates de période depuis Stripe dans notre DB
+      const updatePayload: any = { 
+        cancel_at_period_end: true,
+        updated_at: new Date().toISOString()
+      };
+
+      if (updatedStripeSubscription) {
+        updatePayload.current_period_start = tsToIso(updatedStripeSubscription.current_period_start);
+        updatePayload.current_period_end = tsToIso(updatedStripeSubscription.current_period_end);
+      }
+
       await supabaseServer
         .from("subscriptions")
-        .update({ 
-          cancel_at_period_end: true,
-          updated_at: new Date().toISOString() 
-        })
+        .update(updatePayload)
         .eq("id", currentSub.id);
 
       // Enregistrer dans l'historique
@@ -504,7 +515,7 @@ router.post("/modify", requireAuth, async (req, res) => {
       return res.json({
         success: true,
         message: "Abonnement annulé. Actif jusqu'à la fin de la période.",
-        currentPeriodEnd: currentSub.current_period_end
+        currentPeriodEnd: updatePayload.current_period_end || currentSub.current_period_end
       });
     }
 
