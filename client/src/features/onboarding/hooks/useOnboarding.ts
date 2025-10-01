@@ -19,7 +19,7 @@ interface UseOnboardingParams {
   initialData?: OnboardingData;
 }
 
-export interface UseOnboardingV2Result {
+export interface UseOnboardingResult {
   currentState: OnboardingState;
   context: OnboardingContext;
   data: OnboardingData;
@@ -32,9 +32,9 @@ export interface UseOnboardingV2Result {
   canTransitionTo: (nextState: OnboardingState) => boolean;
 }
 
-export const useOnboardingV2 = (
+export const useOnboarding = (
   params: UseOnboardingParams = {},
-): UseOnboardingV2Result => {
+): UseOnboardingResult => {
   const { user = null, initialData = {} } = params;
 
   const [context, setContext] = useState<OnboardingContext>({

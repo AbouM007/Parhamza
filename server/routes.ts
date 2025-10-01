@@ -141,45 +141,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DEBUG: Reset onboarding for current user (for testing)
-  app.post("/api/debug/reset-onboarding", async (req, res) => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ error: "Authorization header required" });
-      }
-
-      const token = authHeader.replace("Bearer ", "");
-      const {
-        data: { user },
-        error: authError,
-      } = await supabaseServer.auth.getUser(token);
-
-      if (authError || !user) {
-        return res.status(401).json({ error: "Invalid token" });
-      }
-
-      // Reset profile_completed to false
-      const { data: updatedUser, error: updateError } = await supabaseServer
-        .from("users")
-        .update({ profile_completed: false })
-        .eq("id", user.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error("❌ Error resetting onboarding:", updateError);
-        return res.status(500).json({ error: "Failed to reset onboarding" });
-      }
-
-      console.log("✅ Onboarding reset for user:", user.id);
-      res.json({ message: "Onboarding reset successfully", user: updatedUser });
-    } catch (error) {
-      console.error("Error resetting onboarding:", error);
-      res.status(500).json({ error: "Failed to reset onboarding" });
-    }
-  });
-
   // Endpoint pour synchroniser un utilisateur Supabase Auth avec la table users
   app.post("/api/users/sync-auth", async (req, res) => {
     try {

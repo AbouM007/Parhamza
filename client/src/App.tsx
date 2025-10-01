@@ -35,8 +35,7 @@ import ProfessionalProfile from "./pages/ProfessionalProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
-import { OnboardingEntry } from "@/features/onboardingV2/OnboardingEntry";
-import { DebugResetOnboarding } from "@/components/DebugResetOnboarding";
+import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
 
 
 function AppContent() {
@@ -329,9 +328,6 @@ function AppContent() {
           }}
         />
       </DraggableModal>
-
-      {/* Debug: Reset onboarding (dev only) */}
-      <DebugResetOnboarding />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { DocsStep } from "./components/steps/DocsStep";
 import { PaymentStep } from "./components/steps/PaymentStep";
 import { PersonalStep } from "./components/steps/PersonalStep";
 import { ProfessionalStep } from "./components/steps/ProfessionalStep";
-import { useOnboardingV2 } from "./hooks/useOnboardingV2";
+import { useOnboarding } from "./hooks/useOnboarding";
 import { OnboardingData, OnboardingState, StepProps, User } from "./types";
 import { useAuth } from "@/contexts/AuthContext"; // ✅ importer le contexte auth
 
@@ -15,7 +15,7 @@ interface OnboardingEntryProps {
   isEnabled?: boolean;
 }
 
-const ONBOARDING_V2_FEATURE_FLAG = true;
+//const ONBOARDING_V2_FEATURE_FLAG = true;
 
 type OnboardingCheck =
   | {
@@ -93,7 +93,7 @@ export const OnboardingEntry = ({
   // ✅ CORRECT : Utiliser user et session de useAuth
   const { user: authUser, session } = useAuth();
   const isAuthenticated = !!session && !!authUser;
-  const onboarding = useOnboardingV2({ user, initialData });
+  const onboarding = useOnboarding({ user, initialData });
 
   const { currentState, data, advance, goBack, skip, isCompleted } = onboarding;
 
