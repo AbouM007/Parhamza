@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AddressInput } from "@/components/AddressInput";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import { OnboardingSuccessDialog } from "../OnboardingSuccessDialog";
 
 const personalProfileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -159,6 +160,8 @@ export const PersonalStep = ({
           continueDisabled={form.formState.isSubmitting}
         />
       </form>
+
+      {showSuccessDialog && <OnboardingSuccessDialog />}
     </div>
   );
 };
