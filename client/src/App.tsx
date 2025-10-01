@@ -10,8 +10,6 @@ import { Hero } from "@/components/Hero";
 import { VehicleListings } from "@/components/VehicleListings";
 import { VehicleDetail } from "@/components/VehicleDetail";
 import { UnifiedAuthModal } from "@/components/UnifiedAuthModal";
-import { ProfileSetupModal } from "@/components/ProfileSetupModal";
-import { PersonalProfileForm } from "@/components/onboarding/PersonalProfileForm";
 import StripeSuccess from "./pages/StripeSuccess";
 import { Dashboard } from "@/components/dashboard";
 import { CreateListingForm } from "@/components/CreateListingForm";
@@ -36,14 +34,11 @@ import { AuthCallback } from "./pages/AuthCallback";
 import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
 import { useAuth } from "@/contexts/AuthContext";
-import { detectOnboardingState } from "@/utils/onboardingDetector";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboardingV2/OnboardingEntry";
 import { DebugResetOnboarding } from "@/components/DebugResetOnboarding";
 
-// Feature flag pour basculer entre ancien et nouveau système d'onboarding
-const ONBOARDING_V2_ENABLED = true;
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
