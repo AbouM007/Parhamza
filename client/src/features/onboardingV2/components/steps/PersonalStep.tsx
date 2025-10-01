@@ -8,7 +8,9 @@ import { StepButtons } from "../shared/StepButtons";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { AddressInput } from "@/components/AddressInput";
 
+/*
 const personalProfileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   phone: z
@@ -19,6 +21,16 @@ const personalProfileSchema = z.object({
     .string()
     .min(5, "Le code postal doit contenir 5 chiffres")
     .optional(),
+});
+*/
+
+const personalProfileSchema = z.object({
+  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  phone: z
+    .string()
+    .regex(/^[0-9]{10}$/, "Le téléphone doit contenir exactement 10 chiffres"),
+  postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
+  city: z.string().min(2, "La ville est requise").optional(),  
 });
 
 type PersonalProfileData = z.infer<typeof personalProfileSchema>;
@@ -141,32 +153,16 @@ export const PersonalStep = ({
             />
           </div>
 
-          {/* Ville */}
-          <div>
-            <FormLabel htmlFor="city">Ville</FormLabel>
-            <FormInput
-              id="city"
-              type="text"
-              placeholder="Paris"
-              {...form.register("city")}
-              error={form.formState.errors.city?.message}
-              data-testid="input-city"
-            />
-          </div>
-
-          {/* Code postal */}
-          <div>
-            <FormLabel htmlFor="postalCode">Code postal</FormLabel>
-            <FormInput
-              id="postalCode"
-              type="text"
-              placeholder="75001"
-              {...form.register("postalCode")}
-              error={form.formState.errors.postalCode?.message}
-              data-testid="input-postalcode"
-            />
-          </div>
-        </div>
+          {/* AddressInput - REMPLACE les anciens champs */}
+          <AddressInput
+            postalCode={form.watch("postalCode") || ""}
+            city={form.watch("city") || ""}
+            onPostalCodeChange={(code) => form.setValue("postalCode", code)}
+            onCityChange={(city) => form.setValue("city", city)}
+            label="Adresse de résidence"
+            required
+          />
+           </div>
 
         <StepButtons
           onBack={onBack}

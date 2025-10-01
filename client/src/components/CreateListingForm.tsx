@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Camera, Check, Search, X, EyeOff } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  Search,
+  X,
+  EyeOff,
+} from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { PremiumPackSelector } from "./PremiumPackSelector";
 import { PremiumPayment } from "./PremiumPayment";
@@ -74,9 +82,12 @@ interface FormData {
   contact: {
     phone: string;
     email: string;
-    hidePhone: boolean;
     whatsapp: string;
+    hidePhone: boolean;
     sameAsPhone: boolean;
+    showPhone: boolean;
+    showWhatsapp: boolean;
+    showInternal: boolean;
   };
   premiumPack: string;
 }
@@ -93,10 +104,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [createdVehicle, setCreatedVehicle] = useState<{id: string, title: string} | null>(null);
+  const [createdVehicle, setCreatedVehicle] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
   const [showBoostModal, setShowBoostModal] = useState(false);
   const [blurredImages, setBlurredImages] = useState<Set<number>>(new Set());
-  const [plateBlurModal, setPlateBlurModal] = useState<{ isOpen: boolean; photoIndex: number; imageUrl: string }>({
+  const [plateBlurModal, setPlateBlurModal] = useState<{
+    isOpen: boolean;
+    photoIndex: number;
+    imageUrl: string;
+  }>({
     isOpen: false,
     photoIndex: -1,
     imageUrl: "",
@@ -161,6 +179,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       hidePhone: false,
       whatsapp: "",
       sameAsPhone: false,
+      showPhone: true, // affiché par défaut
+      showWhatsapp: true, // affiché par défaut
+      showInternal: true, // activé par défaut (ou false si tu veux)
     },
     premiumPack: "free", // Gardé pour compatibilité mais plus utilisé dans le flux
   });
@@ -784,7 +805,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
         contactWhatsapp: formData.contact.whatsapp || "",
-        hidePhone: formData.contact.hidePhone || false,
+        hidePhone: !formData.contact.showPhone, 
+        //hidePhone: formData.contact.hidePhone || false,
         isPremium: false,
         status: "draft", // Initialement en brouillon
         listingType: formData.listingType || "sale",
@@ -810,7 +832,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         // Stocker les infos du véhicule créé
         setCreatedVehicle({
           id: newVehicle.id?.toString() || "",
-          title: newVehicle.title || formData.title
+          title: newVehicle.title || formData.title,
         });
 
         // Afficher le modal de succès
@@ -950,7 +972,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     } else {
       imageUrl = photo;
     }
-    
+
     setPlateBlurModal({
       isOpen: true,
       photoIndex: index,
@@ -959,10 +981,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   // Fonction pour appliquer le masque blanc sur l'image
-  const handleApplyMask = async (maskData: { centerX: number; centerY: number; width: number; height: number; angle: number }) => {
+  const handleApplyMask = async (maskData: {
+    centerX: number;
+    centerY: number;
+    width: number;
+    height: number;
+    angle: number;
+  }) => {
     try {
       const { photoIndex, imageUrl } = plateBlurModal;
-      
+
       // Appeler l'API backend pour appliquer le masque
       const response = await fetch("/api/images/apply-mask", {
         method: "POST",
@@ -2867,7 +2895,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                           alt={`Photo ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
-                        
+
                         {/* Bouton pour flouter l'immatriculation */}
                         <button
                           onClick={() => handleBlurPlate(index)}
@@ -3004,183 +3032,92 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Informations de contact
+                Préférences de contact
               </h2>
               <p className="text-gray-600">
                 Comment les{" "}
                 {formData.listingType === "sale" ? "acheteurs" : "vendeurs"}{" "}
                 peuvent-ils vous contacter ?
               </p>
-              {(formData.contact.phone ||
-                formData.contact.whatsapp ||
-                formData.contact.email) && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    ℹ️ Informations pré-remplies depuis votre profil. Vous
-                    pouvez les modifier pour cette annonce uniquement.
-                  </p>
-                </div>
-              )}
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  ℹ️ Vos coordonnées sont définies dans votre profil. Vous
+                  pouvez choisir par quel canal vous souhaitez être contacté.
+                </p>
+              </div>
             </div>
 
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Téléphone * (avec indicatif international)
-                </label>
-                <div className="text-xs text-gray-500 mb-2">
-                  Exemples : +33 (France), +1 (USA/Canada), +44 (UK), +49
-                  (Allemagne), +34 (Espagne)
-                </div>
-                <input
-                  type="tel"
-                  value={formData.contact.phone}
-                  onChange={(e) => {
-                    const formatted = formatPhoneNumber(e.target.value);
-                    const updatedContact = {
-                      ...formData.contact,
-                      phone: formatted,
-                    };
-
-                    // Si "même numéro WhatsApp" est coché, copier automatiquement
-                    if (formData.contact.sameAsPhone) {
-                      updatedContact.whatsapp = formatted;
-                    }
-
-                    updateFormData("contact", updatedContact);
-                  }}
-                  onBlur={(e) => {
-                    // Validation lors de la perte de focus
-                    const validation = validatePhoneNumber(e.target.value);
-                    if (!validation.isValid) {
-                      console.log(
-                        "Erreur de validation téléphone:",
-                        validation.message,
-                      );
-                    }
-                  }}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                    formData.contact.phone &&
-                    !validatePhoneNumber(formData.contact.phone).isValid
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="+33 6 12 34 56 78 (France par défaut)"
-                  maxLength={25}
-                />
-                {formData.contact.phone && (
-                  <p
-                    className={`text-sm mt-1 ${
-                      validatePhoneNumber(formData.contact.phone).isValid
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {validatePhoneNumber(formData.contact.phone).message}
-                  </p>
-                )}
-
-                {/* Checkbox pour masquer le téléphone - déplacée ici */}
-                <div className="flex items-center mt-3">
+              {/* Téléphone */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Téléphone :</span>{" "}
+                  {profile?.phone || "Non renseigné"}
+                </p>
+                <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    id="hidePhone"
-                    checked={formData.contact.hidePhone}
+                    checked={formData.contact.showPhone}
                     onChange={(e) =>
                       updateFormData("contact", {
                         ...formData.contact,
-                        hidePhone: e.target.checked,
+                        showPhone: e.target.checked,
                       })
                     }
-                    className="h-4 w-4 text-primary-bolt-600 focus:ring-primary-bolt-500 border-gray-300 rounded"
+                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
                   />
-                  <label
-                    htmlFor="hidePhone"
-                    className="ml-2 text-sm text-gray-700"
-                  >
-                    Masquer le Téléphone dans l'annonce
-                  </label>
-                </div>
+                  <span className="text-sm text-gray-700">
+                    Afficher mon numéro sur l’annonce
+                  </span>
+                </label>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  WhatsApp
+              {/* WhatsApp */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">WhatsApp :</span>{" "}
+                  {profile?.whatsapp || profile?.phone || "Non renseigné"}
+                </p>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.contact.showWhatsapp}
+                    onChange={(e) =>
+                      updateFormData("contact", {
+                        ...formData.contact,
+                        showWhatsapp: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Afficher mon WhatsApp sur l’annonce
+                  </span>
                 </label>
+              </div>
 
-                <div className="mb-3">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.contact.sameAsPhone}
-                      onChange={(e) => {
-                        const sameAsPhone = e.target.checked;
-                        updateFormData("contact", {
-                          ...formData.contact,
-                          sameAsPhone,
-                          whatsapp: sameAsPhone ? formData.contact.phone : "",
-                        });
-                      }}
-                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Utiliser ce numéro pour WhatsApp
-                    </span>
-                  </label>
-                </div>
-
-                {!formData.contact.sameAsPhone && (
-                  <div>
-                    <input
-                      type="tel"
-                      value={formData.contact.whatsapp}
-                      onChange={(e) => {
-                        const formatted = formatPhoneNumber(e.target.value);
-                        updateFormData("contact", {
-                          ...formData.contact,
-                          whatsapp: formatted,
-                        });
-                      }}
-                      onBlur={(e) => {
-                        const validation = validatePhoneNumber(e.target.value);
-                        if (!validation.isValid && e.target.value) {
-                          console.log(
-                            "Erreur de validation WhatsApp:",
-                            validation.message,
-                          );
-                        }
-                      }}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                        formData.contact.whatsapp &&
-                        !validatePhoneNumber(formData.contact.whatsapp).isValid
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="+33 6 12 34 56 78 (WhatsApp)"
-                      maxLength={25}
-                    />
-                    {formData.contact.whatsapp && (
-                      <p
-                        className={`text-sm mt-1 ${
-                          validatePhoneNumber(formData.contact.whatsapp).isValid
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {validatePhoneNumber(formData.contact.whatsapp).message}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {formData.contact.sameAsPhone && formData.contact.phone && (
-                  <div className="bg-gray-50 p-3 rounded-xl">
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">WhatsApp :</span>{" "}
-                      {formData.contact.phone}
-                    </p>
-                  </div>
-                )}
+              {/* Messagerie interne */}
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Messagerie interne :</span>{" "}
+                  Toujours disponible
+                </p>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.contact.showInternal}
+                    onChange={(e) =>
+                      updateFormData("contact", {
+                        ...formData.contact,
+                        showInternal: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Autoriser les messages via la plateforme
+                  </span>
+                </label>
               </div>
             </div>
           </div>
@@ -3646,42 +3583,45 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   return (
-    <div className="bg-white">
-      <div className="max-w-full mx-auto px-6 py-6">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {formData.listingType === "sale"
-                ? "Vente"
-                : formData.listingType === "search"
-                  ? "Recherche"
-                  : "Déposer une annonce"}
-              {formData.listingType && " - Déposer une annonce"}
-            </h1>
-            <span className="text-sm font-medium text-gray-600">
-              Étape {currentStep} sur {totalSteps}
-            </span>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-6 py-6">
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {formData.listingType === "sale"
+                  ? "Vente"
+                  : formData.listingType === "search"
+                    ? "Recherche"
+                    : "Déposer une annonce"}
+                {formData.listingType && " - Déposer une annonce"}
+              </h1>
+              <span className="text-sm font-medium text-gray-600">
+                Étape {currentStep} sur {totalSteps}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              ></div>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-            ></div>
+
+          {/* Form Content */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-32">
+            {renderStepContent()}
           </div>
         </div>
+      </div>
 
-        {/* Form Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          {renderStepContent()}
-        </div>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
+      {/* Navigation sticky */}
+      <div className="sticky bottom-0 bg-white border-t shadow-lg px-6 py-4">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <button
             onClick={() => {
               if (currentStep === 13 && showPayment) {
-                // Retour depuis le paiement vers la sélection des packs
                 setShowPayment(false);
               } else {
                 prevStepHandler();
@@ -3695,19 +3635,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </button>
 
           {currentStep === 12 ? (
-            // Étape récapitulatif - afficher uniquement l'option de publication gratuite
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={() => {
-                  // Publication gratuite directe
-                  publishListing();
-                }}
-                className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Check className="h-4 w-4" />
-                <span>Publier l'annonce</span>
-              </button>
-            </div>
+            <button
+              onClick={publishListing}
+              className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              <Check className="h-4 w-4" />
+              <span>Publier l'annonce</span>
+            </button>
           ) : currentStep < totalSteps ? (
             <button
               onClick={nextStepHandler}
@@ -3719,10 +3653,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             </button>
           ) : (
             <button
-              onClick={() => {
-                // Publication directe
-                publishListing();
-              }}
+              onClick={publishListing}
               disabled={!canProceed()}
               className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
@@ -3732,7 +3663,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         </div>
       </div>
 
-      {/* Modal de succès */}
+      {/* Modals */}
       <PublishSuccessModal
         isOpen={showSuccessModal}
         onClose={handleContinueNavigating}
@@ -3743,30 +3674,26 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         listingType={formData.listingType === "sale" ? "sell" : "search"}
       />
 
-      {/* Modal de boost */}
       {createdVehicle && (
         <BoostModal
           isOpen={showBoostModal}
           onClose={() => {
             setShowBoostModal(false);
-            if (onSuccess) {
-              onSuccess(); // Ferme aussi le formulaire après le boost
-            }
+            if (onSuccess) onSuccess();
           }}
           annonceId={createdVehicle.id}
           annonceTitle={createdVehicle.title}
         />
       )}
 
-      {/* Modal de floutage de plaque d'immatriculation */}
       <PlateBlurModal
         isOpen={plateBlurModal.isOpen}
         imageUrl={plateBlurModal.imageUrl}
-        onClose={() => setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" })}
+        onClose={() =>
+          setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" })
+        }
         onConfirm={handleApplyMask}
       />
     </div>
   );
 };
-
-

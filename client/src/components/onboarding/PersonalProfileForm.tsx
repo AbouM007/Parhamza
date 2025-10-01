@@ -6,6 +6,7 @@ import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from "@/contexts/AuthContext"; // ✅ AJOUT
+import { AddressInput } from "@/components/AddressInput";
 
 // Schéma de validation pour le profil personnel
 const personalProfileSchema = z.object({
@@ -13,11 +14,8 @@ const personalProfileSchema = z.object({
   phone: z
     .string()
     .regex(/^[0-9]{10}$/, "Le téléphone doit contenir exactement 10 chiffres"),
-  city: z.string().min(2, "La ville est requise").optional(),
-  postalCode: z
-    .string()
-    .min(5, "Le code postal doit contenir 5 chiffres")
-    .optional(),
+  postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
+  city: z.string().min(2, "La ville est requise").optional(),  
 });
 
 type PersonalProfileData = z.infer<typeof personalProfileSchema>;
@@ -136,24 +134,26 @@ export const PersonalProfileForm: React.FC<PersonalProfileFormProps> = ({
 
         {/* Content */}
         <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
-          {/* ... formulaire inchangé ... */}
-          <div className="flex justify-between items-center pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition-colors"
-            >
-              Retour
-            </button>
-            <button
-              type="submit"
-              disabled={form.formState.isSubmitting}
-              className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {form.formState.isSubmitting
-                ? "Finalisation..."
-                : "Finaliser mon profil"}
-            </button>
+          {/* Champ nom */}
+          <div>...</div>
+
+          {/* Champ téléphone */}
+          <div>...</div>
+
+          {/* AddressInput - REMPLACE les anciens champs */}
+          <AddressInput
+            postalCode={form.watch("postalCode") || ""}
+            city={form.watch("city") || ""}
+            onPostalCodeChange={(code) => form.setValue("postalCode", code)}
+            onCityChange={(city) => form.setValue("city", city)}
+            label="Adresse de résidence"
+            required
+          />
+
+          {/* Boutons */}
+          <div className="flex justify-between">
+            <button type="button">Retour</button>
+            <button type="submit">Finaliser</button>
           </div>
         </form>
       </div>
