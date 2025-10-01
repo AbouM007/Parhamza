@@ -56,8 +56,10 @@ import ProfessionalVerificationBanner from "../ProfessionalVerificationBanner";
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { BoostModal } from "../BoostModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useQuota } from "@/hooks/useQuota";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Helper function to translate deletion reasons from English to French
 const translateDeletionReason = (reason: string): string => {
@@ -204,6 +206,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   >({});
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
   const [loadingPurchaseHistory, setLoadingPurchaseHistory] = useState(false);
+
+  const { toast } = useToast();
 
   // État pour le filtre des annonces
   const [listingFilter, setListingFilter] = useState<
@@ -814,6 +818,35 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setBoostStatuses(statuses);
   };
 
+  // Mutation pour annuler l'abonnement
+  const cancelSubscriptionMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/subscriptions/modify', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'cancel' }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Abonnement annulé",
+        description: `Votre abonnement reste actif jusqu'au ${new Date(data.currentPeriodEnd).toLocaleDateString('fr-FR')}`,
+      });
+      // Rafraîchir l'historique des achats
+      fetchPurchaseHistory();
+      // Rafraîchir aussi le statut d'abonnement
+      queryClient.invalidateQueries({ queryKey: [`/api/subscriptions/status/${profile?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions/current'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'annuler l'abonnement",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Fonction pour récupérer l'historique des achats
   const fetchPurchaseHistory = async () => {
     if (!profile?.id) return;
@@ -1421,7 +1454,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </div>
                       </div>
 
-                      <div className="text-right">
+                      <div className="text-right space-y-2">
                         <div className="text-2xl font-bold text-gray-900">
                           {purchase.amount.toFixed(2)}€
                         </div>
@@ -1440,6 +1473,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               ? "Actif"
                               : purchase.status}
                         </div>
+                        
+                        {/* Bouton Annuler pour abonnements actifs */}
+                        {purchase.type === "subscription" && purchase.status === "active" && (
+                          <div className="mt-2">
+                            <button
+                              onClick={() => {
+                                if (window.confirm("Êtes-vous sûr de vouloir annuler votre abonnement ? Il restera actif jusqu'à la fin de la période en cours.")) {
+                                  cancelSubscriptionMutation.mutate();
+                                }
+                              }}
+                              disabled={cancelSubscriptionMutation.isPending}
+                              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              data-testid={`button-cancel-subscription-${purchase.id}`}
+                            >
+                              {cancelSubscriptionMutation.isPending ? "Annulation..." : "Annuler l'abonnement"}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
