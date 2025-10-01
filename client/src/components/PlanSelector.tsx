@@ -15,6 +15,7 @@ import {
   Zap,
   ArrowRight,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -262,6 +263,25 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
         </div>
       )}
 
+      {/* Alerte : Plan actif détecté */}
+      {currentSubscription?.isActive && (
+        <div className="mb-6 bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-orange-900 mb-1">
+                Vous avez déjà un abonnement actif
+              </h4>
+              <p className="text-orange-800 text-sm">
+                Vous êtes actuellement abonné au plan <strong>{currentSubscription.planName}</strong>. 
+                Pour souscrire à un nouveau plan, veuillez d'abord annuler votre abonnement actuel 
+                depuis l'onglet "Abonnement" de votre tableau de bord.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Plans d'abonnement */}
       <div
         className={`grid gap-6 ${
@@ -380,11 +400,11 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
 
               <button
                 onClick={() => handleSelectPlan(plan)}
-                disabled={isCurrentPlan || isLoading}
+                disabled={currentSubscription?.isActive || isLoading}
                 className={`w-full rounded-xl font-bold transition-all duration-200 ${
                   isCompactMode ? "py-2 px-4 text-sm" : "py-3 px-6"
                 } ${
-                  isCurrentPlan
+                  currentSubscription?.isActive
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : isPopular
                       ? "bg-orange-500 hover:bg-orange-600 text-white"
@@ -402,6 +422,11 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
                     <>
                       <Check className="h-5 w-5" />
                       <span>Plan actuel</span>
+                    </>
+                  ) : currentSubscription?.isActive ? (
+                    <>
+                      <AlertCircle className="h-5 w-5" />
+                      <span>Non disponible</span>
                     </>
                   ) : (
                     <>
