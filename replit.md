@@ -3,6 +3,14 @@
 ## Overview
 PassionAuto2Roues is an online marketplace for buying and selling used vehicles, damaged vehicles, and automotive spare parts. It caters to both individual users and professional sellers, featuring a subscription-based monetization model, premium listings, and a verification system. The platform offers integrated messaging, payment processing, and user management.
 
+## Recent Changes
+**October 2025**
+- Implemented subscription management with cancel/reactivate functionality
+- Added PremiumSection component to dashboard displaying subscription plans
+- Integrated PlanSelector component in compact mode for Premium tab
+- Fixed component export patterns (named exports) to match app architecture
+- Enhanced Premium dashboard with subscription plans and boost options display
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 

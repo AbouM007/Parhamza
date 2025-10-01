@@ -5,4 +5,4 @@ export { default as ListingsSection } from "./ListingsSection";
 export { default as OverviewSection } from "./OverviewSection";
 export { default as PurchaseHistorySection } from "./PurchaseHistorySection";
 export { default as FavoritesSection } from "./FavoritesSection";
-export { default as PremiumSection } from "./PremiumSection";
+export { PremiumSection } from "./PremiumSection";
