@@ -151,8 +151,9 @@ function AppContent() {
 */
 
   const isAdminRoute = location.startsWith("/admin");
+  const isPaymentRoute = location.startsWith("/success") || location.startsWith("/auth/callback");
   
-  const shouldMaskHomepage = !isAdminRoute && (
+  const shouldMaskHomepage = !isAdminRoute && !isPaymentRoute && (
     loading || 
     (user && profile?.profileCompleted !== true)
   );

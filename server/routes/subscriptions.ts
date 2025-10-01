@@ -133,7 +133,7 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
       },
 
       success_url: `${process.env.FRONTEND_URL || "https://" + req.get("host")}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL || "https://" + req.get("host")}/plans`,
+      cancel_url: `${process.env.FRONTEND_URL || "https://" + req.get("host")}/dashboard`,
     });
 
     return res.json({ sessionUrl: session.url });

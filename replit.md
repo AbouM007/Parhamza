@@ -12,6 +12,8 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 - Enhanced Premium dashboard with subscription plans and boost options display
 - **Bug Fix**: Fixed subscription status detection for all user types - PlanSelector now correctly retrieves and displays current subscription for both "individual" and "professional" users (previously only worked for professionals)
 - **Feature**: Added purchase restriction when user has active subscription - displays alert message and disables all plan purchase buttons until current subscription is cancelled
+- **Bug Fix**: Fixed blank page after Stripe payment - payment success routes (`/success`, `/success-boost`, `/auth/callback`) now bypass profile completion check, allowing proper redirect after professional account creation
+- **Bug Fix**: Corrected Stripe cancel URL from non-existent `/plans` to `/dashboard`
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
