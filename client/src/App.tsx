@@ -150,158 +150,165 @@ function AppContent() {
 */
 
   const isAdminRoute = location.startsWith("/admin");
+  const isOnboardingActive = profile && !profile.profileCompleted;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {!isAdminRoute && (
-        <Header
-          currentView={getCurrentView()}
-          setCurrentView={setCurrentView}
-          mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen}
-          setDashboardTab={setDashboardTab}
-          onSearch={handleSearch}
-        />
-      )}
-
-      {selectedVehicle ? (
-        <VehicleDetail
-          vehicle={selectedVehicle}
-          onBack={handleBack}
-          onVehicleSelect={setSelectedVehicle}
-          onNavigate={handleBreadcrumbNavigation}
-          setCurrentView={setCurrentView}
-        />
+      {isOnboardingActive ? (
+        <div className="min-h-screen bg-gray-50" />
       ) : (
         <>
-          <Switch>
-            <Route path="/pro/:shopId">{() => <ProShop />}</Route>
-            <Route path="/professional/:id">
-              <ProfessionalProfile />
-            </Route>
-            <Route path="/listings">
-              <VehicleListings />
-            </Route>
-            <Route path="/dashboard">
-              <Dashboard
-                initialTab={dashboardTab}
-                onCreateListing={() =>
-                  handleCreateListingGuard(
-                    () => setShowCreateListingModal(true),
-                    "dashboard-button",
-                  )
-                }
-                onRedirectHome={() => setLocation("/")}
-                onRedirectToSearch={() => setLocation("/search")}
-                setSearchFilters={setSearchFilters}
-                setCurrentView={setCurrentView}
-                refreshVehicles={refreshVehicles}
-              />
-            </Route>
-            <Route path="/create-listing">
-              <Hero setCurrentView={setCurrentView} />
-            </Route>
-            <Route path="/conseils">
-              <Conseils />
-            </Route>
-            <Route path="/about">
-              <AboutPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/terms">
-              <TermsPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/privacy">
-              <PrivacyPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/legal">
-              <LegalPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/help">
-              <HelpPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/safety">
-              <SafetyTipsPage
-                onBack={() => setLocation("/")}
-                setCurrentView={setCurrentView}
-              />
-            </Route>
-            <Route path="/search">
-              <SearchPage />
-            </Route>
-            <Route path="/search-old">
-              <SearchResults
-                searchQuery={searchQuery}
-                onBack={() => setLocation("/")}
-                onVehicleSelect={setSelectedVehicle}
-              />
-            </Route>
-            <Route path="/messages">
-              <Messages />
-            </Route>
-            <Route path="/professional-verification">
-              <ProfessionalVerification />
-            </Route>
-            <Route path="/admin">
-              {() => {
-                const isAdminAuth =
-                  localStorage.getItem("admin_authenticated") === "true";
-                return isAdminAuth ? (
-                  <AdminDashboardClean onBack={() => setLocation("/")} />
-                ) : (
+          {!isAdminRoute && (
+            <Header
+              currentView={getCurrentView()}
+              setCurrentView={setCurrentView}
+              mobileMenuOpen={mobileMenuOpen}
+              setMobileMenuOpen={setMobileMenuOpen}
+              setDashboardTab={setDashboardTab}
+              onSearch={handleSearch}
+            />
+          )}
+
+          {selectedVehicle ? (
+            <VehicleDetail
+              vehicle={selectedVehicle}
+              onBack={handleBack}
+              onVehicleSelect={setSelectedVehicle}
+              onNavigate={handleBreadcrumbNavigation}
+              setCurrentView={setCurrentView}
+            />
+          ) : (
+            <>
+              <Switch>
+                <Route path="/pro/:shopId">{() => <ProShop />}</Route>
+                <Route path="/professional/:id">
+                  <ProfessionalProfile />
+                </Route>
+                <Route path="/listings">
+                  <VehicleListings />
+                </Route>
+                <Route path="/dashboard">
+                  <Dashboard
+                    initialTab={dashboardTab}
+                    onCreateListing={() =>
+                      handleCreateListingGuard(
+                        () => setShowCreateListingModal(true),
+                        "dashboard-button",
+                      )
+                    }
+                    onRedirectHome={() => setLocation("/")}
+                    onRedirectToSearch={() => setLocation("/search")}
+                    setSearchFilters={setSearchFilters}
+                    setCurrentView={setCurrentView}
+                    refreshVehicles={refreshVehicles}
+                  />
+                </Route>
+                <Route path="/create-listing">
+                  <Hero setCurrentView={setCurrentView} />
+                </Route>
+                <Route path="/conseils">
+                  <Conseils />
+                </Route>
+                <Route path="/about">
+                  <AboutPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/terms">
+                  <TermsPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/privacy">
+                  <PrivacyPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/legal">
+                  <LegalPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/help">
+                  <HelpPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/safety">
+                  <SafetyTipsPage
+                    onBack={() => setLocation("/")}
+                    setCurrentView={setCurrentView}
+                  />
+                </Route>
+                <Route path="/search">
+                  <SearchPage />
+                </Route>
+                <Route path="/search-old">
+                  <SearchResults
+                    searchQuery={searchQuery}
+                    onBack={() => setLocation("/")}
+                    onVehicleSelect={setSelectedVehicle}
+                  />
+                </Route>
+                <Route path="/messages">
+                  <Messages />
+                </Route>
+                <Route path="/professional-verification">
+                  <ProfessionalVerification />
+                </Route>
+                <Route path="/admin">
+                  {() => {
+                    const isAdminAuth =
+                      localStorage.getItem("admin_authenticated") === "true";
+                    return isAdminAuth ? (
+                      <AdminDashboardClean onBack={() => setLocation("/")} />
+                    ) : (
+                      <AdminLogin
+                        onLoginSuccess={() => setLocation("/admin")}
+                        onBack={() => setLocation("/")}
+                      />
+                    );
+                  }}
+                </Route>
+                <Route path="/success">
+                  <StripeSuccess />
+                </Route>
+                <Route path="/success-boost">
+                  <StripeSuccessBoost />
+                </Route>
+                <Route path="/admin-login">
                   <AdminLogin
                     onLoginSuccess={() => setLocation("/admin")}
                     onBack={() => setLocation("/")}
                   />
-                );
-              }}
-            </Route>
-            <Route path="/success">
-              <StripeSuccess />
-            </Route>
-            <Route path="/success-boost">
-              <StripeSuccessBoost />
-            </Route>
-            <Route path="/admin-login">
-              <AdminLogin
-                onLoginSuccess={() => setLocation("/admin")}
-                onBack={() => setLocation("/")}
-              />
-            </Route>
-            <Route path="/admin-test">
-              <AdminTest />
-            </Route>
-            <Route path="/create-pro-account">
-              <div className="p-8 text-center">
-                <h2 className="text-2xl font-bold">Compte Professionnel</h2>
-                <p className="mt-4">Page en développement...</p>
-              </div>
-            </Route>
-            <Route path="/auth/callback">
-              <AuthCallback />
-            </Route>
-            <Route path="/subscription-purchase">
-              <SubscriptionPurchase onBack={() => setLocation("/dashboard")} />
-            </Route>
-            <Route path="/">
-              <Hero setCurrentView={setCurrentView} />
-            </Route>
-          </Switch>
-          {!isAdminRoute && <Footer setCurrentView={setCurrentView} />}
+                </Route>
+                <Route path="/admin-test">
+                  <AdminTest />
+                </Route>
+                <Route path="/create-pro-account">
+                  <div className="p-8 text-center">
+                    <h2 className="text-2xl font-bold">Compte Professionnel</h2>
+                    <p className="mt-4">Page en développement...</p>
+                  </div>
+                </Route>
+                <Route path="/auth/callback">
+                  <AuthCallback />
+                </Route>
+                <Route path="/subscription-purchase">
+                  <SubscriptionPurchase onBack={() => setLocation("/dashboard")} />
+                </Route>
+                <Route path="/">
+                  <Hero setCurrentView={setCurrentView} />
+                </Route>
+              </Switch>
+              {!isAdminRoute && <Footer setCurrentView={setCurrentView} />}
+            </>
+          )}
         </>
       )}
 
