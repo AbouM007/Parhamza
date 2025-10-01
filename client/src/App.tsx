@@ -29,6 +29,7 @@ import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
 import ProShop from "./pages/ProShop";
 import SubscriptionPurchase from "./pages/SubscriptionPurchase";
+import SubscriptionSettings from "./pages/SubscriptionSettings";
 import { AuthCallback } from "./pages/AuthCallback";
 import { ProfessionalVerification } from "./pages/ProfessionalVerification";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
@@ -305,6 +306,9 @@ function AppContent() {
                 </Route>
                 <Route path="/subscription-purchase">
                   <SubscriptionPurchase onBack={() => setLocation("/dashboard")} />
+                </Route>
+                <Route path="/subscription-settings">
+                  <SubscriptionSettings />
                 </Route>
                 <Route path="/">
                   <Hero setCurrentView={setCurrentView} />

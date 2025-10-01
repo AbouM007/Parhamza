@@ -180,6 +180,19 @@ export function UserMenu({
                   <Shield className="mr-2 h-4 w-4" />
                   <span>Ma Boutique Pro</span>
                 </button>
+                
+                {/* Gérer mon abonnement - visible pour les professionnels */}
+                <button
+                  onClick={() => {
+                    onNavigate?.("/subscription-settings");
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  data-testid="link-subscription-settings"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Gérer mon abonnement</span>
+                </button>
               </>
             )}
 
