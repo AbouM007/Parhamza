@@ -356,11 +356,43 @@ router.get("/status/:userId", async (req, res) => {
 
 /* -------------------------------- CURRENT --------------------------------- */
 
-// GET /api/subscriptions/current - Récupérer l'abonnement actuel (user_id)
+// GET /api/subscriptions/current - Récupérer l'abonnement actuel avec détails complets du plan
 router.get("/current", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const sub = await getActiveSubscriptionByUserId(userId);
+    
+    // Récupérer l'abonnement actif avec tous les détails du plan
+    const { data: sub, error } = await supabaseServer
+      .from("subscriptions")
+      .select(`
+        id,
+        status,
+        plan_id,
+        cancel_at_period_end,
+        current_period_end,
+        stripe_subscription_id,
+        subscription_plans (
+          id,
+          name,
+          price_monthly,
+          price_yearly,
+          max_listings,
+          features,
+          stripe_product_id,
+          stripe_price_id
+        )
+      `)
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("❌ Erreur récupération current subscription:", error);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
+
     res.setHeader("Cache-Control", "no-store");
     return res.json(sub || null);
   } catch (error) {
