@@ -117,7 +117,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
     cancelAtPeriodEnd: boolean;
   }>({
     queryKey: [`/api/subscriptions/status/${profile?.id}`],
-    enabled: !!profile?.id && profile?.type === "professional",
+    enabled: !!profile?.id,
     staleTime: 30000,
   });
 
