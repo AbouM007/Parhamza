@@ -1,4 +1,3 @@
-import { OnboardingRouter } from "@/components/onboarding/OnboardingRouter";
 import React, { useState, useCallback } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -45,19 +44,10 @@ function AppContent() {
   const [showCreateListingModal, setShowCreateListingModal] = useState(false);
   const [dashboardTab, setDashboardTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
-  const [onboardingStep, setOnboardingStep] = useState<
-    "choice" | "personal" | "professional"
-  >("choice");
   const [refreshVehicles, setRefreshVehicles] = useState(false);
 
   // Hook pour gérer la création d'annonce avec vérification quota
   const handleCreateListingGuard = useCreateListingGuard();
-
-  // États pour onboarding intelligent
-  const [professionalAccount, setProfessionalAccount] = useState(null);
-  const [subscription, setSubscription] = useState(null);
-  const [onboardingLoading, setOnboardingLoading] = useState(false);
 
   const { selectedVehicle, setSelectedVehicle, setSearchFilters } = useApp();
   const { user, profile, loading } = useAuth();
@@ -88,119 +78,6 @@ function AppContent() {
     [setLocation],
   );
 
-  // Charger données professionnelles
-  const loadProfessionalData = useCallback(
-    async (userId: string) => {
-      if (onboardingLoading) return; // Éviter les appels multiples
-
-      setOnboardingLoading(true);
-      try {
-        // Charger compte professionnel si c'est un pro
-        if (profile?.type === "professional") {
-          const proResponse = await fetch(
-            `/api/professional-accounts/status/${userId}`,
-          );
-          if (proResponse.ok) {
-            const proData = await proResponse.json();
-            setProfessionalAccount(proData);
-
-            // Charger abonnement si compte pro existe
-            if (proData?.id) {
-              const subResponse = await fetch(
-                `/api/subscriptions/by-professional/${proData.id}`,
-              );
-              if (subResponse.ok) {
-                const subData = await subResponse.json();
-                setSubscription(subData);
-              }
-            }
-          } else if (proResponse.status === 404) {
-            // Pas de compte pro trouvé
-            setProfessionalAccount(null);
-            setSubscription(null);
-          }
-        }
-      } catch (error) {
-        console.error("❌ Erreur chargement données professionnelles:", error);
-      } finally {
-        setOnboardingLoading(false);
-      }
-    },
-    [profile?.type, onboardingLoading],
-  );
-
-  // Nouvelle logique d'onboarding intelligente (V1 - ancien système)
-  React.useEffect(() => {
-    // ✅ Skip si V2 est activé
-    if (ONBOARDING_V2_ENABLED) return;
-    
-    if (isLoading || onboardingLoading) return;
-
-    // Pas d'utilisateur connecté = rien à faire
-    if (!isAuthenticated || !profile) {
-      setShowProfileSetup(false);
-      return;
-    }
-
-    // Charger les données professionnelles si nécessaire
-    if (
-      profile.type === "professional" &&
-      !professionalAccount &&
-      !onboardingLoading
-    ) {
-      loadProfessionalData(profile.id);
-      return;
-    }
-
-    // Détecter l'état d'onboarding avec toutes les données
-    const minimalUser = {
-      id: profile.id,
-      type: profile.type as
-        | "pending"
-        | "individual"
-        | "professional"
-        | "admin"
-        | null,
-      //profile_completed: profile.profileCompleted,
-      profileCompleted: profile.profileCompleted,
-    };
-    const onboardingState = detectOnboardingState(
-      minimalUser,
-      professionalAccount,
-      subscription,
-    );
-    console.log(`🔧 [Onboarding] User: ${profile.type}`, {
-      step: onboardingState.step,
-      shouldShowPopup: onboardingState.shouldShowPopup,
-      canPost: onboardingState.canPost,
-      reason: onboardingState.reason,
-    });
-
-    // Appliquer les décisions
-    setShowProfileSetup(onboardingState.shouldShowPopup);
-
-    // Gérer l'étape d'onboarding pour les pros
-    if (profile.type === "professional" && onboardingState.shouldShowPopup) {
-      if (onboardingState.step === "profile") {
-        setOnboardingStep("choice");
-      } else if (onboardingState.step === "docs") {
-        setOnboardingStep("professional"); // Redirige vers docs
-      }
-    } else if (
-      profile.type === "individual" &&
-      onboardingState.shouldShowPopup
-    ) {
-      setOnboardingStep("choice");
-    }
-  }, [
-    isAuthenticated,
-    profile,
-    loading,
-    onboardingLoading,
-    professionalAccount,
-    subscription,
-    loadProfessionalData,
-  ]);
 
   // Auto-sélection véhicule via URL (admin)
   React.useEffect(() => {
@@ -430,49 +307,12 @@ function AppContent() {
       )}
 
       <UnifiedAuthModal />
-      {/* ✅ NOUVEAU SYSTÈME V2 */}
+      
+      {/* ✅ Système d'onboarding V2 */}
       <OnboardingEntry 
         user={profile} 
         isEnabled={true}
       />
-
-      {/* Modal choix type de compte */}
-      <ProfileSetupModal
-        isOpen={showProfileSetup && onboardingStep === "choice"}
-        onClose={() => {
-          setShowProfileSetup(false);
-          setOnboardingStep("choice");
-        }}
-        onPersonalAccount={() => {
-          setOnboardingStep("personal");
-        }}
-        onProfessionalAccount={() => {
-          setOnboardingStep("professional");
-        }}
-      />
-
-      {/* Formulaire compte personnel */}
-      <PersonalProfileForm
-        isOpen={showProfileSetup && onboardingStep === "personal"}
-        onClose={() => {
-          setOnboardingStep("choice");
-        }}
-        onComplete={async () => {
-          setShowProfileSetup(false);
-          setOnboardingStep("choice");
-          // Note: refreshDbUser n'est plus disponible dans AuthContext
-        }}
-        initialData={{ name: profile?.name, email: profile?.email }}
-      />
-
-      {/* Onboarding pro multi-étapes */}
-      {showProfileSetup && onboardingStep === "professional" && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
-            <OnboardingRouter setShowProfileSetup={setShowProfileSetup} />
-          </div>
-        </div>
-      )}
 
       {/* Modal création annonce */}
       <DraggableModal
