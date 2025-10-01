@@ -23,9 +23,12 @@ const apiRequest = async (url: string, options: RequestInit = {}) => {
 
   console.log('📡 apiRequest - Appel à:', url);
 
+  // Exclure headers de options pour éviter qu'il écrase nos headers
+  const { headers: _, ...optionsWithoutHeaders } = options;
+
   const response = await fetch(url, {
-    headers,
-    ...options,
+    ...optionsWithoutHeaders,
+    headers,  // Headers en dernier pour ne pas être écrasés
   });
 
   console.log('📥 apiRequest - Réponse:', response.status, response.statusText);
