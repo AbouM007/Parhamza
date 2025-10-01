@@ -15,8 +15,6 @@ interface OnboardingEntryProps {
   isEnabled?: boolean;
 }
 
-//const ONBOARDING_V2_FEATURE_FLAG = true;
-
 type OnboardingCheck =
   | {
       launch: false;
@@ -88,7 +86,7 @@ export const OnboardingEntry = ({
   initialData,
   isEnabled,
 }: OnboardingEntryProps) => {
-  const featureEnabled = isEnabled ?? ONBOARDING_V2_FEATURE_FLAG;
+  const featureEnabled = isEnabled ?? true;
 
   // ✅ CORRECT : Utiliser user et session de useAuth
   const { user: authUser, session } = useAuth();

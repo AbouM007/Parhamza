@@ -9,20 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { AddressInput } from "@/components/AddressInput";
-
-/*
-const personalProfileSchema = z.object({
-  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-  phone: z
-    .string()
-    .regex(/^[0-9]{10}$/, "Le téléphone doit contenir exactement 10 chiffres"),
-  city: z.string().min(2, "La ville est requise").optional(),
-  postalCode: z
-    .string()
-    .min(5, "Le code postal doit contenir 5 chiffres")
-    .optional(),
-});
-*/
+import { useLocation } from "wouter";
+import { useState } from "react";
 
 const personalProfileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -30,7 +18,7 @@ const personalProfileSchema = z.object({
     .string()
     .regex(/^[0-9]{10}$/, "Le téléphone doit contenir exactement 10 chiffres"),
   postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
-  city: z.string().min(2, "La ville est requise").optional(),  
+  city: z.string().min(2, "La ville est requise").optional(),
 });
 
 type PersonalProfileData = z.infer<typeof personalProfileSchema>;
@@ -42,6 +30,8 @@ export const PersonalStep = ({
 }: StepProps) => {
   const { toast } = useToast();
   const { refreshProfile } = useAuth();
+  const [, setLocation] = useLocation();
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const form = useForm<PersonalProfileData>({
     resolver: zodResolver(personalProfileSchema),
@@ -88,15 +78,13 @@ export const PersonalStep = ({
         throw new Error(errorData.message || "Erreur lors de la mise à jour");
       }
 
-      toast({
-        title: "Profil finalisé !",
-        description: "Votre compte personnel est maintenant prêt à l'emploi.",
-      });
-
-      // Rafraîchir le profil
+      setShowSuccessDialog(true);
       await refreshProfile();
+      
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 2500);
 
-      // Passer à l'étape suivante avec les données
       onComplete({ personal: data });
     } catch (error) {
       console.error("Erreur:", error);
@@ -162,7 +150,7 @@ export const PersonalStep = ({
             label="Adresse de résidence"
             required
           />
-           </div>
+        </div>
 
         <StepButtons
           onBack={onBack}
