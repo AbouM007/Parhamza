@@ -496,6 +496,13 @@ router.post("/modify", requireAuth, async (req, res) => {
       if (updatedStripeSubscription) {
         updatePayload.current_period_start = tsToIso(updatedStripeSubscription.current_period_start);
         updatePayload.current_period_end = tsToIso(updatedStripeSubscription.current_period_end);
+        console.log('🐞 DEBUG - Dates récupérées depuis Stripe:');
+        console.log('  current_period_start (timestamp):', updatedStripeSubscription.current_period_start);
+        console.log('  current_period_end (timestamp):', updatedStripeSubscription.current_period_end);
+        console.log('  current_period_start (ISO):', updatePayload.current_period_start);
+        console.log('  current_period_end (ISO):', updatePayload.current_period_end);
+      } else {
+        console.log('⚠️ WARN - updatedStripeSubscription est null, pas de dates à sauvegarder');
       }
 
       await supabaseServer
