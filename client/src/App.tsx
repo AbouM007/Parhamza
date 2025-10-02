@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { Router, Route, Switch, useLocation } from "wouter";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { VehicleListings } from "@/components/VehicleListings";
@@ -352,11 +353,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppProvider>
-          <Router>
-            <Route component={AppContent} />
-          </Router>
-        </AppProvider>
+        <FavoritesProvider>
+          <AppProvider>
+            <Router>
+              <Route component={AppContent} />
+            </Router>
+          </AppProvider>
+        </FavoritesProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
