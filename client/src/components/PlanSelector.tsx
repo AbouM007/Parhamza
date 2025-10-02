@@ -273,9 +273,10 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
                 Vous avez déjà un abonnement actif
               </h4>
               <p className="text-orange-800 text-sm">
-                Vous êtes actuellement abonné au plan <strong>{currentSubscription.planName}</strong>. 
-                Pour souscrire à un nouveau plan, veuillez d'abord annuler votre abonnement actuel 
-                depuis l'onglet "Abonnement" de votre tableau de bord.
+                Vous êtes actuellement abonné au plan{" "}
+                <strong>{currentSubscription.planName}</strong>. Vous pouvez
+                gérer ou modifier votre plan à tout moment depuis l’onglet
+                "Historique Achats" de votre tableau de bord.
               </p>
             </div>
           </div>
@@ -292,8 +293,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
       >
         {displayedPlans?.map((plan) => {
           const isCurrentPlan =
-            currentSubscription &&
-            currentSubscription.planId === plan.id;
+            currentSubscription && currentSubscription.planId === plan.id;
 
           // Déterminer les couleurs du plan
           const planKey = plan.name.toLowerCase().includes("starter")
@@ -334,7 +334,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <span className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center space-x-1">
                     <Star className="h-4 w-4" />
-                    <span>Plus populaire</span>
+                    <span>Populaire</span>
                   </span>
                 </div>
               )}
