@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+} from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Vehicle } from "@/types";
 
@@ -13,7 +20,9 @@ interface FavoritesContextType {
   refreshFavorites: (forceReload?: boolean) => Promise<void>;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
+const FavoritesContext = createContext<FavoritesContextType | undefined>(
+  undefined,
+);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<Vehicle[]>([]);
@@ -40,7 +49,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         setFavorites(data);
         setFavoriteIds(new Set(data.map((fav: Vehicle) => fav.id)));
         lastLoadTimeRef.current = now;
-        console.log("✅ Favoris rechargés:", data.length);
+        //console.log("✅ Favoris rechargés:", data.length);
       }
     } catch (error) {
       console.error("Erreur chargement favoris:", error);
@@ -65,7 +74,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        console.log("✅ Favori ajouté avec succès");
+        //console.log("✅ Favori ajouté avec succès");
         await loadFavorites(true);
         return true;
       } else {
@@ -112,7 +121,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        console.log("✅ Favori supprimé avec succès");
+        //console.log("✅ Favori supprimé avec succès");
         return true;
       } else {
         const result = await response.json();
@@ -147,7 +156,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     } else {
       if (favorites.length > 0) setFavorites([]);
       if (favoriteIds.size > 0) setFavoriteIds(new Set());
-      console.log("🔄 Réinitialisation favoris - aucun utilisateur");
+      //console.log("🔄 Réinitialisation favoris - aucun utilisateur");
     }
   }, [profile?.id]);
 
@@ -172,7 +181,9 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 export function useFavoritesContext() {
   const context = useContext(FavoritesContext);
   if (context === undefined) {
-    throw new Error("useFavoritesContext must be used within a FavoritesProvider");
+    throw new Error(
+      "useFavoritesContext must be used within a FavoritesProvider",
+    );
   }
   return context;
 }
