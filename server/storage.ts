@@ -1174,7 +1174,7 @@ export class SupabaseStorage implements IStorage {
           users!annonces_user_id_fkey (
             id, email, name, phone, whatsapp, type, company_name, 
             avatar, address, city, postal_code, website, 
-            siret, bio, avatar, specialties, verified, email_verified, 
+            bio, specialties, verified, email_verified, 
             contact_preferences, created_at, last_login_at
           )
         `,
@@ -1208,7 +1208,6 @@ export class SupabaseStorage implements IStorage {
               city: annonce.users.city,
               postalCode: annonce.users.postal_code,
               website: annonce.users.website,
-              siret: annonce.users.siret,
               bio: annonce.users.bio,
               avatar: annonce.users.avatar,
               specialties: annonce.users.specialties || [],
