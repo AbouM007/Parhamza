@@ -14,6 +14,12 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 - **Feature**: Added purchase restriction when user has active subscription - displays alert message and disables all plan purchase buttons until current subscription is cancelled
 - **Bug Fix**: Fixed blank page after Stripe payment - payment success routes (`/success`, `/success-boost`, `/auth/callback`) now bypass profile completion check, allowing proper redirect after professional account creation
 - **Bug Fix**: Corrected Stripe cancel URL from non-existent `/plans` to `/dashboard`
+- **Bug Fix**: Fixed damaged vehicle details display - `damageDetails` now properly retrieved and displayed in vehicle detail view
+  - Added `damageDetails` transformation in `getVehicle()` method (previously missing)
+  - Created dedicated damage information section in VehicleDetail.tsx with French translations
+  - Section displays: damage types (list), mechanical state (with wrench icon), and severity (color-coded badges: yellow=léger, orange=moyen, red=grave)
+  - Fixed condition check to accept both "accidente" (frontend value) and "damaged" (backend cast) for compatibility
+  - Complete round-trip persistence now working: form → database → detail view
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
