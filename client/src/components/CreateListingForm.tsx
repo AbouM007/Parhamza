@@ -803,11 +803,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             typeof photo === "string" ? photo : URL.createObjectURL(photo),
           ) || [],
         features: formData.specificDetails.equipment || [],
-        damageDetails: formData.condition === "accidente" ? {
-          damageTypes: formData.specificDetails.damageTypes || [],
-          mechanicalState: formData.specificDetails.mechanicalState || "",
-          severity: formData.specificDetails.damageSeverity || "",
-        } : null,
+        damageDetails:
+          formData.condition === "damaged"
+            ? {
+                damageTypes: formData.specificDetails.damageTypes || [],
+                mechanicalState: formData.specificDetails.mechanicalState || "",
+                severity: formData.specificDetails.damageSeverity || "",
+              }
+            : null,
         // Informations de contact spécifiques à l'annonce
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
@@ -2797,7 +2800,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   {/* Types de dommages (sélection multiple) */}
                   <div className="mb-4">
                     <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Types de dommages * <span className="text-gray-500 font-normal">(sélection multiple)</span>
+                      Types de dommages *{" "}
+                      <span className="text-gray-500 font-normal">
+                        (sélection multiple)
+                      </span>
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {[
@@ -2817,17 +2823,26 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         >
                           <input
                             type="checkbox"
-                            checked={formData.specificDetails.damageTypes?.includes(damage.value) || false}
+                            checked={
+                              formData.specificDetails.damageTypes?.includes(
+                                damage.value,
+                              ) || false
+                            }
                             onChange={(e) => {
-                              const current = formData.specificDetails.damageTypes || [];
+                              const current =
+                                formData.specificDetails.damageTypes || [];
                               const updated = e.target.checked
                                 ? [...current, damage.value]
-                                : current.filter((d: string) => d !== damage.value);
+                                : current.filter(
+                                    (d: string) => d !== damage.value,
+                                  );
                               updateSpecificDetails("damageTypes", updated);
                             }}
                             className="h-4 w-4 text-primary-bolt-500 focus:ring-primary-bolt-500 border-gray-300 rounded"
                           />
-                          <span className="text-sm text-gray-700">{damage.label}</span>
+                          <span className="text-sm text-gray-700">
+                            {damage.label}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -2840,7 +2855,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     </label>
                     <select
                       value={formData.specificDetails.mechanicalState || ""}
-                      onChange={(e) => updateSpecificDetails("mechanicalState", e.target.value)}
+                      onChange={(e) =>
+                        updateSpecificDetails("mechanicalState", e.target.value)
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                     >
                       <option value="">Sélectionnez l'état mécanique</option>
@@ -2859,12 +2876,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     </label>
                     <select
                       value={formData.specificDetails.damageSeverity || ""}
-                      onChange={(e) => updateSpecificDetails("damageSeverity", e.target.value)}
+                      onChange={(e) =>
+                        updateSpecificDetails("damageSeverity", e.target.value)
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                     >
                       <option value="">Sélectionnez la gravité</option>
                       <option value="leger">Légers (réparation simple)</option>
-                      <option value="moyen">Moyens (réparation importante)</option>
+                      <option value="moyen">
+                        Moyens (réparation importante)
+                      </option>
                       <option value="grave">Graves (VEI / épave)</option>
                     </select>
                   </div>
@@ -2899,10 +2920,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
-                  {formData.condition === "damaged" 
+                  {formData.condition === "damaged"
                     ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
-                    : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."
-                  }
+                    : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."}
                 </p>
                 <div className="flex flex-col text-right">
                   <span

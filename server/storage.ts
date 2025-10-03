@@ -18,16 +18,27 @@ import {
 
 console.log("🔗 Connexion Supabase initialisée avec le client officiel");
 
-// Helper pour parser du JSON de manière sécurisée
-function safeJsonParse(value: string | null): any {
+function safeJsonParse(value: any): any {
   if (!value) return [];
+
   try {
-    return JSON.parse(value);
+    // ✅ Si c'est déjà un objet (cas Supabase JSON natif)
+    if (typeof value === "object") {
+      return value;
+    }
+
+    // ✅ Si c'est une string, on parse
+    if (typeof value === "string") {
+      return JSON.parse(value);
+    }
+
+    // Cas non prévu → fallback
+    return [];
   } catch {
-    // Si ce n'est pas du JSON valide, retourner un tableau vide pour éviter les crashes
     return [];
   }
 }
+
 
 export interface IStorage {
   // Users
@@ -396,8 +407,14 @@ export class SupabaseStorage implements IStorage {
       boostedUntil: annonce.boosted_until
         ? new Date(annonce.boosted_until)
         : undefined,
-      damageDetails: annonce.damage_details || undefined,
+      damageDetails: annonce.damage_details ?? undefined,
     };
+
+    console.log('🔍 DEBUG getVehicle:', {
+      id: transformedData.id,
+      condition: transformedData.condition,
+      damageDetails: transformedData.damageDetails
+    });
 
     return transformedData;
   }
@@ -543,7 +560,7 @@ export class SupabaseStorage implements IStorage {
           deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
-          damageDetails: vehicle.damage_details || undefined,
+          damageDetails: vehicle.damage_details ?? undefined,
         }));
         return transformedData as Vehicle[];
       } else {
@@ -641,7 +658,7 @@ export class SupabaseStorage implements IStorage {
       deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
       deletionReason: vehicle.deletion_reason,
       deletionComment: vehicle.deletion_comment,
-      damageDetails: vehicle.damage_details || undefined,
+      damageDetails: vehicle.damage_details ?? undefined,
     }));
 
     return transformedData as Vehicle[];
@@ -731,7 +748,7 @@ export class SupabaseStorage implements IStorage {
       deletedAt: annonce.deleted_at ? new Date(annonce.deleted_at) : undefined,
       deletionReason: annonce.deletion_reason,
       deletionComment: annonce.deletion_comment,
-      damageDetails: annonce.damage_details || undefined,
+      damageDetails: annonce.damage_details ?? undefined,
     }));
 
     return transformedData as Vehicle[];
@@ -861,7 +878,7 @@ export class SupabaseStorage implements IStorage {
       favorites: data.favorites,
       status: data.status,
       isActive: data.is_active !== false,
-      damageDetails: data.damage_details || undefined,
+      damageDetails: data.damage_details ?? undefined,
     };
 
     return transformedData as Vehicle;

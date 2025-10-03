@@ -470,7 +470,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
               </div>
 
               {/* Damage Details - Only for damaged vehicles */}
-              {(vehicle.condition === "accidente" || vehicle.condition === "damaged") && vehicle.damageDetails && (
+              {(vehicle.condition === "damaged") && vehicle.damageDetails && (
                 <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <AlertTriangle className="h-5 w-5 text-orange-600" />
@@ -710,7 +710,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
                 {/* Lien vers boutique professionnelle */}
                 {vehicle.user?.type === "professional" &&
-                  vehicle.user?.company_name && (
+                  vehicle.user?.companyName && (
                     <button
                       onClick={() => {
                         // Naviguer vers la boutique professionnelle
