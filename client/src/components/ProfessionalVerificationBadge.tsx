@@ -2,17 +2,17 @@ import React from 'react';
 import { useProfessionalAccountStatus } from '@/hooks/useProfessionalAccountStatus';
 
 interface ProfessionalVerificationBadgeProps {
-  dbUser: any;
+  profile: any;
 }
 
-export const ProfessionalVerificationBadge: React.FC<ProfessionalVerificationBadgeProps> = ({ dbUser }) => {
-  const { data: statusData, isLoading, error } = useProfessionalAccountStatus(dbUser?.id, dbUser?.type);
+export const ProfessionalVerificationBadge: React.FC<ProfessionalVerificationBadgeProps> = ({ profile }) => {
+  const { data: statusData, isLoading, error } = useProfessionalAccountStatus(profile?.id, profile?.type);
   
   // Déterminer le statut de vérification
   const verificationStatus = error ? 'not_started' : statusData?.verification_status;
 
   // Ne pas afficher de badge pour les particuliers
-  if (dbUser?.type !== 'professional') {
+  if (profile?.type !== 'professional') {
     return null;
   }
 

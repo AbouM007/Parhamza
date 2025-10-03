@@ -1,10 +1,11 @@
 import React from "react";
 import { Edit, Upload } from "lucide-react";
-import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
+import { User } from "@/types";
 
 interface ProfileSectionProps {
-  dbUser: any;
+  //profile: any;
+  profile: User | null;
   user: any;
   professionalAccount?: any;
   profileForm: any;
@@ -56,7 +57,7 @@ const handleAvatarUpload = async (
 };
 
 export default function ProfileSection({
-  dbUser,
+  profile,
   user,
   professionalAccount,
   profileForm,
@@ -114,8 +115,8 @@ export default function ProfileSection({
           {/* Avatar avec upload pour utilisateurs individuels */}
           <div className="relative">
             <div className="w-24 h-24 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-              {dbUser?.avatar ? (
-                <img src={dbUser.avatar} />
+              {profile?.avatar ? (
+                <img src={profile.avatar} />
               ) : (
                 <span>Initiales</span>
               )}
@@ -141,7 +142,7 @@ export default function ProfileSection({
                   className="inline-flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg text-sm"
                 >
                   <Upload className="h-4 w-4" />
-                  <span>{dbUser?.avatar ? "Changer" : "Ajouter"} photo</span>
+                  <span>{profile?.avatar ? "Changer" : "Ajouter"} photo</span>
                 </label>
                 <p className="text-xs text-gray-600 mt-1">
                   JPG, PNG, WEBP (2MB max)
@@ -151,22 +152,22 @@ export default function ProfileSection({
           </div>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
-              {dbUser?.type === "professional" && professionalAccount?.company_name
+              {profile?.type === "professional" && professionalAccount?.company_name
                 ? professionalAccount.company_name
-                : dbUser?.name || user?.email?.split("@")[0] || "Utilisateur"}
+                : profile?.name || user?.email?.split("@")[0] || "Utilisateur"}
             </h2>
-            {dbUser?.type === "professional" && professionalAccount?.company_name && dbUser?.name && (
+            {profile?.type === "professional" && professionalAccount?.company_name && profile?.name && (
               <p className="text-gray-600 text-base mt-1">
-                Contact: {dbUser.name}
+                Contact: {profile.name}
               </p>
             )}
             <p className="text-gray-600 text-lg mt-1">
-              {user?.email || dbUser?.email}
+              {user?.email || profile?.email}
             </p>
             <div className="flex items-center space-x-3 mt-4">
-              <ProfessionalVerificationBadge dbUser={dbUser} />
+              <ProfessionalVerificationBadge profile={profile} />
               <span className="px-4 py-2 bg-primary-bolt-100 text-primary-bolt-500 rounded-full text-sm font-semibold border border-primary-bolt-200">
-                {dbUser?.type === "professional"
+                {profile?.type === "professional"
                   ? "🏢 Professionnel"
                   : "👤 Particulier"}
               </span>
@@ -184,7 +185,7 @@ export default function ProfileSection({
               value={
                 editingProfile
                   ? profileForm.name
-                  : dbUser?.name || user?.email?.split("@")[0] || ""
+                  : profile?.name || user?.email?.split("@")[0] || ""
               }
               onChange={(e) =>
                 setProfileForm({ ...profileForm, name: e.target.value })
@@ -200,7 +201,7 @@ export default function ProfileSection({
             </label>
             <input
               type="email"
-              value={user?.email || dbUser?.email || ""}
+              value={user?.email || profile?.email || ""}
               disabled={true}
               className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
               title="L'email ne peut pas être modifié"
@@ -213,7 +214,7 @@ export default function ProfileSection({
             </label>
             <input
               type="tel"
-              value={(dbUser as any)?.phone || ""}
+              value={(profile as any)?.phone || ""}
               disabled={true} // ✅ Toujours désactivé
               className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
               title="Le téléphone ne peut pas être modifié après la création du compte"
@@ -233,7 +234,7 @@ export default function ProfileSection({
               value={
                 editingProfile
                   ? profileForm.whatsapp
-                  : (dbUser as any)?.whatsapp || ""
+                  : (profile as any)?.whatsapp || ""
               }
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, ""); // ✅ Supprimer tout sauf les chiffres
@@ -285,7 +286,7 @@ export default function ProfileSection({
               value={
                 editingProfile
                   ? profileForm.postalCode
-                  : (dbUser as any)?.postal_code || ""
+                  : (profile as any)?.postal_code || ""
               }
               onChange={(e) =>
                 setProfileForm({ ...profileForm, postalCode: e.target.value })
@@ -302,7 +303,7 @@ export default function ProfileSection({
             <input
               type="text"
               value={
-                editingProfile ? profileForm.city : (dbUser as any)?.city || ""
+                editingProfile ? profileForm.city : (profile as any)?.city || ""
               }
               onChange={(e) =>
                 setProfileForm({ ...profileForm, city: e.target.value })
@@ -320,16 +321,16 @@ export default function ProfileSection({
                 setEditingProfile(false);
                 // Réinitialiser le formulaire avec les données originales
                 setProfileForm({
-                  name: dbUser?.name || "",
-                  phone: (dbUser as any)?.phone || "",
-                  whatsapp: (dbUser as any)?.whatsapp || "",
-                  postalCode: (dbUser as any)?.postal_code || "",
-                  city: (dbUser as any)?.city || "",
-                  companyName: (dbUser as any)?.company_name || "",
-                  address: (dbUser as any)?.address || "",
-                  website: (dbUser as any)?.website || "",
-                  description: (dbUser as any)?.bio || "",
-                  companyLogo: (dbUser as any)?.company_logo || "",
+                  name: profile?.name || "",
+                  phone: (profile as any)?.phone || "",
+                  whatsapp: (profile as any)?.whatsapp || "",
+                  postalCode: (profile as any)?.postal_code || "",
+                  city: (profile as any)?.city || "",
+                  companyName: (profile as any)?.company_name || "",
+                  address: (profile as any)?.address || "",
+                  website: (profile as any)?.website || "",
+                  description: (profile as any)?.bio || "",
+                  companyLogo: (profile as any)?.company_logo || "",
                 });
               }}
               className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"

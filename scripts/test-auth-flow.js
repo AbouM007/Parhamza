@@ -19,7 +19,7 @@ async function testAuthFlow() {
     
     // 2. Lister les utilisateurs dans notre table
     console.log('\n2️⃣ UTILISATEURS DANS TABLE CUSTOM:');
-    const { data: dbUsers, error: dbError } = await supabase
+    const { data: profiles, error: dbError } = await supabase
       .from('users')
       .select('id, email, name, type');
       
@@ -28,7 +28,7 @@ async function testAuthFlow() {
       return;
     }
     
-    dbUsers?.forEach(user => {
+    profiles?.forEach(user => {
       console.log(`   • ${user.email} (${user.name}) - Type: ${user.type}`);
     });
     

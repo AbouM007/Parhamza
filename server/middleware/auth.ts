@@ -45,14 +45,14 @@ export const authenticateUser = async (
     }
 
     // ✅ Vérifier si l'utilisateur existe dans notre DB
-    let { data: dbUser, error: userError } = await supabaseServer
+    let { data: profile, error: userError } = await supabaseServer
       .from("users")
       .select("id, email, type, name, profile_completed")
       .eq("id", user.id)
       .single();
 
     // 🚀 Auto-création si l'utilisateur n'existe pas encore
-    if (userError || !dbUser) {
+    if (userError || !profile) {
       console.log(
         `⚡ [AUTH] Nouvel utilisateur auto-créé depuis Supabase Auth: ${user.email}`,
       );
@@ -77,14 +77,14 @@ export const authenticateUser = async (
           .json({ error: "Impossible de créer l'utilisateur" });
       }
 
-      dbUser = newUser;
+      profile = newUser;
     }
 
     // ✅ Attacher l'utilisateur à la requête
     req.user = {
-      id: dbUser.id,
-      email: dbUser.email,
-      type: dbUser.type,
+      id: profile.id,
+      email: profile.email,
+      type: profile.type,
     };
 
     next();

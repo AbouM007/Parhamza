@@ -52,7 +52,7 @@ import { useSavedSearches } from "@/hooks/useSavedSearches";
 import { Vehicle } from "@/types";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 import { DeletionQuestionnaireModal } from "../DeletionQuestionnaireModal";
-import ProfessionalVerificationBanner from "../ProfessionalVerificationBanner";
+import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanner";
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { BoostModal } from "../BoostModal";
@@ -234,10 +234,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [shopSuccess, setShopSuccess] = useState(false);
 
   // Hook pour récupérer les informations du compte professionnel
-  const { data: professionalAccount } = useQuery({
+  const { data: professionalAccount } = useQuery<any>({
     queryKey: [`/api/professional-accounts/status/${profile?.id}`],
     enabled: !!profile?.id && profile?.type === "professional",
-    staleTime: 30000, // 30 secondes
+    staleTime: 30000,
   });
 
   // Hook pour récupérer les informations d'abonnement
@@ -548,13 +548,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setSavingProfile(true);
     try {
       // Mapper les champs du formulaire vers les noms de colonnes de la base
-      const apiData = {
+      const { description, companyLogo, ...apiData } = {
         ...profileForm,
-        bio: profileForm.description, // Mapper description vers bio
-        company_logo: profileForm.companyLogo, // Mapper companyLogo vers company_logo
+        bio: profileForm.description,
+        company_logo: profileForm.companyLogo,
       };
-      delete apiData.description; // Supprimer le champ description
-      delete apiData.companyLogo; // Supprimer le champ companyLogo
 
       const response = await fetch(`/api/profile/update/${profile.id}`, {
         method: "PUT",
@@ -569,8 +567,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         setProfileSuccess(true);
         // Masquer le message de succès après 3 secondes
         setTimeout(() => setProfileSuccess(false), 3000);
-        // Rafraîchir les données utilisateur pour refléter les changements
-        // Note: refreshDbUser n'est plus disponible dans AuthContext
         // Important: Mettre à jour le formulaire local avec les nouvelles données
         setProfileForm({
           name: updatedData.name || "",
@@ -1389,6 +1385,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     profileSuccess={profileSuccess}
     savingProfile={savingProfile}
     handleSaveProfile={handleSaveProfile}
+    refreshProfile={async () => {}} // ✅ Retourne Promise<void>
     // refreshDbUser={refreshDbUser} // Non disponible dans AuthContext
   />;
 
@@ -2774,7 +2771,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className={activeTab === "messages" ? "w-full" : "flex-1"}>
             {activeTab === "overview" && (
               <OverviewSection
-                dbUser={profile}
+                profile={profile}
                 user={user}
                 professionalAccount={professionalAccount}
                 subscriptionInfo={subscriptionInfo}
@@ -2793,7 +2790,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 deletedVehicles={deletedVehicles}
                 listingFilter={listingFilter}
                 setListingFilter={setListingFilter}
-                profile={profile}
+                //profile={profile}
                 quotaInfo={quotaInfo}
                 brandIcon={brandIcon}
                 boostStatuses={boostStatuses}
@@ -2828,7 +2825,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {activeTab === "profile" && (
               <ProfileSection
-                dbUser={profile}
+                profile={profile}
                 user={user}
                 professionalAccount={professionalAccount}
                 profileForm={profileForm}
@@ -2838,6 +2835,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 profileSuccess={profileSuccess}
                 savingProfile={savingProfile}
                 handleSaveProfile={handleSaveProfile}
+                refreshProfile={async () => {}}
                 // refreshDbUser={refreshDbUser} // Non disponible dans AuthContext
               />
             )}
@@ -2912,7 +2910,7 @@ const getEmptyStateTitle = (filter: string) => {
     case "pending":
       return "Aucune annonce en attente";
     case "rejected":
-      clear;
+      console.clear;
 
       return "Aucune annonce rejetée";
     default:

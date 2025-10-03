@@ -16,7 +16,7 @@ import {
 import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanner";
 
 interface OverviewSectionProps {
-  dbUser: any;
+  profile: any;
   user: any;
   professionalAccount: any;
   subscriptionInfo: any;
@@ -29,7 +29,7 @@ interface OverviewSectionProps {
 }
 
 export default function OverviewSection({
-  dbUser,
+  profile,
   user,
   professionalAccount,
   subscriptionInfo,
@@ -41,7 +41,7 @@ export default function OverviewSection({
   formatPrice,
 }: OverviewSectionProps) {
   return (
-    
+
   <div className="space-y-8">
     {/* Welcome Section */}
     <div className="relative bg-gradient-to-r from-primary-bolt-500 via-primary-bolt-600 to-primary-bolt-700 rounded-2xl p-8 text-white overflow-hidden">
@@ -53,10 +53,10 @@ export default function OverviewSection({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-4xl font-bold mb-2">
-              Bonjour, {dbUser?.name || user?.email?.split("@")[0]} ! 👋
+              Bonjour, {profile?.name || user?.email?.split("@")[0]} ! 👋
             </h1>
             {/* Affichage du nom de société pour les comptes professionnels */}
-            {dbUser?.type === "professional" &&
+            {profile?.type === "professional" &&
               professionalAccount?.company_name && (
                 <div className="flex items-center space-x-2 mb-2">
                   <Building2 className="h-5 w-5 text-cyan-200" />
@@ -72,7 +72,7 @@ export default function OverviewSection({
                 </div>
               )}
             <p className="text-cyan-100 text-lg font-medium">
-              {dbUser?.type === "professional"
+              {profile?.type === "professional"
                 ? "Gérez votre activité professionnelle depuis votre tableau de bord"
                 : "Bienvenue sur votre espace personnel"}
             </p>
@@ -95,8 +95,8 @@ export default function OverviewSection({
               </span>
             </div>
             <p className="text-lg font-bold text-white">
-              {dbUser?.created_at
-                ? new Date(dbUser.created_at).toLocaleDateString("fr-FR", {
+              {profile?.created_at
+                ? new Date(profile.created_at).toLocaleDateString("fr-FR", {
                     month: "long",
                     year: "numeric",
                   })
@@ -113,14 +113,14 @@ export default function OverviewSection({
               </span>
             </div>
             <p className="text-lg font-bold text-white">
-              {dbUser?.type === "professional"
+              {profile?.type === "professional"
                 ? "Professionnel"
                 : "Particulier"}
             </p>
           </div>
 
           {/* Statut de vérification (pour les pros) */}
-          {dbUser?.type === "professional" && (
+          {profile?.type === "professional" && (
             <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
               <div className="flex items-center space-x-2 mb-1">
                 <Building2 className="h-4 w-4 text-cyan-200" />
@@ -141,7 +141,7 @@ export default function OverviewSection({
           )}
 
           {/* Abonnement (pour les pros) */}
-          {dbUser?.type === "professional" && (
+          {profile?.type === "professional" && (
             <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-3">
               <div className="flex items-center space-x-2 mb-1">
                 <Crown className="h-4 w-4 text-cyan-200" />
@@ -171,7 +171,7 @@ export default function OverviewSection({
           )}
 
           {/* Compte vérifié (pour les particuliers) */}
-          {dbUser?.type !== "professional" && (dbUser as any)?.verified && (
+          {profile?.type !== "professional" && (profile as any)?.verified && (
             <div className="bg-green-500/20 backdrop-blur-sm rounded-lg px-4 py-3 border border-green-400/30">
               <div className="flex items-center space-x-2 mb-1">
                 <Star className="h-4 w-4 text-green-200" />
@@ -368,7 +368,7 @@ export default function OverviewSection({
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Car className="h-10 w-10 text-gray-400" />
             </div>
-            
+
           </div>
         )}
       </div>

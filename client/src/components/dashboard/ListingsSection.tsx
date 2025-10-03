@@ -14,6 +14,7 @@ import {
   Trash2,
   Car,
 } from "lucide-react";
+import { User } from "@/types";
 
 interface ListingsSectionProps {
   userVehicles: any[];
@@ -24,7 +25,8 @@ interface ListingsSectionProps {
   setListingFilter: React.Dispatch<
     React.SetStateAction<"all" | "approved" | "draft" | "pending" | "rejected">
   >;
-  dbUser: any;
+  //dbUser: any;
+  profile: User | null;
   quotaInfo: any;
   brandIcon: string;
   boostStatuses: Record<string, any>;
@@ -44,7 +46,8 @@ export default function ListingsSection({
   deletedVehicles,
   listingFilter,
   setListingFilter,
-  dbUser,
+  //dbUser,
+  profile,
   quotaInfo,
   brandIcon,
   boostStatuses,
