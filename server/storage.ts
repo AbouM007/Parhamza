@@ -85,6 +85,84 @@ function validateDamageDetails(value: any): any {
   };
 }
 
+// Helper function to transform user data from Supabase
+function transformUserFromSupabase(userRow: any): User | undefined {
+  if (!userRow) return undefined;
+  
+  return {
+    id: userRow.id,
+    email: userRow.email,
+    name: userRow.name,
+    phone: userRow.phone,
+    whatsapp: userRow.whatsapp,
+    type: userRow.type,
+    companyName: userRow.company_name,
+    address: userRow.address,
+    city: userRow.city,
+    postalCode: userRow.postal_code,
+    website: userRow.website,
+    siret: userRow.siret,
+    bio: userRow.bio,
+    avatar: userRow.avatar,
+    specialties: safeJsonParse(userRow.specialties),
+    verified: userRow.verified,
+    emailVerified: userRow.email_verified,
+    contactPreferences: safeJsonParse(userRow.contact_preferences),
+    createdAt: new Date(userRow.created_at),
+    lastLoginAt: userRow.last_login_at
+      ? new Date(userRow.last_login_at)
+      : undefined,
+  };
+}
+
+// Helper function to transform vehicle data from Supabase
+function transformVehicleFromSupabase(vehicleRow: any): Vehicle {
+  return {
+    id: vehicleRow.id.toString(),
+    userId: vehicleRow.user_id,
+    user: transformUserFromSupabase(vehicleRow.users),
+    title: vehicleRow.title,
+    description: vehicleRow.description,
+    category: vehicleRow.category,
+    brand: vehicleRow.brand,
+    model: vehicleRow.model,
+    year: vehicleRow.year,
+    mileage: vehicleRow.mileage,
+    fuelType: vehicleRow.fuel_type,
+    condition: vehicleRow.condition,
+    price: vehicleRow.price,
+    location: vehicleRow.location,
+    images: vehicleRow.images || [],
+    features: vehicleRow.features || [],
+    listingType: vehicleRow.listing_type || "sale",
+    contactPhone: vehicleRow.contact_phone || null,
+    contactEmail: vehicleRow.contact_email || null,
+    contactWhatsapp: vehicleRow.contact_whatsapp || null,
+    hidePhone: vehicleRow.hide_phone || false,
+    isPremium: vehicleRow.is_premium,
+    premiumType: vehicleRow.premium_type,
+    premiumExpiresAt: vehicleRow.premium_expires_at
+      ? new Date(vehicleRow.premium_expires_at)
+      : undefined,
+    isBoosted: vehicleRow.is_boosted || false,
+    boostedUntil: vehicleRow.boosted_until
+      ? new Date(vehicleRow.boosted_until)
+      : undefined,
+    createdAt: new Date(vehicleRow.created_at),
+    updatedAt: new Date(vehicleRow.updated_at),
+    views: vehicleRow.views,
+    favorites: vehicleRow.favorites,
+    status: vehicleRow.status,
+    isActive: vehicleRow.is_active !== false,
+    deletedAt: vehicleRow.deleted_at ? new Date(vehicleRow.deleted_at) : null,
+    deletionReason: vehicleRow.deletion_reason,
+    deletionComment: vehicleRow.deletion_comment,
+    damageDetails: validateDamageDetails(vehicleRow.damage_details),
+    priorityScore: vehicleRow.priority_score ?? 0,
+    professionalAccountId: vehicleRow.professional_account_id ?? null,
+  };
+}
+
 export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
