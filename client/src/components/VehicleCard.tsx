@@ -194,9 +194,8 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
 
           {vehicle.fuelType && (
             <div className="flex items-center space-x-2">
-              <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
-                {vehicle.fuelType}
-              </span>
+              <Fuel className="h-4 w-4 text-gray-400" />
+              <span>{translateFuelType(vehicle.fuelType)}</span>
             </div>
           )}
         </div>
