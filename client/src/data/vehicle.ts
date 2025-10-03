@@ -306,7 +306,7 @@ export const VEHICLE_CONDITIONS = [
     description: "Véhicule en état de circulation",
   },
   {
-    value: "accidente",
+    value: "damaged",
     label: "Accidenté",
     description: "Véhicule accidenté, vendu en l'état",
   },

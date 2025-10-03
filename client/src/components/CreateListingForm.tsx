@@ -61,7 +61,7 @@ interface FormData {
   condition?:
     | "neuf"
     | "occasion"
-    | "accidente"
+    | "damaged"
     | "tres_bon_etat"
     | "bon_etat"
     | "etat_moyen"
@@ -2565,7 +2565,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   icon: "🚗",
                 },
                 {
-                  id: "accidente",
+                  id: "damaged",
                   name: "Accidenté",
                   description: "Véhicule accidenté ou endommagé",
                   bgColor: "bg-orange-50",
@@ -2786,7 +2786,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             </div>
 
             {/* Champs spécifiques pour véhicules accidentés */}
-            {formData.condition === "accidente" && (
+            {formData.condition === "damaged" && (
               <div className="space-y-6 mb-6">
                 <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -2890,7 +2890,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     : "border-gray-300"
                 }`}
                 placeholder={
-                  formData.condition === "accidente"
+                  formData.condition === "damaged"
                     ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
                     : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
                 }
@@ -2899,7 +2899,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
-                  {formData.condition === "accidente" 
+                  {formData.condition === "damaged" 
                     ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
                     : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."
                   }
