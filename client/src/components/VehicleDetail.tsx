@@ -555,6 +555,29 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                 </div>
               )}
 
+              {/* Message for damaged vehicles without damage details */}
+              {vehicle.condition === "damaged" && !vehicle.damageDetails && (
+                <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-base font-semibold text-orange-900 mb-2">
+                        Informations de dommages non disponibles
+                      </h3>
+                      <p className="text-sm text-orange-800 mb-2">
+                        Cette annonce a été créée avant l'ajout de la fonction de détail des dommages. 
+                        Les informations détaillées sur l'état du véhicule ne sont pas encore disponibles.
+                      </p>
+                      {currentUser?.id === vehicle.userId && (
+                        <p className="text-sm text-orange-700 font-medium">
+                          💡 Vous pouvez modifier votre annonce pour ajouter ces informations (types de dommages, état mécanique, gravité).
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Features */}
               {vehicle.features && vehicle.features.length > 0 && (
                 <div>
