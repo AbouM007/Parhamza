@@ -396,6 +396,7 @@ export class SupabaseStorage implements IStorage {
       boostedUntil: annonce.boosted_until
         ? new Date(annonce.boosted_until)
         : undefined,
+      damageDetails: annonce.damage_details || undefined,
     };
 
     return transformedData;
