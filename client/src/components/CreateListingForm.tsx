@@ -805,7 +805,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
         contactWhatsapp: formData.contact.whatsapp || "",
-        hidePhone: !formData.contact.showPhone, 
+        hidePhone: !formData.contact.showPhone,
         //hidePhone: formData.contact.hidePhone || false,
         isPremium: false,
         status: "draft", // Initialement en brouillon
@@ -2874,6 +2874,22 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   <p className="text-gray-400 mb-4">
                     Supprimez une photo pour en ajouter d'autres
                   </p>
+                </div>
+              )}
+
+              {/* Message incitatif si aucune photo */}
+              {formData.photos.length === 0 && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start space-x-3">
+                  <Camera className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-blue-800 font-medium">
+                      Les annonces avec photos attirent 5× plus de visiteurs
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Ajoutez au moins une image pour maximiser vos chances de
+                      vente rapide.
+                    </p>
+                  </div>
                 </div>
               )}
 

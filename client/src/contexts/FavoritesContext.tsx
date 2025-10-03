@@ -154,9 +154,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       }, 100);
       return () => clearTimeout(timer);
     } else {
-      if (favorites.length > 0) setFavorites([]);
-      if (favoriteIds.size > 0) setFavoriteIds(new Set());
-      //console.log("🔄 Réinitialisation favoris - aucun utilisateur");
+      setFavorites([]);
+      setFavoriteIds(new Set());
     }
   }, [profile?.id]);
 
