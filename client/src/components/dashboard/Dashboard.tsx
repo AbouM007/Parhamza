@@ -1556,7 +1556,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               >
                                 {cancelSubscriptionMutation.isPending
                                   ? "Annulation..."
-                                  : "Annuler l'abonnement"}
+                                  : "Désactiver"}
                               </button>
                             ) : /* Abonnement expiré (peut être renouvelé) */
                             purchase.status === "cancelled" ? (
