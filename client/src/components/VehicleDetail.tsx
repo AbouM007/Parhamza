@@ -30,6 +30,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PassionateLabel } from "./PassionateLabel";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 
+// Helper to check if subcategory is a service
+const isServiceCategory = (category: string): boolean => {
+  const serviceSubcategories = ["reparation", "remorquage", "entretien", "autre-service"];
+  return serviceSubcategories.includes(category);
+};
+
 interface VehicleDetailProps {
   vehicle: Vehicle;
   onBack: () => void;
@@ -132,7 +138,8 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
       score += priceScore;
 
       // Same type gets bonus points (30 points)
-      if (v.type === currentVehicle.type) {
+      // Note: 'type' property doesn't exist on Vehicle, using listingType instead
+      if ((v as any).listingType === (currentVehicle as any).listingType) {
         score += 30;
       }
 
@@ -417,7 +424,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                 </div>
 
                 {/* Année - seulement pour les véhicules, pas pour les services */}
-                {vehicle.category !== "services" && (
+                {!isServiceCategory(vehicle.category) && (
                   <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
                     <Calendar className="h-5 w-5 text-gray-400" />
                     <div>
@@ -428,7 +435,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                 )}
 
                 {/* Kilométrage - seulement pour les véhicules avec kilométrage */}
-                {vehicle.category !== "services" &&
+                {!isServiceCategory(vehicle.category) &&
                   vehicle.mileage &&
                   vehicle.mileage > 0 && (
                     <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
@@ -443,7 +450,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   )}
 
                 {/* Marque - seulement pour les véhicules, pas pour les services */}
-                {vehicle.category !== "services" &&
+                {!isServiceCategory(vehicle.category) &&
                   vehicle.brand !== "Non spécifié" && (
                     <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
                       <img
@@ -607,7 +614,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     vehicle.user?.id && (
                       <button
                         onClick={() =>
-                          window.open(`/pro/${vehicle.user.id}`, "_blank")
+                          window.open(`/pro/${vehicle.user?.id}`, "_blank")
                         }
                         className="text-[#0CBFDE] hover:text-[#0CBFDE]/80 font-medium text-sm flex items-center space-x-1 mt-1 transition-colors"
                       >

@@ -47,17 +47,27 @@ export interface Vehicle {
   };
   isPremium: boolean;
   premiumType?: "daily" | "weekly" | "monthly";
-  premiumExpiresAt?: Date;
+  premiumExpiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   views: number;
   favorites: number;
   status: "draft" | "pending" | "approved" | "rejected";
   rejectionReason?: string;
-  isActive?: boolean; // Pour l'activation/désactivation des annonces
+  isActive?: boolean;
   // Champs boost (viennent de la vue annonces_with_boost)
   isBoosted?: boolean;
   boostedUntil?: Date;
+  // Informations de contact spécifiques à l'annonce
+  listingType?: "sale" | "search";
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  contactWhatsapp?: string | null;
+  hidePhone?: boolean;
+  // Informations de suppression
+  deletedAt?: Date | null;
+  deletionReason?: string | null;
+  deletionComment?: string | null;
 }
 
 export interface Message {
