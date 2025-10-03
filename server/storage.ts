@@ -542,6 +542,7 @@ export class SupabaseStorage implements IStorage {
           deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
+          damageDetails: vehicle.damage_details || undefined,
         }));
         return transformedData as Vehicle[];
       } else {
@@ -639,6 +640,7 @@ export class SupabaseStorage implements IStorage {
       deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
       deletionReason: vehicle.deletion_reason,
       deletionComment: vehicle.deletion_comment,
+      damageDetails: vehicle.damage_details || undefined,
     }));
 
     return transformedData as Vehicle[];
@@ -728,6 +730,7 @@ export class SupabaseStorage implements IStorage {
       deletedAt: annonce.deleted_at ? new Date(annonce.deleted_at) : undefined,
       deletionReason: annonce.deletion_reason,
       deletionComment: annonce.deletion_comment,
+      damageDetails: annonce.damage_details || undefined,
     }));
 
     return transformedData as Vehicle[];
@@ -787,6 +790,10 @@ export class SupabaseStorage implements IStorage {
       annonceData.premium_type = cleanVehicle.premiumType;
     if (cleanVehicle.premiumExpiresAt)
       annonceData.premium_expires_at = cleanVehicle.premiumExpiresAt;
+
+    // Informations sur les dommages (véhicules accidentés)
+    if ((cleanVehicle as any).damageDetails)
+      annonceData.damage_details = (cleanVehicle as any).damageDetails;
 
     // DOUBLE VÉRIFICATION : supprimer tout id qui pourrait s'être glissé
     delete annonceData.id;
@@ -853,6 +860,7 @@ export class SupabaseStorage implements IStorage {
       favorites: data.favorites,
       status: data.status,
       isActive: data.is_active !== false,
+      damageDetails: data.damage_details || undefined,
     };
 
     return transformedData as Vehicle;
