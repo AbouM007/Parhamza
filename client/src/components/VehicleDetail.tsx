@@ -259,21 +259,11 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
     // Afficher une confirmation
     alert("Message envoyé avec succès !");
   };
-
-  // Extract damage details safely with defaults
-  console.log('🔍 DEBUG VehicleDetail - vehicle.id:', vehicle.id);
-  console.log('🔍 DEBUG VehicleDetail - vehicle.condition:', vehicle.condition);
-  console.log('🔍 DEBUG VehicleDetail - vehicle.damageDetails:', JSON.stringify(vehicle.damageDetails, null, 2));
   
   const damageTypes = vehicle.damageDetails?.damageTypes ?? [];
   const mechanicalState = vehicle.damageDetails?.mechanicalState;
   const severity = vehicle.damageDetails?.severity;
   const hasDamageInfo = damageTypes.length > 0 || mechanicalState || severity;
-  
-  console.log('🔍 DEBUG - damageTypes:', damageTypes);
-  console.log('🔍 DEBUG - mechanicalState:', mechanicalState);
-  console.log('🔍 DEBUG - severity:', severity);
-  console.log('🔍 DEBUG - hasDamageInfo:', hasDamageInfo);
 
   return (
     <div className="min-h-screen bg-gray-50 relative z-0">

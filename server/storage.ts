@@ -41,32 +41,49 @@ function safeJsonParse(value: any): any {
 
 // Helper function to validate damageDetails object
 function validateDamageDetails(value: any): any {
-  if (!value || typeof value !== "object") {
+  if (value == null) {
     return undefined;
   }
 
-  // Check if the object has at least one valid property (support both camelCase and snake_case)
-  const damageTypes = value.damageTypes || value.damage_types;
-  const mechanicalState = value.mechanicalState || value.mechanical_state;
-  const severity = value.severity;
-  
-  const hasValidData = 
-    (damageTypes && Array.isArray(damageTypes) && damageTypes.length > 0) ||
-    mechanicalState ||
-    severity;
+  let parsedValue = value;
 
-  // Normalize to camelCase if needed
-  if (hasValidData) {
-    return {
-      damageTypes: damageTypes || undefined,
-      mechanicalState: mechanicalState || undefined,
-      severity: severity || undefined,
-    };
+  if (typeof parsedValue === "string") {
+    try {
+      parsedValue = JSON.parse(parsedValue);
+    } catch {
+      return undefined;
+    }
   }
 
-  return undefined;
-}
+  if (!parsedValue || typeof parsedValue !== "object") {
+    return undefined;
+  }
 
+  const damageTypesRaw =
+    (parsedValue as any).damageTypes || (parsedValue as any).damage_types;
+  const damageTypes = Array.isArray(damageTypesRaw)
+    ? damageTypesRaw
+    : typeof damageTypesRaw === "string"
+      ? [damageTypesRaw]
+      : undefined;
+  const mechanicalState =
+    (parsedValue as any).mechanicalState ||
+    (parsedValue as any).mechanical_state;
+  const severity = (parsedValue as any).severity;
+
+  const hasValidData =
+    (damageTypes && damageTypes.length > 0) || mechanicalState || severity;
+
+  if (!hasValidData) {
+    return undefined;
+  }
+
+  return {
+    damageTypes,
+    mechanicalState,
+    severity,
+  };
+}
 
 export interface IStorage {
   // Users
@@ -222,20 +239,20 @@ export class SupabaseStorage implements IStorage {
 
     if (error) {
       // 📱 Détecter erreur contrainte téléphone (unique)
-      if (error.code === '23505' && error.message.includes('phone')) {
-        throw new Error('PHONE_ALREADY_EXISTS');
+      if (error.code === "23505" && error.message.includes("phone")) {
+        throw new Error("PHONE_ALREADY_EXISTS");
       }
-      
+
       // 📧 Détecter erreur contrainte email (unique)
-      if (error.code === '23505' && error.message.includes('email')) {
-        throw new Error('EMAIL_ALREADY_EXISTS');
+      if (error.code === "23505" && error.message.includes("email")) {
+        throw new Error("EMAIL_ALREADY_EXISTS");
       }
-      
+
       // 🚨 Autres erreurs de contrainte
-      if (error.code === '23505') {
-        throw new Error('DUPLICATE_VALUE');
+      if (error.code === "23505") {
+        throw new Error("DUPLICATE_VALUE");
       }
-      
+
       // ⚠️ Erreur générique
       throw new Error(`Error creating user: ${error.message}`);
     }
@@ -455,7 +472,7 @@ export class SupabaseStorage implements IStorage {
       // Utiliser la vue annonces_with_boost pour inclure les informations de boost
       // FILTRE IMPORTANT: Seulement les annonces approuvées, actives et non supprimées pour le site public
       let { data, error } = await supabaseServer
-        .from("annonces_with_boost")
+        .from("annonces")
         .select(
           `
           *,
@@ -1750,28 +1767,26 @@ export class SupabaseStorage implements IStorage {
       console.log(`🔍 Vérification quota pour l'utilisateur: ${userId}`);
 
       // 🚀 OPTIMISATION: Récupérer type utilisateur ET compter les annonces en parallèle
-      const [userResult, activeListingsCount, subscriptionResult] = await Promise.all([
-        // 1. Type utilisateur
-        supabaseServer
-          .from("users")
-          .select("type")
-          .eq("id", userId)
-          .single(),
-        
-        // 2. Compter les annonces actives en parallèle (optimisé)
-        // ✅ CORRECTION: Inclure aussi les "draft" dans le quota pour éviter contournement
-        supabaseServer
-          .from("annonces")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .eq("is_active", true)
-          .is("deleted_at", null)
-          .in("status", ["approved", "pending", "draft"]),
-        
-        // 3. Abonnement actif avec plan
-        supabaseServer
-          .from("subscriptions")
-          .select(`
+      const [userResult, activeListingsCount, subscriptionResult] =
+        await Promise.all([
+          // 1. Type utilisateur
+          supabaseServer.from("users").select("type").eq("id", userId).single(),
+
+          // 2. Compter les annonces actives en parallèle (optimisé)
+          // ✅ CORRECTION: Inclure aussi les "draft" dans le quota pour éviter contournement
+          supabaseServer
+            .from("annonces")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .eq("is_active", true)
+            .is("deleted_at", null)
+            .in("status", ["approved", "pending", "draft"]),
+
+          // 3. Abonnement actif avec plan
+          supabaseServer
+            .from("subscriptions")
+            .select(
+              `
             id,
             plan_id,
             status,
@@ -1779,13 +1794,14 @@ export class SupabaseStorage implements IStorage {
               max_listings,
               name
             )
-          `)
-          .eq("user_id", userId)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle()
-      ]);
+          `,
+            )
+            .eq("user_id", userId)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
 
       // Traiter les résultats
       const { data: user, error: userError } = userResult;
@@ -1802,9 +1818,11 @@ export class SupabaseStorage implements IStorage {
         };
       }
 
-      const activeListings = annoncesError ? 0 : (activeListingsCount.count || 0);
+      const activeListings = annoncesError ? 0 : activeListingsCount.count || 0;
       const userType = user?.type;
-      console.log(`👤 Type utilisateur: ${userType}, Annonces actives: ${activeListings}`);
+      console.log(
+        `👤 Type utilisateur: ${userType}, Annonces actives: ${activeListings}`,
+      );
 
       if (subError) {
         console.error("❌ Erreur récupération abonnement:", subError);
@@ -1816,20 +1834,21 @@ export class SupabaseStorage implements IStorage {
           message: "Erreur vérification abonnement. Quota gratuit appliqué.",
         };
       }
-      
+
       if (!subscription) {
         // 👉 Pas d'abonnement actif
-        
+
         // 🚨 RÈGLE BUSINESS : Les pros DOIVENT avoir un abonnement
         if (userType === "professional") {
           return {
             canCreate: false,
             activeListings,
             maxListings: 0,
-            message: "Abonnement requis pour les comptes professionnels. Veuillez souscrire à un plan pour publier des annonces.",
+            message:
+              "Abonnement requis pour les comptes professionnels. Veuillez souscrire à un plan pour publier des annonces.",
           };
         }
-        
+
         // ✅ Particuliers : quota gratuit (5 annonces)
         const maxListings = 5;
         return {
@@ -2206,7 +2225,7 @@ export class SupabaseStorage implements IStorage {
 
       // 🔧 CORRECTION CRITIQUE: Récupérer TOUS les abonnements (particuliers ET professionnels)
       let subscriptionPurchases = [];
-      
+
       // 1. Abonnements directs par user_id (pour les particuliers individual)
       const { data: directSubscriptions } = await supabaseServer
         .from("subscriptions")
@@ -2233,9 +2252,12 @@ export class SupabaseStorage implements IStorage {
       }
 
       // Combiner tous les abonnements et dédupliquer par ID
-      const allSubscriptions = [...(directSubscriptions || []), ...proSubscriptions];
+      const allSubscriptions = [
+        ...(directSubscriptions || []),
+        ...proSubscriptions,
+      ];
       const uniqueSubscriptionIds = new Set();
-      subscriptionPurchases = allSubscriptions.filter(sub => {
+      subscriptionPurchases = allSubscriptions.filter((sub) => {
         if (uniqueSubscriptionIds.has(sub.id)) {
           return false;
         }
