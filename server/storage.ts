@@ -39,6 +39,21 @@ function safeJsonParse(value: any): any {
   }
 }
 
+// Helper function to validate damageDetails object
+function validateDamageDetails(value: any): any {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  // Check if the object has at least one valid property
+  const hasValidData = 
+    (value.damageTypes && Array.isArray(value.damageTypes) && value.damageTypes.length > 0) ||
+    value.mechanicalState ||
+    value.severity;
+
+  return hasValidData ? value : undefined;
+}
+
 
 export interface IStorage {
   // Users
@@ -407,7 +422,7 @@ export class SupabaseStorage implements IStorage {
       boostedUntil: annonce.boosted_until
         ? new Date(annonce.boosted_until)
         : undefined,
-      damageDetails: annonce.damage_details ?? undefined,
+      damageDetails: validateDamageDetails(annonce.damage_details),
     };
 
     return transformedData;
@@ -551,7 +566,7 @@ export class SupabaseStorage implements IStorage {
           deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
-          damageDetails: vehicle.damage_details ?? undefined,
+          damageDetails: validateDamageDetails(vehicle.damage_details),
         }));
         return transformedData as Vehicle[];
       } else {
@@ -649,7 +664,7 @@ export class SupabaseStorage implements IStorage {
       deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
       deletionReason: vehicle.deletion_reason,
       deletionComment: vehicle.deletion_comment,
-      damageDetails: vehicle.damage_details ?? undefined,
+      damageDetails: validateDamageDetails(vehicle.damage_details),
     }));
 
     return transformedData as Vehicle[];
@@ -739,7 +754,7 @@ export class SupabaseStorage implements IStorage {
       deletedAt: annonce.deleted_at ? new Date(annonce.deleted_at) : undefined,
       deletionReason: annonce.deletion_reason,
       deletionComment: annonce.deletion_comment,
-      damageDetails: annonce.damage_details ?? undefined,
+      damageDetails: validateDamageDetails(annonce.damage_details),
     }));
 
     return transformedData as Vehicle[];
@@ -869,7 +884,7 @@ export class SupabaseStorage implements IStorage {
       favorites: data.favorites,
       status: data.status,
       isActive: data.is_active !== false,
-      damageDetails: data.damage_details ?? undefined,
+      damageDetails: validateDamageDetails(data.damage_details),
     };
 
     return transformedData as Vehicle;
