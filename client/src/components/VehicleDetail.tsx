@@ -32,7 +32,12 @@ import brandIcon from "@/assets/Brand_1752260033631.png";
 
 // Helper to check if subcategory is a service
 const isServiceCategory = (category: string): boolean => {
-  const serviceSubcategories = ["reparation", "remorquage", "entretien", "autre-service"];
+  const serviceSubcategories = [
+    "reparation",
+    "remorquage",
+    "entretien",
+    "autre-service",
+  ];
   return serviceSubcategories.includes(category);
 };
 
@@ -51,11 +56,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
   onNavigate,
   setCurrentView,
 }) => {
-  const {
-    currentUser,
-    openAuthModal,
-    vehicles,
-  } = useApp();
+  const { currentUser, openAuthModal, vehicles } = useApp();
   const { user: authUser } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showContactInfo, setShowContactInfo] = useState(false);
@@ -238,7 +239,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
     if (authUser || currentUser) {
       setShowContactModal(true);
     } else {
-      openAuthModal('login');
+      openAuthModal("login");
     }
   };
 
@@ -258,6 +259,12 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
     // Afficher une confirmation
     alert("Message envoyé avec succès !");
   };
+
+  // Extract damage details safely with defaults
+  const damageTypes = vehicle.damageDetails?.damageTypes ?? [];
+  const mechanicalState = vehicle.damageDetails?.mechanicalState;
+  const severity = vehicle.damageDetails?.severity;
+  const hasDamageInfo = damageTypes.length > 0 || mechanicalState || severity;
 
   return (
     <div className="min-h-screen bg-gray-50 relative z-0">
@@ -476,8 +483,8 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                 </p>
               </div>
 
-              {/* Damage Details - Only for damaged vehicles */}
-              {(vehicle.condition === "damaged") && vehicle.damageDetails && (
+              {/* Damage Details - Always shown for damaged vehicles */}
+              {vehicle.condition === "damaged" && (
                 <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <AlertTriangle className="h-5 w-5 text-orange-600" />
@@ -486,95 +493,87 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Types de dommages */}
-                    {vehicle.damageDetails.damageTypes && vehicle.damageDetails.damageTypes.length > 0 && (
-                      <div>
-                        <div className="text-sm font-medium text-orange-700 mb-2">
-                          Types de dommages
+                  {hasDamageInfo ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Types de dommages */}
+                      {damageTypes.length > 0 && (
+                        <div>
+                          <div className="text-sm font-medium text-orange-700 mb-2">
+                            Types de dommages
+                          </div>
+                          <div className="space-y-1">
+                            {damageTypes.map((type, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center space-x-2 text-sm text-orange-900"
+                              >
+                                <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
+                                <span className="capitalize">
+                                  {type.replace(/_/g, " ")}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          {vehicle.damageDetails.damageTypes.map((type, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center space-x-2 text-sm text-orange-900"
+                      )}
+
+                      {/* État mécanique */}
+                      {mechanicalState && (
+                        <div>
+                          <div className="text-sm font-medium text-orange-700 mb-2 flex items-center space-x-1">
+                            <Wrench className="h-4 w-4" />
+                            <span>État mécanique</span>
+                          </div>
+                          <div className="text-sm text-orange-900 capitalize">
+                            {mechanicalState === "fonctionne"
+                              ? "Fonctionne"
+                              : mechanicalState === "reparer"
+                                ? "À réparer"
+                                : mechanicalState === "hs"
+                                  ? "Hors service"
+                                  : mechanicalState}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gravité */}
+                      {severity && (
+                        <div>
+                          <div className="text-sm font-medium text-orange-700 mb-2">
+                            Gravité
+                          </div>
+                          <div className="text-sm text-orange-900">
+                            <span
+                              className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
+                                severity === "leger"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : severity === "moyen"
+                                    ? "bg-orange-100 text-orange-800"
+                                    : "bg-red-100 text-red-800"
+                              }`}
                             >
-                              <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
-                              <span className="capitalize">{type.replace(/_/g, ' ')}</span>
-                            </div>
-                          ))}
+                              {severity === "leger"
+                                ? "Léger"
+                                : severity === "moyen"
+                                  ? "Moyen"
+                                  : "Grave"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
-
-                    {/* État mécanique */}
-                    {vehicle.damageDetails.mechanicalState && (
-                      <div>
-                        <div className="text-sm font-medium text-orange-700 mb-2 flex items-center space-x-1">
-                          <Wrench className="h-4 w-4" />
-                          <span>État mécanique</span>
-                        </div>
-                        <div className="text-sm text-orange-900 capitalize">
-                          {vehicle.damageDetails.mechanicalState === "fonctionne"
-                            ? "Fonctionne"
-                            : vehicle.damageDetails.mechanicalState === "reparer"
-                            ? "À réparer"
-                            : vehicle.damageDetails.mechanicalState === "hs"
-                            ? "Hors service"
-                            : vehicle.damageDetails.mechanicalState}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Gravité */}
-                    {vehicle.damageDetails.severity && (
-                      <div>
-                        <div className="text-sm font-medium text-orange-700 mb-2">
-                          Gravité
-                        </div>
-                        <div className="text-sm text-orange-900">
-                          <span
-                            className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
-                              vehicle.damageDetails.severity === "leger"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : vehicle.damageDetails.severity === "moyen"
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {vehicle.damageDetails.severity === "leger"
-                              ? "Léger"
-                              : vehicle.damageDetails.severity === "moyen"
-                              ? "Moyen"
-                              : "Grave"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Message for damaged vehicles without damage details */}
-              {vehicle.condition === "damaged" && !vehicle.damageDetails && (
-                <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-base font-semibold text-orange-900 mb-2">
-                        Informations de dommages non disponibles
-                      </h3>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
                       <p className="text-sm text-orange-800 mb-2">
-                        Cette annonce a été créée avant l'ajout de la fonction de détail des dommages. 
-                        Les informations détaillées sur l'état du véhicule ne sont pas encore disponibles.
+                        Aucune information détaillée disponible pour le moment.
                       </p>
                       {currentUser?.id === vehicle.userId && (
                         <p className="text-sm text-orange-700 font-medium">
-                          💡 Vous pouvez modifier votre annonce pour ajouter ces informations (types de dommages, état mécanique, gravité).
+                          💡 Vous pouvez modifier votre annonce pour ajouter ces informations.
                         </p>
                       )}
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 

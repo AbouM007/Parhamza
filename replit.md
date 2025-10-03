@@ -35,6 +35,12 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
     - Solution: Added route that fetches vehicle from API and sets selectedVehicle state
     - Impact: Users can now share and access vehicle listings via direct URLs (e.g., `/vehicle/127`)
     - Complete fix validated: All damaged vehicle listings now display damage details correctly (screenshots + API + browser logs confirmed)
+  - **UX Enhancement**: Refactored damage details section to always display for damaged vehicles
+    - Problem: Section was hidden when damageDetails was empty/undefined, creating inconsistent UI
+    - Solution: Extracted safe variables (damageTypes, mechanicalState, severity) with optional chaining before JSX render
+    - Added `hasDamageInfo` flag to conditionally display either detailed info or "Aucune information disponible" message
+    - Impact: Orange damage section now ALWAYS visible for all damaged vehicles, with graceful fallback when data is missing
+    - Code quality: Eliminated TypeScript errors, removed redundant fallback block, improved maintainability
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
