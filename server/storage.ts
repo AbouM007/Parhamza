@@ -45,13 +45,26 @@ function validateDamageDetails(value: any): any {
     return undefined;
   }
 
-  // Check if the object has at least one valid property
+  // Check if the object has at least one valid property (support both camelCase and snake_case)
+  const damageTypes = value.damageTypes || value.damage_types;
+  const mechanicalState = value.mechanicalState || value.mechanical_state;
+  const severity = value.severity;
+  
   const hasValidData = 
-    (value.damageTypes && Array.isArray(value.damageTypes) && value.damageTypes.length > 0) ||
-    value.mechanicalState ||
-    value.severity;
+    (damageTypes && Array.isArray(damageTypes) && damageTypes.length > 0) ||
+    mechanicalState ||
+    severity;
 
-  return hasValidData ? value : undefined;
+  // Normalize to camelCase if needed
+  if (hasValidData) {
+    return {
+      damageTypes: damageTypes || undefined,
+      mechanicalState: mechanicalState || undefined,
+      severity: severity || undefined,
+    };
+  }
+
+  return undefined;
 }
 
 
