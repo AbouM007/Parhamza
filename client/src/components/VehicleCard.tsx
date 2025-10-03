@@ -9,6 +9,7 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  Fuel,
 } from "lucide-react";
 import { Vehicle } from "@/types";
 import brandIcon from "@/assets/Brand_1752260033631.png";
@@ -38,6 +39,21 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
 
   const formatMileage = (mileage: number) =>
     new Intl.NumberFormat("fr-FR").format(mileage) + " km";
+
+  const translateFuelType = (fuelType: string): string => {
+    const translations: Record<string, string> = {
+      gasoline: "Essence",
+      diesel: "Diesel",
+      electric: "Électrique",
+      hybrid: "Hybride",
+      plugin_hybrid: "Hybride rechargeable",
+      lpg: "GPL",
+      cng: "GNV",
+      hydrogen: "Hydrogène",
+      other: "Autre",
+    };
+    return translations[fuelType] || fuelType;
+  };
 
   const getCategoryIcon = (category: string) => (
     <img src={brandIcon} alt="Brand icon" className="w-16 h-16 opacity-60" />
