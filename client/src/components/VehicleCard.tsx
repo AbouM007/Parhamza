@@ -164,7 +164,9 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
           {vehicle.condition === "accidente" ? (
             <div className="flex items-center space-x-2">
               <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
-                Accidenté
+                {vehicle.damageDetails?.damageTypes && vehicle.damageDetails.damageTypes.length > 0
+                  ? vehicle.damageDetails.damageTypes[0]
+                  : "Accidenté"}
               </span>
             </div>
           ) : vehicle.mileage ? (
