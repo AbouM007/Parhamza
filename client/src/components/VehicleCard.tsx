@@ -155,76 +155,38 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
         </div>
 
         {/* Vehicle Details */}
-        <div className="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-600">
+        <div className="grid grid-cols-3 gap-3 mb-4 text-sm text-gray-600">
           <div className="flex items-center space-x-2">
             <Calendar className="h-4 w-4 text-gray-400" />
             <span>{vehicle.year}</span>
           </div>
 
-          {vehicle.mileage && (
+          {vehicle.condition === "accidente" ? (
+            <div className="flex items-center space-x-2">
+              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                Accidenté
+              </span>
+            </div>
+          ) : vehicle.mileage ? (
             <div className="flex items-center space-x-2">
               <Gauge className="h-4 w-4 text-gray-400" />
               <span>{formatMileage(vehicle.mileage)}</span>
             </div>
+          ) : null}
+
+          {vehicle.fuelType && (
+            <div className="flex items-center space-x-2">
+              <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                {vehicle.fuelType}
+              </span>
+            </div>
           )}
-
-          <div className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4 text-gray-400" />
-            <span className="truncate">{vehicle.location}</span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">
-              {vehicle.brand}
-            </span>
-          </div>
         </div>
 
-        {/* Features */}
-        {vehicle.features.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-1">
-              {vehicle.features.slice(0, 3).map((feature, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-primary-bolt-50 text-primary-bolt-500 text-xs rounded font-medium"
-                >
-                  {feature}
-                </span>
-              ))}
-              {vehicle.features.length > 3 && (
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-medium">
-                  +{vehicle.features.length - 3}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Stats and Actions */}
-        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-          <div className="flex items-center space-x-4 text-xs text-gray-500">
-            <div className="flex items-center space-x-1">
-              <Eye className="h-4 w-4" />
-              <span>{vehicle.views} vues</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Heart className="h-4 w-4" />
-              <span>{vehicle.favorites} favoris</span>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              className="p-2 text-gray-400 hover:text-primary-bolt-500 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                // Handle message
-              }}
-            >
-              <MessageCircle className="h-4 w-4" />
-            </button>
-          </div>
+        {/* Location */}
+        <div className="flex items-center space-x-2 pt-4 border-t border-gray-100 text-sm text-gray-600">
+          <MapPin className="h-4 w-4 text-gray-400" />
+          <span className="truncate">{vehicle.location}</span>
         </div>
       </div>
     </div>

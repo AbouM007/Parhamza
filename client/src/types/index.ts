@@ -34,12 +34,17 @@ export interface Vehicle {
   model: string;
   year: number;
   mileage?: number;
-  fuelType?: "gasoline" | "diesel" | "electric" | "hybrid";
-  condition: "new" | "used" | "damaged";
+  fuelType?: string;
+  condition: string;
   price: number;
   location: string;
   images: string[];
   features: string[];
+  damageDetails?: {
+    damageTypes?: string[];
+    mechanicalState?: string;
+    severity?: string;
+  };
   isPremium: boolean;
   premiumType?: "daily" | "weekly" | "monthly";
   premiumExpiresAt?: Date;
