@@ -410,12 +410,6 @@ export class SupabaseStorage implements IStorage {
       damageDetails: annonce.damage_details ?? undefined,
     };
 
-    console.log('🔍 DEBUG getVehicle:', {
-      id: transformedData.id,
-      condition: transformedData.condition,
-      damageDetails: transformedData.damageDetails
-    });
-
     return transformedData;
   }
 
@@ -486,9 +480,6 @@ export class SupabaseStorage implements IStorage {
       );
 
       if (data && data.length > 0) {
-        console.log("📊 Première annonce Supabase:", data[0].title);
-        console.log("👤 Premier user associé:", data[0].users?.name);
-
         // Transformer les données de la table annonces vers le format Vehicle avec user inclus
         const transformedData = data.map((vehicle: any) => ({
           id: vehicle.id.toString(),
