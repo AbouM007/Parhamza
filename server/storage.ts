@@ -597,6 +597,8 @@ export class SupabaseStorage implements IStorage {
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
           damageDetails: validateDamageDetails(vehicle.damage_details),
+          priorityScore: vehicle.priority_score ?? 0,
+          professionalAccountId: vehicle.professional_account_id ?? null,
         }));
         return transformedData as Vehicle[];
       } else {
@@ -695,6 +697,8 @@ export class SupabaseStorage implements IStorage {
       deletionReason: vehicle.deletion_reason,
       deletionComment: vehicle.deletion_comment,
       damageDetails: validateDamageDetails(vehicle.damage_details),
+      priorityScore: vehicle.priority_score ?? 0,
+      professionalAccountId: vehicle.professional_account_id ?? null,
     }));
 
     return transformedData as Vehicle[];
@@ -785,6 +789,8 @@ export class SupabaseStorage implements IStorage {
       deletionReason: annonce.deletion_reason,
       deletionComment: annonce.deletion_comment,
       damageDetails: validateDamageDetails(annonce.damage_details),
+      priorityScore: annonce.priority_score ?? 0,
+      professionalAccountId: annonce.professional_account_id ?? null,
     }));
 
     return transformedData as Vehicle[];
@@ -1708,6 +1714,8 @@ export class SupabaseStorage implements IStorage {
           deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
+          priorityScore: vehicle.priority_score ?? 0,
+          professionalAccountId: vehicle.professional_account_id ?? null,
         }));
 
         return transformedData as Vehicle[];
