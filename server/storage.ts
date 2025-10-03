@@ -111,6 +111,19 @@ function transformUserFromSupabase(userRow: any): User | undefined {
     createdAt: new Date(userRow.created_at),
     lastLoginAt: userRow.last_login_at
       ? new Date(userRow.last_login_at)
+      : null,
+    professionalAccount: userRow.professional_accounts?.[0]
+      ? {
+          companyName: userRow.professional_accounts[0].company_name,
+          phone: userRow.professional_accounts[0].phone,
+          email: userRow.professional_accounts[0].email,
+          website: userRow.professional_accounts[0].website,
+          description: userRow.professional_accounts[0].description,
+          isVerified: userRow.professional_accounts[0].is_verified,
+          verificationStatus: userRow.professional_accounts[0].verification_process_status,
+          companyLogo: userRow.professional_accounts[0].avatar,
+          bannerImage: userRow.professional_accounts[0].banner_image,
+        }
       : undefined,
   };
 }
@@ -143,7 +156,7 @@ function transformVehicleFromSupabase(vehicleRow: any): Vehicle {
     premiumType: vehicleRow.premium_type,
     premiumExpiresAt: vehicleRow.premium_expires_at
       ? new Date(vehicleRow.premium_expires_at)
-      : undefined,
+      : null,
     isBoosted: vehicleRow.is_boosted || false,
     boostedUntil: vehicleRow.boosted_until
       ? new Date(vehicleRow.boosted_until)
@@ -153,6 +166,7 @@ function transformVehicleFromSupabase(vehicleRow: any): Vehicle {
     views: vehicleRow.views,
     favorites: vehicleRow.favorites,
     status: vehicleRow.status,
+    rejectionReason: vehicleRow.rejection_reason ?? undefined,
     isActive: vehicleRow.is_active !== false,
     deletedAt: vehicleRow.deleted_at ? new Date(vehicleRow.deleted_at) : null,
     deletionReason: vehicleRow.deletion_reason,
@@ -445,95 +459,7 @@ export class SupabaseStorage implements IStorage {
       return undefined;
     }
 
-    // Transformer la donnée unique vers le format Vehicle avec user
-    const annonce = data;
-
-    const transformedData: Vehicle = {
-      id: annonce.id?.toString() ?? "",
-      userId: annonce.user_id,
-      user: annonce.users
-        ? {
-            id: annonce.users.id,
-            email: annonce.users.email,
-            name: annonce.users.name,
-            phone: annonce.users.phone,
-            whatsapp: annonce.users.whatsapp,
-            type: annonce.users.type,
-            companyName: annonce.users.company_name,
-            address: annonce.users.address,
-            city: annonce.users.city,
-            postalCode: annonce.users.postal_code,
-            website: annonce.users.website,
-            siret: annonce.users.siret,
-            bio: annonce.users.bio,
-            avatar: annonce.users.avatar,
-            specialties: safeJsonParse(annonce.users.specialties),
-            verified: annonce.users.verified,
-            emailVerified: annonce.users.email_verified,
-            contactPreferences: safeJsonParse(
-              annonce.users.contact_preferences,
-            ),
-            createdAt: new Date(annonce.users.created_at),
-            lastLoginAt: annonce.users.last_login_at
-              ? new Date(annonce.users.last_login_at)
-              : undefined,
-            professionalAccount: annonce.users.professional_accounts?.[0]
-              ? {
-                  companyName:
-                    annonce.users.professional_accounts[0].company_name,
-                  phone: annonce.users.professional_accounts[0].phone,
-                  email: annonce.users.professional_accounts[0].email,
-                  website: annonce.users.professional_accounts[0].website,
-                  description:
-                    annonce.users.professional_accounts[0].description,
-                  isVerified:
-                    annonce.users.professional_accounts[0].is_verified,
-                  verificationStatus:
-                    annonce.users.professional_accounts[0]
-                      .verification_process_status,
-                  companyLogo: annonce.users.professional_accounts[0].avatar,
-                  bannerImage:
-                    annonce.users.professional_accounts[0].banner_image,
-                }
-              : undefined,
-          }
-        : undefined,
-
-      title: annonce.title ?? "",
-      description: annonce.description ?? "",
-      category: annonce.category,
-      brand: annonce.brand ?? "",
-      model: annonce.model ?? "",
-      year: Number(annonce.year) || 0,
-      mileage: annonce.mileage ?? undefined,
-      fuelType: annonce.fuel_type ?? undefined,
-      condition: (annonce.condition as "new" | "used" | "damaged") ?? "used",
-      price: Number(annonce.price) || 0,
-      location: annonce.location ?? "",
-      images: annonce.images ?? [],
-      features: annonce.features ?? [],
-      isPremium: Boolean(annonce.is_premium),
-      premiumType: annonce.premium_type ?? undefined,
-      premiumExpiresAt: annonce.premium_expires_at
-        ? new Date(annonce.premium_expires_at)
-        : null,
-      createdAt: new Date(annonce.created_at),
-      updatedAt: new Date(annonce.updated_at),
-      views: annonce.views ?? 0,
-      favorites: annonce.favorites ?? 0,
-      status:
-        (annonce.status as "draft" | "pending" | "approved" | "rejected") ??
-        "draft",
-      rejectionReason: annonce.rejection_reason ?? undefined,
-      isActive: annonce.is_active !== false,
-      isBoosted: annonce.is_boosted ?? false,
-      boostedUntil: annonce.boosted_until
-        ? new Date(annonce.boosted_until)
-        : undefined,
-      damageDetails: validateDamageDetails(annonce.damage_details),
-    };
-
-    return transformedData;
+    return transformVehicleFromSupabase(data);
   }
 
   async getVehicleWithUser(id: string): Promise<Vehicle | undefined> {
@@ -604,81 +530,7 @@ export class SupabaseStorage implements IStorage {
 
       if (data && data.length > 0) {
         // Transformer les données de la table annonces vers le format Vehicle avec user inclus
-        const transformedData = data.map((vehicle: any) => ({
-          id: vehicle.id.toString(),
-          userId: vehicle.user_id,
-          user: vehicle.users
-            ? {
-                id: vehicle.users.id,
-                email: vehicle.users.email,
-                name: vehicle.users.name,
-                phone: vehicle.users.phone,
-                whatsapp: vehicle.users.whatsapp,
-                type: vehicle.users.type,
-                companyName: vehicle.users.company_name,
-                //companyLogo: vehicle.users.company_logo,
-                address: vehicle.users.address,
-                city: vehicle.users.city,
-                postalCode: vehicle.users.postal_code,
-                website: vehicle.users.website,
-                siret: vehicle.users.siret,
-                bio: vehicle.users.bio,
-                avatar: vehicle.users.avatar,
-                specialties: safeJsonParse(vehicle.users.specialties),
-                verified: vehicle.users.verified,
-                emailVerified: vehicle.users.email_verified,
-                contactPreferences: safeJsonParse(
-                  vehicle.users.contact_preferences,
-                ),
-                createdAt: new Date(vehicle.users.created_at),
-                lastLoginAt: vehicle.users.last_login_at
-                  ? new Date(vehicle.users.last_login_at)
-                  : undefined,
-              }
-            : undefined,
-          title: vehicle.title,
-          description: vehicle.description,
-          category: vehicle.category,
-          brand: vehicle.brand,
-          model: vehicle.model,
-          year: vehicle.year,
-          mileage: vehicle.mileage,
-          fuelType: vehicle.fuel_type,
-          condition: vehicle.condition,
-          price: vehicle.price,
-          location: vehicle.location,
-          images: vehicle.images || [],
-          features: vehicle.features || [],
-          listingType: vehicle.listing_type || "sale", // Nouveau champ listing_type
-          // Informations de contact spécifiques à l'annonce
-          contactPhone: vehicle.contact_phone || null,
-          contactEmail: vehicle.contact_email || null,
-          contactWhatsapp: vehicle.contact_whatsapp || null,
-          hidePhone: vehicle.hide_phone || false,
-          isPremium: vehicle.is_premium,
-          premiumType: vehicle.premium_type,
-          premiumExpiresAt: vehicle.premium_expires_at
-            ? new Date(vehicle.premium_expires_at)
-            : undefined,
-          // Nouveaux champs boost depuis la vue annonces_with_boost
-          isBoosted: vehicle.is_boosted || false,
-          boostedUntil: vehicle.boosted_until
-            ? new Date(vehicle.boosted_until)
-            : undefined,
-          createdAt: new Date(vehicle.created_at),
-          updatedAt: new Date(vehicle.updated_at),
-          views: vehicle.views,
-          favorites: vehicle.favorites,
-          status: vehicle.status,
-          isActive: vehicle.is_active !== false,
-          deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
-          deletionReason: vehicle.deletion_reason,
-          deletionComment: vehicle.deletion_comment,
-          damageDetails: validateDamageDetails(vehicle.damage_details),
-          priorityScore: vehicle.priority_score ?? 0,
-          professionalAccountId: vehicle.professional_account_id ?? null,
-        }));
-        return transformedData as Vehicle[];
+        return data.map((vehicle: any) => transformVehicleFromSupabase(vehicle));
       } else {
         console.log(
           "⚠️  Table annonces vide dans Supabase, utilisation des données mock",
@@ -708,78 +560,7 @@ export class SupabaseStorage implements IStorage {
       return [];
     }
 
-    // Transformer les données pour inclure le statut isActive
-    const transformedData = (data || []).map((vehicle: any) => ({
-      id: vehicle.id.toString(),
-      userId: vehicle.user_id,
-      user: vehicle.users
-        ? {
-            id: vehicle.users.id,
-            email: vehicle.users.email,
-            name: vehicle.users.name,
-            phone: vehicle.users.phone,
-            whatsapp: vehicle.users.whatsapp,
-            type: vehicle.users.type,
-            companyName: vehicle.users.company_name,
-            //companyLogo: vehicle.users.company_logo,
-            address: vehicle.users.address,
-            city: vehicle.users.city,
-            postalCode: vehicle.users.postal_code,
-            website: vehicle.users.website,
-            siret: vehicle.users.siret,
-            bio: vehicle.users.bio,
-            avatar: vehicle.users.avatar,
-            specialties: safeJsonParse(vehicle.users.specialties),
-            verified: vehicle.users.verified,
-            emailVerified: vehicle.users.email_verified,
-            contactPreferences: safeJsonParse(
-              vehicle.users.contact_preferences,
-            ),
-            createdAt: new Date(vehicle.users.created_at),
-            lastLoginAt: vehicle.users.last_login_at
-              ? new Date(vehicle.users.last_login_at)
-              : undefined,
-          }
-        : undefined,
-      title: vehicle.title,
-      description: vehicle.description,
-      category: vehicle.category,
-      brand: vehicle.brand,
-      model: vehicle.model,
-      year: vehicle.year,
-      mileage: vehicle.mileage,
-      fuelType: vehicle.fuel_type,
-      condition: vehicle.condition,
-      price: vehicle.price,
-      location: vehicle.location,
-      images: vehicle.images || [],
-      features: vehicle.features || [],
-      listingType: vehicle.listing_type || "sale",
-      contactPhone: vehicle.contact_phone || null,
-      contactEmail: vehicle.contact_email || null,
-      contactWhatsapp: vehicle.contact_whatsapp || null,
-      hidePhone: vehicle.hide_phone || false,
-      isPremium: vehicle.is_premium,
-      premiumType: vehicle.premium_type,
-      premiumExpiresAt: vehicle.premium_expires_at
-        ? new Date(vehicle.premium_expires_at)
-        : undefined,
-      createdAt: new Date(vehicle.created_at),
-      updatedAt: new Date(vehicle.updated_at),
-      views: vehicle.views,
-      favorites: vehicle.favorites,
-      status: vehicle.status,
-      rejectionReason: vehicle.rejection_reason,
-      isActive: vehicle.is_active !== false,
-      deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
-      deletionReason: vehicle.deletion_reason,
-      deletionComment: vehicle.deletion_comment,
-      damageDetails: validateDamageDetails(vehicle.damage_details),
-      priorityScore: vehicle.priority_score ?? 0,
-      professionalAccountId: vehicle.professional_account_id ?? null,
-    }));
-
-    return transformedData as Vehicle[];
+    return (data || []).map((vehicle: any) => transformVehicleFromSupabase(vehicle));
   }
 
   async getDeletedVehiclesByUser(userId: string): Promise<Vehicle[]> {
@@ -800,78 +581,7 @@ export class SupabaseStorage implements IStorage {
       return [];
     }
 
-    // Transformer les données pour inclure les informations de suppression
-    const transformedData = data.map((annonce) => ({
-      id: annonce.id.toString(),
-      userId: annonce.user_id,
-      user: annonce.users
-        ? {
-            id: annonce.users.id,
-            email: annonce.users.email,
-            name: annonce.users.name,
-            phone: annonce.users.phone,
-            whatsapp: annonce.users.whatsapp,
-            type: annonce.users.type,
-            companyName: annonce.users.company_name,
-            //companyLogo: annonce.users.company_logo,
-            address: annonce.users.address,
-            city: annonce.users.city,
-            postalCode: annonce.users.postal_code,
-            website: annonce.users.website,
-            siret: annonce.users.siret,
-            bio: annonce.users.bio,
-            avatar: annonce.users.avatar,
-            specialties: safeJsonParse(annonce.users.specialties),
-            verified: annonce.users.verified,
-            emailVerified: annonce.users.email_verified,
-            contactPreferences: safeJsonParse(
-              annonce.users.contact_preferences,
-            ),
-            createdAt: new Date(annonce.users.created_at),
-            lastLoginAt: annonce.users.last_login_at
-              ? new Date(annonce.users.last_login_at)
-              : undefined,
-          }
-        : undefined,
-      title: annonce.title,
-      description: annonce.description,
-      category: annonce.category,
-      brand: annonce.brand,
-      model: annonce.model,
-      year: annonce.year,
-      mileage: annonce.mileage,
-      fuelType: annonce.fuel_type,
-      condition: annonce.condition,
-      price: annonce.price,
-      location: annonce.location,
-      images: annonce.images || [],
-      features: annonce.features || [],
-      listingType: annonce.listing_type || "sale",
-      contactPhone: annonce.contact_phone || null,
-      contactEmail: annonce.contact_email || null,
-      contactWhatsapp: annonce.contact_whatsapp || null,
-      hidePhone: annonce.hide_phone || false,
-      isPremium: annonce.is_premium,
-      premiumType: annonce.premium_type,
-      premiumExpiresAt: annonce.premium_expires_at
-        ? new Date(annonce.premium_expires_at)
-        : undefined,
-      createdAt: new Date(annonce.created_at),
-      updatedAt: new Date(annonce.updated_at),
-      views: annonce.views,
-      favorites: annonce.favorites,
-      status: annonce.status,
-      isActive: annonce.is_active !== false,
-      // Informations de suppression
-      deletedAt: annonce.deleted_at ? new Date(annonce.deleted_at) : undefined,
-      deletionReason: annonce.deletion_reason,
-      deletionComment: annonce.deletion_comment,
-      damageDetails: validateDamageDetails(annonce.damage_details),
-      priorityScore: annonce.priority_score ?? 0,
-      professionalAccountId: annonce.professional_account_id ?? null,
-    }));
-
-    return transformedData as Vehicle[];
+    return data.map((vehicle: any) => transformVehicleFromSupabase(vehicle));
   }
 
   async createVehicle(vehicle: InsertVehicle): Promise<Vehicle> {
