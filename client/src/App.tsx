@@ -191,6 +191,33 @@ function AppContent() {
                 <Route path="/professional/:id">
                   <ProfessionalProfile />
                 </Route>
+                <Route path="/vehicle/:id">
+                  {(params) => {
+                    // Auto-load vehicle when accessing /vehicle/:id route
+                    React.useEffect(() => {
+                      const vehicleId = params.id;
+                      if (vehicleId && !selectedVehicle) {
+                        fetch(`/api/vehicles/${vehicleId}`)
+                          .then((res) => {
+                            if (!res.ok) throw new Error('Vehicle not found');
+                            return res.json();
+                          })
+                          .then((vehicle) => {
+                            setSelectedVehicle(vehicle);
+                          })
+                          .catch((err) => {
+                            console.error("❌ Error loading vehicle:", err);
+                            setLocation("/");
+                          });
+                      }
+                    }, [params.id]);
+                    
+                    // Return empty div while loading
+                    return <div className="flex items-center justify-center h-screen">
+                      <div className="text-xl text-gray-600">Chargement...</div>
+                    </div>;
+                  }}
+                </Route>
                 <Route path="/listings">
                   <VehicleListings />
                 </Route>
