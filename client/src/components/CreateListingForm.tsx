@@ -60,6 +60,8 @@ interface FormData {
   // Étape 3: État du bien (seulement pour biens matériels - non services/pièces)
   condition?:
     | "neuf"
+    | "occasion"
+    | "accidente"
     | "tres_bon_etat"
     | "bon_etat"
     | "etat_moyen"
@@ -2820,7 +2822,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                               const current = formData.specificDetails.damageTypes || [];
                               const updated = e.target.checked
                                 ? [...current, damage.value]
-                                : current.filter((d) => d !== damage.value);
+                                : current.filter((d: string) => d !== damage.value);
                               updateSpecificDetails("damageTypes", updated);
                             }}
                             className="h-4 w-4 text-primary-bolt-500 focus:ring-primary-bolt-500 border-gray-300 rounded"
