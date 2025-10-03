@@ -62,6 +62,11 @@ export const annonces = pgTable("annonces", {
   location: text("location").notNull(),
   images: json("images").$type<string[]>().default([]),
   features: json("features").$type<string[]>().default([]),
+  damageDetails: json("damage_details").$type<{
+    damageTypes?: string[];
+    mechanicalState?: string;
+    severity?: string;
+  }>(),
   isPremium: boolean("is_premium").default(false),
   premiumType: text("premium_type"),
   premiumExpiresAt: timestamp("premium_expires_at"),
