@@ -30,6 +30,11 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
     - Solution: Validates that damageDetails contains at least one valid property (damageTypes, mechanicalState, severity) before accepting
     - Applied to all 5 transformation methods (getVehicle, getAllVehicles, getVehiclesByUser, getDeletedVehiclesByUser, createVehicle)
     - Verified with API tests: annonces 127, 128, 129 all correctly return valid damageDetails
+  - **Critical Fix**: Added missing `/vehicle/:id` route in App.tsx for direct vehicle access via URL
+    - Problem: App had no route defined for `/vehicle/:id`, causing blank pages when accessing vehicles directly
+    - Solution: Added route that fetches vehicle from API and sets selectedVehicle state
+    - Impact: Users can now share and access vehicle listings via direct URLs (e.g., `/vehicle/127`)
+    - Complete fix validated: All damaged vehicle listings now display damage details correctly (screenshots + API + browser logs confirmed)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
