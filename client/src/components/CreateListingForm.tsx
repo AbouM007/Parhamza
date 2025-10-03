@@ -801,6 +801,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             typeof photo === "string" ? photo : URL.createObjectURL(photo),
           ) || [],
         features: formData.specificDetails.equipment || [],
+        damageDetails: formData.condition === "accidente" ? {
+          damageTypes: formData.specificDetails.damageTypes || [],
+          mechanicalState: formData.specificDetails.mechanicalState || "",
+          severity: formData.specificDetails.damageSeverity || "",
+        } : null,
         // Informations de contact spécifiques à l'annonce
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
@@ -2778,6 +2783,93 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
               </p>
             </div>
 
+            {/* Champs spécifiques pour véhicules accidentés */}
+            {formData.condition === "accidente" && (
+              <div className="space-y-6 mb-6">
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <span className="text-2xl mr-2">⚠️</span>
+                    Informations sur les dommages
+                  </h3>
+
+                  {/* Types de dommages (sélection multiple) */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Types de dommages * <span className="text-gray-500 font-normal">(sélection multiple)</span>
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {[
+                        { value: "carrosserie", label: "Carrosserie" },
+                        { value: "moteur", label: "Moteur" },
+                        { value: "train_avant", label: "Train avant" },
+                        { value: "train_arriere", label: "Train arrière" },
+                        { value: "chassis", label: "Châssis" },
+                        { value: "interieur", label: "Intérieur" },
+                        { value: "vitres", label: "Vitres" },
+                        { value: "suspension", label: "Suspension" },
+                        { value: "electrique", label: "Électrique" },
+                      ].map((damage) => (
+                        <label
+                          key={damage.value}
+                          className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.specificDetails.damageTypes?.includes(damage.value) || false}
+                            onChange={(e) => {
+                              const current = formData.specificDetails.damageTypes || [];
+                              const updated = e.target.checked
+                                ? [...current, damage.value]
+                                : current.filter((d) => d !== damage.value);
+                              updateSpecificDetails("damageTypes", updated);
+                            }}
+                            className="h-4 w-4 text-primary-bolt-500 focus:ring-primary-bolt-500 border-gray-300 rounded"
+                          />
+                          <span className="text-sm text-gray-700">{damage.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* État mécanique */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      État mécanique *
+                    </label>
+                    <select
+                      value={formData.specificDetails.mechanicalState || ""}
+                      onChange={(e) => updateSpecificDetails("mechanicalState", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                    >
+                      <option value="">Sélectionnez l'état mécanique</option>
+                      <option value="fonctionne">Fonctionne normalement</option>
+                      <option value="demarre">Démarre mais problèmes</option>
+                      <option value="ne_demarre_pas">Ne démarre pas</option>
+                      <option value="moteur_hs">Moteur hors service</option>
+                      <option value="inconnu">État inconnu</option>
+                    </select>
+                  </div>
+
+                  {/* Gravité des dommages */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Gravité des dommages *
+                    </label>
+                    <select
+                      value={formData.specificDetails.damageSeverity || ""}
+                      onChange={(e) => updateSpecificDetails("damageSeverity", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                    >
+                      <option value="">Sélectionnez la gravité</option>
+                      <option value="leger">Légers (réparation simple)</option>
+                      <option value="moyen">Moyens (réparation importante)</option>
+                      <option value="grave">Graves (VEI / épave)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Description *{" "}
@@ -2795,14 +2887,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     ? "border-red-300 bg-red-50"
                     : "border-gray-300"
                 }`}
-                placeholder="Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
+                placeholder={
+                  formData.condition === "accidente"
+                    ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
+                    : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
+                }
                 minLength={50}
                 maxLength={300}
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
-                  Plus votre description est détaillée, plus vous avez de
-                  chances d'attirer des acheteurs sérieux.
+                  {formData.condition === "accidente" 
+                    ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
+                    : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."
+                  }
                 </p>
                 <div className="flex flex-col text-right">
                   <span
