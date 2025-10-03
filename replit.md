@@ -25,6 +25,11 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
   - Section displays: damage types (list), mechanical state (with wrench icon), and severity (color-coded badges: yellow=léger, orange=moyen, red=grave)
   - Fixed condition check to accept both "accidente" (frontend value) and "damaged" (backend cast) for compatibility
   - Complete round-trip persistence now working: form → database → detail view
+  - **Additional Fix**: Added `validateDamageDetails()` helper function to filter empty objects `{}` that Supabase can return for JSONB fields
+    - Problem: Empty objects pass `?? undefined` check but have no valid properties, causing nothing to display
+    - Solution: Validates that damageDetails contains at least one valid property (damageTypes, mechanicalState, severity) before accepting
+    - Applied to all 5 transformation methods (getVehicle, getAllVehicles, getVehiclesByUser, getDeletedVehiclesByUser, createVehicle)
+    - Verified with API tests: annonces 127, 128, 129 all correctly return valid damageDetails
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
