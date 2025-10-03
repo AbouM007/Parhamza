@@ -86,7 +86,7 @@ function validateDamageDetails(value: any): any {
 }
 
 // Helper function to transform user data from Supabase
-function transformUserFromSupabase(userRow: any): User | undefined {
+function transformUserFromSupabase(userRow: any): any {
   if (!userRow) return undefined;
   
   return {
@@ -129,7 +129,7 @@ function transformUserFromSupabase(userRow: any): User | undefined {
 }
 
 // Helper function to transform vehicle data from Supabase
-function transformVehicleFromSupabase(vehicleRow: any): Vehicle {
+function transformVehicleFromSupabase(vehicleRow: any): any {
   return {
     id: vehicleRow.id.toString(),
     userId: vehicleRow.user_id,
@@ -979,7 +979,7 @@ export class SupabaseStorage implements IStorage {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      let favoriteIds = [];
+      let favoriteIds: string[] = [];
 
       if (wishlistError) {
         console.log(
@@ -1105,7 +1105,7 @@ export class SupabaseStorage implements IStorage {
         "✅ Favoris récupérés avec détails (optimisé):",
         favorites.length,
       );
-      return favorites;
+      return favorites as unknown as Vehicle[];
     } catch (error) {
       console.error("❌ Erreur dans getUserFavorites:", error);
       return [];
@@ -1166,7 +1166,7 @@ export class SupabaseStorage implements IStorage {
       throw new Error("Utilisateur non trouvé");
     }
 
-    let favorites = [];
+    let favorites: string[] = [];
     try {
       if (user.bio && user.bio.trim() !== "") {
         const bioData = JSON.parse(user.bio);
@@ -1502,6 +1502,7 @@ export class SupabaseStorage implements IStorage {
           deletedAt: vehicle.deleted_at ? new Date(vehicle.deleted_at) : null,
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
+          damageDetails: validateDamageDetails(vehicle.damage_details),
           priorityScore: vehicle.priority_score ?? 0,
           professionalAccountId: vehicle.professional_account_id ?? null,
         }));
@@ -1982,7 +1983,7 @@ export class SupabaseStorage implements IStorage {
       }
 
       // Récupérer séparément les données des plans et annonces pour éviter les problèmes de relations
-      let boostHistory = [];
+      let boostHistory: any[] = [];
       if (boostPurchases && boostPurchases.length > 0) {
         const planIds = [...new Set(boostPurchases.map((p) => p.plan_id))];
         const annonceIds = [
@@ -2020,7 +2021,7 @@ export class SupabaseStorage implements IStorage {
       }
 
       // 🔧 CORRECTION CRITIQUE: Récupérer TOUS les abonnements (particuliers ET professionnels)
-      let subscriptionPurchases = [];
+      let subscriptionPurchases: any[] = [];
 
       // 1. Abonnements directs par user_id (pour les particuliers individual)
       const { data: directSubscriptions } = await supabaseServer
@@ -2036,7 +2037,7 @@ export class SupabaseStorage implements IStorage {
         .eq("user_id", userId)
         .single();
 
-      let proSubscriptions = [];
+      let proSubscriptions: any[] = [];
       if (userProfessionalAccount) {
         const { data: subscriptions } = await supabaseServer
           .from("subscriptions")
@@ -2062,7 +2063,7 @@ export class SupabaseStorage implements IStorage {
       });
 
       // Récupérer les détails des plans d'abonnement
-      let subscriptionHistory = [];
+      let subscriptionHistory: any[] = [];
       if (subscriptionPurchases.length > 0) {
         const planIds = [
           ...new Set(subscriptionPurchases.map((s) => s.plan_id)),
@@ -2123,7 +2124,7 @@ export class SupabaseStorage implements IStorage {
         .order("created_at", { ascending: false });
 
       // Récupérer les comptes professionnels et utilisateurs associés
-      let subscriptionPurchases = [];
+      let subscriptionPurchases: any[] = [];
       if (allSubscriptions && allSubscriptions.length > 0) {
         const professionalAccountIds = [
           ...new Set(allSubscriptions.map((s) => s.professional_account_id)),
@@ -2158,7 +2159,7 @@ export class SupabaseStorage implements IStorage {
       }
 
       // Récupérer séparément les données des plans, annonces et utilisateurs
-      let boostHistory = [];
+      let boostHistory: any[] = [];
       if (boostPurchases && boostPurchases.length > 0) {
         const planIds = [...new Set(boostPurchases.map((p) => p.plan_id))];
         const annonceIds = [
@@ -2205,7 +2206,7 @@ export class SupabaseStorage implements IStorage {
       }
 
       // Formatter l'historique des abonnements
-      let subscriptionHistory = [];
+      let subscriptionHistory: any[] = [];
       if (subscriptionPurchases.length > 0) {
         const planIds = [
           ...new Set(subscriptionPurchases.map((s) => s.plan_id)),
