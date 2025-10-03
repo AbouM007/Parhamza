@@ -14,6 +14,8 @@ import {
   CheckCircle,
   X,
   Send,
+  AlertTriangle,
+  Wrench,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { Vehicle } from "@/types";
@@ -466,6 +468,85 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   {vehicle.description}
                 </p>
               </div>
+
+              {/* Damage Details - Only for damaged vehicles */}
+              {vehicle.condition === "accidente" && vehicle.damageDetails && (
+                <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                    <h3 className="text-lg font-semibold text-orange-900">
+                      Informations sur les dommages
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Types de dommages */}
+                    {vehicle.damageDetails.damageTypes && vehicle.damageDetails.damageTypes.length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium text-orange-700 mb-2">
+                          Types de dommages
+                        </div>
+                        <div className="space-y-1">
+                          {vehicle.damageDetails.damageTypes.map((type, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-2 text-sm text-orange-900"
+                            >
+                              <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
+                              <span className="capitalize">{type.replace(/_/g, ' ')}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* État mécanique */}
+                    {vehicle.damageDetails.mechanicalState && (
+                      <div>
+                        <div className="text-sm font-medium text-orange-700 mb-2 flex items-center space-x-1">
+                          <Wrench className="h-4 w-4" />
+                          <span>État mécanique</span>
+                        </div>
+                        <div className="text-sm text-orange-900 capitalize">
+                          {vehicle.damageDetails.mechanicalState === "fonctionne"
+                            ? "Fonctionne"
+                            : vehicle.damageDetails.mechanicalState === "reparer"
+                            ? "À réparer"
+                            : vehicle.damageDetails.mechanicalState === "hs"
+                            ? "Hors service"
+                            : vehicle.damageDetails.mechanicalState}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gravité */}
+                    {vehicle.damageDetails.severity && (
+                      <div>
+                        <div className="text-sm font-medium text-orange-700 mb-2">
+                          Gravité
+                        </div>
+                        <div className="text-sm text-orange-900">
+                          <span
+                            className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
+                              vehicle.damageDetails.severity === "leger"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : vehicle.damageDetails.severity === "moyen"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {vehicle.damageDetails.severity === "leger"
+                              ? "Léger"
+                              : vehicle.damageDetails.severity === "moyen"
+                              ? "Moyen"
+                              : "Grave"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Features */}
               {vehicle.features && vehicle.features.length > 0 && (
