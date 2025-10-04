@@ -25,6 +25,7 @@ import {
   getBrandsBySubcategory,
   fuelTypes,
   carModelsByBrand,
+  brandsByVehicleType,
 } from "@/utils/mockData";
 import { CATEGORIES } from "@/data/categories";
 import { COUNTRY_CODES } from "@/data/contact";
@@ -114,6 +115,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     photoIndex: -1,
     imageUrl: "",
   });
+
+  // État pour la recherche de compatibilités (pièces détachées)
+  const [compatibilitySearch, setCompatibilitySearch] = useState("");
+  const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] = useState(false);
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -319,6 +324,71 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       ...prev,
       specificDetails: { ...prev.specificDetails, [field]: value },
     }));
+  };
+
+  // Fonctions pour gérer les tags de compatibilité
+  const getCompatibilitySuggestions = (): string[] => {
+    if (!compatibilitySearch.trim()) return [];
+
+    const searchTerm = compatibilitySearch.toLowerCase();
+    const suggestions: string[] = [];
+
+    // Récupérer les marques selon le type de pièce
+    let brandsToSearch: string[] = [];
+    if (formData.subcategory === "piece-voiture") {
+      brandsToSearch = brandsByVehicleType.voiture || [];
+    } else if (formData.subcategory === "piece-moto") {
+      brandsToSearch = brandsByVehicleType.moto || [];
+    } else {
+      // Pour autre-piece, on prend toutes les marques de voitures et motos
+      brandsToSearch = [
+        ...(brandsByVehicleType.voiture || []),
+        ...(brandsByVehicleType.moto || []),
+      ];
+    }
+
+    // Filtrer les marques
+    const matchingBrands = brandsToSearch.filter((brand) =>
+      brand.toLowerCase().includes(searchTerm)
+    );
+    suggestions.push(...matchingBrands);
+
+    // Si la recherche correspond à une marque, ajouter les modèles
+    Object.entries(carModelsByBrand).forEach(([brand, models]) => {
+      if (brand.toLowerCase().includes(searchTerm)) {
+        models.forEach((model) => {
+          suggestions.push(`${brand} ${model}`);
+        });
+      } else {
+        // Rechercher dans les modèles
+        const matchingModels = models.filter((model) =>
+          model.toLowerCase().includes(searchTerm)
+        );
+        matchingModels.forEach((model) => {
+          suggestions.push(`${brand} ${model}`);
+        });
+      }
+    });
+
+    // Limiter à 10 suggestions et retirer les doublons
+    return [...new Set(suggestions)].slice(0, 10);
+  };
+
+  const addCompatibilityTag = (tag: string) => {
+    const currentTags = formData.specificDetails.compatibilityTags || [];
+    if (!currentTags.includes(tag)) {
+      updateSpecificDetails("compatibilityTags", [...currentTags, tag]);
+    }
+    setCompatibilitySearch("");
+    setShowCompatibilitySuggestions(false);
+  };
+
+  const removeCompatibilityTag = (tagToRemove: string) => {
+    const currentTags = formData.specificDetails.compatibilityTags || [];
+    updateSpecificDetails(
+      "compatibilityTags",
+      currentTags.filter((tag: string) => tag !== tagToRemove)
+    );
   };
 
   // Validation du numéro de téléphone international
@@ -729,6 +799,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   const isSearchListing = () => {
     return formData.listingType === "search";
+  };
+
+  // Vérifier si c'est une pièce détachée
+  const isPiecePart = () => {
+    return (
+      formData.subcategory === "piece-voiture" ||
+      formData.subcategory === "piece-moto" ||
+      formData.subcategory === "autre-piece"
+    );
   };
 
   const {
