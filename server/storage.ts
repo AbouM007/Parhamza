@@ -157,7 +157,7 @@ function transformVehicleFromSupabase(vehicleRow: any): any {
     premiumExpiresAt: vehicleRow.premium_expires_at
       ? new Date(vehicleRow.premium_expires_at)
       : null,
-    isBoosted: vehicleRow.is_boosted || false,
+    //isBoosted: vehicleRow.is_boosted || false,
     boostedUntil: vehicleRow.boosted_until
       ? new Date(vehicleRow.boosted_until)
       : undefined,

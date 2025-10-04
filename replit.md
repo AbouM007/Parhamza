@@ -6,13 +6,15 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 ## Recent Changes
 **October 4, 2025 - Replit Environment Setup**
 - Successfully configured the project to run in the Replit environment
-- Fixed Vite configuration to allow all hosts (`allowedHosts: true`) for proper Replit proxy support
-- Removed restrictive allowedHosts array from server/vite.ts to enable Replit iframe functionality
+- **Critical Fix**: Added `allowedHosts: true as const` to both `vite.config.ts` and `server/vite.ts` to resolve "Blocked request" error in Replit preview
+  - This allows the Replit proxy domains to access the development server
+  - Fixed TypeScript error by using `as const` type assertion for proper type narrowing
 - Configured development workflow: `npm run dev` running on port 5000 with webview output
 - Configured deployment settings: autoscale deployment with build and start commands
 - Verified application is running correctly with Supabase backend integration
 - All environment variables properly configured (DATABASE_URL, SUPABASE, STRIPE)
 - Build process verified and working (vite build + esbuild for server)
+- Note: Application has existing non-critical warning about missing `is_boosted` column, but includes fallback handling
 
 **October 2025**
 - Implemented subscription management with cancel/reactivate functionality
