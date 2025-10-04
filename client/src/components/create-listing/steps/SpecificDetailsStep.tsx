@@ -1,4 +1,4 @@
-import { getFieldsForSubcategory } from "../registry/specificDetailsRegistry";
+import { getFieldsForSubcategory, type FieldDescriptor } from "../registry/specificDetailsRegistry";
 
 interface SpecificDetailsStepProps {
   subcategory: string;
@@ -19,10 +19,10 @@ export const SpecificDetailsStep: React.FC<SpecificDetailsStepProps> = ({
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="text-heading-specific-details">
             Détails spécifiques
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600" data-testid="text-description-specific-details">
             {isSearchListing
               ? "Détails optionnels pour votre recherche"
               : "Configuration de votre service"}
@@ -30,7 +30,7 @@ export const SpecificDetailsStep: React.FC<SpecificDetailsStepProps> = ({
         </div>
 
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-gray-600">
+          <p className="text-gray-600" data-testid="text-optional-step">
             Cette étape est optionnelle pour ce type d'annonce
           </p>
         </div>
@@ -44,107 +44,111 @@ export const SpecificDetailsStep: React.FC<SpecificDetailsStepProps> = ({
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="text-heading-specific-details">
             Détails spécifiques
           </h2>
-          <p className="text-gray-600">Aucun détail spécifique requis</p>
+          <p className="text-gray-600" data-testid="text-description-specific-details">
+            Aucun détail spécifique requis
+          </p>
         </div>
       </div>
     );
   }
 
+  const renderField = (field: FieldDescriptor) => {
+    const value = specificDetails[field.id] ?? "";
+
+    switch (field.type) {
+      case "text":
+      case "number":
+        return (
+          <div key={field.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {field.label} {field.required && "*"}
+            </label>
+            <input
+              type={field.type}
+              value={value}
+              onChange={(e) => {
+                if (field.type === "number") {
+                  const val = e.target.value;
+                  onUpdate(field.id, val === "" ? undefined : Number(val));
+                } else {
+                  onUpdate(field.id, e.target.value || undefined);
+                }
+              }}
+              placeholder={field.placeholder}
+              min={field.min}
+              max={field.max}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
+              data-testid={`input-${field.id}`}
+            />
+          </div>
+        );
+
+      case "select":
+        return (
+          <div key={field.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {field.label} {field.required && "*"}
+            </label>
+            <select
+              value={value}
+              onChange={(e) => onUpdate(field.id, e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
+              data-testid={`select-${field.id}`}
+            >
+              <option value="">Sélectionnez...</option>
+              {field.options?.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+
+      case "textarea":
+        return (
+          <div key={field.id} className="md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {field.label} {field.required && "*"}
+            </label>
+            <textarea
+              value={value}
+              onChange={(e) => onUpdate(field.id, e.target.value)}
+              placeholder={field.placeholder}
+              rows={3}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
+              data-testid={`textarea-${field.id}`}
+            />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="text-heading-specific-details">
           Détails spécifiques
         </h2>
-        <p className="text-gray-600">Remplissez les informations techniques</p>
+        <p className="text-gray-600" data-testid="text-description-specific-details">
+          Remplissez les informations techniques
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto">
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
-          <p className="text-sm text-yellow-800">
-            ⚠️ Cette étape est en cours de refactorisation. Les champs
-            détaillés seront disponibles prochainement. Vous pouvez continuer
-            avec les informations de base.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {fields.includes("brand") && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Marque *
-              </label>
-              <input
-                type="text"
-                value={specificDetails.brand || ""}
-                onChange={(e) => onUpdate("brand", e.target.value)}
-                placeholder="Ex: Renault"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
-                data-testid="input-brand"
-              />
-            </div>
-          )}
-
-          {fields.includes("model") && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Modèle *
-              </label>
-              <input
-                type="text"
-                value={specificDetails.model || ""}
-                onChange={(e) => onUpdate("model", e.target.value)}
-                placeholder="Ex: Clio"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
-                data-testid="input-model"
-              />
-            </div>
-          )}
-
-          {fields.includes("year") && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Année *
-              </label>
-              <input
-                type="number"
-                value={specificDetails.year || ""}
-                onChange={(e) => onUpdate("year", e.target.value)}
-                placeholder="Ex: 2020"
-                min="1900"
-                max={new Date().getFullYear() + 1}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
-                data-testid="input-year"
-              />
-            </div>
-          )}
-
-          {fields.includes("mileage") && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Kilométrage *
-              </label>
-              <input
-                type="number"
-                value={specificDetails.mileage || ""}
-                onChange={(e) => onUpdate("mileage", e.target.value)}
-                placeholder="Ex: 50000"
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
-                data-testid="input-mileage"
-              />
-            </div>
-          )}
+          {fields.map(renderField)}
         </div>
 
         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            💡 Les champs détaillés pour cette catégorie seront ajoutés dans
-            une prochaine mise à jour. Pour l'instant, les informations de base
-            suffisent pour publier votre annonce.
+          <p className="text-sm text-blue-800" data-testid="text-info-fields">
+            💡 Les champs marqués d'une * sont obligatoires
           </p>
         </div>
       </div>

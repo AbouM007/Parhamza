@@ -51,8 +51,8 @@ export const ConditionStep: React.FC<ConditionStepProps> = ({ value, onSelect })
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">État du bien</h2>
-        <p className="text-gray-600">Sélectionnez l'état général du véhicule</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="text-heading-condition">État du bien</h2>
+        <p className="text-gray-600" data-testid="text-description-condition">Sélectionnez l'état général du véhicule</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">

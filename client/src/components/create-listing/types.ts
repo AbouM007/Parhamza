@@ -26,8 +26,6 @@ export interface FormData {
     phone: string;
     email: string;
     whatsapp: string;
-    hidePhone: boolean;
-    sameAsPhone: boolean;
     showPhone: boolean;
     showWhatsapp: boolean;
     showInternal: boolean;

@@ -52,9 +52,7 @@ const initializeFormData = (): FormData => ({
   contact: {
     phone: "",
     email: "",
-    hidePhone: false,
     whatsapp: "",
-    sameAsPhone: false,
     showPhone: true,
     showWhatsapp: true,
     showInternal: true,
@@ -113,7 +111,6 @@ export const useFormData = () => {
               phone: userPhone,
               email: userData.email || "",
               whatsapp: userWhatsapp,
-              sameAsPhone: userWhatsapp === userPhone && userPhone !== "",
             },
           }));
 
