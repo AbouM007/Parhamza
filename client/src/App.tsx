@@ -12,7 +12,7 @@ import { VehicleDetail } from "@/components/VehicleDetail";
 import { UnifiedAuthModal } from "@/components/UnifiedAuthModal";
 import StripeSuccess from "./pages/StripeSuccess";
 import { Dashboard } from "@/components/dashboard";
-import { CreateListingForm } from "@/components/CreateListingForm";
+import { CreateListingForm } from "@/components/create-listing/CreateListingForm";
 import { DraggableModal } from "@/components/DraggableModal";
 import { Conseils } from "@/components/Conseils";
 import { SearchResults } from "@/components/SearchResults";
@@ -38,7 +38,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
-
 
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -78,7 +77,6 @@ function AppContent() {
     },
     [setLocation],
   );
-
 
   // Auto-sélection véhicule via URL (admin)
   React.useEffect(() => {
@@ -152,12 +150,13 @@ function AppContent() {
 */
 
   const isAdminRoute = location.startsWith("/admin");
-  const isPaymentRoute = location.startsWith("/success") || location.startsWith("/auth/callback");
-  
-  const shouldMaskHomepage = !isAdminRoute && !isPaymentRoute && (
-    loading || 
-    (user && profile?.profileCompleted !== true)
-  );
+  const isPaymentRoute =
+    location.startsWith("/success") || location.startsWith("/auth/callback");
+
+  const shouldMaskHomepage =
+    !isAdminRoute &&
+    !isPaymentRoute &&
+    (loading || (user && profile?.profileCompleted !== true));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
@@ -199,7 +198,7 @@ function AppContent() {
                       if (vehicleId && !selectedVehicle) {
                         fetch(`/api/vehicles/${vehicleId}`)
                           .then((res) => {
-                            if (!res.ok) throw new Error('Vehicle not found');
+                            if (!res.ok) throw new Error("Vehicle not found");
                             return res.json();
                           })
                           .then((vehicle) => {
@@ -211,11 +210,15 @@ function AppContent() {
                           });
                       }
                     }, [params.id]);
-                    
+
                     // Return empty div while loading
-                    return <div className="flex items-center justify-center h-screen">
-                      <div className="text-xl text-gray-600">Chargement...</div>
-                    </div>;
+                    return (
+                      <div className="flex items-center justify-center h-screen">
+                        <div className="text-xl text-gray-600">
+                          Chargement...
+                        </div>
+                      </div>
+                    );
                   }}
                 </Route>
                 <Route path="/listings">
@@ -334,7 +337,9 @@ function AppContent() {
                   <AuthCallback />
                 </Route>
                 <Route path="/subscription-purchase">
-                  <SubscriptionPurchase onBack={() => setLocation("/dashboard")} />
+                  <SubscriptionPurchase
+                    onBack={() => setLocation("/dashboard")}
+                  />
                 </Route>
                 <Route path="/subscription-settings">
                   <SubscriptionSettings />
@@ -350,12 +355,9 @@ function AppContent() {
       )}
 
       <UnifiedAuthModal />
-      
+
       {/* ✅ Système d'onboarding V2 */}
-      <OnboardingEntry 
-        user={profile} 
-        isEnabled={true}
-      />
+      <OnboardingEntry user={profile} isEnabled={true} />
 
       {/* Modal création annonce */}
       <DraggableModal

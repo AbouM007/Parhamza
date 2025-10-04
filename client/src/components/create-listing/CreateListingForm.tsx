@@ -8,20 +8,13 @@ import {
   X,
   EyeOff,
 } from "lucide-react";
-import { ImageUploader } from "./ImageUploader";
-import { PremiumPackSelector } from "./PremiumPackSelector";
-import { PremiumPayment } from "./PremiumPayment";
-import { PublishSuccessModal } from "./PublishSuccessModal";
-import { BoostModal } from "./BoostModal";
-import { AddressInput } from "./AddressInput";
-import { CategoryStep } from "./create-listing/CategoryStep";
-import {
-  ListingTypeStep,
-  ListingTypeValue,
-} from "./create-listing/ListingTypeStep";
-import { VehicleDetailsStep } from "./create-listing/VehicleDetailsStep";
-import { PlateBlurModal } from "./PlateBlurModal";
-import { PREMIUM_PACKS } from "@/types/premium";
+import { PublishSuccessModal } from "../PublishSuccessModal";
+import { BoostModal } from "../BoostModal";
+import { AddressInput } from "../AddressInput";
+import { CategoryStep } from "./CategoryStep";
+import { ListingTypeStep, ListingTypeValue } from "./ListingTypeStep";
+import { VehicleDetailsStep } from "./VehicleDetailsStep";
+import { PlateBlurModal } from "../PlateBlurModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
