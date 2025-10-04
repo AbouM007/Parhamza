@@ -1,6 +1,7 @@
 # 🌱 Environnements
 .env
 .env.*
+.replit
 
 # 📦 Dépendances & builds
 node_modules/

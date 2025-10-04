@@ -28,8 +28,11 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
-  server: {
-    host: "0.0.0.0",
-    allowedHosts: true,
-  },
+  server:
+    process.env.VITE_ENV === "local"
+      ? {
+          host: "0.0.0.0", // Utile sur PC ou Docker
+          allowedHosts: true,
+        }
+      : {}, // Replit, Netlify, Vercel… -> config par défaut
 });
