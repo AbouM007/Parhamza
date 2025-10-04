@@ -883,6 +883,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 severity: formData.specificDetails.damageSeverity || "",
               }
             : null,
+        compatibilityTags:
+          isPiecePart()
+            ? formData.specificDetails.compatibilityTags || []
+            : null,
         // Informations de contact spécifiques à l'annonce
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
@@ -2961,6 +2965,102 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                       <option value="grave">Graves (VEI / épave)</option>
                     </select>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Section compatibilités pour pièces détachées */}
+            {isPiecePart() && (
+              <div className="space-y-6 mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <span className="text-2xl mr-2">🔧</span>
+                    Compatibilités de la pièce
+                  </h3>
+
+                  <p className="text-sm text-gray-600 mb-4">
+                    Indiquez avec quels véhicules cette pièce est compatible
+                    (marques, modèles, motorisations...)
+                  </p>
+
+                  {/* Input de recherche avec suggestions */}
+                  <div className="mb-4 relative">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Ajouter une compatibilité
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={compatibilitySearch}
+                        onChange={(e) => {
+                          setCompatibilitySearch(e.target.value);
+                          setShowCompatibilitySuggestions(
+                            e.target.value.length > 0
+                          );
+                        }}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === "Enter" &&
+                            compatibilitySearch.trim()
+                          ) {
+                            e.preventDefault();
+                            addCompatibilityTag(compatibilitySearch.trim());
+                          }
+                        }}
+                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                        placeholder="Ex: Renault Clio, BMW Série 3, Moteur 1.6 HDI..."
+                      />
+                      <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    </div>
+
+                    {/* Suggestions */}
+                    {showCompatibilitySuggestions &&
+                      getCompatibilitySuggestions().length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {getCompatibilitySuggestions().map(
+                            (suggestion, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => addCompatibilityTag(suggestion)}
+                                className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                              >
+                                {suggestion}
+                              </button>
+                            )
+                          )}
+                        </div>
+                      )}
+                  </div>
+
+                  {/* Tags de compatibilités sélectionnées */}
+                  {formData.specificDetails.compatibilityTags &&
+                    formData.specificDetails.compatibilityTags.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Compatibilités ajoutées
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.specificDetails.compatibilityTags.map(
+                            (tag: string, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                              >
+                                {tag}
+                                <button
+                                  type="button"
+                                  onClick={() => removeCompatibilityTag(tag)}
+                                  className="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
                 </div>
               </div>
             )}
