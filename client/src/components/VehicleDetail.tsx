@@ -183,25 +183,98 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
   const similarVehicles = getSimilarVehicles(vehicle);
 
-  // Function to find compatible spare parts for damaged vehicles
-  const getCompatibleSpareParts = (currentVehicle: Vehicle): Vehicle[] => {
+  // Function to find compatible spare parts for damaged vehicles with smart scoring
+  const getCompatibleSpareParts = (currentVehicle: Vehicle): Array<{ part: Vehicle; score: number; matchReason: string }> => {
     if (currentVehicle.condition !== "damaged") return [];
 
-    return vehicles.filter(
-      (v) =>
-        v.category === "piece-voiture" && // Only spare parts
-        v.brand === currentVehicle.brand && // Same brand
-        (v.model.toLowerCase().includes(currentVehicle.model.toLowerCase()) || // Model matches
-          v.description
-            .toLowerCase()
-            .includes(currentVehicle.model.toLowerCase()) || // Description mentions model
-          v.features?.some((feature) =>
-            feature.toLowerCase().includes(currentVehicle.model.toLowerCase()),
-          )), // Features mention model
-    );
+    // Determine the spare parts category based on vehicle category
+    const sparePartsCategory = 
+      currentVehicle.category === "moto" || currentVehicle.category === "scooter" || currentVehicle.category === "quad"
+        ? "piece-moto"
+        : "piece-voiture";
+
+    // Build search terms from the current vehicle
+    const vehicleBrand = currentVehicle.brand.toLowerCase();
+    const vehicleModel = currentVehicle.model.toLowerCase();
+    const vehicleFullName = `${vehicleBrand} ${vehicleModel}`;
+
+    const scoredParts = vehicles
+      .filter((v) => v.category === sparePartsCategory)
+      .map((part) => {
+        let score = 0;
+        let matchReasons: string[] = [];
+
+        // SCORING SYSTEM:
+        
+        // 1. Compatibility Tags (highest priority) - Check if tags explicitly mention this vehicle
+        if (part.compatibilityTags && part.compatibilityTags.length > 0) {
+          part.compatibilityTags.forEach((tag) => {
+            const tagLower = tag.toLowerCase();
+            
+            // Exact match with full vehicle name
+            if (tagLower === vehicleFullName) {
+              score += 15;
+              matchReasons.push(tag);
+            }
+            // Tag contains both brand and model
+            else if (tagLower.includes(vehicleBrand) && tagLower.includes(vehicleModel)) {
+              score += 12;
+              matchReasons.push(tag);
+            }
+            // Tag contains the model
+            else if (tagLower.includes(vehicleModel)) {
+              score += 8;
+              matchReasons.push(tag);
+            }
+            // Tag contains the brand
+            else if (tagLower.includes(vehicleBrand)) {
+              score += 5;
+              matchReasons.push(tag);
+            }
+          });
+        }
+
+        // 2. Brand match (important but less than tags)
+        if (part.brand.toLowerCase() === vehicleBrand) {
+          score += 4;
+        }
+
+        // 3. Model mentioned in title
+        if (part.title.toLowerCase().includes(vehicleModel)) {
+          score += 3;
+        }
+
+        // 4. Model mentioned in description
+        if (part.description.toLowerCase().includes(vehicleModel)) {
+          score += 2;
+        }
+
+        // 5. Model mentioned in features
+        if (part.features?.some((feature) => feature.toLowerCase().includes(vehicleModel))) {
+          score += 2;
+        }
+
+        // Only return parts with score > 0 (at least some compatibility)
+        if (score > 0) {
+          const matchReason = matchReasons.length > 0 
+            ? `Compatible : ${matchReasons[0]}` 
+            : part.brand === currentVehicle.brand 
+              ? `Compatible : ${part.brand}`
+              : "Compatible";
+          
+          return { part, score, matchReason };
+        }
+        return null;
+      })
+      .filter((item): item is { part: Vehicle; score: number; matchReason: string } => item !== null)
+      .sort((a, b) => b.score - a.score) // Sort by score (highest first)
+      .slice(0, 12); // Limit to top 12 results
+
+    return scoredParts;
   };
 
-  const compatibleParts = getCompatibleSpareParts(vehicle);
+  const compatiblePartsWithScore = getCompatibleSpareParts(vehicle);
+  const compatibleParts = compatiblePartsWithScore.map(item => item.part);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -828,11 +901,23 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {compatibleParts.map((part) => (
+              {compatiblePartsWithScore.map(({ part, score, matchReason }) => (
                 <div
                   key={part.id}
-                  className="bg-white rounded-lg shadow-md border border-gray-200 p-4"
+                  className="bg-white rounded-lg shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => {
+                    // Navigate to the spare part listing
+                    window.open(`/vehicle/${part.id}`, '_blank');
+                  }}
                 >
+                  {/* Compatibility Badge */}
+                  <div className="mb-3">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      {matchReason}
+                    </span>
+                  </div>
+
                   <h3 className="font-semibold text-base text-gray-900 mb-2">
                     {part.title}
                   </h3>
