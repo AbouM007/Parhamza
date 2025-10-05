@@ -215,7 +215,6 @@ export const Header: React.FC<HeaderProps> = ({
     { id: "moto-scooter-quad", label: "Motos, Scooters, Quads" },
     { id: "nautisme-sport-aerien", label: "Nautisme, Sport et Plein air" },
     { id: "services", label: "Services" },
-    { id: "pieces", label: "Pièces détachées" },
   ];
 
   return (
