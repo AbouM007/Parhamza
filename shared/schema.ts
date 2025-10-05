@@ -81,6 +81,8 @@ export const annonces = pgTable("annonces", {
   contactEmail: text("contact_email"),
   contactWhatsapp: text("contact_whatsapp"),
   hidePhone: boolean("hide_phone").default(false),
+  hideWhatsapp: boolean("hide_whatsapp").default(false),
+  hideMessages: boolean("hide_messages").default(false),
   isActive: boolean("is_active").default(true),
   deletedAt: timestamp("deleted_at"),
   deletionReason: text("deletion_reason"),

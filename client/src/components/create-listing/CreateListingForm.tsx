@@ -906,7 +906,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         contactEmail: formData.contact.email || "",
         contactWhatsapp: formData.contact.whatsapp || "",
         hidePhone: !formData.contact.showPhone,
-        //hidePhone: formData.contact.hidePhone || false,
+        hideWhatsapp: !formData.contact.showWhatsapp,
+        hideMessages: !formData.contact.showInternal,
         isPremium: false,
         status: "draft", // Initialement en brouillon
         listingType: formData.listingType || "sale",

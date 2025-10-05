@@ -72,6 +72,8 @@ export interface Vehicle {
   contactEmail?: string | null;
   contactWhatsapp?: string | null;
   hidePhone?: boolean;
+  hideWhatsapp?: boolean;
+  hideMessages?: boolean;
   // Informations de suppression
   deletedAt?: Date | null;
   deletionReason?: string | null;

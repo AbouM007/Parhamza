@@ -166,6 +166,8 @@ function transformVehicleFromSupabase(vehicleRow: any): any {
     contactEmail: vehicleRow.contact_email || null,
     contactWhatsapp: vehicleRow.contact_whatsapp || null,
     hidePhone: vehicleRow.hide_phone || false,
+    hideWhatsapp: vehicleRow.hide_whatsapp || false,
+    hideMessages: vehicleRow.hide_messages || false,
     isPremium: vehicleRow.is_premium,
     premiumType: vehicleRow.premium_type,
     premiumExpiresAt: vehicleRow.premium_expires_at
@@ -648,6 +650,10 @@ export class SupabaseStorage implements IStorage {
       annonceData.contact_whatsapp = (cleanVehicle as any).contactWhatsapp;
     if ((cleanVehicle as any).hidePhone !== undefined)
       annonceData.hide_phone = (cleanVehicle as any).hidePhone;
+    if ((cleanVehicle as any).hideWhatsapp !== undefined)
+      annonceData.hide_whatsapp = (cleanVehicle as any).hideWhatsapp;
+    if ((cleanVehicle as any).hideMessages !== undefined)
+      annonceData.hide_messages = (cleanVehicle as any).hideMessages;
 
     if (cleanVehicle.premiumType)
       annonceData.premium_type = cleanVehicle.premiumType;
@@ -716,6 +722,8 @@ export class SupabaseStorage implements IStorage {
       contactEmail: data.contact_email || null,
       contactWhatsapp: data.contact_whatsapp || null,
       hidePhone: data.hide_phone || false,
+      hideWhatsapp: data.hide_whatsapp || false,
+      hideMessages: data.hide_messages || false,
       isPremium: data.is_premium,
       premiumType: data.premium_type,
       premiumExpiresAt: data.premium_expires_at
@@ -1123,6 +1131,8 @@ export class SupabaseStorage implements IStorage {
         contactEmail: null,
         contactWhatsapp: null,
         hidePhone: false,
+        hideWhatsapp: false,
+        hideMessages: false,
         isPremium: annonce.is_premium || false,
         premiumType: annonce.premium_type,
         createdAt: annonce.created_at,
@@ -1520,6 +1530,8 @@ export class SupabaseStorage implements IStorage {
           contactEmail: vehicle.contact_email || null,
           contactWhatsapp: vehicle.contact_whatsapp || null,
           hidePhone: vehicle.hide_phone || false,
+          hideWhatsapp: vehicle.hide_whatsapp || false,
+          hideMessages: vehicle.hide_messages || false,
           isPremium: vehicle.is_premium,
           premiumType: vehicle.premium_type,
           premiumExpiresAt: vehicle.premium_expires_at

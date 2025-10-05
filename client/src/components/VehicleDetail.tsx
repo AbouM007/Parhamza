@@ -792,28 +792,33 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
               {/* Contact Actions */}
               <div className="space-y-3">
-                <button
-                  onClick={() => setShowContactInfo(!showContactInfo)}
-                  className="w-full bg-primary-bolt-500 text-white py-3 px-4 rounded-xl hover:bg-primary-bolt-600 transition-colors font-semibold flex items-center justify-center space-x-2"
-                >
-                  <Phone className="h-5 w-5" />
-                  <span>Voir le téléphone</span>
-                </button>
+                {/* Bouton téléphone - Masqué si hidePhone = true */}
+                {!vehicle.hidePhone && (
+                  <>
+                    <button
+                      onClick={() => setShowContactInfo(!showContactInfo)}
+                      className="w-full bg-primary-bolt-500 text-white py-3 px-4 rounded-xl hover:bg-primary-bolt-600 transition-colors font-semibold flex items-center justify-center space-x-2"
+                    >
+                      <Phone className="h-5 w-5" />
+                      <span>Voir le téléphone</span>
+                    </button>
 
-                {showContactInfo &&
-                  (vehicle.contactPhone || vehicle.user?.phone) && (
-                    <div className="p-3 bg-primary-bolt-50 rounded-xl text-center">
-                      <a
-                        href={`tel:${vehicle.contactPhone || vehicle.user?.phone}`}
-                        className="text-lg font-semibold text-primary-bolt-500 hover:text-primary-bolt-600"
-                      >
-                        {vehicle.contactPhone || vehicle.user?.phone}
-                      </a>
-                    </div>
-                  )}
+                    {showContactInfo &&
+                      (vehicle.contactPhone || vehicle.user?.phone) && (
+                        <div className="p-3 bg-primary-bolt-50 rounded-xl text-center">
+                          <a
+                            href={`tel:${vehicle.contactPhone || vehicle.user?.phone}`}
+                            className="text-lg font-semibold text-primary-bolt-500 hover:text-primary-bolt-600"
+                          >
+                            {vehicle.contactPhone || vehicle.user?.phone}
+                          </a>
+                        </div>
+                      )}
+                  </>
+                )}
 
-                {/* WhatsApp Button - Mobile Only */}
-                {(vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
+                {/* WhatsApp Button - Mobile Only - Masqué si hideWhatsapp = true */}
+                {!vehicle.hideWhatsapp && (vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
                   <button
                     onClick={() => {
                       const whatsappNumber =
@@ -834,13 +839,16 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   </button>
                 )}
 
-                <button
-                  onClick={handleMessageClick}
-                  className="w-full bg-gray-600 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition-colors font-semibold flex items-center justify-center space-x-2"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  <span>Envoyer un message</span>
-                </button>
+                {/* Bouton message - Masqué si hideMessages = true */}
+                {!vehicle.hideMessages && (
+                  <button
+                    onClick={handleMessageClick}
+                    className="w-full bg-gray-600 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition-colors font-semibold flex items-center justify-center space-x-2"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    <span>Envoyer un message</span>
+                  </button>
+                )}
 
                 {/* Lien vers boutique professionnelle */}
                 {vehicle.user?.type === "professional" &&
@@ -864,8 +872,8 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
               </div>
             </div>
 
-            {/* WhatsApp Contact Component - Desktop/Tablet Only */}
-            {(vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
+            {/* WhatsApp Contact Component - Desktop/Tablet Only - Masqué si hideWhatsapp = true */}
+            {!vehicle.hideWhatsapp && (vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
               <div className="hidden md:block">
                 <WhatsAppContact
                   whatsappNumber={
