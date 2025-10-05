@@ -340,7 +340,19 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     } else if (formData.subcategory === "piece-moto-scooter") {
       brandsToSearch = brandsByVehicleType.moto || [];
     } else if (formData.subcategory === "piece-quad") {
-      brandsToSearch = brandsByVehicleType.moto || []; // Les quads partagent souvent les marques moto
+      brandsToSearch = brandsByVehicleType.quad || [];
+    } else if (formData.subcategory === "piece-jetski-bateau") {
+      brandsToSearch = [
+        ...(brandsByVehicleType.jetski || []),
+        ...(brandsByVehicleType.bateau || []),
+      ];
+    } else if (formData.subcategory === "piece-caravane-remorque") {
+      brandsToSearch = [
+        ...(brandsByVehicleType.caravane || []),
+        ...(brandsByVehicleType.remorque || []),
+      ];
+    } else if (formData.subcategory === "piece-aerien") {
+      brandsToSearch = brandsByVehicleType.aerien || [];
     } else {
       // Pour autres catégories de pièces, on prend toutes les marques
       brandsToSearch = [

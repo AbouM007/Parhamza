@@ -7,6 +7,7 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-05**: Fixed compatibility brand filtering for spare parts (piece-jetski-bateau, piece-caravane-remorque, piece-aerien) in CreateListingForm
 - **2025-10-05**: Unified all tab colors to use primary-bolt-500 for consistency with site color scheme
 - **2025-10-05**: Harmonized tab design across all categorized views (DamagedVehiclesTabs, SparePartsTabs, ServicesTabs)
 - **2025-10-05**: Updated tabs to use modern rounded button style with consistent active/inactive states
