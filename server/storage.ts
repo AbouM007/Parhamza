@@ -503,7 +503,7 @@ export class SupabaseStorage implements IStorage {
         .eq("status", "approved")
         .neq("is_active", false)
         .is("deleted_at", null)
-        .order("is_boosted", { ascending: false })
+        .order("boosted_until", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false });
 
       if (error) {
