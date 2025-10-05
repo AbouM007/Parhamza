@@ -7,6 +7,10 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-05**: Implemented complete contact privacy system with hide_whatsapp and hide_messages fields (schema, backend, frontend)
+- **2025-10-05**: Updated VehicleDetail to conditionally display WhatsApp button and Message button based on privacy preferences
+- **2025-10-05**: Added hideWhatsapp and hideMessages to Vehicle type in types/index.ts for full type safety
+- **2025-10-05**: Modified CreateListingForm to send privacy preferences (inverted logic: unchecked = hide true)
 - **2025-10-05**: Cleaned up mockData.ts by removing empty `brands` export and updated SearchFilters.tsx to use dynamic brand extraction from vehicle data
 - **2025-10-05**: Completed implementation of adaptive search filters in both SearchFilters.tsx (sidebar) and SearchPage.tsx ("Filtres avancés" section) with full filtering logic
 - **2025-10-05**: Added 7 new optional fields to Vehicle type: transmission, engineSize, vehicleType, length, serviceType, serviceZone, partCategory
