@@ -1,97 +1,7 @@
 # PassionAuto2Roues - Marketplace Automobile
 
 ## Overview
-PassionAuto2Roues is an online marketplace for buying and selling used vehicles, damaged vehicles, and automotive spare parts. It caters to both individual users and professional sellers, featuring a subscription-based monetization model, premium listings, and a verification system. The platform offers integrated messaging, payment processing, and user management.
-
-## Recent Changes
-**October 5, 2025 - Compatibility Tags Feature**
-- **New Feature**: Added compatibility tags system for spare parts listings
-  - Database: Created `compatibility_tags` column (text[]) in annonces table via SQL
-  - Schema: Added `compatibilityTags: text("compatibility_tags").array()` to Drizzle schema (shared/schema.ts)
-  - Backend: Created `validateCompatibilityTags()` helper function in storage.ts following same pattern as damageDetails
-  - Backend: Added snake_case ↔ camelCase mapping in all vehicle transformations (createVehicle, updateVehicle, getAllVehicles, etc.)
-  - Frontend: Added `compatibilityTags?: string[]` to Vehicle interface (client/src/types/index.ts)
-  - Frontend: Implemented blue-styled compatibility tags display in VehicleDetail.tsx
-  - Display: Tags shown as blue badges below damage details section, using same UX pattern
-  - Naming convention: Consistent use of snake_case in database, camelCase in TypeScript code
-  - **Form Integration**: Compatibility tags field already implemented in CreateListingForm.tsx with:
-    - Auto-suggestions based on vehicle type (voiture/moto brands and models)
-    - Search input with intelligent filtering
-    - Tag management (add/remove with blue badges)
-    - Integration in "Description détaillée" step for spare parts
-- **Smart Matching System**: Enhanced spare parts compatibility for damaged vehicles
-  - **Intelligent Scoring**: Priority given to compatibility tags (15 pts exact match, 12 pts partial, 8 pts model, 5 pts brand)
-  - **Auto-Detection**: Automatically detects vehicle type (voiture/moto) to search correct spare parts category
-  - **Visual Feedback**: Blue compatibility badges on spare part cards showing match reason (e.g., "Compatible : Renault Clio")
-  - **Sorted Results**: Top 12 most relevant parts sorted by compatibility score
-  - **UX Enhancement**: Clickable spare part cards open in new tab, hover effects for better interaction
-  - Architecture review: Validated by architect - scoring logic sound, badge improves transparency, type safety preserved
-
-**October 4, 2025 - Replit Environment Setup**
-- Successfully configured the project to run in the Replit environment
-- **Critical Fix**: Added `allowedHosts: true as const` to both `vite.config.ts` and `server/vite.ts` to resolve "Blocked request" error in Replit preview
-  - This allows the Replit proxy domains to access the development server
-  - Fixed TypeScript error by using `as const` type assertion for proper type narrowing
-- Configured development workflow: `npm run dev` running on port 5000 with webview output
-- Configured deployment settings: autoscale deployment with build and start commands
-- Verified application is running correctly with Supabase backend integration
-- All environment variables properly configured (DATABASE_URL, SUPABASE, STRIPE)
-- Build process verified and working (vite build + esbuild for server)
-- Note: Application has existing non-critical warning about missing `is_boosted` column, but includes fallback handling
-
-**October 2025**
-- Implemented subscription management with cancel/reactivate functionality
-- Added PremiumSection component to dashboard displaying subscription plans
-- Integrated PlanSelector component in compact mode for Premium tab
-- Fixed component export patterns (named exports) to match app architecture
-- Enhanced Premium dashboard with subscription plans and boost options display
-- **Bug Fix**: Fixed subscription status detection for all user types - PlanSelector now correctly retrieves and displays current subscription for both "individual" and "professional" users (previously only worked for professionals)
-- **Feature**: Added purchase restriction when user has active subscription - displays alert message and disables all plan purchase buttons until current subscription is cancelled
-- **Bug Fix**: Fixed blank page after Stripe payment - payment success routes (`/success`, `/success-boost`, `/auth/callback`) now bypass profile completion check, allowing proper redirect after professional account creation
-- **Bug Fix**: Corrected Stripe cancel URL from non-existent `/plans` to `/dashboard`
-- **Bug Fix**: Fixed damaged vehicle details display - `damageDetails` now properly retrieved and displayed in vehicle detail view
-  - Root cause: `damageDetails` transformation in storage.ts used `||` operator which incorrectly treated Supabase native JSON objects as falsy
-  - Solution: Changed transformation from `damage_details || undefined` to `damage_details ?? undefined` in all 5 transformation methods (getVehicle, getVehicleWithUser, getAllVehicles, getVehiclesByUser, getUserVehicles)
-  - This follows the working pattern used for the `features` field and preserves Supabase JSON payloads even when empty objects are returned
-  - Added missing TypeScript properties to client-side Vehicle type: listingType, contactPhone, contactEmail, contactWhatsapp, hidePhone, deletedAt, deletionReason, deletionComment
-  - Added `isServiceCategory()` helper function in VehicleDetail.tsx to properly check if a subcategory is a service (fixes TypeScript comparison warnings)
-  - Reduced TypeScript errors from 13 to 0 in VehicleDetail.tsx
-  - Created dedicated damage information section in VehicleDetail.tsx with French translations
-  - Section displays: damage types (list), mechanical state (with wrench icon), and severity (color-coded badges: yellow=léger, orange=moyen, red=grave)
-  - Fixed condition check to accept both "accidente" (frontend value) and "damaged" (backend cast) for compatibility
-  - Complete round-trip persistence now working: form → database → detail view
-  - **Additional Fix**: Added `validateDamageDetails()` helper function to filter empty objects `{}` that Supabase can return for JSONB fields
-    - Problem: Empty objects pass `?? undefined` check but have no valid properties, causing nothing to display
-    - Solution: Validates that damageDetails contains at least one valid property (damageTypes, mechanicalState, severity) before accepting
-    - Applied to all 5 transformation methods (getVehicle, getAllVehicles, getVehiclesByUser, getDeletedVehiclesByUser, createVehicle)
-    - Verified with API tests: annonces 127, 128, 129 all correctly return valid damageDetails
-  - **Critical Fix**: Added missing `/vehicle/:id` route in App.tsx for direct vehicle access via URL
-    - Problem: App had no route defined for `/vehicle/:id`, causing blank pages when accessing vehicles directly
-    - Solution: Added route that fetches vehicle from API and sets selectedVehicle state
-    - Impact: Users can now share and access vehicle listings via direct URLs (e.g., `/vehicle/127`)
-    - Complete fix validated: All damaged vehicle listings now display damage details correctly (screenshots + API + browser logs confirmed)
-  - **UX Enhancement**: Refactored damage details section to always display for damaged vehicles
-    - Problem: Section was hidden when damageDetails was empty/undefined, creating inconsistent UI
-    - Solution: Extracted safe variables (damageTypes, mechanicalState, severity) with optional chaining before JSX render
-    - Added `hasDamageInfo` flag to conditionally display either detailed info or "Aucune information disponible" message
-    - Impact: Orange damage section now ALWAYS visible for all damaged vehicles, with graceful fallback when data is missing
-    - Code quality: Eliminated TypeScript errors, removed redundant fallback block, improved maintainability
-- **Major Refactoring**: Eliminated code duplication in storage.ts data transformations (October 2025)
-  - **Problem**: 225+ lines of duplicate transformation code across 5 methods (getAllVehicles, getVehiclesByUser, getDeletedVehiclesByUser, getVehicle, getVehicleWithUser)
-  - **Solution**: Created reusable helper functions
-    - `transformUserFromSupabase()`: Transforms Supabase user data to User type (handles snake_case → camelCase conversion, date parsing, type safety)
-    - `transformVehicleFromSupabase()`: Transforms Supabase vehicle data to Vehicle type (includes damageDetails validation, user transformation, all 34 vehicle properties)
-  - **TypeScript Fixes**: Resolved all 34 TypeScript errors in storage.ts
-    - Added explicit type annotations for arrays (never[] errors): `favorites: Vehicle[]`, `transactions: any[]`, `subscriptionHistory: any[]`
-    - Added missing properties: priorityScore, professionalAccountId, damageDetails to all vehicle transformations
-    - Used double type assertions (`as unknown as Vehicle[]`) for complex type conversions where needed
-    - Fixed getUserFavorites return type and getAllVehiclesAdmin transformation
-  - **Code Quality Impact**:
-    - Reduced storage.ts from ~225 lines of duplicate code to 2 concise helper functions
-    - Improved maintainability: Changes to transformation logic now only need to be made in one place
-    - Enhanced type safety: All transformations now consistently handle all required properties
-    - Zero TypeScript errors: Verified with LSP diagnostics
-  - **Testing**: Confirmed all vehicle listings display correctly, including damage details for damaged vehicles
+PassionAuto2Roues is an online marketplace for buying and selling used vehicles, damaged vehicles, and automotive spare parts. It aims to connect individual users and professional sellers, offering a subscription-based monetization model, premium listing options, and a verification system. The platform includes integrated messaging, secure payment processing, and comprehensive user management. The project's ambition is to become a leading platform in the used vehicle and spare parts market.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -100,10 +10,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend
 - **Framework**: React 18 + TypeScript with Vite.
-- **UI/Styling**: Radix UI primitives, TailwindCSS, shadcn/ui design system.
+- **UI/Styling**: Radix UI primitives, TailwindCSS, shadcn/ui design system, responsive layouts.
 - **State Management**: TanStack Query for server state and caching.
 - **Routing**: Wouter.
 - **Form Handling**: React Hook Form with Zod validation.
+- **UI/UX Decisions**: Consistent design language, intuitive user flows for listing creation, messaging, and subscription management.
 
 ### Backend
 - **Framework**: Node.js + Express with TypeScript.
@@ -111,36 +22,33 @@ Preferred communication style: Simple, everyday language.
 - **API**: RESTful API.
 - **File Upload**: Multer for multipart/form-data, Sharp for image optimization.
 - **Authentication**: Supabase Auth for session management.
+- **Core Features**:
+    - **Listing Management**: Creation, display, and deletion of vehicle and spare parts listings.
+    - **Compatibility Tags**: System for spare parts listings with auto-suggestions and intelligent matching for damaged vehicles based on a scoring system.
+    - **Subscription Management**: Handling of user subscriptions (cancel/reactivate), professional account verification, and premium features (listing boosts).
+    - **Messaging**: Integrated messaging system.
+    - **Search & Filters**: Advanced search capabilities for listings.
+    - **Data Transformation**: Reusable helper functions for transforming Supabase data (e.g., `transformVehicleFromSupabase`) to ensure type safety and reduce duplication.
+    - **Category Restructuring**: Specific categories for spare parts to ensure precise vehicle-to-parts matching.
 
 ### Database
 - **Type**: PostgreSQL hosted on Supabase.
 - **Schema Management**: Drizzle migrations.
 - **Key Entities**: Users, Vehicle Listings (`annonces`), Messages, Wishlists, Subscription Plans.
 - **Relationships**: Foreign key constraints with cascade deletes.
+- **Security**: Supabase Row Level Security (RLS).
 
 ### Authentication & Authorization
 - **Provider**: Supabase Auth (registration, login, session management).
 - **Social Login**: Google OAuth.
 - **User Roles**: Individual, Professional, Admin.
 - **Verification**: Manual verification for professional accounts.
-- **Security**: Supabase Row Level Security (RLS).
 
 ### Storage & Media
 - **Storage**: Supabase Storage for images and avatars.
 - **Image Processing**: Sharp for optimization and resizing.
 - **CDN**: Supabase CDN.
 - **Constraints**: 5MB file size limit, MIME type validation.
-
-### Business Logic
-- **Listing Quotas**: Free listings for individuals, subscription-based for professionals.
-- **Premium Listings**: Boost system for enhanced visibility.
-- **Messaging**: Real-time messaging with vehicle context.
-- **Search & Filters**: Advanced search capabilities.
-
-### UI/UX Decisions
-- Consistent design language using shadcn/ui.
-- Responsive layouts for various devices.
-- Clear and intuitive user flows for listing creation, messaging, and subscription management.
 
 ## External Dependencies
 
@@ -161,6 +69,7 @@ Preferred communication style: Simple, everyday language.
 ### Image & Media Processing
 - **Sharp**: Server-side image manipulation.
 - **Multer**: File upload handling.
+- **Fabric.js**: Client-side canvas manipulation for image masking.
 
 ### Utilities & Libraries
 - **React Query**: Server state management.
@@ -168,4 +77,3 @@ Preferred communication style: Simple, everyday language.
 - **date-fns**: Date manipulation.
 - **uuid**: Unique identifier generation.
 - **class-variance-authority**: Conditional CSS classes.
-- **Fabric.js**: Client-side canvas manipulation for image masking.
