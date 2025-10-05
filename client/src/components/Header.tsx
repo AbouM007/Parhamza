@@ -198,6 +198,17 @@ export const Header: React.FC<HeaderProps> = ({
     setOpenDropdown(null); // Fermer le dropdown après clic
   };
 
+  const handleServicesClick = () => {
+    setActiveCategory(""); // Désactiver le soulignement des catégories principales
+    setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
+    setSearchFilters({
+      viewMode: "categorized-services",
+    });
+    setCurrentView("listings");
+    setMobileMenuOpen(false);
+    setOpenDropdown(null); // Fermer le dropdown après clic
+  };
+
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
     setMobileMenuOpen(false);
@@ -214,7 +225,6 @@ export const Header: React.FC<HeaderProps> = ({
     { id: "voiture-utilitaire", label: "Voitures - Utilitaires" },
     { id: "moto-scooter-quad", label: "Motos, Scooters, Quads" },
     { id: "nautisme-sport-aerien", label: "Nautisme, Sport et Plein air" },
-    { id: "services", label: "Services" },
   ];
 
   return (
@@ -403,6 +413,18 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             ))}
 
+            {/* Séparateur avant Services */}
+            <span className="text-gray-300 text-sm">•</span>
+
+            {/* Bouton Services */}
+            <button
+              onClick={handleServicesClick}
+              className="text-gray-700 text-sm hover:text-primary-bolt-500 transition-all duration-200 py-2 cursor-pointer"
+              data-testid="button-services"
+            >
+              Services
+            </button>
+
             {/* Séparateur avant Pièces détachées */}
             <span className="text-gray-300 text-sm">•</span>
 
@@ -508,8 +530,15 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mobile Bouton Pièces détachées & Véhicules Accidentés */}
+            {/* Mobile Boutons Services, Pièces détachées & Véhicules Accidentés */}
             <div className="border-t border-gray-200 pt-4 space-y-2">
+              <button
+                onClick={handleServicesClick}
+                className="w-full bg-black hover:bg-gray-800 text-green-500 hover:text-green-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                data-testid="button-services-mobile"
+              >
+                Services
+              </button>
               <button
                 onClick={handleSparePartsClick}
                 className="w-full bg-black hover:bg-gray-800 text-blue-500 hover:text-blue-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
