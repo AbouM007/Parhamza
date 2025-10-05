@@ -187,6 +187,18 @@ export const Header: React.FC<HeaderProps> = ({
     setOpenDropdown(null); // Fermer le dropdown après clic
   };
 
+  const handleSparePartsClick = () => {
+    setActiveCategory(""); // Désactiver le soulignement des catégories principales
+    setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
+    setSearchFilters({
+      category: "pieces",
+      viewMode: "categorized-parts",
+    });
+    setCurrentView("listings");
+    setMobileMenuOpen(false);
+    setOpenDropdown(null); // Fermer le dropdown après clic
+  };
+
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
     setMobileMenuOpen(false);
@@ -400,8 +412,21 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={handleDamagedVehiclesClick}
               className="text-gray-800 font-bold text-sm hover:text-gray-900 transition-colors duration-200"
+              data-testid="button-damaged-vehicles"
             >
               Accidentés
+            </button>
+
+            {/* Séparateur avant Pièces détachées */}
+            <span className="text-gray-300 text-sm">•</span>
+
+            {/* Bouton Pièces détachées */}
+            <button
+              onClick={handleSparePartsClick}
+              className="text-gray-800 font-bold text-sm hover:text-gray-900 transition-colors duration-200"
+              data-testid="button-spare-parts"
+            >
+              Pièces détachées
             </button>
           </div>
         </div>
@@ -485,13 +510,21 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mobile Bouton Véhicules Accidentés */}
-            <div className="border-t border-gray-200 pt-4">
+            {/* Mobile Bouton Véhicules Accidentés & Pièces détachées */}
+            <div className="border-t border-gray-200 pt-4 space-y-2">
               <button
                 onClick={handleDamagedVehiclesClick}
                 className="w-full bg-black hover:bg-gray-800 text-orange-500 hover:text-orange-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                data-testid="button-damaged-vehicles-mobile"
               >
                 Accidentés
+              </button>
+              <button
+                onClick={handleSparePartsClick}
+                className="w-full bg-black hover:bg-gray-800 text-blue-500 hover:text-blue-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                data-testid="button-spare-parts-mobile"
+              >
+                Pièces détachées
               </button>
             </div>
 

@@ -5,6 +5,7 @@ import { VehicleCard } from "./VehicleCard";
 import { SearchFilters } from "./SearchFilters";
 import { VehicleDetail } from "./VehicleDetail";
 import { DamagedVehiclesTabs } from "./DamagedVehiclesTabs";
+import { SparePartsTabs } from "./SparePartsTabs";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 
 export const VehicleListings: React.FC = () => {
@@ -22,6 +23,9 @@ export const VehicleListings: React.FC = () => {
   const showCategorizedView =
     searchFilters.condition === "damaged" &&
     searchFilters.viewMode === "categorized";
+
+  // Vérifier si on doit afficher la vue avec onglets pour pièces détachées
+  const showSparePartsView = searchFilters.viewMode === "categorized-parts";
 
   // Scroll to top when component mounts or when filters change
   useEffect(() => {
@@ -109,6 +113,37 @@ export const VehicleListings: React.FC = () => {
         </div>
 
         {/* Modal de détail du véhicule */}
+        {selectedVehicle && (
+          <VehicleDetail
+            vehicle={selectedVehicle}
+            onBack={() => setSelectedVehicle(null)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Vue avec onglets pour pièces détachées
+  if (showSparePartsView) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Pièces détachées
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Trouvez les pièces compatibles avec votre véhicule
+            </p>
+          </div>
+
+          <SparePartsTabs
+            vehicles={filteredVehicles}
+            onVehicleClick={setSelectedVehicle}
+          />
+        </div>
+
+        {/* Modal de détail de la pièce */}
         {selectedVehicle && (
           <VehicleDetail
             vehicle={selectedVehicle}
