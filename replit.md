@@ -7,6 +7,7 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-05**: Cleaned up mockData.ts by removing empty `brands` export and updated SearchFilters.tsx to use dynamic brand extraction from vehicle data
 - **2025-10-05**: Completed implementation of adaptive search filters in both SearchFilters.tsx (sidebar) and SearchPage.tsx ("Filtres avancés" section) with full filtering logic
 - **2025-10-05**: Added 7 new optional fields to Vehicle type: transmission, engineSize, vehicleType, length, serviceType, serviceZone, partCategory
 - **2025-10-05**: Implemented comprehensive adaptive search filter system with proper category-specific visibility and numeric value normalization

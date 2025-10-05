@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Filter, X, ChevronDown, RotateCcw } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { brands, fuelTypes, conditions, categories, carModelsByBrand, brandsByVehicleType } from "@/utils/mockData";
+import { fuelTypes, conditions, categories, carModelsByBrand, brandsByVehicleType } from "@/utils/mockData";
 import { VEHICLE_TYPES, TRANSMISSION_TYPES, SERVICE_TYPES, PART_CATEGORIES } from "@/data/vehicle";
 
 interface SearchFiltersProps {
@@ -83,7 +83,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
   // Obtenir les marques disponibles selon la catégorie active et la sous-catégorie sélectionnée
   const availableBrands = useMemo(() => {
-    if (!searchFilters.category) return brands;
+    if (!searchFilters.category) return [];
 
     // Obtenir les sous-catégories concernées
     let relevantSubcategories: string[] = [];

@@ -1,5 +1,5 @@
 import { User, Vehicle, PremiumOption } from '@/types';
-
+/*
 export const mockUsers: User[] = [
   {
     id: 'demo',
@@ -1417,10 +1417,7 @@ export const premiumOptions: PremiumOption[] = [
     features: ['10 annonces mises en avant', 'Statistiques avancées', 'Support prioritaire'],
   },
 ];
-
-export const brands = [
-  // Cette liste est maintenant remplacée par des listes spécifiques par type de véhicule
-];
+*/
 
 // Marques par type de véhicule
 export const brandsByVehicleType = {
