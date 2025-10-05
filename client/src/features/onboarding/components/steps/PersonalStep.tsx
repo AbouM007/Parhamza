@@ -36,7 +36,7 @@ export const PersonalStep = ({
   const { refreshProfile } = useAuth();
   const [, setLocation] = useLocation();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [sameAsPhone, setSameAsPhone] = useState(true);
+  const [sameAsPhone, setSameAsPhone] = useState(false);
 
   const form = useForm<PersonalProfileData>({
     resolver: zodResolver(personalProfileSchema),
@@ -165,11 +165,9 @@ export const PersonalStep = ({
             label="Adresse de résidence"
             required
           />
-        </div>
 
-        {/* WhatsApp optionnel */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2">
+          {/* WhatsApp - inline avec l'adresse */}
+          <div className="flex items-center space-x-2 pt-8">
             <input
               type="checkbox"
               id="sameAsPhone"
@@ -181,18 +179,19 @@ export const PersonalStep = ({
               Utiliser mon numéro de téléphone pour WhatsApp
             </label>
           </div>
-
-          {!sameAsPhone && (
-            <PhoneInputComponent
-              value={form.watch("whatsapp") || ""}
-              onChange={(value) => form.setValue("whatsapp", value)}
-              label="WhatsApp (optionnel)"
-              placeholder="Numéro WhatsApp différent"
-              error={form.formState.errors.whatsapp?.message}
-              testId="input-whatsapp"
-            />
-          )}
         </div>
+
+        {/* WhatsApp différent si décoché */}
+        {!sameAsPhone && (
+          <PhoneInputComponent
+            value={form.watch("whatsapp") || ""}
+            onChange={(value) => form.setValue("whatsapp", value)}
+            label="WhatsApp (optionnel)"
+            placeholder="Numéro WhatsApp différent"
+            error={form.formState.errors.whatsapp?.message}
+            testId="input-whatsapp"
+          />
+        )}
 
         <StepButtons
           onBack={onBack}

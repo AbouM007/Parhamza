@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { useToast } from '@/hooks/use-toast';
+import { PhoneInputComponent } from "@/components/PhoneInput";
 
 // ✅ Schéma de validation pour profil professionnel
 const professionalProfileSchema = z.object({
