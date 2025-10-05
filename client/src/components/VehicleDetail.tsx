@@ -187,11 +187,21 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
   const getCompatibleSpareParts = (currentVehicle: Vehicle): Array<{ part: Vehicle; score: number; matchReason: string }> => {
     if (currentVehicle.condition !== "damaged") return [];
 
-    // Determine the spare parts category based on vehicle category
-    const sparePartsCategory = 
-      currentVehicle.category === "moto" || currentVehicle.category === "scooter" || currentVehicle.category === "quad"
-        ? "piece-moto"
-        : "piece-voiture";
+    // Precise mapping: vehicle category → compatible spare parts category
+    const vehicleToPartsMapping: Record<string, string> = {
+      "voiture": "piece-voiture-utilitaire",
+      "utilitaire": "piece-voiture-utilitaire",
+      "moto": "piece-moto-scooter",
+      "scooter": "piece-moto-scooter",
+      "quad": "piece-quad",
+      "caravane": "piece-caravane-remorque",
+      "remorque": "piece-caravane-remorque",
+      "jetski": "piece-jetski-bateau",
+      "bateau": "piece-jetski-bateau",
+      "aerien": "piece-aerien",
+    };
+
+    const sparePartsCategory = vehicleToPartsMapping[currentVehicle.category] || "autre-piece";
 
     // Build search terms from the current vehicle
     const vehicleBrand = currentVehicle.brand.toLowerCase();
