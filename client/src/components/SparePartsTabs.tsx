@@ -15,24 +15,31 @@ export const SparePartsTabs: React.FC<SparePartsTabsProps> = ({
 
   // Grouper les pièces détachées par catégorie
   const categorizedParts = useMemo(
-    () => ({
-      tous: vehicles,
-      "piece-voiture-utilitaire": vehicles.filter(
-        (v) => (v.category as string) === "piece-voiture-utilitaire",
-      ),
-      "piece-moto-scooter": vehicles.filter(
-        (v) => (v.category as string) === "piece-moto-scooter",
-      ),
-      "piece-quad": vehicles.filter((v) => (v.category as string) === "piece-quad"),
-      "piece-caravane-remorque": vehicles.filter(
-        (v) => (v.category as string) === "piece-caravane-remorque",
-      ),
-      "piece-jetski-bateau": vehicles.filter(
-        (v) => (v.category as string) === "piece-jetski-bateau",
-      ),
-      "piece-aerien": vehicles.filter((v) => (v.category as string) === "piece-aerien"),
-      "autre-piece": vehicles.filter((v) => (v.category as string) === "autre-piece"),
-    }),
+    () => {
+      // Filtrer uniquement les pièces détachées (catégories commençant par "piece-" ou égales à "autre-piece")
+      const spareParts = vehicles.filter(
+        (v) => (v.category as string).startsWith("piece-") || v.category === "autre-piece"
+      );
+      
+      return {
+        tous: spareParts,
+        "piece-voiture-utilitaire": spareParts.filter(
+          (v) => (v.category as string) === "piece-voiture-utilitaire",
+        ),
+        "piece-moto-scooter": spareParts.filter(
+          (v) => (v.category as string) === "piece-moto-scooter",
+        ),
+        "piece-quad": spareParts.filter((v) => (v.category as string) === "piece-quad"),
+        "piece-caravane-remorque": spareParts.filter(
+          (v) => (v.category as string) === "piece-caravane-remorque",
+        ),
+        "piece-jetski-bateau": spareParts.filter(
+          (v) => (v.category as string) === "piece-jetski-bateau",
+        ),
+        "piece-aerien": spareParts.filter((v) => (v.category as string) === "piece-aerien"),
+        "autre-piece": spareParts.filter((v) => (v.category as string) === "autre-piece"),
+      };
+    },
     [vehicles],
   );
 

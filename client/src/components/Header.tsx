@@ -191,7 +191,6 @@ export const Header: React.FC<HeaderProps> = ({
     setActiveCategory(""); // Désactiver le soulignement des catégories principales
     setSelectedVehicle(null); // Fermer le détail du véhicule si ouvert
     setSearchFilters({
-      category: "pieces",
       viewMode: "categorized-parts",
     });
     setCurrentView("listings");

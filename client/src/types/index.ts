@@ -96,7 +96,7 @@ export interface SearchFilters {
   condition?: string;
   location?: string;
   searchTerm?: string;
-  viewMode?: "categorized" | "standard";
+  viewMode?: "categorized" | "categorized-parts" | "standard";
   listing_type?: "sale" | "search";
   sortBy?: "date" | "price_asc" | "price_desc" | "mileage";
 }

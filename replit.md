@@ -9,8 +9,10 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 - **2025-10-05**: Added "Pièces détachées" navigation button to Header (desktop and mobile menus)
 - **2025-10-05**: Integrated SparePartsTabs component with VehicleListings for categorized spare parts view
-- **2025-10-05**: Fixed database error by changing `.order("is_boosted")` to `.order("boosted_until")` in storage.ts (is_boosted column doesn't exist)
-- **2025-10-05**: Navigation flow: "Pièces détachées" button → viewMode="categorized-parts" → SparePartsTabs display
+- **2025-10-05**: Fixed SparePartsTabs to filter only spare parts (categories starting with "piece-" or "autre-piece")
+- **2025-10-05**: Added "categorized-parts" to viewMode type definition in types/index.ts
+- **2025-10-05**: Fixed database error by changing `.order("is_boosted")` to `.order("boosted_until")` in storage.ts
+- **2025-10-05**: Navigation flow: "Pièces détachées" button → viewMode="categorized-parts" → SparePartsTabs filters and displays 15 spare parts
 
 ## System Architecture
 
