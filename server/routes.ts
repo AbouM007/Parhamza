@@ -516,6 +516,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // 💬 Gestion spécifique pour WhatsApp existant
+      if (error.message === "WHATSAPP_ALREADY_EXISTS") {
+        return res.status(409).json({
+          error: "WHATSAPP_ALREADY_EXISTS",
+          message:
+            "Ce numéro WhatsApp est déjà utilisé par un autre compte.",
+        });
+      }
+
       // 📧 Gestion spécifique pour email existant
       if (error.message === "EMAIL_ALREADY_EXISTS") {
         return res.status(409).json({
