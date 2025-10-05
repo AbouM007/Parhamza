@@ -7,6 +7,7 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-05**: Implemented adaptive search filters that dynamically show/hide fields based on category: added Model, Transmission, Engine Size, Vehicle Type, Length (boats), Service Type, Service Zone, Part Category filters
 - **2025-10-05**: Fixed compatibility brand filtering for spare parts (piece-jetski-bateau, piece-caravane-remorque, piece-aerien) in CreateListingForm
 - **2025-10-05**: Unified all tab colors to use primary-bolt-500 for consistency with site color scheme
 - **2025-10-05**: Harmonized tab design across all categorized views (DamagedVehiclesTabs, SparePartsTabs, ServicesTabs)

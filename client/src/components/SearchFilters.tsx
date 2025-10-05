@@ -138,36 +138,44 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   // Fonction pour déterminer quels filtres afficher selon la catégorie/sous-catégorie
   const getVisibleFilters = useMemo(() => {
     const subcategory = localFilters.subcategory || searchFilters.category;
+    const parentCategory = searchFilters.category;
+    
+    // Vérifier si on est dans une catégorie de services (avec ou sans sous-catégorie)
+    const isServiceCategory = ["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || "") ||
+                              (parentCategory === "services" && !localFilters.subcategory);
+    
+    // Vérifier si on est dans une catégorie de pièces détachées (avec ou sans sous-catégorie)
+    const isPartCategory = subcategory?.startsWith("piece-") || 
+                          subcategory === "autre-piece" ||
+                          (parentCategory === "pieces" && !localFilters.subcategory);
     
     return {
       // Filtres communs à tous
       price: true,
       location: true,
-      brand: true,
-      model: true,
+      brand: !isServiceCategory,
+      model: !isServiceCategory && !isPartCategory,
       
       // Filtres pour véhicules (voiture, moto, utilitaire, etc.)
-      year: !["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || "") &&
-            !subcategory?.startsWith("piece-"),
+      year: !isServiceCategory && !isPartCategory,
       mileage: ["voiture", "utilitaire", "caravane", "remorque", "moto", "scooter", "quad"].includes(subcategory || ""),
       fuelType: ["voiture", "utilitaire", "caravane", "moto", "scooter"].includes(subcategory || ""),
       transmission: ["voiture", "utilitaire", "caravane"].includes(subcategory || ""),
-      condition: !subcategory?.startsWith("piece-") && 
-                 !["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || ""),
+      condition: !isPartCategory && !isServiceCategory,
       
       // Filtres spécifiques motos/scooters
       engineSize: ["moto", "scooter"].includes(subcategory || ""),
-      vehicleType: ["voiture", "utilitaire", "moto", "scooter", "quad", "bateau", "jetski", "aerien"].includes(subcategory || ""),
+      vehicleType: ["voiture", "utilitaire", "caravane", "remorque", "moto", "scooter", "quad", "bateau", "jetski", "aerien"].includes(subcategory || ""),
       
       // Filtres spécifiques bateaux
       length: ["bateau"].includes(subcategory || ""),
       
-      // Filtres spécifiques services
-      serviceType: ["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || ""),
-      serviceZone: ["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || ""),
+      // Filtres spécifiques services (affichés aussi en mode "Tous types")
+      serviceType: isServiceCategory,
+      serviceZone: isServiceCategory,
       
-      // Filtres spécifiques pièces détachées
-      partCategory: subcategory?.startsWith("piece-") || subcategory === "autre-piece",
+      // Filtres spécifiques pièces détachées (affichés aussi en mode "Tous types")
+      partCategory: isPartCategory,
     };
   }, [localFilters.subcategory, searchFilters.category]);
 
@@ -543,6 +551,8 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
                     const typeKey = subcategory === "moto" ? "motorcycle" : 
                                    subcategory === "voiture" ? "car" :
                                    subcategory === "utilitaire" ? "utility" :
+                                   subcategory === "caravane" ? "caravan" :
+                                   subcategory === "remorque" ? "trailer" :
                                    subcategory === "bateau" ? "boat" :
                                    subcategory === "jetski" ? "jetski" :
                                    subcategory === "aerien" ? "aircraft" :
