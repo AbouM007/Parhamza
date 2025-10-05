@@ -6,6 +6,7 @@ import { SearchFilters } from "./SearchFilters";
 import { VehicleDetail } from "./VehicleDetail";
 import { DamagedVehiclesTabs } from "./DamagedVehiclesTabs";
 import { SparePartsTabs } from "./SparePartsTabs";
+import { ServicesTabs } from "./ServicesTabs";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 
 export const VehicleListings: React.FC = () => {
@@ -26,6 +27,9 @@ export const VehicleListings: React.FC = () => {
 
   // Vérifier si on doit afficher la vue avec onglets pour pièces détachées
   const showSparePartsView = searchFilters.viewMode === "categorized-parts";
+
+  // Vérifier si on doit afficher la vue avec onglets pour services
+  const showServicesView = searchFilters.viewMode === "categorized-services";
 
   // Scroll to top when component mounts or when filters change
   useEffect(() => {
@@ -144,6 +148,37 @@ export const VehicleListings: React.FC = () => {
         </div>
 
         {/* Modal de détail de la pièce */}
+        {selectedVehicle && (
+          <VehicleDetail
+            vehicle={selectedVehicle}
+            onBack={() => setSelectedVehicle(null)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Vue avec onglets pour services
+  if (showServicesView) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Services automobiles
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Trouvez les services dont vous avez besoin pour votre véhicule
+            </p>
+          </div>
+
+          <ServicesTabs
+            vehicles={filteredVehicles}
+            onVehicleClick={setSelectedVehicle}
+          />
+        </div>
+
+        {/* Modal de détail du service */}
         {selectedVehicle && (
           <VehicleDetail
             vehicle={selectedVehicle}
