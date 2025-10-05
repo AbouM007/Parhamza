@@ -6,6 +6,7 @@ import { brandsByVehicleType, getBrandsBySubcategory } from '@/utils/mockData';
 import { useSavedSearches } from '@/hooks/useSavedSearches';
 import { useAuth } from '@/contexts/AuthContext';
 import type { SearchFilters } from '@/types';
+import { VEHICLE_TYPES, TRANSMISSION_TYPES, SERVICE_TYPES, PART_CATEGORIES } from '@/data/vehicle';
 
 export const SearchPage: React.FC = () => {
   const { vehicles, searchFilters, setSearchFilters, setSelectedVehicle } = useApp();
@@ -28,7 +29,7 @@ export const SearchPage: React.FC = () => {
         { id: 'caravane', label: 'Caravanes' },
         { id: 'remorque', label: 'Remorques' }
       ],
-      supportedFilters: ['brand', 'price', 'year', 'mileage', 'fuelType', 'condition', 'location']
+      supportedFilters: ['brand', 'model', 'price', 'year', 'mileage', 'fuelType', 'transmission', 'vehicleType', 'condition', 'location']
     },
     'moto-scooter-quad': {
       label: 'Motos, Scooters, Quads',
@@ -37,7 +38,7 @@ export const SearchPage: React.FC = () => {
         { id: 'scooter', label: 'Scooters' },
         { id: 'quad', label: 'Quads' }
       ],
-      supportedFilters: ['brand', 'price', 'year', 'mileage', 'condition', 'location']
+      supportedFilters: ['brand', 'model', 'price', 'year', 'mileage', 'engineSize', 'vehicleType', 'condition', 'location']
     },
     'nautisme-sport-aerien': {
       label: 'Nautisme, Sport et Plein air',
@@ -46,7 +47,7 @@ export const SearchPage: React.FC = () => {
         { id: 'jetski', label: 'Jet-skis' },
         { id: 'aerien', label: 'Aérien' }
       ],
-      supportedFilters: ['brand', 'price', 'year', 'condition', 'location'] // Pas de kilométrage pour nautisme
+      supportedFilters: ['brand', 'model', 'price', 'year', 'length', 'vehicleType', 'condition', 'location']
     },
     'services': {
       label: 'Services',
@@ -56,7 +57,7 @@ export const SearchPage: React.FC = () => {
         { id: 'entretien', label: 'Entretien' },
         { id: 'autre-service', label: 'Autres services' }
       ],
-      supportedFilters: ['price', 'location'] // Services: juste prix et localisation
+      supportedFilters: ['price', 'serviceType', 'serviceZone', 'location']
     },
     'pieces': {
       label: 'Pièces détachées',
@@ -65,7 +66,7 @@ export const SearchPage: React.FC = () => {
         { id: 'piece-moto', label: 'Pièces moto' },
         { id: 'autre-piece', label: 'Autres pièces' }
       ],
-      supportedFilters: ['price', 'condition', 'location'] // Pièces: prix, état, localisation (pas de marque/année)
+      supportedFilters: ['brand', 'price', 'partCategory', 'condition', 'location']
     }
   };
 
@@ -195,6 +196,49 @@ export const SearchPage: React.FC = () => {
       filtered = filtered.filter(vehicle => 
         vehicle.location?.toLowerCase().includes(searchFilters.location!.toLowerCase())
       );
+    }
+
+    // Nouveaux filtres adaptatifs
+    if (searchFilters.model) {
+      filtered = filtered.filter(vehicle => 
+        vehicle.model?.toLowerCase().includes(searchFilters.model!.toLowerCase())
+      );
+    }
+
+    if (searchFilters.transmission) {
+      filtered = filtered.filter(vehicle => vehicle.transmission === searchFilters.transmission);
+    }
+
+    if (searchFilters.engineSize) {
+      const targetSize = Number(searchFilters.engineSize);
+      filtered = filtered.filter(vehicle => 
+        vehicle.engineSize !== undefined && Number(vehicle.engineSize) === targetSize
+      );
+    }
+
+    if (searchFilters.length) {
+      const targetLength = Number(searchFilters.length);
+      filtered = filtered.filter(vehicle => 
+        vehicle.length !== undefined && Number(vehicle.length) === targetLength
+      );
+    }
+
+    if (searchFilters.vehicleType) {
+      filtered = filtered.filter(vehicle => vehicle.vehicleType === searchFilters.vehicleType);
+    }
+
+    if (searchFilters.serviceType) {
+      filtered = filtered.filter(vehicle => vehicle.serviceType === searchFilters.serviceType);
+    }
+
+    if (searchFilters.serviceZone) {
+      filtered = filtered.filter(vehicle => 
+        vehicle.serviceZone?.toLowerCase().includes(searchFilters.serviceZone!.toLowerCase())
+      );
+    }
+
+    if (searchFilters.partCategory) {
+      filtered = filtered.filter(vehicle => vehicle.partCategory === searchFilters.partCategory);
     }
 
     // Tri
@@ -409,6 +453,101 @@ export const SearchPage: React.FC = () => {
                       </select>
                     </div>
                   )}
+
+                  {/* Modèle - uniquement pour les véhicules physiques */}
+                  {visibleFilters.includes('model') && searchFilters.brand && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Modèle</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 308, Clio, Golf..."
+                        value={searchFilters.model || ''}
+                        onChange={(e) => updateFilter('model', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      />
+                    </div>
+                  )}
+
+                  {/* Type de véhicule - pour certaines catégories */}
+                  {visibleFilters.includes('vehicleType') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Type de véhicule</label>
+                      <select
+                        value={searchFilters.vehicleType || ''}
+                        onChange={(e) => updateFilter('vehicleType', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      >
+                        <option value="">Tous types</option>
+                        {(() => {
+                          const subcategory = searchFilters.subcategory || searchFilters.category;
+                          const typeKey = subcategory === "moto" ? "motorcycle" : 
+                                         subcategory === "voiture" ? "car" :
+                                         subcategory === "utilitaire" ? "utility" :
+                                         subcategory === "caravane" ? "caravan" :
+                                         subcategory === "remorque" ? "trailer" :
+                                         subcategory === "bateau" ? "boat" :
+                                         subcategory === "jetski" ? "jetski" :
+                                         subcategory === "aerien" ? "aircraft" :
+                                         subcategory === "quad" ? "quad" :
+                                         subcategory === "scooter" ? "scooter" : null;
+                          
+                          if (!typeKey || !VEHICLE_TYPES[typeKey as keyof typeof VEHICLE_TYPES]) return null;
+                          
+                          return VEHICLE_TYPES[typeKey as keyof typeof VEHICLE_TYPES].map((type: string) => (
+                            <option key={type} value={type}>{type}</option>
+                          ));
+                        })()}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Type de pièce - pour les pièces détachées */}
+                  {visibleFilters.includes('partCategory') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Type de pièce</label>
+                      <select
+                        value={searchFilters.partCategory || ''}
+                        onChange={(e) => updateFilter('partCategory', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      >
+                        <option value="">Tous types</option>
+                        {PART_CATEGORIES.map((category) => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Type de service - pour les services */}
+                  {visibleFilters.includes('serviceType') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Type de service</label>
+                      <select
+                        value={searchFilters.serviceType || ''}
+                        onChange={(e) => updateFilter('serviceType', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      >
+                        <option value="">Tous services</option>
+                        {SERVICE_TYPES.map((service) => (
+                          <option key={service} value={service}>{service}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Zone d'intervention - pour les services */}
+                  {visibleFilters.includes('serviceZone') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Zone d'intervention</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 50km, Région Parisienne..."
+                        value={searchFilters.serviceZone || ''}
+                        onChange={(e) => updateFilter('serviceZone', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -484,6 +623,35 @@ export const SearchPage: React.FC = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Cylindrée - uniquement pour motos/scooters */}
+                  {visibleFilters.includes('engineSize') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Cylindrée (cm³)</label>
+                      <input
+                        type="number"
+                        placeholder="Ex: 125, 600, 1000"
+                        value={searchFilters.engineSize || ''}
+                        onChange={(e) => updateFilter('engineSize', e.target.value ? Number(e.target.value) : undefined)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      />
+                    </div>
+                  )}
+
+                  {/* Longueur - uniquement pour bateaux */}
+                  {visibleFilters.includes('length') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Longueur (m)</label>
+                      <input
+                        type="number"
+                        placeholder="Ex: 6.5"
+                        step="0.1"
+                        value={searchFilters.length || ''}
+                        onChange={(e) => updateFilter('length', e.target.value ? Number(e.target.value) : undefined)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -491,6 +659,23 @@ export const SearchPage: React.FC = () => {
               <div className="bg-gray-50 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">État et localisation</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Boîte de vitesses - uniquement pour voitures/utilitaires */}
+                  {visibleFilters.includes('transmission') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Boîte de vitesses</label>
+                      <select
+                        value={searchFilters.transmission || ''}
+                        onChange={(e) => updateFilter('transmission', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white"
+                      >
+                        <option value="">Toutes</option>
+                        {TRANSMISSION_TYPES.map((trans) => (
+                          <option key={trans.value} value={trans.value}>{trans.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   {/* Carburant - uniquement pour voitures/utilitaires */}
                   {visibleFilters.includes('fuelType') && (
                     <div>

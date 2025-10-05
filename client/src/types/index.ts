@@ -35,6 +35,13 @@ export interface Vehicle {
   year: number;
   mileage?: number;
   fuelType?: string;
+  transmission?: string; // Boîte de vitesses (voiture/utilitaire)
+  engineSize?: number; // Cylindrée (moto/scooter)
+  vehicleType?: string; // Type de véhicule (voiture, moto, bateau, etc.)
+  length?: number; // Longueur en mètres (bateau)
+  serviceType?: string; // Type de service
+  serviceZone?: string; // Zone d'intervention (services)
+  partCategory?: string; // Type de pièce (pièces détachées)
   condition: string;
   price: number;
   location: string;
