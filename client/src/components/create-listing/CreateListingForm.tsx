@@ -335,12 +335,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Récupérer les marques selon le type de pièce
     let brandsToSearch: string[] = [];
-    if (formData.subcategory === "piece-voiture") {
+    if (formData.subcategory === "piece-voiture-utilitaire") {
       brandsToSearch = brandsByVehicleType.voiture || [];
-    } else if (formData.subcategory === "piece-moto") {
+    } else if (formData.subcategory === "piece-moto-scooter") {
       brandsToSearch = brandsByVehicleType.moto || [];
+    } else if (formData.subcategory === "piece-quad") {
+      brandsToSearch = brandsByVehicleType.moto || []; // Les quads partagent souvent les marques moto
     } else {
-      // Pour autre-piece, on prend toutes les marques de voitures et motos
+      // Pour autres catégories de pièces, on prend toutes les marques
       brandsToSearch = [
         ...(brandsByVehicleType.voiture || []),
         ...(brandsByVehicleType.moto || []),
@@ -605,11 +607,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             return true;
           }
           // Validation spécifique pour les pièces détachées
-          if (
-            formData.subcategory === "piece-moto" ||
-            formData.subcategory === "piece-voiture" ||
-            formData.subcategory === "autre-piece"
-          ) {
+          if (isPiecePart()) {
             return !!(
               formData.specificDetails.partCategory &&
               formData.specificDetails.partCondition
@@ -804,8 +802,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // Vérifier si c'est une pièce détachée
   const isPiecePart = () => {
     return (
-      formData.subcategory === "piece-voiture" ||
-      formData.subcategory === "piece-moto" ||
+      formData.subcategory === "piece-voiture-utilitaire" ||
+      formData.subcategory === "piece-moto-scooter" ||
+      formData.subcategory === "piece-quad" ||
+      formData.subcategory === "piece-caravane-remorque" ||
+      formData.subcategory === "piece-jetski-bateau" ||
+      formData.subcategory === "piece-aerien" ||
       formData.subcategory === "autre-piece"
     );
   };
@@ -2465,8 +2467,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case "piece-moto":
-      case "piece-voiture":
+      case "piece-voiture-utilitaire":
+      case "piece-moto-scooter":
+      case "piece-quad":
+      case "piece-caravane-remorque":
+      case "piece-jetski-bateau":
+      case "piece-aerien":
       case "autre-piece":
         return (
           <div className="space-y-6">
