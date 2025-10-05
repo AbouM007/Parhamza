@@ -139,67 +139,42 @@ export const DamagedVehiclesTabs: React.FC<DamagedVehiclesTabsProps> = ({
   );
 
   return (
-    <div>
-      {/* Header avec onglets */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+    <div className="space-y-6">
+      <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-200">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition-all duration-200 ${
+              activeTab === tab.id
+                ? "bg-orange-500 text-white shadow-md"
+                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+            }`}
+            data-testid={`tab-${tab.id}`}
+          >
+            {tab.label}
+            <span
+              className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
                 activeTab === tab.id
-                  ? "border-primary-bolt-500 text-primary-bolt-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-100 text-gray-600"
               }`}
             >
-              {tab.label} ({tab.count})
-            </button>
-          ))}
-        </nav>
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* Message informatif */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <span className="text-yellow-400 text-xl">⚠️</span>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">
-              Véhicules accidentés
-            </h3>
-            <p className="mt-1 text-sm text-yellow-700">
-              Ces véhicules ont subi des dommages. Vérifiez attentivement l'état
-              et l'historique avant tout achat.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Contenu de l'onglet actif */}
-      <div className="transition-all duration-300 ease-in-out">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categorizedVehicles[activeTab].length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {categorizedVehicles[activeTab].map((vehicle, index) => (
-              <div
-                key={vehicle.id}
-                className="animate-fadeIn"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <VehicleCard vehicle={vehicle} />
-              </div>
-            ))}
-          </div>
+          categorizedVehicles[activeTab].map((vehicle) => (
+            <VehicleCard key={vehicle.id} vehicle={vehicle} />
+          ))
         ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Aucun véhicule trouvé
-            </h3>
-            <p className="text-gray-600">
-              Il n'y a actuellement aucun véhicule accidenté dans cette
-              catégorie.
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500 text-lg">
+              Aucun véhicule accidenté disponible dans cette catégorie
             </p>
           </div>
         )}
