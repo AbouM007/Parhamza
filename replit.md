@@ -4,6 +4,19 @@
 PassionAuto2Roues is an online marketplace for buying and selling used vehicles, damaged vehicles, and automotive spare parts. It caters to both individual users and professional sellers, featuring a subscription-based monetization model, premium listings, and a verification system. The platform offers integrated messaging, payment processing, and user management.
 
 ## Recent Changes
+**October 5, 2025 - Compatibility Tags Feature**
+- **New Feature**: Added compatibility tags system for spare parts listings
+  - Database: Created `compatibility_tags` column (text[]) in annonces table via SQL
+  - Schema: Added `compatibilityTags: text("compatibility_tags").array()` to Drizzle schema (shared/schema.ts)
+  - Backend: Created `validateCompatibilityTags()` helper function in storage.ts following same pattern as damageDetails
+  - Backend: Added snake_case ↔ camelCase mapping in all vehicle transformations (createVehicle, updateVehicle, getAllVehicles, etc.)
+  - Frontend: Added `compatibilityTags?: string[]` to Vehicle interface (client/src/types/index.ts)
+  - Frontend: Implemented blue-styled compatibility tags display in VehicleDetail.tsx
+  - Display: Tags shown as blue badges below damage details section, using same UX pattern
+  - Naming convention: Consistent use of snake_case in database, camelCase in TypeScript code
+  - Architecture review: Validated by architect - all transformation points covered, naming correct, display clean
+  - Next steps: Add compatibility tags field to listing creation/edit form (planned for later)
+
 **October 4, 2025 - Replit Environment Setup**
 - Successfully configured the project to run in the Replit environment
 - **Critical Fix**: Added `allowedHosts: true as const` to both `vite.config.ts` and `server/vite.ts` to resolve "Blocked request" error in Replit preview
