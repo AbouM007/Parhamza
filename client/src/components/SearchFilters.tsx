@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Filter, X, ChevronDown, RotateCcw } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
-import { brands, fuelTypes, conditions, categories } from "@/utils/mockData";
+import { brands, fuelTypes, conditions, categories, carModelsByBrand, brandsByVehicleType } from "@/utils/mockData";
+import { VEHICLE_TYPES, TRANSMISSION_TYPES, SERVICE_TYPES, PART_CATEGORIES } from "@/data/vehicle";
 
 interface SearchFiltersProps {
   isOpen: boolean;
@@ -117,6 +118,58 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
 
     return uniqueBrands;
   }, [searchFilters.category, localFilters.subcategory, vehicles]);
+
+  // Obtenir les modèles disponibles selon la marque sélectionnée
+  const availableModels = useMemo(() => {
+    if (!localFilters.brand) return [];
+
+    // Chercher dans carModelsByBrand d'abord
+    if (carModelsByBrand[localFilters.brand as keyof typeof carModelsByBrand]) {
+      return carModelsByBrand[localFilters.brand as keyof typeof carModelsByBrand];
+    }
+
+    // Sinon, extraire les modèles des véhicules existants
+    const brandVehicles = vehicles.filter(
+      (vehicle) => vehicle.brand === localFilters.brand
+    );
+    return Array.from(new Set(brandVehicles.map((v) => v.model))).sort();
+  }, [localFilters.brand, vehicles]);
+
+  // Fonction pour déterminer quels filtres afficher selon la catégorie/sous-catégorie
+  const getVisibleFilters = useMemo(() => {
+    const subcategory = localFilters.subcategory || searchFilters.category;
+    
+    return {
+      // Filtres communs à tous
+      price: true,
+      location: true,
+      brand: true,
+      model: true,
+      
+      // Filtres pour véhicules (voiture, moto, utilitaire, etc.)
+      year: !["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || "") &&
+            !subcategory?.startsWith("piece-"),
+      mileage: ["voiture", "utilitaire", "caravane", "remorque", "moto", "scooter", "quad"].includes(subcategory || ""),
+      fuelType: ["voiture", "utilitaire", "caravane", "moto", "scooter"].includes(subcategory || ""),
+      transmission: ["voiture", "utilitaire", "caravane"].includes(subcategory || ""),
+      condition: !subcategory?.startsWith("piece-") && 
+                 !["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || ""),
+      
+      // Filtres spécifiques motos/scooters
+      engineSize: ["moto", "scooter"].includes(subcategory || ""),
+      vehicleType: ["voiture", "utilitaire", "moto", "scooter", "quad", "bateau", "jetski", "aerien"].includes(subcategory || ""),
+      
+      // Filtres spécifiques bateaux
+      length: ["bateau"].includes(subcategory || ""),
+      
+      // Filtres spécifiques services
+      serviceType: ["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || ""),
+      serviceZone: ["reparation", "remorquage", "entretien", "autre-service"].includes(subcategory || ""),
+      
+      // Filtres spécifiques pièces détachées
+      partCategory: subcategory?.startsWith("piece-") || subcategory === "autre-piece",
+    };
+  }, [localFilters.subcategory, searchFilters.category]);
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...localFilters, [key]: value };
@@ -235,25 +288,50 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Marques disponibles actuellement : {availableBrands.length}
-              </label>
-              <select
-                value={localFilters.brand || ""}
-                onChange={(e) =>
-                  handleFilterChange("brand", e.target.value || undefined)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              >
-                <option value="">Toutes marques</option>
-                {availableBrands.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {getVisibleFilters.brand && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Marque
+                </label>
+                <select
+                  value={localFilters.brand || ""}
+                  onChange={(e) =>
+                    handleFilterChange("brand", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Toutes marques</option>
+                  {availableBrands.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {getVisibleFilters.model && availableModels.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Modèle
+                </label>
+                <select
+                  value={localFilters.model || ""}
+                  onChange={(e) =>
+                    handleFilterChange("model", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                  disabled={!localFilters.brand}
+                >
+                  <option value="">Tous modèles</option>
+                  {availableModels.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Price Range */}
@@ -290,112 +368,280 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
           </div>
 
           {/* Year Range */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Année
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="number"
-                placeholder="Année min"
-                value={localFilters.yearFrom || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "yearFrom",
-                    e.target.value ? parseInt(e.target.value) : undefined,
-                  )
-                }
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              />
-              <input
-                type="number"
-                placeholder="Année max"
-                value={localFilters.yearTo || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "yearTo",
-                    e.target.value ? parseInt(e.target.value) : undefined,
-                  )
-                }
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              />
+          {getVisibleFilters.year && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Année
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  placeholder="Année min"
+                  value={localFilters.yearFrom || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "yearFrom",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+                <input
+                  type="number"
+                  placeholder="Année max"
+                  value={localFilters.yearTo || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "yearTo",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Mileage Range */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Kilométrage
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="number"
-                placeholder="Km min"
-                value={localFilters.mileageFrom || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "mileageFrom",
-                    e.target.value ? parseInt(e.target.value) : undefined,
-                  )
-                }
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              />
-              <input
-                type="number"
-                placeholder="Km max"
-                value={localFilters.mileageTo || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "mileageTo",
-                    e.target.value ? parseInt(e.target.value) : undefined,
-                  )
-                }
-                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              />
+          {getVisibleFilters.mileage && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Kilométrage
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="number"
+                  placeholder="Km min"
+                  value={localFilters.mileageFrom || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "mileageFrom",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+                <input
+                  type="number"
+                  placeholder="Km max"
+                  value={localFilters.mileageTo || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "mileageTo",
+                      e.target.value ? parseInt(e.target.value) : undefined,
+                    )
+                  }
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Fuel Type and Condition */}
+          {/* Fuel Type, Condition, Transmission, and other specific filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Carburant
-              </label>
-              <select
-                value={localFilters.fuelType || ""}
-                onChange={(e) =>
-                  handleFilterChange("fuelType", e.target.value || undefined)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              >
-                <option value="">Tous carburants</option>
-                {fuelTypes.map((fuel) => (
-                  <option key={fuel.value} value={fuel.value}>
-                    {fuel.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {getVisibleFilters.fuelType && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Carburant
+                </label>
+                <select
+                  value={localFilters.fuelType || ""}
+                  onChange={(e) =>
+                    handleFilterChange("fuelType", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Tous carburants</option>
+                  {fuelTypes.map((fuel) => (
+                    <option key={fuel.value} value={fuel.value}>
+                      {fuel.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                État
-              </label>
-              <select
-                value={localFilters.condition || ""}
-                onChange={(e) =>
-                  handleFilterChange("condition", e.target.value || undefined)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
-              >
-                <option value="">Tous états</option>
-                {conditions.map((condition) => (
-                  <option key={condition.value} value={condition.value}>
-                    {condition.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {getVisibleFilters.transmission && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Boîte de vitesses
+                </label>
+                <select
+                  value={localFilters.transmission || ""}
+                  onChange={(e) =>
+                    handleFilterChange("transmission", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Toutes</option>
+                  {TRANSMISSION_TYPES.map((trans) => (
+                    <option key={trans.value} value={trans.value}>
+                      {trans.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {getVisibleFilters.condition && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  État
+                </label>
+                <select
+                  value={localFilters.condition || ""}
+                  onChange={(e) =>
+                    handleFilterChange("condition", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Tous états</option>
+                  {conditions.map((condition) => (
+                    <option key={condition.value} value={condition.value}>
+                      {condition.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {getVisibleFilters.engineSize && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Cylindrée (cm³)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Ex: 125, 600, 1000"
+                  value={localFilters.engineSize || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "engineSize",
+                      e.target.value ? parseInt(e.target.value) : undefined
+                    )
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+              </div>
+            )}
+
+            {getVisibleFilters.vehicleType && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type de véhicule
+                </label>
+                <select
+                  value={localFilters.vehicleType || ""}
+                  onChange={(e) =>
+                    handleFilterChange("vehicleType", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Tous types</option>
+                  {(() => {
+                    const subcategory = localFilters.subcategory || searchFilters.category;
+                    const typeKey = subcategory === "moto" ? "motorcycle" : 
+                                   subcategory === "voiture" ? "car" :
+                                   subcategory === "utilitaire" ? "utility" :
+                                   subcategory === "bateau" ? "boat" :
+                                   subcategory === "jetski" ? "jetski" :
+                                   subcategory === "aerien" ? "aircraft" :
+                                   subcategory === "quad" ? "quad" :
+                                   subcategory === "scooter" ? "scooter" : null;
+                    
+                    if (!typeKey || !VEHICLE_TYPES[typeKey as keyof typeof VEHICLE_TYPES]) return null;
+                    
+                    return VEHICLE_TYPES[typeKey as keyof typeof VEHICLE_TYPES].map((type: string) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ));
+                  })()}
+                </select>
+              </div>
+            )}
+
+            {getVisibleFilters.length && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Longueur (m)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Ex: 6.5"
+                  step="0.1"
+                  value={localFilters.length || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "length",
+                      e.target.value ? parseFloat(e.target.value) : undefined
+                    )
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+              </div>
+            )}
+
+            {getVisibleFilters.serviceType && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type de service
+                </label>
+                <select
+                  value={localFilters.serviceType || ""}
+                  onChange={(e) =>
+                    handleFilterChange("serviceType", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Tous services</option>
+                  {SERVICE_TYPES.map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {getVisibleFilters.serviceZone && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Zone d'intervention
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: 50km, Région Parisienne..."
+                  value={localFilters.serviceZone || ""}
+                  onChange={(e) =>
+                    handleFilterChange("serviceZone", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                />
+              </div>
+            )}
+
+            {getVisibleFilters.partCategory && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type de pièce
+                </label>
+                <select
+                  value={localFilters.partCategory || ""}
+                  onChange={(e) =>
+                    handleFilterChange("partCategory", e.target.value || undefined)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500"
+                >
+                  <option value="">Tous types</option>
+                  {PART_CATEGORIES.map((part) => (
+                    <option key={part} value={part}>
+                      {part}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Location */}
