@@ -147,7 +147,7 @@ export const DamagedVehiclesTabs: React.FC<DamagedVehiclesTabsProps> = ({
             onClick={() => setActiveTab(tab.id)}
             className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition-all duration-200 ${
               activeTab === tab.id
-                ? "bg-orange-500 text-white shadow-md"
+                ? "bg-primary-bolt-500 text-white shadow-md"
                 : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
             }`}
             data-testid={`tab-${tab.id}`}

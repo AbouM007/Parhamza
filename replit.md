@@ -7,8 +7,9 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-05**: Unified all tab colors to use primary-bolt-500 for consistency with site color scheme
 - **2025-10-05**: Harmonized tab design across all categorized views (DamagedVehiclesTabs, SparePartsTabs, ServicesTabs)
-- **2025-10-05**: Updated tabs to use modern rounded button style with color coding: orange (Accidentés), blue (Pièces), green (Services)
+- **2025-10-05**: Updated tabs to use modern rounded button style with consistent active/inactive states
 - **2025-10-05**: Standardized counter display in separate spans with consistent styling across all tab components
 - **2025-10-05**: Created ServicesTabs component with 4 service categories (réparation, remorquage, entretien, autre-service)
 - **2025-10-05**: Removed Services dropdown menu and added dedicated "Services" button in Header (desktop and mobile)
