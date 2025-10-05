@@ -99,6 +99,14 @@ export interface SearchFilters {
   viewMode?: "categorized" | "categorized-parts" | "categorized-services" | "standard";
   listing_type?: "sale" | "search";
   sortBy?: "date" | "price_asc" | "price_desc" | "mileage";
+  // Nouveaux filtres adaptatifs
+  transmission?: string; // Boîte de vitesses (voiture/utilitaire)
+  engineSize?: number; // Cylindrée (moto/scooter)
+  vehicleType?: string; // Type de véhicule (voiture, moto, bateau, jetski, etc.)
+  length?: number; // Longueur en mètres (bateau)
+  serviceType?: string; // Type de service
+  serviceZone?: string; // Zone d'intervention (services)
+  partCategory?: string; // Type de pièce (pièces détachées)
 }
 
 // Type pour les catégories principales
