@@ -14,8 +14,18 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
   - Frontend: Implemented blue-styled compatibility tags display in VehicleDetail.tsx
   - Display: Tags shown as blue badges below damage details section, using same UX pattern
   - Naming convention: Consistent use of snake_case in database, camelCase in TypeScript code
-  - Architecture review: Validated by architect - all transformation points covered, naming correct, display clean
-  - Next steps: Add compatibility tags field to listing creation/edit form (planned for later)
+  - **Form Integration**: Compatibility tags field already implemented in CreateListingForm.tsx with:
+    - Auto-suggestions based on vehicle type (voiture/moto brands and models)
+    - Search input with intelligent filtering
+    - Tag management (add/remove with blue badges)
+    - Integration in "Description détaillée" step for spare parts
+- **Smart Matching System**: Enhanced spare parts compatibility for damaged vehicles
+  - **Intelligent Scoring**: Priority given to compatibility tags (15 pts exact match, 12 pts partial, 8 pts model, 5 pts brand)
+  - **Auto-Detection**: Automatically detects vehicle type (voiture/moto) to search correct spare parts category
+  - **Visual Feedback**: Blue compatibility badges on spare part cards showing match reason (e.g., "Compatible : Renault Clio")
+  - **Sorted Results**: Top 12 most relevant parts sorted by compatibility score
+  - **UX Enhancement**: Clickable spare part cards open in new tab, hover effects for better interaction
+  - Architecture review: Validated by architect - scoring logic sound, badge improves transparency, type safety preserved
 
 **October 4, 2025 - Replit Environment Setup**
 - Successfully configured the project to run in the Replit environment
