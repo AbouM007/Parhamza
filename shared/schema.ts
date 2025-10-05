@@ -67,6 +67,7 @@ export const annonces = pgTable("annonces", {
     mechanicalState?: string;
     severity?: string;
   }>(),
+  compatibilityTags: text("compatibility_tags").array().$type<string[]>(),
   isPremium: boolean("is_premium").default(false),
   premiumType: text("premium_type"),
   premiumExpiresAt: timestamp("premium_expires_at"),

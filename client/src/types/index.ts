@@ -45,6 +45,7 @@ export interface Vehicle {
     mechanicalState?: string;
     severity?: string;
   };
+  compatibilityTags?: string[];
   isPremium: boolean;
   premiumType?: "daily" | "weekly" | "monthly";
   premiumExpiresAt?: Date | null;

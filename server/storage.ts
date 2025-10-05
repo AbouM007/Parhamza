@@ -85,6 +85,20 @@ function validateDamageDetails(value: any): any {
   };
 }
 
+// Helper function to validate compatibility tags array
+function validateCompatibilityTags(value: any): string[] | undefined {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (Array.isArray(value)) {
+    const filtered = value.filter(tag => typeof tag === 'string' && tag.trim());
+    return filtered.length > 0 ? filtered : undefined;
+  }
+
+  return undefined;
+}
+
 // Helper function to transform user data from Supabase
 function transformUserFromSupabase(userRow: any): any {
   if (!userRow) return undefined;
@@ -172,6 +186,7 @@ function transformVehicleFromSupabase(vehicleRow: any): any {
     deletionReason: vehicleRow.deletion_reason,
     deletionComment: vehicleRow.deletion_comment,
     damageDetails: validateDamageDetails(vehicleRow.damage_details),
+    compatibilityTags: validateCompatibilityTags(vehicleRow.compatibility_tags),
     priorityScore: vehicleRow.priority_score ?? 0,
     professionalAccountId: vehicleRow.professional_account_id ?? null,
   };
@@ -643,6 +658,10 @@ export class SupabaseStorage implements IStorage {
     if ((cleanVehicle as any).damageDetails)
       annonceData.damage_details = (cleanVehicle as any).damageDetails;
 
+    // Compatibilité des pièces
+    if ((cleanVehicle as any).compatibilityTags)
+      annonceData.compatibility_tags = (cleanVehicle as any).compatibilityTags;
+
     // DOUBLE VÉRIFICATION : supprimer tout id qui pourrait s'être glissé
     delete annonceData.id;
 
@@ -709,6 +728,7 @@ export class SupabaseStorage implements IStorage {
       status: data.status,
       isActive: data.is_active !== false,
       damageDetails: validateDamageDetails(data.damage_details),
+      compatibilityTags: validateCompatibilityTags(data.compatibility_tags),
     };
 
     return transformedData as Vehicle;
@@ -718,10 +738,22 @@ export class SupabaseStorage implements IStorage {
     id: string,
     updates: Partial<InsertVehicle>,
   ): Promise<Vehicle | undefined> {
-    const updateData = {
+    const updateData: any = {
       ...updates,
       updated_at: new Date().toISOString(),
     };
+
+    // Transformer compatibilityTags en compatibility_tags pour Supabase
+    if ((updates as any).compatibilityTags !== undefined) {
+      updateData.compatibility_tags = (updates as any).compatibilityTags;
+      delete updateData.compatibilityTags;
+    }
+
+    // Transformer damageDetails en damage_details pour Supabase
+    if ((updates as any).damageDetails !== undefined) {
+      updateData.damage_details = (updates as any).damageDetails;
+      delete updateData.damageDetails;
+    }
 
     const { data, error } = await supabaseServer
       .from("annonces")
@@ -1503,6 +1535,7 @@ export class SupabaseStorage implements IStorage {
           deletionReason: vehicle.deletion_reason,
           deletionComment: vehicle.deletion_comment,
           damageDetails: validateDamageDetails(vehicle.damage_details),
+          compatibilityTags: validateCompatibilityTags(vehicle.compatibility_tags),
           priorityScore: vehicle.priority_score ?? 0,
           professionalAccountId: vehicle.professional_account_id ?? null,
         }));
