@@ -352,6 +352,11 @@ export class SupabaseStorage implements IStorage {
         throw new Error("PHONE_ALREADY_EXISTS");
       }
 
+      // 💬 Détecter erreur contrainte WhatsApp (unique)
+      if (error.code === "23505" && error.message.includes("whatsapp")) {
+        throw new Error("WHATSAPP_ALREADY_EXISTS");
+      }
+
       // 📧 Détecter erreur contrainte email (unique)
       if (error.code === "23505" && error.message.includes("email")) {
         throw new Error("EMAIL_ALREADY_EXISTS");
