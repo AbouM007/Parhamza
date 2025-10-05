@@ -409,7 +409,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Bouton Pièces détachées */}
             <button
               onClick={handleSparePartsClick}
-              className="text-gray-800 font-bold text-sm hover:text-gray-900 transition-colors duration-200"
+              className="text-gray-700 text-sm hover:text-primary-bolt-500 transition-all duration-200 py-2 cursor-pointer"
               data-testid="button-spare-parts"
             >
               Pièces détachées
