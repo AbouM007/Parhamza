@@ -22,8 +22,8 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  phone: text("phone"),
-  whatsapp: text("whatsapp"),
+  phone: text("phone").unique(),
+  whatsapp: text("whatsapp").unique(),
   type: text("type").notNull().default("pending"),
   companyName: text("company_name"),
 
