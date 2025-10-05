@@ -576,6 +576,29 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                 </div>
               )}
 
+              {/* Compatibilités */}
+              {vehicle.compatibilityTags && vehicle.compatibilityTags.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <CheckCircle className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-blue-900">
+                      Compatibilités
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {vehicle.compatibilityTags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                        data-testid={`tag-compatibility-${index}`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Features */}
               {vehicle.features && vehicle.features.length > 0 && (
                 <div>
