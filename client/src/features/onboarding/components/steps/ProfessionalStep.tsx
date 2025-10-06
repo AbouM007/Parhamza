@@ -19,11 +19,7 @@ const professionalSchema = z.object({
   name: z.string().min(2, "Le nom du responsable est requis"),
   phone: z
     .string()
-    .min(10, "Le numéro de téléphone est requis")
-    .refine(
-      (val) => /^\+[1-9]\d{1,14}$/.test(val.replace(/\s/g, '')),
-      { message: "Format de téléphone invalide (E.164 requis)" }
-    ),
+    .min(10, "Le numéro de téléphone est requis"),
   whatsapp: z.string().optional(),
   postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
   city: z.string().min(2, "La ville est requise").optional(),
@@ -56,10 +52,20 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
       } = await supabase.auth.getSession();
       if (!session) throw new Error("Session non disponible");
 
-      // Si sameAsPhone est activé, copier le numéro de téléphone dans whatsapp
-      if (sameAsPhone) {
-        data.whatsapp = data.phone;
+      const cleanedPhone = data.phone.replace(/\s/g, '');
+      const cleanedWhatsapp = data.whatsapp ? data.whatsapp.replace(/\s/g, '') : '';
+
+      if (!/^\+[1-9]\d{1,14}$/.test(cleanedPhone)) {
+        toast({
+          title: "Numéro invalide",
+          description: "Le numéro de téléphone doit être au format international (ex: +33612345678)",
+          variant: "destructive",
+        });
+        return;
       }
+
+      data.phone = cleanedPhone;
+      data.whatsapp = sameAsPhone ? cleanedPhone : (cleanedWhatsapp || undefined);
 
       const response = await fetch("/api/profile/complete", {
         method: "POST",

@@ -18,11 +18,7 @@ const personalProfileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   phone: z
     .string()
-    .min(10, "Le numéro de téléphone est requis")
-    .refine(
-      (val) => /^\+[1-9]\d{1,14}$/.test(val.replace(/\s/g, '')),
-      { message: "Format de téléphone invalide (E.164 requis)" }
-    ),
+    .min(10, "Le numéro de téléphone est requis"),
   whatsapp: z.string().optional(),
   postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
   city: z.string().min(2, "La ville est requise").optional(),
@@ -61,9 +57,22 @@ export const PersonalStep = ({
       } = await supabase.auth.getSession();
       if (!session) throw new Error("Session non disponible");
 
+      const cleanedPhone = data.phone.replace(/\s/g, '');
+      const cleanedWhatsapp = data.whatsapp ? data.whatsapp.replace(/\s/g, '') : '';
+
+      if (!/^\+[1-9]\d{1,14}$/.test(cleanedPhone)) {
+        toast({
+          title: "Numéro invalide",
+          description: "Le numéro de téléphone doit être au format international (ex: +33612345678)",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const submissionData = {
         ...data,
-        whatsapp: sameAsPhone ? data.phone : (data.whatsapp || null),
+        phone: cleanedPhone,
+        whatsapp: sameAsPhone ? cleanedPhone : (cleanedWhatsapp || null),
         type: "individual",
       };
 
