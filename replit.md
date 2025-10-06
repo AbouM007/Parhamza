@@ -7,6 +7,13 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Implemented unified international phone system with E.164 format (+33612345678) for multi-country expansion
+- **2025-10-06**: Created reusable PhoneInputComponent with react-phone-input-2 (200+ countries supported)
+- **2025-10-06**: Added UNIQUE constraints on phone/whatsapp fields in database schema (one number = one account)
+- **2025-10-06**: Updated PersonalStep, ProfessionalStep, and ProfessionalProfileForm with international phone inputs
+- **2025-10-06**: Implemented optional WhatsApp field with "use same number" checkbox (unchecked by default)
+- **2025-10-06**: Added comprehensive data-testid attributes for all interactive elements (buttons, inputs, checkboxes)
+- **2025-10-06**: Added postal code and city fields to ProfessionalStep (onboarding professionnel) matching PersonalStep layout
 - **2025-10-05**: Implemented complete contact privacy system with hide_whatsapp and hide_messages fields (schema, backend, frontend)
 - **2025-10-05**: Updated VehicleDetail to conditionally display WhatsApp button and Message button based on privacy preferences
 - **2025-10-05**: Added hideWhatsapp and hideMessages to Vehicle type in types/index.ts for full type safety

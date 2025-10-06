@@ -177,7 +177,7 @@ export const PersonalStep = ({
               data-testid="checkbox-same-whatsapp"
             />
             <label htmlFor="sameAsPhone" className="text-sm text-gray-700">
-              Utiliser mon numéro de téléphone pour WhatsApp
+              Utiliser ce numéro pour WhatsApp
             </label>
           </div>
         </div>

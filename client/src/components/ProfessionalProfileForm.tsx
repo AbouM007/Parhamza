@@ -298,7 +298,7 @@ export const ProfessionalProfileForm: React.FC<
                     data-testid="checkbox-same-whatsapp"
                   />
                   <label htmlFor="sameAsPhone" className="text-sm text-gray-700">
-                    Utiliser mon numéro de téléphone pour WhatsApp
+                    Utiliser ce numéro de Tél pour WhatsApp
                   </label>
                 </div>
               </div>

@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { StepProps } from "../../types";
 import { PhoneInputComponent } from "@/components/PhoneInput";
+import { AddressInput } from "@/components/AddressInput";
 
 const professionalSchema = z.object({
   companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
@@ -21,6 +22,8 @@ const professionalSchema = z.object({
     .min(10, "Le numéro de téléphone est requis")
     .regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)"),
   whatsapp: z.string().optional(),
+  postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
+  city: z.string().min(2, "La ville est requise").optional(),
 });
 
 type ProfessionalFormData = z.infer<typeof professionalSchema>;
@@ -38,6 +41,8 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
       name: (currentData.professional?.name as string) || "",
       phone: (currentData.professional?.phone as string) || "",
       whatsapp: (currentData.professional?.whatsapp as string) || "",
+      city: (currentData.professional?.city as string) || "",
+      postalCode: (currentData.professional?.postalCode as string) || "",
     },
   });
 
@@ -161,6 +166,16 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
             />
           </div>
 
+          {/* Adresse (code postal + ville) */}
+          <AddressInput
+            postalCode={form.watch("postalCode") || ""}
+            city={form.watch("city") || ""}
+            onPostalCodeChange={(code) => form.setValue("postalCode", code)}
+            onCityChange={(city) => form.setValue("city", city)}
+            label="Adresse de l'entreprise"
+            required
+          />
+
           {/* WhatsApp - inline */}
           <div className="flex items-center space-x-2 pt-8">
             <input
@@ -172,7 +187,7 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
               data-testid="checkbox-same-whatsapp"
             />
             <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
-              Utiliser mon numéro de téléphone pour WhatsApp
+              Utiliser ce numéro pour WhatsApp
             </label>
           </div>
         </div>
