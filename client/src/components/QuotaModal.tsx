@@ -52,14 +52,14 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
             <div
               className={`p-2 rounded-full transition-colors ${
                 showPlans
-                  ? "bg-green-100 dark:bg-green-900"
-                  : "bg-orange-100 dark:bg-orange-900"
+                  ? "bg-primary-bolt-100 dark:bg-primary-bolt-900"
+                  : "bg-primary-bolt-100 dark:bg-primary-bolt-900"
               }`}
             >
               {showPlans ? (
-                <Zap className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <Zap className="h-6 w-6 text-primary-bolt-600 dark:text-primary-bolt-400" />
               ) : (
-                <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                <AlertCircle className="h-6 w-6 text-primary-bolt-600 dark:text-primary-bolt-400" />
               )}
             </div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -93,7 +93,7 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 mt-2">
                   Débloquez{" "}
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                  <span className="font-bold text-primary-bolt-600 dark:text-primary-bolt-400">
                     plus d'annonces
                   </span>{" "}
                   avec nos abonnements !
@@ -101,28 +101,28 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
               </div>
 
               {/* Benefits preview */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-6">
+              <div className="bg-gradient-to-r from-primary-bolt-50 to-primary-bolt-100 dark:from-primary-bolt-900/20 dark:to-primary-bolt-800/20 rounded-lg p-4 mb-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <Crown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <span className="font-semibold text-blue-900 dark:text-blue-100">
+                  <Crown className="h-5 w-5 text-primary-bolt-600 dark:text-primary-bolt-400" />
+                  <span className="font-semibold text-primary-bolt-900 dark:text-primary-bolt-100">
                     Avantages des Abonnements
                   </span>
                 </div>
-                <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-200">
+                <ul className="space-y-2 text-sm text-primary-bolt-700 dark:text-primary-bolt-200">
                   <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                    <span className="w-1.5 h-1.5 bg-primary-bolt-600 rounded-full"></span>
                     Plus d'annonces publiées chaque mois
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-purple-600 rounded-full"></span>
+                    <span className="w-1.5 h-1.5 bg-primary-bolt-600 rounded-full"></span>
                     Badge de confiance
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
+                    <span className="w-1.5 h-1.5 bg-primary-bolt-600 rounded-full"></span>
                     Visibilité prioritaire
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-green-600 rounded-full"></span>
+                    <span className="w-1.5 h-1.5 bg-primary-bolt-600 rounded-full"></span>
                     Statistiques avancées
                   </li>
                 </ul>
@@ -139,7 +139,7 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
                 </button>
                 <button
                   onClick={handleUpgradeClick}
-                  className="flex-2 py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="flex-2 py-3 px-6 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 text-white rounded-lg hover:from-primary-bolt-600 hover:to-primary-bolt-700 transition-all duration-200 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                   data-testid="button-see-plans"
                 >
                   <Zap className="h-4 w-4" />

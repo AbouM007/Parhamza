@@ -7,6 +7,7 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Redesigned QuotaModal to match site color scheme - replaced blue-purple gradient with primary-bolt colors for complete design consistency
 - **2025-10-06**: Removed all colored category badges overlaid on images (green "Services", red "Accidenté", blue "Pièces détachées") from ServicesTabs, DamagedVehiclesTabs, and SparePartsTabs components
 - **2025-10-06**: Implemented real-time phone number validation with visual feedback (green checkmark for available, red X for taken)
 - **2025-10-06**: Created /api/users/check-phone/:phone endpoint for instant duplicate phone detection with 800ms debounce
