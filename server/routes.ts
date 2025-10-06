@@ -1404,6 +1404,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route pour mettre à jour le profil depuis le dashboard
+  app.put("/api/profile/update/:id", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      console.log("📝 Mise à jour profil dashboard pour user:", userId);
+      console.log("📄 Données reçues:", req.body);
+
+      const {
+        name,
+        displayName,
+        whatsapp,
+        postalCode,
+        city,
+        website,
+        bio,
+        company_logo,
+      } = req.body;
+
+      // Préparer les données à mettre à jour (uniquement les champs fournis)
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (displayName !== undefined) {
+        // Nettoyer displayName : si vide, stocker null
+        updateData.display_name = displayName && displayName.trim() !== "" ? displayName.trim() : null;
+      }
+      if (whatsapp !== undefined) updateData.whatsapp = whatsapp || null;
+      if (postalCode !== undefined) updateData.postal_code = postalCode || null;
+      if (city !== undefined) updateData.city = city || null;
+      if (website !== undefined) updateData.website = website || null;
+      if (bio !== undefined) updateData.bio = bio || null;
+      if (company_logo !== undefined) updateData.company_logo = company_logo || null;
+
+      // Mise à jour dans la base de données
+      const { data: updatedUser, error: updateErr } = await supabaseServer
+        .from("users")
+        .update(updateData)
+        .eq("id", userId)
+        .select()
+        .single();
+
+      if (updateErr) {
+        console.error("❌ Erreur update profil:", updateErr);
+        
+        // Détecter WhatsApp dupliqué
+        if (updateErr.code === "23505" && updateErr.details?.includes("whatsapp")) {
+          return res.status(409).json({
+            error: "WHATSAPP_ALREADY_EXISTS",
+            message: "Ce numéro WhatsApp est déjà utilisé par un autre compte."
+          });
+        }
+        
+        return res.status(500).json({ 
+          error: "Erreur lors de la mise à jour du profil" 
+        });
+      }
+
+      console.log("✅ Profil mis à jour avec succès");
+      return res.json(updatedUser);
+    } catch (err) {
+      console.error("❌ Erreur API /api/profile/update:", err);
+      return res.status(500).json({ error: "Erreur serveur interne" });
+    }
+  });
+
   // Route pour vérifier un compte professionnel existant (upload document KBIS + CIN)
   app.post(
     "/api/professional-accounts/verify",

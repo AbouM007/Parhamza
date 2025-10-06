@@ -253,18 +253,7 @@ export default function ProfileSection({
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Email
-            </label>
-            <input
-              type="email"
-              value={user?.email || profile?.email || ""}
-              disabled={true}
-              className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-100 text-gray-600 text-lg cursor-not-allowed"
-              title="L'email ne peut pas être modifié"
-            />
-          </div>
+
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -349,6 +338,7 @@ export default function ProfileSection({
                 // Réinitialiser le formulaire avec les données originales
                 setProfileForm({
                   name: profile?.name || "",
+                  displayName: (profile as any)?.display_name || profile?.displayName || "",
                   phone: (profile as any)?.phone || "",
                   whatsapp: (profile as any)?.whatsapp || "",
                   postalCode: (profile as any)?.postal_code || "",

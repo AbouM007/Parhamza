@@ -189,6 +189,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [sendingMessage, setSendingMessage] = useState(false);
   const [profileForm, setProfileForm] = useState({
     name: "",
+    displayName: "",
     phone: "",
     whatsapp: "",
     postalCode: "",
@@ -366,6 +367,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (profile) {
       setProfileForm({
         name: profile.name || "",
+        displayName: (profile as any)?.display_name || profile.displayName || "",
         phone: (profile as any)?.phone || "",
         whatsapp: (profile as any)?.whatsapp || "",
         postalCode: (profile as any)?.postal_code || "",
@@ -528,6 +530,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (editingProfile && profile) {
       setProfileForm({
         name: profile.name || "",
+        displayName: (profile as any)?.display_name || profile.displayName || "",
         phone: (profile as any)?.phone || "",
         whatsapp: (profile as any)?.whatsapp || "",
         postalCode: (profile as any)?.postal_code || "",
@@ -570,6 +573,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         // Important: Mettre à jour le formulaire local avec les nouvelles données
         setProfileForm({
           name: updatedData.name || "",
+          displayName: updatedData.display_name || updatedData.displayName || "",
           phone: updatedData.phone || "",
           whatsapp: updatedData.whatsapp || "",
           postalCode: updatedData.postal_code || "",

@@ -7,6 +7,11 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: COMPLETED - Fixed ProfileSection display_name editing and display functionality
+- **2025-10-06**: Created PUT /api/profile/update/:id route for dashboard profile updates with display_name support
+- **2025-10-06**: Fixed Dashboard.tsx profileForm initialization to include displayName field in all useEffect hooks
+- **2025-10-06**: Updated ProfileSection "Annuler" button to properly reset displayName when canceling edits
+- **2025-10-06**: System now correctly loads, displays, and saves display_name from/to database (snake_case ↔ camelCase)
 - **2025-10-06**: Implemented public display name system (display_name field) for individual users with privacy separation
 - **2025-10-06**: Added getUserDisplayName() utility function with logic: professionals show companyName, individuals show displayName (pseudo) or name (fallback)
 - **2025-10-06**: Updated PersonalStep onboarding form with display_name field (optional, for public display as pseudo)
