@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  displayName?: string;
   phone?: string;
   whatsapp?: string;
   type: "pending" | "individual" | "professional";

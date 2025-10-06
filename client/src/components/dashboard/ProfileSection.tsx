@@ -177,24 +177,81 @@ export default function ProfileSection({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Pseudo ou Nom Prénom (Sera affiché en public)
-            </label>
-            <input
-              type="text"
-              value={
-                editingProfile
-                  ? profileForm.name
-                  : profile?.name || user?.email?.split("@")[0] || ""
-              }
-              onChange={(e) =>
-                setProfileForm({ ...profileForm, name: e.target.value })
-              }
-              disabled={!editingProfile}
-              className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
-            />
-          </div>
+          {/* Nom complet (pour particuliers) */}
+          {profile?.type === "individual" && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Nom complet
+              </label>
+              <input
+                type="text"
+                value={
+                  editingProfile
+                    ? profileForm.name
+                    : profile?.name || user?.email?.split("@")[0] || ""
+                }
+                onChange={(e) =>
+                  setProfileForm({ ...profileForm, name: e.target.value })
+                }
+                disabled={!editingProfile}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+                data-testid="input-profile-name"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Votre vrai nom et prénom
+              </p>
+            </div>
+          )}
+
+          {/* Pseudo public (optionnel, seulement pour particuliers) */}
+          {profile?.type === "individual" && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Pseudo public (optionnel)
+              </label>
+              <input
+                type="text"
+                value={
+                  editingProfile
+                    ? profileForm.displayName || ""
+                    : profile?.displayName || ""
+                }
+                onChange={(e) =>
+                  setProfileForm({ ...profileForm, displayName: e.target.value })
+                }
+                disabled={!editingProfile}
+                placeholder="PassionAutoFan"
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+                data-testid="input-profile-display-name"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Ce nom sera affiché publiquement sur vos annonces
+              </p>
+            </div>
+          )}
+
+          {/* Nom pour professionnels (reste inchangé) */}
+          {profile?.type === "professional" && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Nom du contact
+              </label>
+              <input
+                type="text"
+                value={
+                  editingProfile
+                    ? profileForm.name
+                    : profile?.name || user?.email?.split("@")[0] || ""
+                }
+                onChange={(e) =>
+                  setProfileForm({ ...profileForm, name: e.target.value })
+                }
+                disabled={!editingProfile}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+                data-testid="input-profile-name"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
