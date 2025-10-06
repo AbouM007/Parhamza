@@ -994,6 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         website,
         description,
         name,
+        displayName,
         city,
         postalCode,
         whatsapp,
@@ -1104,6 +1105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .from("users")
             .update({
               name,
+              display_name: displayName || null,
               phone,
               city: city && city.trim() !== "" ? city : null,
               postal_code:
@@ -1209,6 +1211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         website,
         description,
         name,
+        displayName,
         city,
         postalCode,
         whatsapp,
@@ -1346,6 +1349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from("users")
         .update({
           name, // ✅ forcé par celui saisi par l'utilisateur
+          display_name: displayName || null,
           phone,
           city: city && city.trim() !== "" ? city : null,
           postal_code:

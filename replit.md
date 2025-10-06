@@ -7,6 +7,13 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Implemented public display name system (display_name field) for individual users with privacy separation
+- **2025-10-06**: Added getUserDisplayName() utility function with logic: professionals show companyName, individuals show displayName (pseudo) or name (fallback)
+- **2025-10-06**: Updated PersonalStep onboarding form with display_name field (optional, for public display as pseudo)
+- **2025-10-06**: Updated ProfileSection to allow individuals to edit their display_name (pseudo public)
+- **2025-10-06**: Modified UserMenu, Messages, and MessagesSection components to use getUserDisplayName() for consistent name display
+- **2025-10-06**: Updated backend routes (/api/profile/complete, /api/profile/draft) to accept and persist display_name field
+- **2025-10-06**: getUserDisplayName() handles both snake_case (display_name) and camelCase (displayName) for backward compatibility
 - **2025-10-06**: Redesigned QuotaModal to match site color scheme - replaced blue-purple gradient with primary-bolt colors for complete design consistency
 - **2025-10-06**: Removed all colored category badges overlaid on images (green "Services", red "Accidenté", blue "Pièces détachées") from ServicesTabs, DamagedVehiclesTabs, and SparePartsTabs components
 - **2025-10-06**: Implemented real-time phone number validation with visual feedback (green checkmark for available, red X for taken)
