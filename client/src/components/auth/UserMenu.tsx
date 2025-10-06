@@ -4,6 +4,7 @@ import { User, LogOut, Settings, Heart, Plus, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { signOut } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserDisplayName } from "@/lib/utils";
 
 interface UserMenuProps {
   onNavigate?: (path: string) => void;
@@ -67,8 +68,7 @@ export function UserMenu({
 
   if (!user) return null;
 
-  const displayName =
-    profile?.name || user?.user_metadata?.name || "Utilisateur";
+  const displayName = profile ? getUserDisplayName(profile) : (user?.user_metadata?.name || "Utilisateur");
   const userInitial = displayName.charAt(0)?.toUpperCase() || "U";
   const avatarUrl = profile?.avatar;
 

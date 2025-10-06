@@ -2,6 +2,7 @@
 import React from "react";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 import { useDashboardMessages } from "@/hooks/useDashboardMessages";
+import { getUserDisplayName } from "@/lib/utils";
 
 interface MessagesSectionProps {
   loadingMessages: boolean;
@@ -44,7 +45,8 @@ export default function MessagesSection({
       other.avatar ||
       (other.type === "professional" ? other.company_logo : null);
 
-    const initials = (other.name || "")
+    const displayName = getUserDisplayName(other);
+    const initials = displayName
       .trim()
       .split(/\s+/)
       .map((n: string) => n[0])
@@ -54,7 +56,7 @@ export default function MessagesSection({
 
     return {
       id: conv.id,
-      fromUser: other.name,
+      fromUser: displayName,
       userType: other.type || "individual",
       vehicleTitle: conv.vehicle_title,
       vehicleId: conv.vehicle_id,
@@ -75,7 +77,8 @@ export default function MessagesSection({
         const avatarUrl =
           other.avatar ||
           (other.type === "professional" ? other.company_logo : null);
-        const initials = (other.name || "")
+        const displayName = getUserDisplayName(other);
+        const initials = displayName
           .trim()
           .split(/\s+/)
           .map((n: string) => n[0])
@@ -85,7 +88,7 @@ export default function MessagesSection({
 
         return {
           id: c.id,
-          fromUser: other.name,
+          fromUser: displayName,
           userType: other.type || "individual",
           vehicleTitle: c.vehicle_title,
           vehicleId: c.vehicle_id,

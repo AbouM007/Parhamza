@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { MessageCircle, Send, User, ArrowLeft, Clock } from "lucide-react";
 import { useMessaging } from "@/hooks/useMessaging";
 import { useAuth } from "@/contexts/AuthContext";
+import { getUserDisplayName } from "@/lib/utils";
 
 interface Conversation {
   id: string;
@@ -10,8 +11,11 @@ interface Conversation {
   other_user: {
     id: string;
     name: string;
+    displayName?: string;
     email: string;
     avatar?: string;
+    type?: "individual" | "professional" | "pending";
+    companyName?: string;
   };
   last_message_at: string;
   last_message: string;
@@ -113,7 +117,7 @@ export function Messages() {
           sender_id: msg.sender_id,
           sender_name: msg.is_from_current_user
             ? "Vous"
-            : conversation.other_user.name,
+            : getUserDisplayName(conversation.other_user as any),
           created_at: msg.created_at || new Date().toISOString(),
         }));
 
@@ -255,12 +259,12 @@ export function Messages() {
                           {conversation.other_user.avatar ? (
                             <img
                               src={conversation.other_user.avatar}
-                              alt={conversation.other_user.name}
+                              alt={getUserDisplayName(conversation.other_user as any)}
                               className="w-full h-full object-cover"
                             />
                           ) : (
                             <span className="text-gray-600 dark:text-gray-300 font-semibold text-sm">
-                              {conversation.other_user.name
+                              {getUserDisplayName(conversation.other_user as any)
                                 .charAt(0)
                                 .toUpperCase()}
                             </span>
@@ -269,7 +273,7 @@ export function Messages() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <p className="font-medium text-sm truncate">
-                              {conversation.other_user.name}
+                              {getUserDisplayName(conversation.other_user as any)}
                             </p>
                             <span className="text-xs text-gray-500">
                               {formatDate(conversation.last_message_at)}
@@ -315,18 +319,18 @@ export function Messages() {
                             {conv?.other_user.avatar ? (
                               <img
                                 src={conv.other_user.avatar}
-                                alt={conv.other_user.name}
+                                alt={getUserDisplayName(conv.other_user as any)}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
                               <span className="text-gray-600 dark:text-gray-300 font-semibold text-sm">
-                                {conv?.other_user.name.charAt(0).toUpperCase()}
+                                {getUserDisplayName(conv?.other_user as any).charAt(0).toUpperCase()}
                               </span>
                             )}
                           </div>
                           <div>
                             <p className="font-medium">
-                              {conv?.other_user.name}
+                              {getUserDisplayName(conv?.other_user as any)}
                             </p>
                             <p className="text-sm text-gray-500">
                               {conv?.vehicle_title}
@@ -344,8 +348,8 @@ export function Messages() {
                             ? profile?.avatar
                             : conv?.other_user?.avatar;
                           const senderName = isCurrentUser
-                            ? profile?.name
-                            : conv?.other_user?.name;
+                            ? (profile ? getUserDisplayName(profile) : "Vous")
+                            : (conv?.other_user ? getUserDisplayName(conv.other_user as any) : "Utilisateur");
                           const senderInitial =
                             senderName?.charAt(0)?.toUpperCase() || "U";
 
