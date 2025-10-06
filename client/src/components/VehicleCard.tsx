@@ -177,21 +177,12 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
             <span>{vehicle.year}</span>
           </div>
 
-          {vehicle.condition === "damaged" ? (
-            <div className="flex items-center space-x-2">
-              <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
-                {vehicle.damageDetails?.damageTypes &&
-                vehicle.damageDetails.damageTypes.length > 0
-                  ? vehicle.damageDetails.damageTypes[0]
-                  : "Accidenté"}
-              </span>
-            </div>
-          ) : vehicle.mileage ? (
+          {vehicle.mileage && (
             <div className="flex items-center space-x-2">
               <Gauge className="h-4 w-4 text-gray-400" />
               <span>{formatMileage(vehicle.mileage)}</span>
             </div>
-          ) : null}
+          )}
 
           {vehicle.fuelType && (
             <div className="flex items-center space-x-2">
