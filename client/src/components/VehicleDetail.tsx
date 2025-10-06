@@ -29,6 +29,7 @@ import { ShareModal } from "./ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { PassionateLabel } from "./PassionateLabel";
 import brandIcon from "@/assets/Brand_1752260033631.png";
+import { getUserDisplayName } from "@/lib/utils";
 
 // Helper to check if subcategory is a service
 const isServiceCategory = (category: string): boolean => {
@@ -714,25 +715,25 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   vehicle.user?.companyLogo ? (
                     <img
                       src={vehicle.user.companyLogo}
-                      alt={vehicle.user.companyName || vehicle.user.name}
+                      alt={getUserDisplayName(vehicle.user)}
                       className="w-full h-full object-cover"
                     />
                   ) : vehicle.user?.avatar ? (
                     <img
                       src={vehicle.user.avatar}
-                      alt={vehicle.user.name}
+                      alt={getUserDisplayName(vehicle.user)}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-[#0CBFDE] font-semibold text-lg">
-                      {vehicle.user?.name.charAt(0)}
+                      {getUserDisplayName(vehicle.user).charAt(0)}
                     </span>
                   )}
                 </div>
                 <div>
-                  {/* Nom personnel toujours affiché */}
+                  {/* Nom affiché selon le type d'utilisateur */}
                   <h3 className="font-semibold text-gray-900">
-                    {vehicle.user?.name}
+                    {getUserDisplayName(vehicle.user)}
                   </h3>
 
                   {/* Nom commercial pour les pros - cliquable */}
