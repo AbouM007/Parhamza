@@ -7,6 +7,9 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Fixed phone number format issue - PhoneInputComponent now automatically adds "+" prefix for international E.164 format
+- **2025-10-06**: Fixed form submission issue in onboarding - changed StepButtons to use type="submit" instead of onClick handler
+- **2025-10-06**: Updated StepButtons component to accept optional continueType prop (button/submit) for proper form handling
 - **2025-10-06**: Implemented unified international phone system with E.164 format (+33612345678) for multi-country expansion
 - **2025-10-06**: Created reusable PhoneInputComponent with react-phone-input-2 (200+ countries supported)
 - **2025-10-06**: Added UNIQUE constraints on phone/whatsapp fields in database schema (one number = one account)

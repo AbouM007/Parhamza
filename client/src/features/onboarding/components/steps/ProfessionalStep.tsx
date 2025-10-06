@@ -230,7 +230,6 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
         {/* Boutons */}
         <StepButtons
           onBack={onBack}
-          onContinue={() => {}}
           continueText="Continuer"
           continueDisabled={form.formState.isSubmitting}
           continueType="submit"
