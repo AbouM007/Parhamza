@@ -1213,6 +1213,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (userErr) {
           console.error("❌ Erreur update user (pro):", userErr);
+          
+          // Détecter numéro de téléphone dupliqué
+          if (userErr.code === "23505" && userErr.details?.includes("phone")) {
+            return res.status(409).json({
+              error: "PHONE_ALREADY_EXISTS",
+              message: "Ce numéro de téléphone est déjà utilisé par un autre compte."
+            });
+          }
+          
+          // Détecter WhatsApp dupliqué
+          if (userErr.code === "23505" && userErr.details?.includes("whatsapp")) {
+            return res.status(409).json({
+              error: "WHATSAPP_ALREADY_EXISTS",
+              message: "Ce numéro WhatsApp est déjà utilisé par un autre compte."
+            });
+          }
+          
           return res
             .status(500)
             .json({ error: "Erreur mise à jour utilisateur (pro)" });
@@ -1314,6 +1331,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           personalErr.message,
           personalErr.details,
         );
+        
+        // Détecter numéro de téléphone dupliqué
+        if (personalErr.code === "23505" && personalErr.details?.includes("phone")) {
+          return res.status(409).json({
+            error: "PHONE_ALREADY_EXISTS",
+            message: "Ce numéro de téléphone est déjà utilisé par un autre compte."
+          });
+        }
+        
+        // Détecter WhatsApp dupliqué
+        if (personalErr.code === "23505" && personalErr.details?.includes("whatsapp")) {
+          return res.status(409).json({
+            error: "WHATSAPP_ALREADY_EXISTS",
+            message: "Ce numéro WhatsApp est déjà utilisé par un autre compte."
+          });
+        }
+        
         return res.status(500).json({
           error: personalErr.message || "Erreur sauvegarde compte personnel",
         });

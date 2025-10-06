@@ -7,6 +7,9 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Fixed duplicate phone validation - users now see clear error message when phone number is already used by another account
+- **2025-10-06**: Backend now returns specific error codes (PHONE_ALREADY_EXISTS, WHATSAPP_ALREADY_EXISTS) with 409 status instead of generic 500 error
+- **2025-10-06**: ProfessionalStep now displays user-friendly toast notification for duplicate phone/WhatsApp numbers (matching PersonalStep behavior)
 - **2025-10-06**: CRITICAL FIX - Fixed mobile crash during image upload by implementing proper memory management (CreateListingForm, CreateProAccount)
 - **2025-10-06**: Eliminated memory leak: preview URLs now use useMemo/useEffect with proper cleanup (URL.revokeObjectURL on unmount)
 - **2025-10-06**: Optimized image compression: lightweight canvas-based compression for files > 500KB, converts to JPEG at 85% quality

@@ -81,6 +81,28 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // Gérer les erreurs spécifiques
+        if (errorData.error === "PHONE_ALREADY_EXISTS") {
+          toast({
+            title: "Numéro déjà utilisé",
+            description:
+              "Ce numéro de téléphone est déjà associé à un autre compte.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (errorData.error === "WHATSAPP_ALREADY_EXISTS") {
+          toast({
+            title: "WhatsApp déjà utilisé",
+            description:
+              "Ce numéro WhatsApp est déjà associé à un autre compte.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         throw new Error(errorData.message || "Erreur lors de la mise à jour");
       }
 
