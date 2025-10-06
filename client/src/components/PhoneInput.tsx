@@ -25,7 +25,8 @@ export const PhoneInputComponent = ({
 }: PhoneInputComponentProps) => {
   const handleChange = (phone: string) => {
     const cleanedPhone = phone.replace(/\s/g, '');
-    onChange(cleanedPhone);
+    const phoneWithPlus = cleanedPhone.startsWith('+') ? cleanedPhone : `+${cleanedPhone}`;
+    onChange(phoneWithPlus);
   };
 
   return (
