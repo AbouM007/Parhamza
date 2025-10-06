@@ -154,6 +154,16 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
             />
           </div>
 
+          {/* Adresse (code postal + ville) */}
+          <AddressInput
+            postalCode={form.watch("postalCode") || ""}
+            city={form.watch("city") || ""}
+            onPostalCodeChange={(code) => form.setValue("postalCode", code)}
+            onCityChange={(city) => form.setValue("city", city)}
+            label="Adresse de l'entreprise"
+            required
+          />
+
           {/* Téléphone international */}
           <div>
             <PhoneInputComponent
@@ -166,43 +176,47 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
             />
           </div>
 
-          {/* Adresse (code postal + ville) */}
-          <AddressInput
-            postalCode={form.watch("postalCode") || ""}
-            city={form.watch("city") || ""}
-            onPostalCodeChange={(code) => form.setValue("postalCode", code)}
-            onCityChange={(city) => form.setValue("city", city)}
-            label="Adresse de l'entreprise"
-            required
-          />
-
-          {/* WhatsApp - inline */}
-          <div className="flex items-center space-x-2 pt-8">
-            <input
-              type="checkbox"
-              id="sameAsPhone"
-              checked={sameAsPhone}
-              onChange={(e) => setSameAsPhone(e.target.checked)}
-              className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
-              data-testid="checkbox-same-whatsapp"
-            />
-            <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
-              Utiliser ce numéro pour WhatsApp
-            </label>
-          </div>
+          {/* WhatsApp - checkbox ou champ */}
+          {sameAsPhone ? (
+            <div className="flex items-center space-x-2 pt-8">
+              <input
+                type="checkbox"
+                id="sameAsPhone"
+                checked={sameAsPhone}
+                onChange={(e) => setSameAsPhone(e.target.checked)}
+                className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
+                data-testid="checkbox-same-whatsapp"
+              />
+              <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
+                Utiliser ce numéro pour WhatsApp
+              </label>
+            </div>
+          ) : (
+            <div>
+              <PhoneInputComponent
+                value={form.watch("whatsapp") || ""}
+                onChange={(value) => form.setValue("whatsapp", value)}
+                label="WhatsApp (optionnel)"
+                placeholder="Numéro WhatsApp différent"
+                error={form.formState.errors.whatsapp?.message}
+                testId="input-whatsapp"
+              />
+              <div className="flex items-center space-x-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="sameAsPhone"
+                  checked={sameAsPhone}
+                  onChange={(e) => setSameAsPhone(e.target.checked)}
+                  className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
+                  data-testid="checkbox-same-whatsapp"
+                />
+                <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
+                  Utiliser mon numéro de téléphone
+                </label>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* WhatsApp différent si décoché */}
-        {!sameAsPhone && (
-          <PhoneInputComponent
-            value={form.watch("whatsapp") || ""}
-            onChange={(value) => form.setValue("whatsapp", value)}
-            label="WhatsApp (optionnel)"
-            placeholder="Numéro WhatsApp différent"
-            error={form.formState.errors.whatsapp?.message}
-            testId="input-whatsapp"
-          />
-        )}
 
         {/* Boutons */}
         <StepButtons
