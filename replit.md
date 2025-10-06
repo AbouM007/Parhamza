@@ -7,6 +7,7 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Implemented auto-refresh of profile section after saving changes - calls refreshProfile() from AuthContext to reload data
 - **2025-10-06**: CRITICAL FIX - Added display_name → displayName mapping in GET /api/users/:id route to properly load pseudo from database
 - **2025-10-06**: COMPLETED - Fixed ProfileSection display_name editing and display functionality
 - **2025-10-06**: Created PUT /api/profile/update/:id route for dashboard profile updates with display_name support

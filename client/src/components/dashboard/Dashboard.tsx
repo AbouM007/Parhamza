@@ -145,7 +145,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setSelectedVehicle,
     setSearchFilters: contextSetSearchFilters,
   } = useApp();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, refreshProfile } = useAuth();
   const isLoading = loading;
   // Note: refreshDbUser n'a pas d'équivalent direct dans AuthContext
 
@@ -566,6 +566,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (response.ok) {
         const updatedData = await response.json();
         console.log("✅ Profil sauvegardé avec succès:", updatedData);
+        
+        // Rafraîchir le profil depuis le backend
+        await refreshProfile();
+        
         setEditingProfile(false);
         setProfileSuccess(true);
         // Masquer le message de succès après 3 secondes
@@ -1389,8 +1393,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     profileSuccess={profileSuccess}
     savingProfile={savingProfile}
     handleSaveProfile={handleSaveProfile}
-    refreshProfile={async () => {}} // ✅ Retourne Promise<void>
-    // refreshDbUser={refreshDbUser} // Non disponible dans AuthContext
+    refreshProfile={refreshProfile}
   />;
 
   const renderPurchaseHistory = () => (
@@ -2839,8 +2842,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 profileSuccess={profileSuccess}
                 savingProfile={savingProfile}
                 handleSaveProfile={handleSaveProfile}
-                refreshProfile={async () => {}}
-                // refreshDbUser={refreshDbUser} // Non disponible dans AuthContext
+                refreshProfile={refreshProfile}
               />
             )}
 
