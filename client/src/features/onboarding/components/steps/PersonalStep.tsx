@@ -51,6 +51,10 @@ export const PersonalStep = ({
   const phoneValue = form.watch("phone");
 
   const onSubmit = async (data: PersonalProfileData) => {
+    console.log("🎯 FORMULAIRE SOUMIS !");
+    console.log("📋 Données du formulaire:", data);
+    console.log("❌ Erreurs de validation:", form.formState.errors);
+    
     try {
       const {
         data: { session },
@@ -59,6 +63,9 @@ export const PersonalStep = ({
 
       const cleanedPhone = data.phone.replace(/\s/g, '');
       const cleanedWhatsapp = data.whatsapp ? data.whatsapp.replace(/\s/g, '') : '';
+      
+      console.log("📞 Téléphone nettoyé:", cleanedPhone);
+      console.log("📱 WhatsApp nettoyé:", cleanedWhatsapp);
 
       if (!/^\+[1-9]\d{1,14}$/.test(cleanedPhone)) {
         toast({
