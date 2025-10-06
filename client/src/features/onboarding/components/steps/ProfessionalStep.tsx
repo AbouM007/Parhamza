@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,12 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { StepProps } from "../../types";
+import { PhoneInputComponent } from "@/components/PhoneInput";
 
 const professionalSchema = z.object({
   companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
   siret: z.string().regex(/^\d{14}$/, "Le numéro SIRET doit contenir 14 chiffres"),
   name: z.string().min(2, "Le nom du responsable est requis"),
-  phone: z.string().regex(/^\d{10}$/, "Le téléphone doit contenir 10 chiffres"),
+  phone: z
+    .string()
+    .min(10, "Le numéro de téléphone est requis")
+    .regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)"),
+  whatsapp: z.string().optional(),
 });
 
 type ProfessionalFormData = z.infer<typeof professionalSchema>;
@@ -22,6 +28,7 @@ type ProfessionalFormData = z.infer<typeof professionalSchema>;
 export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps) {
   const { toast } = useToast();
   const { refreshProfile } = useAuth();
+  const [sameAsPhone, setSameAsPhone] = useState(false);
 
   const form = useForm<ProfessionalFormData>({
     resolver: zodResolver(professionalSchema),
@@ -30,6 +37,7 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
       siret: (currentData.professional?.siret as string) || "",
       name: (currentData.professional?.name as string) || "",
       phone: (currentData.professional?.phone as string) || "",
+      whatsapp: (currentData.professional?.whatsapp as string) || "",
     },
   });
 
@@ -39,6 +47,11 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) throw new Error("Session non disponible");
+
+      // Si sameAsPhone est activé, copier le numéro de téléphone dans whatsapp
+      if (sameAsPhone) {
+        data.whatsapp = data.phone;
+      }
 
       const response = await fetch("/api/profile/complete", {
         method: "POST",
@@ -136,23 +149,45 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
             />
           </div>
 
-          {/* Téléphone */}
+          {/* Téléphone international */}
           <div>
-            <FormLabel htmlFor="phone">Téléphone *</FormLabel>
-            <FormInput
-              id="phone"
-              type="tel"
-              maxLength={10}
-              placeholder="0612345678"
+            <PhoneInputComponent
+              value={form.watch("phone") || ""}
+              onChange={(value) => form.setValue("phone", value)}
+              label="Téléphone *"
+              placeholder="Numéro de téléphone professionnel"
               error={form.formState.errors.phone?.message}
-              {...form.register("phone")}
-              data-testid="input-manager-phone"
+              testId="input-manager-phone"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              10 chiffres requis
-            </p>
+          </div>
+
+          {/* WhatsApp - inline */}
+          <div className="flex items-center space-x-2 pt-8">
+            <input
+              type="checkbox"
+              id="sameAsPhone"
+              checked={sameAsPhone}
+              onChange={(e) => setSameAsPhone(e.target.checked)}
+              className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
+              data-testid="checkbox-same-whatsapp"
+            />
+            <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
+              Utiliser mon numéro de téléphone pour WhatsApp
+            </label>
           </div>
         </div>
+
+        {/* WhatsApp différent si décoché */}
+        {!sameAsPhone && (
+          <PhoneInputComponent
+            value={form.watch("whatsapp") || ""}
+            onChange={(value) => form.setValue("whatsapp", value)}
+            label="WhatsApp (optionnel)"
+            placeholder="Numéro WhatsApp différent"
+            error={form.formState.errors.whatsapp?.message}
+            testId="input-whatsapp"
+          />
+        )}
 
         {/* Boutons */}
         <StepButtons

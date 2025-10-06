@@ -19,7 +19,7 @@ const personalProfileSchema = z.object({
   phone: z
     .string()
     .min(10, "Le numéro de téléphone est requis")
-    .regex(/^\+?[1-9]\d{1,14}$/, "Format de téléphone invalide"),
+    .regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)"),
   whatsapp: z.string().optional(),
   postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
   city: z.string().min(2, "La ville est requise").optional(),
@@ -174,6 +174,7 @@ export const PersonalStep = ({
               checked={sameAsPhone}
               onChange={(e) => setSameAsPhone(e.target.checked)}
               className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
+              data-testid="checkbox-same-whatsapp"
             />
             <label htmlFor="sameAsPhone" className="text-sm text-gray-700">
               Utiliser mon numéro de téléphone pour WhatsApp

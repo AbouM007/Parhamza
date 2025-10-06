@@ -18,12 +18,16 @@ import { PhoneInputComponent } from "@/components/PhoneInput";
 
 // ✅ Schéma de validation pour profil professionnel
 const professionalProfileSchema = z.object({
-  companyName: z.string().min(2, "Le nom de l’entreprise est requis"),
+  companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
   siret: z
     .string()
     .regex(/^\d{14}$/, "Le numéro SIRET doit contenir 14 chiffres"),
   name: z.string().min(2, "Le nom du responsable est requis"),
-  phone: z.string().regex(/^\d{10}$/, "Le téléphone doit contenir 10 chiffres"),
+  phone: z
+    .string()
+    .min(10, "Le numéro de téléphone est requis")
+    .regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)"),
+  whatsapp: z.string().optional(),
 });
 
 type ProfessionalProfileData = z.infer<typeof professionalProfileSchema>;
@@ -36,6 +40,7 @@ interface ProfessionalProfileFormProps {
     name?: string;
     email?: string;
     phone?: string;
+    whatsapp?: string;
     companyName?: string;
     siret?: string;
     city?: string;
@@ -54,6 +59,7 @@ export const ProfessionalProfileForm: React.FC<
   const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
   const [isLoadingPlans, setIsLoadingPlans] = useState(false);
   const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
+  const [sameAsPhone, setSameAsPhone] = useState(false);
 
   const form = useForm<ProfessionalProfileData>({
     resolver: zodResolver(professionalProfileSchema),
@@ -62,10 +68,11 @@ export const ProfessionalProfileForm: React.FC<
       siret: initialData.siret || "",
       name: initialData.name || "",
       phone: initialData.phone || "",
+      whatsapp: initialData.whatsapp || "",
     },
   });
 
-  // Charger les plans d’abonnement
+  // Charger les plans d'abonnement
   const loadSubscriptionPlans = async () => {
     setIsLoadingPlans(true);
     try {
@@ -75,7 +82,7 @@ export const ProfessionalProfileForm: React.FC<
       setSubscriptionPlans(plans);
     } catch (error) {
       console.error("❌ Erreur chargement plans:", error);
-      alert("Erreur lors du chargement des plans d’abonnement");
+      alert("Erreur lors du chargement des plans d'abonnement");
     } finally {
       setIsLoadingPlans(false);
     }
@@ -100,6 +107,11 @@ export const ProfessionalProfileForm: React.FC<
       // Validation SIRET
       if (!/^\d{14}$/.test(data.siret)) {
         throw new Error("SIRET invalide (14 chiffres requis)");
+      }
+
+      // Si sameAsPhone est activé, copier le numéro de téléphone dans whatsapp
+      if (sameAsPhone) {
+        data.whatsapp = data.phone;
       }
 
       toast({
@@ -188,6 +200,7 @@ export const ProfessionalProfileForm: React.FC<
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            data-testid="button-close-modal"
           >
             <X size={24} />
           </button>
@@ -204,13 +217,14 @@ export const ProfessionalProfileForm: React.FC<
                 {/* Nom entreprise */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom de l’entreprise *
+                    Nom de l'entreprise *
                   </label>
                   <input
                     {...form.register("companyName")}
                     type="text"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     placeholder="Auto Passion SARL, Garage Martin..."
+                    data-testid="input-company-name"
                   />
                   {form.formState.errors.companyName && (
                     <p className="mt-1 text-sm text-red-600">
@@ -230,6 +244,7 @@ export const ProfessionalProfileForm: React.FC<
                     maxLength={14}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     placeholder="12345678901234"
+                    data-testid="input-siret"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     14 chiffres requis
@@ -251,6 +266,7 @@ export const ProfessionalProfileForm: React.FC<
                     type="text"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     placeholder="Jean Dupont"
+                    data-testid="input-responsible-name"
                   />
                   {form.formState.errors.name && (
                     <p className="mt-1 text-sm text-red-600">
@@ -259,28 +275,45 @@ export const ProfessionalProfileForm: React.FC<
                   )}
                 </div>
 
-                {/* Téléphone */}
+                {/* Téléphone international */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone *
-                  </label>
-                  <input
-                    {...form.register("phone")}
-                    type="tel"
-                    maxLength={10}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="0612345678"
+                  <PhoneInputComponent
+                    value={form.watch("phone") || ""}
+                    onChange={(value) => form.setValue("phone", value)}
+                    label="Téléphone *"
+                    placeholder="Numéro de téléphone professionnel"
+                    error={form.formState.errors.phone?.message}
+                    testId="input-phone"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    10 chiffres requis
-                  </p>
-                  {form.formState.errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {form.formState.errors.phone.message}
-                    </p>
-                  )}
+                </div>
+
+                {/* WhatsApp - inline */}
+                <div className="flex items-center space-x-2 pt-8">
+                  <input
+                    type="checkbox"
+                    id="sameAsPhone"
+                    checked={sameAsPhone}
+                    onChange={(e) => setSameAsPhone(e.target.checked)}
+                    className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
+                    data-testid="checkbox-same-whatsapp"
+                  />
+                  <label htmlFor="sameAsPhone" className="text-sm text-gray-700">
+                    Utiliser mon numéro de téléphone pour WhatsApp
+                  </label>
                 </div>
               </div>
+
+              {/* WhatsApp différent si décoché */}
+              {!sameAsPhone && (
+                <PhoneInputComponent
+                  value={form.watch("whatsapp") || ""}
+                  onChange={(value) => form.setValue("whatsapp", value)}
+                  label="WhatsApp (optionnel)"
+                  placeholder="Numéro WhatsApp différent"
+                  error={form.formState.errors.whatsapp?.message}
+                  testId="input-whatsapp"
+                />
+              )}
             </section>
 
             <div className="flex justify-between items-center pt-6 border-t">
@@ -288,6 +321,7 @@ export const ProfessionalProfileForm: React.FC<
                 type="button"
                 onClick={onClose}
                 className="px-6 py-3 text-gray-600 hover:text-gray-800 font-medium"
+                data-testid="button-cancel"
               >
                 Annuler
               </button>
@@ -295,6 +329,7 @@ export const ProfessionalProfileForm: React.FC<
                 type="submit"
                 disabled={form.formState.isSubmitting}
                 className="px-8 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+                data-testid="button-continue"
               >
                 <span>
                   {form.formState.isSubmitting ? "Sauvegarde..." : "Continuer"}
@@ -372,6 +407,7 @@ export const ProfessionalProfileForm: React.FC<
                         onClick={() => handlePlanSelection(plan)}
                         disabled={isCreatingCheckout}
                         className="w-full py-3 rounded-lg font-medium transition-colors bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                        data-testid={`button-select-plan-${plan.id}`}
                       >
                         {isCreatingCheckout
                           ? "Redirection..."
