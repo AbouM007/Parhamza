@@ -23,6 +23,11 @@ export const PhoneInputComponent = ({
   disabled = false,
   testId,
 }: PhoneInputComponentProps) => {
+  const handleChange = (phone: string) => {
+    const cleanedPhone = phone.replace(/\s/g, '');
+    onChange(cleanedPhone);
+  };
+
   return (
     <div className="w-full">
       {label && (
@@ -34,7 +39,7 @@ export const PhoneInputComponent = ({
       <PhoneInput
         country={'fr'}
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         placeholder={placeholder}
         disabled={disabled}
         containerClass="w-full"
