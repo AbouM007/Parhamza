@@ -112,26 +112,6 @@ export const SparePartsTabs: React.FC<SparePartsTabsProps> = ({
             <span className="text-gray-400 text-sm">Aucune image</span>
           </div>
         )}
-
-        {/* Badge "Pièce détachée" */}
-        <div className="absolute top-3 left-3">
-          <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-            Pièce détachée
-          </span>
-        </div>
-
-        {/* Badge état */}
-        {part.condition && (
-          <div className="absolute top-3 right-3">
-            <span className="bg-black/60 text-white px-2 py-1 rounded-full text-xs font-medium capitalize">
-              {part.condition === "new"
-                ? "Neuf"
-                : part.condition === "used"
-                  ? "Occasion"
-                  : part.condition}
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="p-4">

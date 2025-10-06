@@ -88,12 +88,6 @@ export const ServicesTabs: React.FC<ServicesTabsProps> = ({
             <span className="text-gray-400 text-sm">Aucune image</span>
           </div>
         )}
-
-        <div className="absolute top-3 left-3">
-          <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-            Service
-          </span>
-        </div>
       </div>
 
       <div className="p-4">

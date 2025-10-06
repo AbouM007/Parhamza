@@ -97,20 +97,6 @@ export const DamagedVehiclesTabs: React.FC<DamagedVehiclesTabsProps> = ({
             <span className="text-gray-400 text-sm">Aucune image</span>
           </div>
         )}
-
-        {/* Badge "Accidenté" */}
-        <div className="absolute top-3 left-3">
-          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-            Accidenté
-          </span>
-        </div>
-
-        {/* Badge catégorie */}
-        <div className="absolute top-3 right-3">
-          <span className="bg-black/60 text-white px-2 py-1 rounded-full text-xs font-medium capitalize">
-            {vehicle.category}
-          </span>
-        </div>
       </div>
 
       <div className="p-4">
