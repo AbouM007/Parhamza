@@ -222,7 +222,6 @@ export const PersonalStep = ({
 
         <StepButtons
           onBack={onBack}
-          onContinue={() => {}}
           continueText="Finaliser mon profil"
           continueDisabled={form.formState.isSubmitting}
           continueType="submit"
