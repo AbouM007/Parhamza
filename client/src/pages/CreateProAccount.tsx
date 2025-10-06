@@ -73,6 +73,7 @@ const AlertDescription = ({ children, className = '' }: any) => (
 );
 import { Upload, FileText, Building2, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { compressImage } from '@/utils/imageCompression';
 
 // Simple toast replacement
 const showToast = (title: string, description: string, type: 'success' | 'error' = 'success') => {
@@ -143,7 +144,7 @@ export default function CreateProAccount() {
     },
   });
 
-  const handleKbisUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleKbisUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -168,9 +169,25 @@ export default function CreateProAccount() {
       return;
     }
 
+    // 🔧 Compression pour éviter crash mobile
+    let processedFile = file;
+    if (file.type.includes('image') && file.size > 500 * 1024) {
+      try {
+        console.log(`Compression document ${file.name} (${(file.size / 1024).toFixed(0)}KB)...`);
+        processedFile = await compressImage(file, {
+          maxWidth: 1920,
+          maxHeight: 1920,
+          quality: 0.85,
+        });
+      } catch (error) {
+        console.error('Erreur compression:', error);
+        // Continue avec le fichier original
+      }
+    }
+
     setKbisDocument({
-      file,
-      preview: file.type.includes('image') ? URL.createObjectURL(file) : null,
+      file: processedFile,
+      preview: processedFile.type.includes('image') ? URL.createObjectURL(processedFile) : null,
       status: 'uploaded'
     });
   };

@@ -7,6 +7,12 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: CRITICAL FIX - Implemented image compression system to prevent mobile crashes during file upload (CreateListingForm, CreateProAccount)
+- **2025-10-06**: Created imageCompression.ts utility to compress images > 500KB before preview/upload (prevents memory overflow on mobile)
+- **2025-10-06**: Fixed white screen crash on mobile when uploading images (listing photos, KBIS/CIN documents)
+- **2025-10-06**: Images are now compressed to max 1920x1920px at 85% quality before processing, reducing memory usage by 60-80%
+- **2025-10-06**: Made OnboardingModal fully scrollable on mobile with responsive padding (p-4 on mobile, p-8 on desktop)
+- **2025-10-06**: Fixed issue where "Suivant" button was not visible on mobile in onboarding forms
 - **2025-10-06**: Updated ProfileSection WhatsApp field to use PhoneInputComponent for international format consistency across the platform
 - **2025-10-06**: Fixed phone number format issue - PhoneInputComponent now automatically adds "+" prefix for international E.164 format
 - **2025-10-06**: Fixed form submission issue in onboarding - changed StepButtons to use type="submit" instead of onClick handler

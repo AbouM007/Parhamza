@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
 import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
+import { compressImage } from "@/utils/imageCompression";
 // Temporairement commenté pour éviter l'erreur d'import
 // import { useToast } from '../../hooks/use-toast';
 import {
@@ -979,17 +980,38 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const remainingSlots = 4 - formData.photos.length;
     const filesToAdd = files.slice(0, remainingSlots);
 
-    // Upload vers Supabase Storage
     try {
-      const formData = new FormData();
-      filesToAdd.forEach((file) => {
-        formData.append("images", file);
+      // 🔧 Compression des images AVANT upload (évite crash mobile)
+      const compressedFiles = await Promise.all(
+        filesToAdd.map(async (file) => {
+          try {
+            // Compresser seulement les fichiers > 500KB
+            if (file.size > 500 * 1024) {
+              console.log(`Compression de ${file.name} (${(file.size / 1024).toFixed(0)}KB)...`);
+              return await compressImage(file, {
+                maxWidth: 1920,
+                maxHeight: 1920,
+                quality: 0.85,
+              });
+            }
+            return file;
+          } catch (error) {
+            console.error(`Erreur compression ${file.name}:`, error);
+            return file; // Fallback au fichier original
+          }
+        })
+      );
+
+      // Upload vers Supabase Storage
+      const uploadFormData = new FormData();
+      compressedFiles.forEach((file) => {
+        uploadFormData.append("images", file);
       });
 
       const userId = profile?.id || "anonymous";
       const response = await fetch(`/api/images/upload/${userId}`, {
         method: "POST",
-        body: formData,
+        body: uploadFormData,
       });
 
       if (!response.ok) {
@@ -1006,15 +1028,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         }));
         console.log("Images uploadées avec succès:", newImageUrls);
       } else {
-        // Fallback : utiliser les fichiers localement si l'upload échoue
+        // Fallback : utiliser les fichiers compressés localement
         setFormData((prev) => ({
           ...prev,
-          photos: [...prev.photos, ...filesToAdd],
+          photos: [...prev.photos, ...compressedFiles],
         }));
       }
     } catch (error) {
       console.error("Erreur upload:", error);
-      // Fallback : utiliser les fichiers localement
+      // Fallback : utiliser les fichiers compressés localement
       setFormData((prev) => ({
         ...prev,
         photos: [...prev.photos, ...filesToAdd],
