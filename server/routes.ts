@@ -61,6 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 🔧 Mapper les propriétés snake_case → camelCase pour le frontend
       const mappedUser = {
         ...user,
+        displayName: (user as any).display_name,
         profileCompleted: (user as any).profile_completed,
         postalCode: (user as any).postal_code,
         companyName: (user as any).company_name,
