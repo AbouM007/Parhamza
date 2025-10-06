@@ -304,7 +304,7 @@ export const PlanSelector: React.FC<PlanSelectorProps> = ({
           const planColor = PLAN_COLORS[planKey] || PLAN_COLORS.starter;
 
           // Plan populaire
-          const isPopular = plan.features.popular || planKey === "business";
+          const isPopular = plan.features.popular;
 
           const isLoading = preparingPayment && selectedPlanId === plan.id;
 

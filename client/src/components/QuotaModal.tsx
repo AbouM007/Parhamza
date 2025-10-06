@@ -152,12 +152,10 @@ export const QuotaModal: React.FC<QuotaModalProps> = ({
             <>
               {/* Plans selector */}
               <div className="mb-4 text-center">
-                <p className="text-gray-600 dark:text-gray-300">
-                  Sélectionnez le plan qui correspond à vos besoins et commencez
-                  à publier plus d'annonces !
+                <p className="text-gray-600 dark:text-gray-300">  Sélectionnez le plan qui correspond à vos besoins et commencez à publier plus d'annonces !
                 </p>
+                <p>&nbsp;</p>
               </div>
-
               <PlanSelector mode="compact" maxPlansDisplayed={3} />
 
               {/* Back button */}
