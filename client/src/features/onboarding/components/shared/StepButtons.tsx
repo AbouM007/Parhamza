@@ -6,6 +6,7 @@ interface StepButtonsProps {
   continueText?: string;
   continueDisabled?: boolean;
   showBack?: boolean;
+  continueType?: "button" | "submit";
 }
 
 export const StepButtons = ({
@@ -14,6 +15,7 @@ export const StepButtons = ({
   continueText = "Continuer",
   continueDisabled = false,
   showBack = true,
+  continueType = "button",
 }: StepButtonsProps) => {
   return (
     <div className="flex justify-between items-center mt-8">
@@ -32,9 +34,9 @@ export const StepButtons = ({
       )}
 
       <button
-        onClick={onContinue}
+        onClick={continueType === "button" ? onContinue : undefined}
         disabled={continueDisabled}
-        type="button"
+        type={continueType}
         className="flex items-center space-x-2 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
         data-testid="button-continue"
       >

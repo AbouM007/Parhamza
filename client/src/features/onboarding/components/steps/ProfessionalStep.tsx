@@ -120,7 +120,7 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
       </div>
 
       {/* Formulaire */}
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nom entreprise */}
           <div>
@@ -230,9 +230,10 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
         {/* Boutons */}
         <StepButtons
           onBack={onBack}
-          onContinue={() => form.handleSubmit(onSubmit)()}
+          onContinue={() => {}}
           continueText="Continuer"
           continueDisabled={form.formState.isSubmitting}
+          continueType="submit"
         />
       </form>
     </div>

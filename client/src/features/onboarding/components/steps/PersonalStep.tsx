@@ -139,7 +139,7 @@ export const PersonalStep = ({
         </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Nom complet */}
           <div>
@@ -222,9 +222,10 @@ export const PersonalStep = ({
 
         <StepButtons
           onBack={onBack}
-          onContinue={() => form.handleSubmit(onSubmit)()}
+          onContinue={() => {}}
           continueText="Finaliser mon profil"
           continueDisabled={form.formState.isSubmitting}
+          continueType="submit"
         />
       </form>
 
