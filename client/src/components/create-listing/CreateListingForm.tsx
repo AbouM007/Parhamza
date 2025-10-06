@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -188,6 +188,27 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   });
 
   const [formData, setFormData] = useState<FormData>(initializeFormData());
+
+  // 🔧 Gestion mémoire des preview URLs (évite crash mobile)
+  const photoPreviewUrls = useMemo(() => {
+    return formData.photos.map((photo) => {
+      if (typeof photo === "string") {
+        return photo; // URL déjà uploadée
+      }
+      return URL.createObjectURL(photo); // Créer URL pour File
+    });
+  }, [formData.photos]);
+
+  // Nettoyer les URLs quand les photos changent ou composant démonté
+  useEffect(() => {
+    return () => {
+      photoPreviewUrls.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [photoPreviewUrls]);
 
   const [vehicleDataLoading, setVehicleDataLoading] = useState(false);
   const [vehicleDataMessage, setVehicleDataMessage] = useState("");
@@ -3236,11 +3257,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     {formData.photos.map((photo, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={
-                            typeof photo === "string"
-                              ? photo
-                              : URL.createObjectURL(photo)
-                          }
+                          src={photoPreviewUrls[index]}
                           alt={`Photo ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
