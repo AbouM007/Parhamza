@@ -7,6 +7,9 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Implemented real-time phone number validation with visual feedback (green checkmark for available, red X for taken)
+- **2025-10-06**: Created /api/users/check-phone/:phone endpoint for instant duplicate phone detection with 800ms debounce
+- **2025-10-06**: Added live validation indicators in PersonalStep and ProfessionalStep onboarding forms (Loader2, CheckCircle2, XCircle icons)
 - **2025-10-06**: Fixed duplicate phone validation - users now see clear error message when phone number is already used by another account
 - **2025-10-06**: Backend now returns specific error codes (PHONE_ALREADY_EXISTS, WHATSAPP_ALREADY_EXISTS) with 409 status instead of generic 500 error
 - **2025-10-06**: ProfessionalStep now displays user-friendly toast notification for duplicate phone/WhatsApp numbers (matching PersonalStep behavior)

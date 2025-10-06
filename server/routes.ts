@@ -924,6 +924,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===============================
+  // API : Vérifications en temps réel
+  // ===============================
+
+  // Vérifier si un numéro de téléphone existe déjà
+  app.get("/api/users/check-phone/:phone", async (req, res) => {
+    try {
+      const phone = decodeURIComponent(req.params.phone);
+      console.log("📞 Vérification disponibilité téléphone:", phone);
+
+      const { data, error } = await supabaseServer
+        .from("users")
+        .select("id")
+        .eq("phone", phone)
+        .maybeSingle();
+
+      if (error) {
+        console.error("❌ Erreur vérification téléphone:", error);
+        return res.status(500).json({ error: "Erreur serveur" });
+      }
+
+      const exists = !!data;
+      console.log(exists ? "❌ Téléphone déjà utilisé" : "✅ Téléphone disponible");
+
+      res.json({ 
+        exists,
+        available: !exists 
+      });
+    } catch (error) {
+      console.error("❌ Erreur vérification téléphone:", error);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+
+  // ===============================
   // API : Création / Mise à jour compte (perso + pro)
   // ===============================
 

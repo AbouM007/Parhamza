@@ -11,8 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AddressInput } from "@/components/AddressInput";
 import { PhoneInputComponent } from "@/components/PhoneInput";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { OnboardingSuccessDialog } from "../OnboardingSuccessDialog";
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 const personalProfileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
@@ -36,6 +37,7 @@ export const PersonalStep = ({
   const [, setLocation] = useLocation();
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [sameAsPhone, setSameAsPhone] = useState(false);
+  const [phoneCheckStatus, setPhoneCheckStatus] = useState<"idle" | "checking" | "available" | "exists" | "error">("idle");
 
   const form = useForm<PersonalProfileData>({
     resolver: zodResolver(personalProfileSchema),
@@ -49,6 +51,44 @@ export const PersonalStep = ({
   });
 
   const phoneValue = form.watch("phone");
+
+  // Vérification en temps réel du numéro de téléphone
+  useEffect(() => {
+    if (!phoneValue || phoneValue.length < 10) {
+      setPhoneCheckStatus("idle");
+      return;
+    }
+
+    // Nettoyer le numéro
+    const cleanedPhone = phoneValue.replace(/\s/g, '');
+    
+    // Vérifier le format E.164
+    if (!/^\+[1-9]\d{1,14}$/.test(cleanedPhone)) {
+      setPhoneCheckStatus("idle");
+      return;
+    }
+
+    // Debounce de 800ms
+    const timeoutId = setTimeout(async () => {
+      setPhoneCheckStatus("checking");
+      
+      try {
+        const response = await fetch(`/api/users/check-phone/${encodeURIComponent(cleanedPhone)}`);
+        const data = await response.json();
+        
+        if (data.exists) {
+          setPhoneCheckStatus("exists");
+        } else {
+          setPhoneCheckStatus("available");
+        }
+      } catch (error) {
+        console.error("Erreur vérification téléphone:", error);
+        setPhoneCheckStatus("error");
+      }
+    }, 800);
+
+    return () => clearTimeout(timeoutId);
+  }, [phoneValue]);
 
   const onSubmit = async (data: PersonalProfileData) => {
     try {
@@ -176,6 +216,33 @@ export const PersonalStep = ({
               error={form.formState.errors.phone?.message}
               testId="input-phone"
             />
+            
+            {/* Indicateur de vérification */}
+            {phoneCheckStatus !== "idle" && (
+              <div className="mt-2 flex items-center gap-2 text-sm">
+                {phoneCheckStatus === "checking" && (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                    <span className="text-gray-500">Vérification...</span>
+                  </>
+                )}
+                {phoneCheckStatus === "available" && (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600 font-medium">Numéro disponible</span>
+                  </>
+                )}
+                {phoneCheckStatus === "exists" && (
+                  <>
+                    <XCircle className="h-4 w-4 text-red-600" />
+                    <span className="text-red-600 font-medium">Ce numéro est déjà utilisé</span>
+                  </>
+                )}
+                {phoneCheckStatus === "error" && (
+                  <span className="text-gray-500">Impossible de vérifier</span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* WhatsApp - checkbox ou champ */}
