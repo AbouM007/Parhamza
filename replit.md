@@ -7,6 +7,7 @@ PassionAuto2Roues is an online marketplace for buying and selling used vehicles,
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
+- **2025-10-06**: Updated ProfileSection WhatsApp field to use PhoneInputComponent for international format consistency across the platform
 - **2025-10-06**: Fixed phone number format issue - PhoneInputComponent now automatically adds "+" prefix for international E.164 format
 - **2025-10-06**: Fixed form submission issue in onboarding - changed StepButtons to use type="submit" instead of onClick handler
 - **2025-10-06**: Updated StepButtons component to accept optional continueType prop (button/submit) for proper form handling

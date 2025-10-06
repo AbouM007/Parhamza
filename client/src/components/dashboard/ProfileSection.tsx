@@ -2,6 +2,7 @@ import React from "react";
 import { Edit, Upload } from "lucide-react";
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 import { User } from "@/types";
+import { PhoneInputComponent } from "../PhoneInput";
 
 interface ProfileSectionProps {
   //profile: any;
@@ -229,51 +230,20 @@ export default function ProfileSection({
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               WhatsApp
             </label>
-            <input
-              type="tel"
-              value={
-                editingProfile
-                  ? profileForm.whatsapp
-                  : (profile as any)?.whatsapp || ""
-              }
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, ""); // ✅ Supprimer tout sauf les chiffres
-                if (value.length <= 10) {
-                  // ✅ Limiter à exactement 10 chiffres
-                  setProfileForm({ ...profileForm, whatsapp: value });
-                }
-              }}
-              disabled={!editingProfile}
-              maxLength={10} // ✅ Limite HTML exacte
-              placeholder="0612345678"
-              className={`w-full px-4 py-4 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg ${
-                editingProfile &&
-                profileForm.whatsapp &&
-                profileForm.whatsapp.length !== 10 &&
-                profileForm.whatsapp.length > 0
-                  ? "border-red-500"
-                  : "border-gray-300"
-              }`}
-            />
-            {editingProfile && (
-              <div className="mt-1">
-                <p className="text-xs text-gray-500">
-                  Entrez exactement 10 chiffres (ex: 0612345678)
-                </p>
-                {profileForm.whatsapp &&
-                  profileForm.whatsapp.length > 0 &&
-                  profileForm.whatsapp.length !== 10 && (
-                    <p className="text-xs text-red-500 mt-1">
-                      ❌ Le numéro WhatsApp doit contenir exactement 10 chiffres
-                      ({profileForm.whatsapp.length}/10)
-                    </p>
-                  )}
-                {profileForm.whatsapp && profileForm.whatsapp.length === 10 && (
-                  <p className="text-xs text-green-600 mt-1">
-                    ✅ Numéro valide
-                  </p>
-                )}
-              </div>
+            {editingProfile ? (
+              <PhoneInputComponent
+                value={profileForm.whatsapp || ""}
+                onChange={(value) => setProfileForm({ ...profileForm, whatsapp: value })}
+                placeholder="Numéro WhatsApp"
+                testId="input-whatsapp-profile"
+              />
+            ) : (
+              <input
+                type="tel"
+                value={(profile as any)?.whatsapp || ""}
+                disabled={true}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-50 text-gray-900 text-lg"
+              />
             )}
           </div>
 
