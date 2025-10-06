@@ -19,7 +19,8 @@ const personalProfileSchema = z.object({
   phone: z
     .string()
     .min(10, "Le numéro de téléphone est requis")
-    .regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)"),
+    .transform((val) => val.replace(/\s/g, ''))
+    .pipe(z.string().regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)")),
   whatsapp: z.string().optional(),
   postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
   city: z.string().min(2, "La ville est requise").optional(),

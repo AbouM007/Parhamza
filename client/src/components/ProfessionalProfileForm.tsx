@@ -26,7 +26,8 @@ const professionalProfileSchema = z.object({
   phone: z
     .string()
     .min(10, "Le numéro de téléphone est requis")
-    .regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)"),
+    .transform((val) => val.replace(/\s/g, ''))
+    .pipe(z.string().regex(/^\+[1-9]\d{1,14}$/, "Format de téléphone invalide (E.164 requis)")),
   whatsapp: z.string().optional(),
 });
 
