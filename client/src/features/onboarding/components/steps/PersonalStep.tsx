@@ -17,6 +17,7 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 const personalProfileSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  displayName: z.string().optional(),
   phone: z
     .string()
     .min(10, "Le numéro de téléphone est requis"),
@@ -43,6 +44,7 @@ export const PersonalStep = ({
     resolver: zodResolver(personalProfileSchema),
     defaultValues: {
       name: (currentData.personal?.name as string) || "",
+      displayName: (currentData.personal?.displayName as string) || "",
       phone: (currentData.personal?.phone as string) || "",
       whatsapp: (currentData.personal?.whatsapp as string) || "",
       city: (currentData.personal?.city as string) || "",
@@ -113,6 +115,7 @@ export const PersonalStep = ({
         ...data,
         phone: cleanedPhone,
         whatsapp: sameAsPhone ? cleanedPhone : (cleanedWhatsapp || null),
+        displayName: data.displayName || null,
         type: "individual",
       };
 
@@ -194,6 +197,27 @@ export const PersonalStep = ({
               error={form.formState.errors.name?.message}
               data-testid="input-name"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              Votre vrai nom et prénom
+            </p>
+          </div>
+
+          {/* Pseudo public (optionnel) */}
+          <div>
+            <FormLabel htmlFor="displayName">
+              Pseudo public (optionnel)
+            </FormLabel>
+            <FormInput
+              id="displayName"
+              type="text"
+              placeholder="PassionAutoFan"
+              {...form.register("displayName")}
+              error={form.formState.errors.displayName?.message}
+              data-testid="input-display-name"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Ce nom sera affiché publiquement sur vos annonces
+            </p>
           </div>
 
           {/* AddressInput */}
