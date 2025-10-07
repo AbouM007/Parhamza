@@ -45,7 +45,7 @@ export const PhoneInputComponent = ({
         disabled={disabled}
         containerClass="w-full"
         inputClass={clsx(
-          "w-full !py-4 !px-4 !text-lg !border-gray-300 !rounded-xl focus:!border-primary-bolt-500 focus:!ring-2 focus:!ring-primary-bolt-500/20",
+          "w-full !py-4 !pl-16 !pr-4 !text-lg !border-gray-300 !rounded-xl focus:!border-primary-bolt-500 focus:!ring-2 focus:!ring-primary-bolt-500/20",
           error && "!border-red-500 focus:!border-red-500 focus:!ring-red-500/20"
         )}
         buttonClass="!border-gray-300 !bg-gray-50 !rounded-l-xl hover:!bg-gray-100"
