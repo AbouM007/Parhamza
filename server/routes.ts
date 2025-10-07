@@ -32,6 +32,44 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Force logout - clears Supabase session
+  app.get("/api/auth/force-logout", async (req, res) => {
+    try {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Déconnexion forcée</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1>Déconnexion en cours...</h1>
+          <p>Vous allez être redirigé vers la page d'accueil.</p>
+          <script>
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+              document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Redirect to home
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1000);
+          </script>
+        </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("Error during force logout:", error);
+      res.status(500).send("Erreur lors de la déconnexion");
+    }
+  });
+
   // Users API
   app.get("/api/users", async (req, res) => {
     try {
