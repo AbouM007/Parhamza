@@ -15,11 +15,11 @@ import { AddressInput } from "@/components/AddressInput";
 
 const professionalSchema = z.object({
   companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
-  siret: z.string().regex(/^\d{14}$/, "Le numéro SIRET doit contenir 14 chiffres"),
-  name: z.string().min(2, "Le nom du responsable est requis"),
-  phone: z
+  siret: z
     .string()
-    .min(10, "Le numéro de téléphone est requis"),
+    .regex(/^\d{14}$/, "Le numéro SIRET doit contenir 14 chiffres"),
+  name: z.string().min(2, "Le nom du responsable est requis"),
+  phone: z.string().min(10, "Le numéro de téléphone est requis"),
   whatsapp: z.string().optional(),
   postalCode: z.string().min(5, "Le code postal doit contenir 5 chiffres"),
   city: z.string().min(2, "La ville est requise").optional(),
@@ -27,11 +27,17 @@ const professionalSchema = z.object({
 
 type ProfessionalFormData = z.infer<typeof professionalSchema>;
 
-export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps) {
+export function ProfessionalStep({
+  currentData,
+  onComplete,
+  onBack,
+}: StepProps) {
   const { toast } = useToast();
   const { refreshProfile } = useAuth();
   const [sameAsPhone, setSameAsPhone] = useState(false);
-  const [phoneCheckStatus, setPhoneCheckStatus] = useState<"idle" | "checking" | "available" | "exists" | "error">("idle");
+  const [phoneCheckStatus, setPhoneCheckStatus] = useState<
+    "idle" | "checking" | "available" | "exists" | "error"
+  >("idle");
 
   const form = useForm<ProfessionalFormData>({
     resolver: zodResolver(professionalSchema),
@@ -56,8 +62,8 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
     }
 
     // Nettoyer le numéro
-    const cleanedPhone = phoneValue.replace(/\s/g, '');
-    
+    const cleanedPhone = phoneValue.replace(/\s/g, "");
+
     // Vérifier le format E.164
     if (!/^\+[1-9]\d{1,14}$/.test(cleanedPhone)) {
       setPhoneCheckStatus("idle");
@@ -67,11 +73,13 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
     // Debounce de 800ms
     const timeoutId = setTimeout(async () => {
       setPhoneCheckStatus("checking");
-      
+
       try {
-        const response = await fetch(`/api/users/check-phone/${encodeURIComponent(cleanedPhone)}`);
+        const response = await fetch(
+          `/api/users/check-phone/${encodeURIComponent(cleanedPhone)}`,
+        );
         const data = await response.json();
-        
+
         if (data.exists) {
           setPhoneCheckStatus("exists");
         } else {
@@ -93,20 +101,23 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
       } = await supabase.auth.getSession();
       if (!session) throw new Error("Session non disponible");
 
-      const cleanedPhone = data.phone.replace(/\s/g, '');
-      const cleanedWhatsapp = data.whatsapp ? data.whatsapp.replace(/\s/g, '') : '';
+      const cleanedPhone = data.phone.replace(/\s/g, "");
+      const cleanedWhatsapp = data.whatsapp
+        ? data.whatsapp.replace(/\s/g, "")
+        : "";
 
       if (!/^\+[1-9]\d{1,14}$/.test(cleanedPhone)) {
         toast({
           title: "Numéro invalide",
-          description: "Le numéro de téléphone doit être au format international (ex: +33612345678)",
+          description:
+            "Le numéro de téléphone doit être au format international (ex: +33612345678)",
           variant: "destructive",
         });
         return;
       }
 
       data.phone = cleanedPhone;
-      data.whatsapp = sameAsPhone ? cleanedPhone : (cleanedWhatsapp || undefined);
+      data.whatsapp = sameAsPhone ? cleanedPhone : cleanedWhatsapp || undefined;
 
       const response = await fetch("/api/profile/complete", {
         method: "POST",
@@ -183,11 +194,17 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
       </div>
 
       {/* Formulaire */}
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-5"
+        noValidate
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nom entreprise */}
           <div>
-            <FormLabel htmlFor="companyName">Nom de l'entreprise *</FormLabel>
+            <FormLabel htmlFor="companyName">
+              Nom légal de l'entreprise *
+            </FormLabel>
             <FormInput
               id="companyName"
               placeholder="Auto Passion SARL, Garage Martin..."
@@ -246,7 +263,7 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
               error={form.formState.errors.phone?.message}
               testId="input-manager-phone"
             />
-            
+
             {/* Indicateur de vérification */}
             {phoneCheckStatus !== "idle" && (
               <div className="mt-2 flex items-center gap-2 text-sm">
@@ -259,13 +276,17 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
                 {phoneCheckStatus === "available" && (
                   <>
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600 font-medium">Numéro disponible</span>
+                    <span className="text-green-600 font-medium">
+                      Numéro disponible
+                    </span>
                   </>
                 )}
                 {phoneCheckStatus === "exists" && (
                   <>
                     <XCircle className="h-4 w-4 text-red-600" />
-                    <span className="text-red-600 font-medium">Ce numéro est déjà utilisé</span>
+                    <span className="text-red-600 font-medium">
+                      Ce numéro est déjà utilisé
+                    </span>
                   </>
                 )}
                 {phoneCheckStatus === "error" && (
@@ -286,7 +307,10 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
                 className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
                 data-testid="checkbox-same-whatsapp"
               />
-              <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="sameAsPhone"
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
                 Utiliser ce numéro pour WhatsApp
               </label>
             </div>
@@ -309,7 +333,10 @@ export function ProfessionalStep({ currentData, onComplete, onBack }: StepProps)
                   className="w-4 h-4 text-[#0CBFDE] bg-gray-100 border-gray-300 rounded focus:ring-[#0CBFDE] focus:ring-2"
                   data-testid="checkbox-same-whatsapp"
                 />
-                <label htmlFor="sameAsPhone" className="text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="sameAsPhone"
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                >
                   Utiliser mon numéro de téléphone
                 </label>
               </div>

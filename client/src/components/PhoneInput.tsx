@@ -45,11 +45,11 @@ export const PhoneInputComponent = ({
         disabled={disabled}
         containerClass="w-full"
         inputClass={clsx(
-          "w-full !h-12 !text-base !border-gray-300 !rounded-lg focus:!border-[#0CBFDE] focus:!ring-2 focus:!ring-[#0CBFDE]/20",
+          "w-full !py-4 !px-4 !text-lg !border-gray-300 !rounded-xl focus:!border-primary-bolt-500 focus:!ring-2 focus:!ring-primary-bolt-500/20",
           error && "!border-red-500 focus:!border-red-500 focus:!ring-red-500/20"
         )}
-        buttonClass="!border-gray-300 !bg-gray-50 !rounded-l-lg hover:!bg-gray-100"
-        dropdownClass="!text-base"
+        buttonClass="!border-gray-300 !bg-gray-50 !rounded-l-xl hover:!bg-gray-100"
+        dropdownClass="!text-lg"
         enableSearch
         searchPlaceholder="Rechercher un pays..."
         disableSearchIcon={false}

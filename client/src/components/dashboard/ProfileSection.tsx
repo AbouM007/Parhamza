@@ -153,15 +153,18 @@ export default function ProfileSection({
           </div>
           <div>
             <h2 className="text-3xl font-bold text-gray-900">
-              {profile?.type === "professional" && professionalAccount?.company_name
+              {profile?.type === "professional" &&
+              professionalAccount?.company_name
                 ? professionalAccount.company_name
                 : profile?.name || user?.email?.split("@")[0] || "Utilisateur"}
             </h2>
-            {profile?.type === "professional" && professionalAccount?.company_name && profile?.name && (
-              <p className="text-gray-600 text-base mt-1">
-                Contact: {profile.name}
-              </p>
-            )}
+            {profile?.type === "professional" &&
+              professionalAccount?.company_name &&
+              profile?.name && (
+                <p className="text-gray-600 text-base mt-1">
+                  Contact: {profile.name}
+                </p>
+              )}
             <p className="text-gray-600 text-lg mt-1">
               {user?.email || profile?.email}
             </p>
@@ -217,7 +220,10 @@ export default function ProfileSection({
                     : profile?.displayName || ""
                 }
                 onChange={(e) =>
-                  setProfileForm({ ...profileForm, displayName: e.target.value })
+                  setProfileForm({
+                    ...profileForm,
+                    displayName: e.target.value,
+                  })
                 }
                 disabled={!editingProfile}
                 placeholder="PassionAutoFan"
@@ -234,7 +240,7 @@ export default function ProfileSection({
           {profile?.type === "professional" && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Nom de l'entreprise
+                Nom commercial de l'entreprise
               </label>
               <input
                 type="text"
@@ -244,7 +250,10 @@ export default function ProfileSection({
                     : (profile as any)?.company_name || ""
                 }
                 onChange={(e) =>
-                  setProfileForm({ ...profileForm, companyName: e.target.value })
+                  setProfileForm({
+                    ...profileForm,
+                    companyName: e.target.value,
+                  })
                 }
                 disabled={!editingProfile}
                 className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
@@ -276,8 +285,6 @@ export default function ProfileSection({
             </div>
           )}
 
-
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               Téléphone
@@ -302,7 +309,9 @@ export default function ProfileSection({
             {editingProfile ? (
               <PhoneInputComponent
                 value={profileForm.whatsapp || ""}
-                onChange={(value) => setProfileForm({ ...profileForm, whatsapp: value })}
+                onChange={(value) =>
+                  setProfileForm({ ...profileForm, whatsapp: value })
+                }
                 placeholder="Numéro WhatsApp"
                 testId="input-whatsapp-profile"
               />
@@ -361,7 +370,10 @@ export default function ProfileSection({
                 // Réinitialiser le formulaire avec les données originales
                 setProfileForm({
                   name: profile?.name || "",
-                  displayName: (profile as any)?.display_name || profile?.displayName || "",
+                  displayName:
+                    (profile as any)?.display_name ||
+                    profile?.displayName ||
+                    "",
                   phone: (profile as any)?.phone || "",
                   whatsapp: (profile as any)?.whatsapp || "",
                   postalCode: (profile as any)?.postal_code || "",
