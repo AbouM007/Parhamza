@@ -320,14 +320,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return newData;
       });
     } else if (field === "description") {
-      // Validation spéciale pour la description - ne garder que lettres, chiffres, espaces et caractères accentués
-      const cleanedValue = value
-        .replace(/[^a-zA-Z0-9\sÀ-ÿ.,!?;:()\-]/g, "") // Garde uniquement lettres, chiffres, espaces, caractères accentués et ponctuation de base
-        .substring(0, 300); // Limite à 300 caractères
-
+      // Pas de limitation de caractères pour la description
       setFormData((prev) => {
-        const newData = { ...prev, [field]: cleanedValue };
-        console.log("New form data (description filtered):", newData);
+        const newData = { ...prev, [field]: value };
+        console.log("New form data (description):", newData);
         return newData;
       });
     } else {
@@ -823,7 +819,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             formData.specificDetails.year
           );
         case 7:
-          return formData.description.trim().length >= 30;
+          return true; // Pas de validation minimum pour la description
         case 8:
           return true; // Photos optionnelles - toujours permettre de passer
         case 9:
@@ -3269,28 +3265,18 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description *{" "}
-                <span className="text-gray-500 font-normal">
-                  (30-300 caractères)
-                </span>
+                Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => updateFormData("description", e.target.value)}
                 rows={8}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                  formData.description.length > 0 &&
-                  formData.description.length < 30
-                    ? "border-red-300 bg-red-50"
-                    : "border-gray-300"
-                }`}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                 placeholder={
                   formData.condition === "damaged"
                     ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
                     : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
                 }
-                minLength={50}
-                maxLength={300}
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
@@ -3299,22 +3285,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."}
                 </p>
                 <div className="flex flex-col text-right">
-                  <span
-                    className={`text-sm font-medium ${
-                      formData.description.length < 50
-                        ? "text-red-500"
-                        : formData.description.length > 280
-                          ? "text-orange-500"
-                          : "text-green-600"
-                    }`}
-                  >
-                    {formData.description.length}/300 caractères
+                  <span className="text-sm font-medium text-gray-600">
+                    {formData.description.length} caractères
                   </span>
-                  {formData.description.length < 30 && (
-                    <span className="text-xs text-red-500">
-                      (minimum 30 caractères)
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
