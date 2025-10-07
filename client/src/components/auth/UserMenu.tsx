@@ -65,18 +65,19 @@ export function UserMenu({
         });
       } else {
         console.log("✅ Déconnexion réussie: À bientôt !");
+        // Toast de confirmation
         toast({
           title: "Déconnexion réussie",
           description: "Vous avez été déconnecté avec succès. À bientôt !",
         });
-        // Redirection vers la page d'accueil après déconnexion (navigation SPA)
+        // Redirection SPA vers la page d'accueil après toast
         setTimeout(() => {
           if (onNavigate) {
             onNavigate("/");
           } else {
             window.location.href = "/";
           }
-        }, 1500);
+        }, 100);
       }
     } catch (error) {
       console.log("❌ Erreur: Une erreur est survenue lors de la déconnexion");

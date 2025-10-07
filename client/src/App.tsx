@@ -225,20 +225,43 @@ function AppContent() {
                   <VehicleListings />
                 </Route>
                 <Route path="/dashboard">
-                  <Dashboard
-                    initialTab={dashboardTab}
-                    onCreateListing={() =>
-                      handleCreateListingGuard(
-                        () => setShowCreateListingModal(true),
-                        "dashboard-button",
-                      )
+                  {(() => {
+                    // Protection contre l'erreur de hooks React quand user devient null
+                    if (loading) {
+                      return (
+                        <div className="min-h-screen flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-bolt-500 mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Chargement...</p>
+                          </div>
+                        </div>
+                      );
                     }
-                    onRedirectHome={() => setLocation("/")}
-                    onRedirectToSearch={() => setLocation("/search")}
-                    setSearchFilters={setSearchFilters}
-                    setCurrentView={setCurrentView}
-                    refreshVehicles={refreshVehicles}
-                  />
+                    
+                    if (!user) {
+                      // Redirection immédiate si pas d'utilisateur (évite le crash de hooks)
+                      setLocation("/");
+                      return null;
+                    }
+                    
+                    // Montage du Dashboard seulement si utilisateur authentifié
+                    return (
+                      <Dashboard
+                        initialTab={dashboardTab}
+                        onCreateListing={() =>
+                          handleCreateListingGuard(
+                            () => setShowCreateListingModal(true),
+                            "dashboard-button",
+                          )
+                        }
+                        onRedirectHome={() => setLocation("/")}
+                        onRedirectToSearch={() => setLocation("/search")}
+                        setSearchFilters={setSearchFilters}
+                        setCurrentView={setCurrentView}
+                        refreshVehicles={refreshVehicles}
+                      />
+                    );
+                  })()}
                 </Route>
                 <Route path="/create-listing">
                   <Hero setCurrentView={setCurrentView} />
