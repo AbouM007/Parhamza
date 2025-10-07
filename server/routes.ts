@@ -3210,6 +3210,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const apiData = await apiResponse.json();
       
+      // Debug: afficher la réponse complète de l'API
+      console.log('📦 API Response:', JSON.stringify(apiData).substring(0, 500));
+      
       // Vérifier si erreur dans la réponse
       if (apiData.error === true) {
         console.log('❌ API returned error:', apiData.message);
@@ -3220,6 +3223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const d = apiData.data;
+      console.log('📊 Data keys:', d ? Object.keys(d).slice(0, 10) : 'no data');
       
       if (!d || !d.AWN_marque) {
         return res.json({ 
@@ -3262,7 +3266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: Date.now()
       });
 
-      console.log('✅ Vehicle data retrieved successfully:', d.marque, d.modele);
+      console.log('✅ Vehicle data retrieved successfully:', d.AWN_marque, d.AWN_modele);
       
       res.json({ 
         success: true, 
