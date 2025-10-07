@@ -15,6 +15,7 @@ import { CategoryStep } from "./CategoryStep";
 import { ListingTypeStep, ListingTypeValue } from "./ListingTypeStep";
 import { VehicleDetailsStep } from "./VehicleDetailsStep";
 import { PlateBlurModal } from "../PlateBlurModal";
+import { VehicleDataPreviewModal } from "./VehicleDataPreviewModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
@@ -122,6 +123,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // État pour tracker les champs auto-remplis depuis API
   const [autoFilledFields, setAutoFilledFields] = useState<string[]>([]);
+  
+  // États pour le modal de prévisualisation des données véhicule
+  const [showVehiclePreview, setShowVehiclePreview] = useState(false);
+  const [pendingVehicleData, setPendingVehicleData] = useState<any>(null);
+  const [pendingRegistrationNumber, setPendingRegistrationNumber] = useState("");
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -514,73 +520,29 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
       if (result.success && result.data) {
         const { specificDetails, vehicleInfo } = result.data;
-        const filledFields: string[] = [];
 
-        // Pré-remplir automatiquement les détails spécifiques
-        const newSpecificDetails = { ...formData.specificDetails };
+        // Préparer les données pour le modal de prévisualisation
+        const previewData = {
+          brand: specificDetails.brand,
+          model: specificDetails.model,
+          year: specificDetails.firstRegistration 
+            ? specificDetails.firstRegistration.split('-')[0] 
+            : vehicleInfo.year,
+          fuelType: specificDetails.fuel,
+          transmission: specificDetails.transmission,
+          color: specificDetails.color,
+          engineSize: specificDetails.engineSize,
+          doors: specificDetails.doors,
+          co2: specificDetails.co2,
+          fiscalPower: specificDetails.fiscalHorsepower,
+        };
 
-        if (specificDetails.brand) {
-          newSpecificDetails.brand = specificDetails.brand;
-          filledFields.push('Marque');
-        }
-        if (specificDetails.model) {
-          newSpecificDetails.model = specificDetails.model;
-          filledFields.push('Modèle');
-        }
-        if (specificDetails.firstRegistration) {
-          // Extraire l'année de la date ISO
-          const year = specificDetails.firstRegistration.split('-')[0];
-          newSpecificDetails.year = year;
-          filledFields.push('Année');
-        }
-        if (specificDetails.fuel) {
-          // Mapper fuel vers fuelType (champ du formulaire)
-          newSpecificDetails.fuelType = specificDetails.fuel;
-          filledFields.push('Carburant');
-        }
-        if (specificDetails.transmission) {
-          newSpecificDetails.transmission = specificDetails.transmission;
-          filledFields.push('Transmission');
-        }
-        if (specificDetails.color) {
-          newSpecificDetails.color = specificDetails.color;
-          filledFields.push('Couleur');
-        }
-        if (specificDetails.engineSize) {
-          // engineSize est numérique, le stocker tel quel
-          newSpecificDetails.engineSize = specificDetails.engineSize;
-          filledFields.push('Cylindrée');
-        }
-        if (specificDetails.doors) {
-          newSpecificDetails.doors = specificDetails.doors;
-          filledFields.push('Portes');
-        }
-        if (specificDetails.co2) {
-          newSpecificDetails.co2 = specificDetails.co2;
-          filledFields.push('CO2');
-        }
-        if (specificDetails.fiscalHorsepower) {
-          // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
-          newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
-          filledFields.push('Puissance fiscale');
-        }
-
-        setFormData((prev) => ({
-          ...prev,
-          specificDetails: newSpecificDetails,
-        }));
-
-        setAutoFilledFields(filledFields);
-
-        // Toast avec info véhicule et liste des champs remplis
-        const vehicleDesc = `${vehicleInfo.brand || ''} ${vehicleInfo.model || ''}`.trim();
-        const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : '';
-        const fieldsCount = filledFields.length;
+        // Stocker les données complètes pour utilisation après confirmation
+        setPendingVehicleData({ specificDetails, vehicleInfo });
+        setPendingRegistrationNumber(registrationNumber);
         
-        toast({
-          title: `✅ ${vehicleDesc}${yearInfo} importé`,
-          description: `${fieldsCount} champ${fieldsCount > 1 ? 's' : ''} rempli${fieldsCount > 1 ? 's' : ''} : ${filledFields.join(', ')}. Vérifiez et complétez les informations manquantes.`,
-        });
+        // Afficher le modal de prévisualisation
+        setShowVehiclePreview(true);
       } else {
         toast({
           title: "❌ " + (result.error || "Véhicule non trouvé"),
@@ -598,6 +560,91 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     } finally {
       setVehicleDataLoading(false);
     }
+  };
+
+  // Fonction pour confirmer et remplir le formulaire avec les données
+  const confirmAndFillVehicleData = () => {
+    if (!pendingVehicleData) return;
+
+    const { specificDetails, vehicleInfo } = pendingVehicleData;
+    const filledFields: string[] = [];
+
+    // Pré-remplir automatiquement les détails spécifiques
+    const newSpecificDetails = { ...formData.specificDetails };
+
+    if (specificDetails.brand) {
+      newSpecificDetails.brand = specificDetails.brand;
+      filledFields.push('Marque');
+    }
+    if (specificDetails.model) {
+      newSpecificDetails.model = specificDetails.model;
+      filledFields.push('Modèle');
+    }
+    if (specificDetails.firstRegistration) {
+      // Extraire l'année de la date ISO
+      const year = specificDetails.firstRegistration.split('-')[0];
+      newSpecificDetails.year = year;
+      filledFields.push('Année');
+    }
+    if (specificDetails.fuel) {
+      // Mapper fuel vers fuelType (champ du formulaire)
+      newSpecificDetails.fuelType = specificDetails.fuel;
+      filledFields.push('Carburant');
+    }
+    if (specificDetails.transmission) {
+      newSpecificDetails.transmission = specificDetails.transmission;
+      filledFields.push('Transmission');
+    }
+    if (specificDetails.color) {
+      newSpecificDetails.color = specificDetails.color;
+      filledFields.push('Couleur');
+    }
+    if (specificDetails.engineSize) {
+      // engineSize est numérique, le stocker tel quel
+      newSpecificDetails.engineSize = specificDetails.engineSize;
+      filledFields.push('Cylindrée');
+    }
+    if (specificDetails.doors) {
+      newSpecificDetails.doors = specificDetails.doors;
+      filledFields.push('Portes');
+    }
+    if (specificDetails.co2) {
+      newSpecificDetails.co2 = specificDetails.co2;
+      filledFields.push('CO2');
+    }
+    if (specificDetails.fiscalHorsepower) {
+      // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
+      newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
+      filledFields.push('Puissance fiscale');
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      specificDetails: newSpecificDetails,
+    }));
+
+    setAutoFilledFields(filledFields);
+
+    // Fermer le modal
+    setShowVehiclePreview(false);
+    setPendingVehicleData(null);
+
+    // Toast avec info véhicule et liste des champs remplis
+    const vehicleDesc = `${vehicleInfo.brand || ''} ${vehicleInfo.model || ''}`.trim();
+    const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : '';
+    const fieldsCount = filledFields.length;
+    
+    toast({
+      title: `✅ ${vehicleDesc}${yearInfo} importé`,
+      description: `${fieldsCount} champ${fieldsCount > 1 ? 's' : ''} rempli${fieldsCount > 1 ? 's' : ''} : ${filledFields.join(', ')}. Vérifiez et complétez les informations manquantes.`,
+    });
+  };
+
+  // Fonction pour annuler la prévisualisation
+  const cancelVehicleDataPreview = () => {
+    setShowVehiclePreview(false);
+    setPendingVehicleData(null);
+    setPendingRegistrationNumber("");
   };
 
   const toggleEquipment = (equipment: string) => {
@@ -4108,6 +4155,31 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" })
         }
         onConfirm={handleApplyMask}
+      />
+
+      <VehicleDataPreviewModal
+        isOpen={showVehiclePreview}
+        onClose={cancelVehicleDataPreview}
+        onConfirm={confirmAndFillVehicleData}
+        vehicleData={
+          pendingVehicleData
+            ? {
+                brand: pendingVehicleData.specificDetails.brand,
+                model: pendingVehicleData.specificDetails.model,
+                year: pendingVehicleData.specificDetails.firstRegistration
+                  ? pendingVehicleData.specificDetails.firstRegistration.split('-')[0]
+                  : pendingVehicleData.vehicleInfo.year,
+                fuelType: pendingVehicleData.specificDetails.fuel,
+                transmission: pendingVehicleData.specificDetails.transmission,
+                color: pendingVehicleData.specificDetails.color,
+                engineSize: pendingVehicleData.specificDetails.engineSize,
+                doors: pendingVehicleData.specificDetails.doors,
+                co2: pendingVehicleData.specificDetails.co2,
+                fiscalPower: pendingVehicleData.specificDetails.fiscalHorsepower,
+              }
+            : {}
+        }
+        registrationNumber={pendingRegistrationNumber}
       />
     </div>
   );
