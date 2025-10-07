@@ -521,47 +521,48 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
         if (specificDetails.brand) {
           newSpecificDetails.brand = specificDetails.brand;
-          filledFields.push('brand');
+          filledFields.push('Marque');
         }
         if (specificDetails.model) {
           newSpecificDetails.model = specificDetails.model;
-          filledFields.push('model');
+          filledFields.push('Modèle');
         }
         if (specificDetails.firstRegistration) {
-          newSpecificDetails.firstRegistration = specificDetails.firstRegistration;
-          filledFields.push('firstRegistration');
+          // Extraire l'année de la date ISO
+          const year = specificDetails.firstRegistration.split('-')[0];
+          newSpecificDetails.year = year;
+          filledFields.push('Année');
         }
         if (specificDetails.fuel) {
-          newSpecificDetails.fuel = specificDetails.fuel;
-          filledFields.push('fuel');
+          // Mapper fuel vers fuelType (champ du formulaire)
+          newSpecificDetails.fuelType = specificDetails.fuel;
+          filledFields.push('Carburant');
         }
         if (specificDetails.transmission) {
           newSpecificDetails.transmission = specificDetails.transmission;
-          filledFields.push('transmission');
+          filledFields.push('Transmission');
         }
         if (specificDetails.color) {
           newSpecificDetails.color = specificDetails.color;
-          filledFields.push('color');
+          filledFields.push('Couleur');
         }
         if (specificDetails.engineSize) {
+          // engineSize est numérique, le stocker tel quel
           newSpecificDetails.engineSize = specificDetails.engineSize;
-          filledFields.push('engineSize');
+          filledFields.push('Cylindrée');
         }
         if (specificDetails.doors) {
           newSpecificDetails.doors = specificDetails.doors;
-          filledFields.push('doors');
-        }
-        if (specificDetails.bodyType) {
-          newSpecificDetails.bodyType = specificDetails.bodyType;
-          filledFields.push('bodyType');
+          filledFields.push('Portes');
         }
         if (specificDetails.co2) {
           newSpecificDetails.co2 = specificDetails.co2;
-          filledFields.push('co2');
+          filledFields.push('CO2');
         }
         if (specificDetails.fiscalHorsepower) {
-          newSpecificDetails.fiscalHorsepower = specificDetails.fiscalHorsepower;
-          filledFields.push('fiscalHorsepower');
+          // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
+          newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
+          filledFields.push('Puissance fiscale');
         }
 
         setFormData((prev) => ({
@@ -571,13 +572,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
         setAutoFilledFields(filledFields);
 
-        // Toast avec info véhicule
+        // Toast avec info véhicule et liste des champs remplis
         const vehicleDesc = `${vehicleInfo.brand || ''} ${vehicleInfo.model || ''}`.trim();
         const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : '';
+        const fieldsCount = filledFields.length;
         
         toast({
           title: `✅ ${vehicleDesc}${yearInfo} importé`,
-          description: "Vérifiez les détails avant publication. Vous pouvez modifier les champs si nécessaire.",
+          description: `${fieldsCount} champ${fieldsCount > 1 ? 's' : ''} rempli${fieldsCount > 1 ? 's' : ''} : ${filledFields.join(', ')}. Vérifiez et complétez les informations manquantes.`,
         });
       } else {
         toast({
@@ -2845,29 +2847,69 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     data-testid="input-registration-number"
                   />
                   <div className="mt-2 space-y-2">
-                    {/* Bouton pour récupérer les données automatiquement */}
+                    {/* Boutons pour récupérer les données automatiquement */}
                     {formData.registrationNumber && formData.registrationNumber.trim().length > 0 && (
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center gap-3">
                           <button
                             type="button"
                             onClick={() =>
                               fetchVehicleData(formData.registrationNumber!)
                             }
                             disabled={vehicleDataLoading}
-                            className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="flex items-center px-4 py-2 bg-primary-bolt-600 text-white text-sm rounded-lg hover:bg-primary-bolt-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            data-testid="button-auto-fill"
                           >
                             {vehicleDataLoading ? (
                               <>
                                 <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                Récupération...
+                                Recherche en cours...
                               </>
                             ) : (
                               <>
                                 <Search className="h-4 w-4 mr-2" />
-                                Pré-remplir automatiquement
+                                Importer les données du véhicule
                               </>
                             )}
                           </button>
+                          
+                          {/* Bouton Reset si des champs sont auto-remplis */}
+                          {autoFilledFields.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Réinitialiser les champs auto-remplis
+                                const resetDetails = { ...formData.specificDetails };
+                                if (autoFilledFields.includes('Marque')) resetDetails.brand = '';
+                                if (autoFilledFields.includes('Modèle')) resetDetails.model = '';
+                                if (autoFilledFields.includes('Année')) resetDetails.year = '';
+                                if (autoFilledFields.includes('Carburant')) resetDetails.fuelType = '';
+                                if (autoFilledFields.includes('Transmission')) resetDetails.transmission = '';
+                                if (autoFilledFields.includes('Couleur')) resetDetails.color = '';
+                                if (autoFilledFields.includes('Cylindrée')) resetDetails.engineSize = '';
+                                if (autoFilledFields.includes('Portes')) resetDetails.doors = '';
+                                if (autoFilledFields.includes('CO2')) resetDetails.co2 = '';
+                                if (autoFilledFields.includes('Puissance fiscale')) resetDetails.fiscalPower = '';
+                                
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  specificDetails: resetDetails,
+                                }));
+                                setAutoFilledFields([]);
+                                
+                                toast({
+                                  title: "Données réinitialisées",
+                                  description: "Les informations importées ont été supprimées",
+                                });
+                              }}
+                              className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-colors"
+                              data-testid="button-reset-auto-fill"
+                            >
+                              <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Réinitialiser ({autoFilledFields.length})
+                            </button>
+                          )}
                         </div>
                       )}
 
