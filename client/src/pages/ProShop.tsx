@@ -7,6 +7,7 @@ import {
   ChevronDown, Award, Shield, Verified,
   Image as ImageIcon, PaintBucket, Settings
 } from 'lucide-react';
+import { getUserDisplayName } from "@/lib/utils";
 
 interface ProAccount {
   id: string;
@@ -176,7 +177,7 @@ export default function ProShop() {
                 {proAccount.avatar ? (
                   <img 
                     src={proAccount.avatar} 
-                    alt={proAccount.company_name || proAccount.name}
+                    alt={getUserDisplayName(proAccount)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -187,7 +188,7 @@ export default function ProShop() {
               {/* Informations */}
               <div className="flex-1 pb-4">
                 <div className="flex items-center space-x-3 mb-2">
-                  <h1 className="text-4xl font-bold text-white">{proAccount.company_name || proAccount.name}</h1>
+                  <h1 className="text-4xl font-bold text-white">{getUserDisplayName(proAccount)}</h1>
                   {proAccount.verified && (
                     <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
                       <Verified className="h-4 w-4" />
