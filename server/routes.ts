@@ -3002,6 +3002,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cache in-memory pour les données véhicule (TTL 12h)
+  const vehicleDataCache = new Map<string, { data: any; timestamp: number }>();
+  const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 heures
+
+  // Fonctions de normalisation
+  function normalizeFuel(apiFuel: string | null): string | null {
+    if (!apiFuel) return null;
+    const fuel = apiFuel.toLowerCase();
+    if (fuel.includes('diesel')) return 'diesel';
+    if (fuel.includes('essence') || fuel.includes('petrol') || fuel.includes('gasoline')) return 'essence';
+    if (fuel.includes('electrique') || fuel.includes('electric')) return 'electrique';
+    if (fuel.includes('hybride') || fuel.includes('hybrid')) return 'hybride';
+    if (fuel.includes('gpl')) return 'gpl';
+    return apiFuel;
+  }
+
+  function normalizeTransmission(apiTransmission: string | null): string | null {
+    if (!apiTransmission) return null;
+    const trans = apiTransmission.toUpperCase();
+    if (trans === 'M') return 'manual';
+    if (trans === 'A') return 'automatic';
+    if (trans === 'S') return 'semi-automatic';
+    return apiTransmission;
+  }
+
+  function parseDateDDMMYYYY(dateStr: string | null): string | null {
+    if (!dateStr) return null;
+    const parts = dateStr.split(/[-\/]/);
+    if (parts.length !== 3) return null;
+    const [d, m, y] = parts;
+    return `${y.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+
+  function extractEngineSize(ccm: string | null): string | null {
+    if (!ccm) return null;
+    const match = ccm.match(/\d+/);
+    return match ? match[0] : null;
+  }
+
+  // Route API Vehicle Data
+  app.post("/api/vehicle-data", async (req, res) => {
+    try {
+      const { registrationNumber } = req.body;
+      
+      if (!registrationNumber) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Numéro d'immatriculation requis" 
+        });
+      }
+
+      // Normaliser la plaque pour cache (uppercase, trim)
+      const normalizedPlate = registrationNumber.trim().toUpperCase().replace(/\s+/g, '');
+      
+      // Vérifier le cache
+      const cached = vehicleDataCache.get(normalizedPlate);
+      if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+        console.log('✅ Vehicle data from cache:', normalizedPlate);
+        return res.json({ 
+          success: true, 
+          ...cached.data,
+          source: 'cache' 
+        });
+      }
+
+      // Appeler l'API
+      const token = process.env.VIN_API_TOKEN || 'TokenDemo2025A';
+      const apiUrl = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(normalizedPlate)}&token=${encodeURIComponent(token)}&pays=FR`;
+
+      console.log('🔍 Calling vehicle API for:', normalizedPlate);
+      
+      const apiResponse = await fetch(apiUrl);
+      
+      if (!apiResponse.ok) {
+        console.error('❌ API error:', apiResponse.status, await apiResponse.text());
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Service temporairement indisponible' 
+        });
+      }
+
+      const apiData = await apiResponse.json();
+      
+      // Vérifier si erreur dans la réponse
+      if (apiData.data?.erreur && apiData.data.erreur !== "") {
+        console.log('❌ API returned error:', apiData.data.erreur);
+        return res.json({ 
+          success: false, 
+          error: 'Plaque non reconnue' 
+        });
+      }
+
+      const d = apiData.data;
+      
+      if (!d || !d.marque) {
+        return res.json({ 
+          success: false, 
+          error: 'Aucune information disponible pour cette plaque' 
+        });
+      }
+
+      // Mapper vers specificDetails
+      const specificDetails = {
+        brand: d.marque || null,
+        model: d.modele || null,
+        firstRegistration: parseDateDDMMYYYY(d.date1erCir_fr || d.date1erCir),
+        fuel: normalizeFuel(d.energieNGC || d.energie),
+        transmission: normalizeTransmission(d.boite_vitesse),
+        color: d.couleur || null,
+        engineSize: extractEngineSize(d.ccm),
+        doors: d.nb_portes ? String(d.nb_portes) : null,
+        bodyType: d.carrosserieCG || d.carrosserie || null,
+        co2: d.co2 ? String(d.co2) : null,
+        fiscalHorsepower: d.puisFisc || d.puissance_fiscale || null,
+      };
+
+      // Informations pour le toast
+      const vehicleInfo = {
+        brand: d.marque,
+        model: d.modele,
+        year: d.date1erCir_fr ? d.date1erCir_fr.split('-')[2] : null,
+        genreVCG: d.genreVCGNGC || d.genreVCG
+      };
+
+      const responseData = {
+        specificDetails,
+        vehicleInfo
+      };
+
+      // Stocker en cache
+      vehicleDataCache.set(normalizedPlate, {
+        data: responseData,
+        timestamp: Date.now()
+      });
+
+      console.log('✅ Vehicle data retrieved successfully:', d.marque, d.modele);
+      
+      res.json({ 
+        success: true, 
+        data: responseData,
+        source: 'api'
+      });
+
+    } catch (error) {
+      console.error('❌ Error in /api/vehicle-data:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erreur de connexion au service' 
+      });
+    }
+  });
+
   // Setup wishlist migration routes
   setupWishlistMigration(app);
   setupWishlistDirect(app);

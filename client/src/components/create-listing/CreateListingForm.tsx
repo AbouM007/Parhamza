@@ -20,8 +20,7 @@ import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
 import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
 import { compressImage } from "@/utils/imageCompression";
-// Temporairement commenté pour éviter l'erreur d'import
-// import { useToast } from '../../hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import {
   getBrandsBySubcategory,
   fuelTypes,
@@ -98,7 +97,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 }) => {
   const { user, profile } = useAuth();
   const { data: quotaInfo } = useQuota(profile?.id);
-  // const { toast } = useToast();
+  const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdVehicle, setCreatedVehicle] = useState<{
@@ -120,6 +119,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // État pour la recherche de compatibilités (pièces détachées)
   const [compatibilitySearch, setCompatibilitySearch] = useState("");
   const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] = useState(false);
+
+  // État pour tracker les champs auto-remplis depuis API
+  const [autoFilledFields, setAutoFilledFields] = useState<string[]>([]);
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -492,10 +494,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // Fonction pour récupérer les données véhicule via API
   const fetchVehicleData = async (registrationNumber: string) => {
-    if (
-      !registrationNumber ||
-      !validateRegistrationNumber(registrationNumber).isValid
-    ) {
+    if (!registrationNumber || registrationNumber.trim().length === 0) {
       return;
     }
 
@@ -514,50 +513,86 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       const result = await response.json();
 
       if (result.success && result.data) {
+        const { specificDetails, vehicleInfo } = result.data;
+        const filledFields: string[] = [];
+
         // Pré-remplir automatiquement les détails spécifiques
-        const apiData = result.data;
-        const newSpecificDetails = {
-          ...formData.specificDetails,
-          brand: apiData.brand || formData.specificDetails.brand,
-          model: apiData.model || formData.specificDetails.model,
-          year: apiData.year || formData.specificDetails.year,
-          fuelType: apiData.fuelType || formData.specificDetails.fuelType,
-          power: apiData.power || formData.specificDetails.power,
-          displacement:
-            apiData.displacement || formData.specificDetails.displacement,
-          transmission:
-            apiData.transmission || formData.specificDetails.transmission,
-          doors: apiData.doors || formData.specificDetails.doors,
-          color: apiData.color || formData.specificDetails.color,
-          vehicleType:
-            apiData.vehicleType || formData.specificDetails.vehicleType,
-          emissionClass:
-            apiData.emissionClass || formData.specificDetails.emissionClass,
-          critAir: apiData.critAir || formData.specificDetails.critAir,
-          firstRegistrationDate:
-            apiData.firstRegistrationDate ||
-            formData.specificDetails.firstRegistrationDate,
-        };
+        const newSpecificDetails = { ...formData.specificDetails };
+
+        if (specificDetails.brand) {
+          newSpecificDetails.brand = specificDetails.brand;
+          filledFields.push('brand');
+        }
+        if (specificDetails.model) {
+          newSpecificDetails.model = specificDetails.model;
+          filledFields.push('model');
+        }
+        if (specificDetails.firstRegistration) {
+          newSpecificDetails.firstRegistration = specificDetails.firstRegistration;
+          filledFields.push('firstRegistration');
+        }
+        if (specificDetails.fuel) {
+          newSpecificDetails.fuel = specificDetails.fuel;
+          filledFields.push('fuel');
+        }
+        if (specificDetails.transmission) {
+          newSpecificDetails.transmission = specificDetails.transmission;
+          filledFields.push('transmission');
+        }
+        if (specificDetails.color) {
+          newSpecificDetails.color = specificDetails.color;
+          filledFields.push('color');
+        }
+        if (specificDetails.engineSize) {
+          newSpecificDetails.engineSize = specificDetails.engineSize;
+          filledFields.push('engineSize');
+        }
+        if (specificDetails.doors) {
+          newSpecificDetails.doors = specificDetails.doors;
+          filledFields.push('doors');
+        }
+        if (specificDetails.bodyType) {
+          newSpecificDetails.bodyType = specificDetails.bodyType;
+          filledFields.push('bodyType');
+        }
+        if (specificDetails.co2) {
+          newSpecificDetails.co2 = specificDetails.co2;
+          filledFields.push('co2');
+        }
+        if (specificDetails.fiscalHorsepower) {
+          newSpecificDetails.fiscalHorsepower = specificDetails.fiscalHorsepower;
+          filledFields.push('fiscalHorsepower');
+        }
 
         setFormData((prev) => ({
           ...prev,
           specificDetails: newSpecificDetails,
         }));
 
-        const source = result.source === "cache" ? "cache" : "API officielle";
-        setVehicleDataMessage(
-          `✅ Données récupérées depuis ${source} et pré-remplies automatiquement`,
-        );
+        setAutoFilledFields(filledFields);
+
+        // Toast avec info véhicule
+        const vehicleDesc = `${vehicleInfo.brand || ''} ${vehicleInfo.model || ''}`.trim();
+        const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : '';
+        
+        toast({
+          title: `✅ ${vehicleDesc}${yearInfo} importé`,
+          description: "Vérifiez les détails avant publication. Vous pouvez modifier les champs si nécessaire.",
+        });
       } else {
-        setVehicleDataMessage(
-          `⚠️ ${result.error || "Véhicule non trouvé dans la base de données"}`,
-        );
+        toast({
+          title: "❌ " + (result.error || "Véhicule non trouvé"),
+          description: "Veuillez remplir les champs manuellement",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Erreur récupération données:", error);
-      setVehicleDataMessage(
-        "❌ Erreur de connexion au service de données véhicule",
-      );
+      toast({
+        title: "❌ Erreur de connexion",
+        description: "Impossible de récupérer les données du véhicule",
+        variant: "destructive",
+      });
     } finally {
       setVehicleDataLoading(false);
     }
@@ -2802,44 +2837,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     type="text"
                     value={formData.registrationNumber || ""}
                     onChange={(e) => {
-                      const formatted = formatRegistrationNumber(
-                        e.target.value,
-                      );
-                      updateFormData("registrationNumber", formatted);
+                      updateFormData("registrationNumber", e.target.value.toUpperCase());
                     }}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                      formData.registrationNumber &&
-                      !validateRegistrationNumber(formData.registrationNumber)
-                        .isValid
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="Ex: AB-123-CD ou 1234 AB 56"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                    placeholder="Ex: AB-123-CD ou AA123BC"
                     maxLength={20}
+                    data-testid="input-registration-number"
                   />
                   <div className="mt-2 space-y-2">
-                    {formData.registrationNumber && (
-                      <p
-                        className={`text-sm ${
-                          validateRegistrationNumber(
-                            formData.registrationNumber,
-                          ).isValid
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {
-                          validateRegistrationNumber(
-                            formData.registrationNumber,
-                          ).message
-                        }
-                      </p>
-                    )}
-
                     {/* Bouton pour récupérer les données automatiquement */}
-                    {formData.registrationNumber &&
-                      validateRegistrationNumber(formData.registrationNumber)
-                        .isValid && (
+                    {formData.registrationNumber && formData.registrationNumber.trim().length > 0 && (
                         <div className="flex items-center space-x-3">
                           <button
                             type="button"
