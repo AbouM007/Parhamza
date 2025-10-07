@@ -1415,6 +1415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const {
         name,
         displayName,
+        companyName,
         whatsapp,
         postalCode,
         city,
@@ -1430,6 +1431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Nettoyer displayName : si vide, stocker null
         updateData.display_name = displayName && displayName.trim() !== "" ? displayName.trim() : null;
       }
+      if (companyName !== undefined) updateData.company_name = companyName || null;
       if (whatsapp !== undefined) updateData.whatsapp = whatsapp || null;
       if (postalCode !== undefined) updateData.postal_code = postalCode || null;
       if (city !== undefined) updateData.city = city || null;

@@ -230,7 +230,30 @@ export default function ProfileSection({
             </div>
           )}
 
-          {/* Nom pour professionnels (reste inchangé) */}
+          {/* Nom de l'entreprise pour professionnels */}
+          {profile?.type === "professional" && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Nom de l'entreprise
+              </label>
+              <input
+                type="text"
+                value={
+                  editingProfile
+                    ? profileForm.companyName || ""
+                    : (profile as any)?.company_name || ""
+                }
+                onChange={(e) =>
+                  setProfileForm({ ...profileForm, companyName: e.target.value })
+                }
+                disabled={!editingProfile}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 disabled:bg-gray-50 text-lg"
+                data-testid="input-profile-company-name"
+              />
+            </div>
+          )}
+
+          {/* Nom du contact pour professionnels */}
           {profile?.type === "professional" && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
