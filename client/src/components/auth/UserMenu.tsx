@@ -69,10 +69,14 @@ export function UserMenu({
           title: "Déconnexion réussie",
           description: "Vous avez été déconnecté avec succès. À bientôt !",
         });
-        // Redirection vers la page d'accueil après déconnexion
+        // Redirection vers la page d'accueil après déconnexion (navigation SPA)
         setTimeout(() => {
-          window.location.href = "/";
-        }, 500);
+          if (onNavigate) {
+            onNavigate("/");
+          } else {
+            window.location.href = "/";
+          }
+        }, 1500);
       }
     } catch (error) {
       console.log("❌ Erreur: Une erreur est survenue lors de la déconnexion");
