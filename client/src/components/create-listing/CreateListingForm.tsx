@@ -319,13 +319,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         console.log("New form data (title filtered):", newData);
         return newData;
       });
-    } else if (field === "description") {
-      // Pas de limitation de caractères pour la description
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: value };
-        console.log("New form data (description):", newData);
-        return newData;
-      });
     } else {
       setFormData((prev) => {
         const newData = { ...prev, [field]: value };
@@ -3268,15 +3261,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 Description
               </label>
               <textarea
-                value={formData.description}
+                value={formData.description || ""}
                 onChange={(e) => updateFormData("description", e.target.value)}
                 rows={8}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all resize-y"
                 placeholder={
                   formData.condition === "damaged"
                     ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
                     : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
                 }
+                data-testid="input-description"
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
