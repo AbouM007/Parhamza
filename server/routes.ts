@@ -3188,9 +3188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const apiUrl = `https://apiplaqueimmatriculation.com/api/get.php?immat=${encodeURIComponent(normalizedPlate)}&key=${rapidApiKey}`;
+      const apiUrl = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(normalizedPlate)}&token=${rapidApiKey}&pays=FR`;
 
-      console.log('🔍 Calling apiplaqueimmatriculation.com API for:', normalizedPlate);
+      console.log('🔍 Calling api.apiplaqueimmatriculation.com API for:', normalizedPlate);
       
       const apiResponse = await fetch(apiUrl, {
         method: 'GET',
