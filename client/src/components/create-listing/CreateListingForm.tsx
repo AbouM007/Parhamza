@@ -999,6 +999,38 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           : new Date().getFullYear(),
         mileage: formData.specificDetails.mileage || 0,
         fuelType: formData.specificDetails.fuelType || "Non spécifié",
+        // Nouveaux champs communs
+        transmission: formData.specificDetails.transmission || null,
+        color: formData.specificDetails.color || null,
+        power: formData.specificDetails.power ? parseInt(formData.specificDetails.power.toString()) : null,
+        emissionClass: formData.specificDetails.emissionClass || null,
+        // Spécifications véhicule (JSON)
+        vehicleSpecifications: {
+          // Voiture
+          vehicleType: formData.specificDetails.vehicleType || null,
+          doors: formData.specificDetails.doors ? parseInt(formData.specificDetails.doors.toString()) : null,
+          fiscalHorsepower: formData.specificDetails.fiscalHorsepower ? parseInt(formData.specificDetails.fiscalHorsepower.toString()) : null,
+          upholstery: formData.specificDetails.upholstery || null,
+          // Moto
+          motorcycleType: formData.specificDetails.motorcycleType || null,
+          displacement: formData.specificDetails.displacement ? parseInt(formData.specificDetails.displacement.toString()) : null,
+          licenseType: formData.specificDetails.licenseType || null,
+          // Utilitaire
+          utilityType: formData.specificDetails.utilityType || null,
+          payload: formData.specificDetails.payload ? parseInt(formData.specificDetails.payload.toString()) : null,
+          volume: formData.specificDetails.volume ? parseFloat(formData.specificDetails.volume.toString()) : null,
+          seats: formData.specificDetails.seats ? parseInt(formData.specificDetails.seats.toString()) : null,
+          // Remorque
+          trailerType: formData.specificDetails.trailerType || null,
+          dimensions: formData.specificDetails.dimensions || null,
+          emptyWeight: formData.specificDetails.emptyWeight ? parseInt(formData.specificDetails.emptyWeight.toString()) : null,
+          maxWeight: formData.specificDetails.maxWeight ? parseInt(formData.specificDetails.maxWeight.toString()) : null,
+          // Jet Ski
+          jetskiType: formData.specificDetails.jetskiType || null,
+          usageHours: formData.specificDetails.usageHours ? parseInt(formData.specificDetails.usageHours.toString()) : null,
+          // Équipements
+          equipment: formData.specificDetails.equipment || [],
+        },
         condition: formData.condition || "good",
         price: formData.price || 0,
         location: formData.location || "",
