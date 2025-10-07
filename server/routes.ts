@@ -3049,9 +3049,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!apiFuel) return null;
     const fuel = apiFuel.toLowerCase();
     if (fuel.includes('diesel')) return 'diesel';
-    if (fuel.includes('essence') || fuel.includes('petrol') || fuel.includes('gasoline')) return 'essence';
-    if (fuel.includes('electrique') || fuel.includes('electric')) return 'electrique';
-    if (fuel.includes('hybride') || fuel.includes('hybrid')) return 'hybride';
+    if (fuel.includes('essence') || fuel.includes('petrol') || fuel.includes('gasoline')) return 'gasoline';
+    if (fuel.includes('electrique') || fuel.includes('electric')) return 'electric';
+    if (fuel.includes('hybride') || fuel.includes('hybrid')) return 'hybrid';
     if (fuel.includes('gpl')) return 'gpl';
     return apiFuel;
   }
@@ -3063,6 +3063,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (trans === 'A') return 'automatic';
     if (trans === 'S') return 'semi-automatic';
     return apiTransmission;
+  }
+
+  function normalizeBodyType(apiBodyType: string | null): string | null {
+    if (!apiBodyType) return null;
+    const bodyType = apiBodyType.toUpperCase();
+    
+    // Mapper les codes et descriptions de l'API vers les types valides du formulaire (VEHICLE_TYPES.car)
+    // Types disponibles: Citadine, Berline, SUV, Break, Coupé, Cabriolet, Monospace, Pickup
+    if (bodyType.includes('BERLINE') || bodyType === 'VP' || bodyType === 'VOITURE PARTICULIERE') return 'Berline';
+    if (bodyType.includes('SUV') || bodyType.includes('4X4') || bodyType.includes('TOUT-TERRAIN')) return 'SUV';
+    if (bodyType.includes('BREAK')) return 'Break';
+    if (bodyType.includes('COUPE') || bodyType.includes('COUPÉ')) return 'Coupé';
+    if (bodyType.includes('CABRIOLET') || bodyType.includes('DECAPOTABLE')) return 'Cabriolet';
+    if (bodyType.includes('MONOSPACE') || bodyType.includes('LUDOSPACE')) return 'Monospace';
+    if (bodyType.includes('CITADINE') || bodyType.includes('MINI') || bodyType.includes('PETITE')) return 'Citadine';
+    // Mapper les utilitaires vers Pickup (plus proche pour une voiture)
+    if (bodyType.includes('PICKUP') || bodyType.includes('PICK-UP') || bodyType.includes('CAMIONNETTE') || bodyType === 'CTTE' || bodyType.includes('FOURGON')) return 'Pickup';
+    
+    return null; // Retourner null si pas de correspondance pour ne pas remplir avec une mauvaise valeur
+  }
+
+  function normalizeBrand(apiBrand: string | null): string | null {
+    if (!apiBrand) return null;
+    
+    // Normaliser la casse : première lettre en majuscule, reste en minuscule
+    // Ex: "VOLKSWAGEN" → "Volkswagen", "MERCEDES-BENZ" → "Mercedes-benz"
+    const normalized = apiBrand
+      .toLowerCase()
+      .split(/(\s|-|')/) // Garder les espaces, tirets et apostrophes
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('');
+    
+    // Cas spéciaux pour certaines marques
+    const specialCases: Record<string, string> = {
+      'Mercedes-benz': 'Mercedes-Benz',
+      'Bmw': 'BMW',
+      'Audi': 'Audi',
+      'Volkswagen': 'Volkswagen',
+      'Peugeot': 'Peugeot',
+      'Renault': 'Renault',
+      'Citroën': 'Citroën',
+      'Citroen': 'Citroën',
+    };
+    
+    return specialCases[normalized] || normalized;
   }
 
   function parseDateDDMMYYYY(dateStr: string | null): string | null {
@@ -3150,7 +3195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Mapper vers specificDetails
       const specificDetails = {
-        brand: d.marque || null,
+        brand: normalizeBrand(d.marque),
         model: d.modele || null,
         firstRegistration: parseDateDDMMYYYY(d.date1erCir_fr || d.date1erCir),
         fuel: normalizeFuel(d.energieNGC || d.energie),
@@ -3158,7 +3203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: d.couleur || null,
         engineSize: extractEngineSize(d.ccm),
         doors: d.nb_portes ? String(d.nb_portes) : null,
-        bodyType: d.carrosserieCG || d.carrosserie || null,
+        bodyType: normalizeBodyType(d.carrosserieCG || d.carrosserie),
         co2: extractNumber(d.co2),
         fiscalHorsepower: extractNumber(d.puisFisc || d.puissance_fiscale),
       };
