@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { signOut } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserDisplayName } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserMenuProps {
   onNavigate?: (path: string) => void;
@@ -18,6 +19,7 @@ export function UserMenu({
   onCreateListingWithQuota,
 }: UserMenuProps) {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null); //
@@ -56,11 +58,29 @@ export function UserMenu({
       const { error } = await signOut();
       if (error) {
         console.log("❌ Erreur:", error.message);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la déconnexion",
+          variant: "destructive",
+        });
       } else {
         console.log("✅ Déconnexion réussie: À bientôt !");
+        toast({
+          title: "Déconnexion réussie",
+          description: "Vous avez été déconnecté avec succès. À bientôt !",
+        });
+        // Redirection vers la page d'accueil après déconnexion
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
       }
     } catch (error) {
       console.log("❌ Erreur: Une erreur est survenue lors de la déconnexion");
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la déconnexion",
+        variant: "destructive",
+      });
     } finally {
       setIsSigningOut(false);
     }
