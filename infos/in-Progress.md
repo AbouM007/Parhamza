@@ -130,12 +130,114 @@ Champs correctement remplis (marque, modèle, portes, etc.)
 
 ## 🚀 Résultat Final
 
-**Fonctionnalité :** Auto-remplissage automatique d’une annonce via la plaque d’immatriculation  
-**Statut :** ✅ Implémentée, testée et documentée  
+## ✅ Ce qui a déjà été fait
 
-### **Prochaines étapes**
-- Remplacer le token démo par le vrai token API  
-- Ajouter badges “Auto-complété” et bouton “Annuler”  
-- Déployer la fonctionnalité en production
+### **Backend**
+- ✔️ Route `/api/vehicle-data` créée  
+- ✔️ Intégration de l’API avec `fetch()`  
+- ✔️ Gestion du **token démo** `TokenDemo2025A`  
+- ✔️ Ajout d’un **cache in-memory** (TTL 12h)  
+- ✔️ Gestion d’erreurs :  
+  - Plaque invalide  
+  - API indisponible  
+  - Fallback mock pour le développement  
+- ✔️ Normalisation prévue pour :
+  - Transmission (`M/A/S → manual/automatic/semi-automatic`)
+  - Carburant (`diesel`, `essence`, `hybride`, `électrique`, `GPL`)
+  - Date (`DD/MM/YYYY → YYYY-MM-DD`)
+  - Cylindrée (`"1870 CM3" → 1870`)
+
+### **Frontend**
+- ✔️ Bouton “Auto-compléter depuis la plaque” déjà présent  
+- ✔️ Appel au backend `/api/vehicle-data` intégré  
+- ✔️ Toasts de succès et d’erreur affichés en français  
+- ⚙️ **Utilisation de `setValue()` en cours d’ajustement**  
+- ⚙️ **Mapping partiel entre `API → formulaire` encore incorrect**  
+- ⚙️ **Certains champs (ex. fuel, year, fiscalPower)** ne sont pas encore alignés avec le nommage interne
+
+---
+
+## 🧪 Problème actuel
+
+### 🔍 Symptômes
+- L’API renvoie bien les données JSON (ex : `FB452HG` → JEEP COMPASS).  
+- Mais seuls quelques champs sont réellement injectés dans le formulaire (`model`, `doors`).  
+- Le reste du mapping ne correspond pas aux noms attendus dans React Hook Form.
+
+### 🧭 Cause probable
+- Le code frontend utilise encore des clés internes différentes de celles renvoyées par le backend (`fuelType` vs `fuel`, `year` vs `firstRegistration`, etc.).  
+- `setFormData()` a été remplacé par `setValue()` mais les noms des champs ne sont pas encore homogènes.
+
+---
+
+## 🧩 Prochaine étape prioritaire (Phase Debug)
+
+### 🎯 Objectif immédiat
+S’assurer que :
+1. L’API renvoie bien toutes les données attendues.  
+2. Le mapping backend → frontend est exact.  
+3. Chaque champ est correctement injecté dans le formulaire.
+
+### 🧰 Étapes concrètes
+- [ ] **Vérifier la structure JSON exacte** renvoyée par l’API (console log backend).  
+- [ ] **Lister les noms de champs du formulaire** React Hook Form (`useForm`).  
+- [ ] **Créer un mapping 1:1** entre les clés API et les clés du formulaire.  
+- [ ] **Corriger la fonction `fetchVehicleDataAndFill()`** pour utiliser les bons `setValue()`.  
+- [ ] **Afficher les valeurs reçues** dans un toast de debug temporaire.  
+- [ ] **Tester 3 plaques réelles** (auto / moto / utilitaire).  
+- [ ] **Valider le remplissage automatique complet**.
+
+---
+
+## 🚧 Étapes suivantes (après validation du mapping)
+
+### **Phase Polish UX**
+- [ ] Ajouter un bouton **“Annuler l’import”** (reset des champs auto-remplis).  
+- [ ] Ajouter des badges **“✅ Auto-complété”** sur les champs remplis.  
+- [ ] Améliorer le texte du bouton (ex : *“Remplir automatiquement avec la plaque”*).  
+- [ ] Ajouter un tooltip explicatif à côté du bouton.  
+- [ ] Ajouter une détection automatique de catégorie via `genreVCG`.  
+
+### **Phase Production**
+- [ ] Créer un compte API réel sur [apiplaqueimmatriculation.com](https://apiplaqueimmatriculation.com).  
+- [ ] Renseigner le token dans `VIN_API_TOKEN` (Replit secrets).  
+- [ ] Activer `API_MODE=production`.  
+- [ ] Tester 5 plaques réelles en environnement staging.  
+- [ ] Déployer en production après validation.  
+
+---
+
+## 🚀 État actuel du projet
+
+| Élément | État |
+|----------|------|
+| Route backend `/api/vehicle-data` | ✅ Fonctionnelle |
+| Appel API Plaque | ✅ OK |
+| Cache mémoire 12h | ✅ Actif |
+| Mapping backend → frontend | ⚠️ En cours de correction |
+| Injection des champs dans le formulaire | ⚠️ Partielle |
+| Toasts UX | ✅ Fonctionnels |
+| Documentation | ✅ Ajoutée dans `replit.md` |
+| Production (token réel) | 🚧 À faire |
+
+---
+
+## 🔍 Prochaine étape immédiate (résumée)
+> 🔸 **Vérifier la correspondance complète entre la réponse JSON de l’API et les champs du formulaire.**  
+> 🔸 **Corriger le mapping et le remplissage automatique via `setValue()`.**  
+> 🔸 **Tester le flux complet avec plusieurs plaques.**
+
+---
+
+## 📅 Étape suivante après correction
+> Une fois le mapping validé → passage à la phase **Polish UX** :
+> - Ajout du bouton “Annuler l’import”  
+> - Badges “Auto-complété”  
+> - Meilleure signalisation utilisateur  
+> Puis intégration du vrai token API et déploiement en production.
+
+---
+
+
 
 ---
