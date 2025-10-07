@@ -3188,15 +3188,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const apiUrl = `https://api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com/${encodeURIComponent(normalizedPlate)}`;
+      const apiUrl = `https://apiplaqueimmatriculation.com/api/get.php?immat=${encodeURIComponent(normalizedPlate)}&key=${rapidApiKey}`;
 
-      console.log('🔍 Calling RapidAPI vehicle API for:', normalizedPlate);
+      console.log('🔍 Calling apiplaqueimmatriculation.com API for:', normalizedPlate);
       
       const apiResponse = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'x-rapidapi-key': rapidApiKey,
-          'x-rapidapi-host': 'api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com'
+          'Accept': 'application/json'
         }
       });
       
@@ -3211,48 +3210,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const apiData = await apiResponse.json();
       
       // Debug: afficher la réponse complète de l'API
-      console.log('📦 API Response:', JSON.stringify(apiData).substring(0, 500));
+      console.log('📦 API Response:', JSON.stringify(apiData).substring(0, 800));
+      
+      const d = apiData.data;
+      console.log('📊 Data keys:', d ? Object.keys(d).slice(0, 15) : 'no data');
       
       // Vérifier si erreur dans la réponse
-      if (apiData.error === true) {
-        console.log('❌ API returned error:', apiData.message);
+      if (!d || d.erreur) {
+        console.log('❌ API returned error:', d?.erreur);
         return res.json({ 
           success: false, 
-          error: apiData.message || 'Plaque non reconnue' 
+          error: d?.erreur || 'Plaque non reconnue' 
         });
       }
-
-      const d = apiData.data;
-      console.log('📊 Data keys:', d ? Object.keys(d).slice(0, 10) : 'no data');
       
-      if (!d || !d.AWN_marque) {
+      if (!d.marque) {
         return res.json({ 
           success: false, 
           error: 'Aucune information disponible pour cette plaque' 
         });
       }
 
-      // Mapper vers specificDetails avec les nouveaux champs AWN_*
+      // Mapper vers specificDetails avec les champs de apiplaqueimmatriculation.com
       const specificDetails = {
-        brand: normalizeBrand(d.AWN_marque),
-        model: d.AWN_modele || null,
-        firstRegistration: parseDateDDMMYYYY(d.AWN_date_mise_en_circulation),
-        fuel: normalizeFuel(d.AWN_energie),
-        transmission: normalizeTransmission(d.boite_vitesse || d.AWN_type_boite_vites),
-        color: d.AWN_couleur || null,
-        engineSize: extractEngineSize(d.AWN_nbr_cylindre_energie),
-        doors: d.AWN_nbr_portes ? String(d.AWN_nbr_portes) : null,
-        bodyType: normalizeBodyType(d.AWN_carrosserie || d.AWN_style_carrosserie),
-        co2: extractNumber(d.AWN_emission_co_2),
-        fiscalHorsepower: extractNumber(d.AWN_puissance_fiscale),
+        brand: normalizeBrand(d.marque),
+        model: d.modele || null,
+        firstRegistration: d.date1erCir_us || null, // Format YYYY-MM-DD
+        fuel: normalizeFuel(d.energieNGC || d.energie), // Priorité au texte, fallback sur code
+        transmission: normalizeTransmission(d.boite_vitesse),
+        color: d.couleur || null,
+        engineSize: d.ccm || null, // Déjà en format "1870 CM3"
+        doors: d.nb_portes ? String(d.nb_portes) : null,
+        bodyType: normalizeBodyType(d.carrosserieCG),
+        co2: extractNumber(d.co2),
+        fiscalHorsepower: extractNumber(d.puisFisc),
+        power: d.puisFiscReelCH || d.puisFiscReelKW || null, // Ajout puissance réelle
+        cylinders: d.cylindres || null, // Ajout nombre de cylindres
+        genreVCG: d.genreVCGNGC || d.genreVCG || null, // Type véhicule (VP, CTTE, etc.)
       };
 
       // Informations pour le toast
       const vehicleInfo = {
-        brand: d.AWN_marque,
-        model: d.AWN_modele,
-        year: d.AWN_date_mise_en_circulation ? d.AWN_date_mise_en_circulation.split('-')[2] : null,
-        genreVCG: d.AWN_genre
+        brand: d.marque,
+        model: d.modele,
+        year: d.date1erCir_us ? d.date1erCir_us.split('-')[0] : null,
+        genreVCG: d.genreVCGNGC || d.genreVCG
       };
 
       const responseData = {
