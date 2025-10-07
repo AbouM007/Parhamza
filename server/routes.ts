@@ -3044,41 +3044,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const vehicleDataCache = new Map<string, { data: any; timestamp: number }>();
   const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 heures
 
-  // Fonctions de normalisation
+  // Fonctions de normalisation pour API RapidAPI (AWN)
   function normalizeFuel(apiFuel: string | null): string | null {
     if (!apiFuel) return null;
-    const fuel = apiFuel.toLowerCase();
-    if (fuel.includes('diesel')) return 'diesel';
-    if (fuel.includes('essence') || fuel.includes('petrol') || fuel.includes('gasoline')) return 'gasoline';
-    if (fuel.includes('electrique') || fuel.includes('electric')) return 'electric';
-    if (fuel.includes('hybride') || fuel.includes('hybrid')) return 'hybrid';
-    if (fuel.includes('gpl')) return 'gpl';
-    return apiFuel;
+    const fuel = apiFuel.toUpperCase();
+    
+    // Mapper les valeurs de l'API RapidAPI vers les valeurs du formulaire
+    if (fuel.includes('GAZOLE') || fuel.includes('DIESEL')) return 'diesel';
+    if (fuel.includes('ESSENCE') || fuel.includes('PETROL') || fuel.includes('GASOLINE')) return 'gasoline';
+    if (fuel.includes('ELECTRIQUE') || fuel.includes('ELECTRIC')) return 'electric';
+    if (fuel.includes('HYBRIDE') || fuel.includes('HYBRID')) return 'hybrid';
+    if (fuel.includes('GPL')) return 'gpl';
+    
+    return null; // Retourner null si pas de correspondance
   }
 
   function normalizeTransmission(apiTransmission: string | null): string | null {
     if (!apiTransmission) return null;
     const trans = apiTransmission.toUpperCase();
-    if (trans === 'M') return 'manual';
-    if (trans === 'A') return 'automatic';
-    if (trans === 'S') return 'semi-automatic';
-    return apiTransmission;
+    
+    // Mapper les valeurs RapidAPI (MANUELLE, AUTOMATIQUE) et les codes (M, A, S)
+    if (trans === 'M' || trans.includes('MANUELLE') || trans.includes('MANUAL')) return 'manual';
+    if (trans === 'A' || trans.includes('AUTOMATIQUE') || trans.includes('AUTOMATIC')) return 'automatic';
+    if (trans === 'S' || trans.includes('SEMI') || trans.includes('ROBOTISEE')) return 'semi-automatic';
+    
+    return null; // Retourner null si pas de correspondance
   }
 
   function normalizeBodyType(apiBodyType: string | null): string | null {
     if (!apiBodyType) return null;
     const bodyType = apiBodyType.toUpperCase();
     
-    // Mapper les codes et descriptions de l'API vers les types valides du formulaire (VEHICLE_TYPES.car)
+    // Mapper les codes et descriptions de l'API RapidAPI vers les types valides du formulaire (VEHICLE_TYPES.car)
     // Types disponibles: Citadine, Berline, SUV, Break, Coupé, Cabriolet, Monospace, Pickup
-    if (bodyType.includes('BERLINE') || bodyType === 'VP' || bodyType === 'VOITURE PARTICULIERE') return 'Berline';
-    if (bodyType.includes('SUV') || bodyType.includes('4X4') || bodyType.includes('TOUT-TERRAIN')) return 'SUV';
+    
+    // SUV et véhicules tout-chemin (VTC)
+    if (bodyType.includes('SUV') || bodyType.includes('4X4') || bodyType.includes('TOUT') || bodyType === 'VTC' || bodyType.includes('VEHICULE TOUT CHEMIN')) return 'SUV';
+    
+    // Berline
+    if (bodyType.includes('BERLINE') || bodyType === 'VP' || bodyType === 'VOITURE PARTICULIERE' || bodyType === 'CI') return 'Berline';
+    
+    // Break
     if (bodyType.includes('BREAK')) return 'Break';
+    
+    // Coupé
     if (bodyType.includes('COUPE') || bodyType.includes('COUPÉ')) return 'Coupé';
+    
+    // Cabriolet
     if (bodyType.includes('CABRIOLET') || bodyType.includes('DECAPOTABLE')) return 'Cabriolet';
+    
+    // Monospace
     if (bodyType.includes('MONOSPACE') || bodyType.includes('LUDOSPACE')) return 'Monospace';
+    
+    // Citadine
     if (bodyType.includes('CITADINE') || bodyType.includes('MINI') || bodyType.includes('PETITE')) return 'Citadine';
-    // Mapper les utilitaires vers Pickup (plus proche pour une voiture)
+    
+    // Pickup et utilitaires (mapper vers Pickup - plus proche pour une voiture)
     if (bodyType.includes('PICKUP') || bodyType.includes('PICK-UP') || bodyType.includes('CAMIONNETTE') || bodyType === 'CTTE' || bodyType.includes('FOURGON')) return 'Pickup';
     
     return null; // Retourner null si pas de correspondance pour ne pas remplir avec une mauvaise valeur
@@ -3157,13 +3178,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Appeler l'API
-      const token = process.env.VIN_API_TOKEN || 'TokenDemo2025A';
-      const apiUrl = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(normalizedPlate)}&token=${encodeURIComponent(token)}&pays=FR`;
+      // Appeler l'API RapidAPI
+      const rapidApiKey = process.env.RAPIDAPI_KEY;
+      if (!rapidApiKey) {
+        console.error('❌ RAPIDAPI_KEY not configured');
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Configuration API manquante' 
+        });
+      }
 
-      console.log('🔍 Calling vehicle API for:', normalizedPlate);
+      const apiUrl = `https://api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com/${encodeURIComponent(normalizedPlate)}`;
+
+      console.log('🔍 Calling RapidAPI vehicle API for:', normalizedPlate);
       
-      const apiResponse = await fetch(apiUrl);
+      const apiResponse = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-key': rapidApiKey,
+          'x-rapidapi-host': 'api-siv-systeme-d-immatriculation-des-vehicules.p.rapidapi.com'
+        }
+      });
       
       if (!apiResponse.ok) {
         console.error('❌ API error:', apiResponse.status, await apiResponse.text());
@@ -3176,44 +3211,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const apiData = await apiResponse.json();
       
       // Vérifier si erreur dans la réponse
-      if (apiData.data?.erreur && apiData.data.erreur !== "") {
-        console.log('❌ API returned error:', apiData.data.erreur);
+      if (apiData.error === true) {
+        console.log('❌ API returned error:', apiData.message);
         return res.json({ 
           success: false, 
-          error: 'Plaque non reconnue' 
+          error: apiData.message || 'Plaque non reconnue' 
         });
       }
 
       const d = apiData.data;
       
-      if (!d || !d.marque) {
+      if (!d || !d.AWN_marque) {
         return res.json({ 
           success: false, 
           error: 'Aucune information disponible pour cette plaque' 
         });
       }
 
-      // Mapper vers specificDetails
+      // Mapper vers specificDetails avec les nouveaux champs AWN_*
       const specificDetails = {
-        brand: normalizeBrand(d.marque),
-        model: d.modele || null,
-        firstRegistration: parseDateDDMMYYYY(d.date1erCir_fr || d.date1erCir),
-        fuel: normalizeFuel(d.energieNGC || d.energie),
-        transmission: normalizeTransmission(d.boite_vitesse),
-        color: d.couleur || null,
-        engineSize: extractEngineSize(d.ccm),
-        doors: d.nb_portes ? String(d.nb_portes) : null,
-        bodyType: normalizeBodyType(d.carrosserieCG || d.carrosserie),
-        co2: extractNumber(d.co2),
-        fiscalHorsepower: extractNumber(d.puisFisc || d.puissance_fiscale),
+        brand: normalizeBrand(d.AWN_marque),
+        model: d.AWN_modele || null,
+        firstRegistration: parseDateDDMMYYYY(d.AWN_date_mise_en_circulation),
+        fuel: normalizeFuel(d.AWN_energie),
+        transmission: normalizeTransmission(d.AWN_type_boite_vites),
+        color: d.AWN_couleur || null,
+        engineSize: extractEngineSize(d.AWN_nbr_cylindre_energie),
+        doors: d.AWN_nbr_portes ? String(d.AWN_nbr_portes) : null,
+        bodyType: normalizeBodyType(d.AWN_carrosserie || d.AWN_style_carrosserie),
+        co2: extractNumber(d.AWN_emission_co_2),
+        fiscalHorsepower: extractNumber(d.AWN_puissance_fiscale),
       };
 
       // Informations pour le toast
       const vehicleInfo = {
-        brand: d.marque,
-        model: d.modele,
-        year: d.date1erCir_fr ? d.date1erCir_fr.split('-')[2] : null,
-        genreVCG: d.genreVCGNGC || d.genreVCG
+        brand: d.AWN_marque,
+        model: d.AWN_modele,
+        year: d.AWN_date_mise_en_circulation ? d.AWN_date_mise_en_circulation.split('-')[2] : null,
+        genreVCG: d.AWN_genre
       };
 
       const responseData = {
