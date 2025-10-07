@@ -58,6 +58,41 @@ export const annonces = pgTable("annonces", {
   year: integer("year").notNull(),
   mileage: integer("mileage"),
   fuelType: text("fuel_type"),
+  transmission: text("transmission"),
+  color: text("color"),
+  power: integer("power"),
+  emissionClass: text("emission_class"),
+  vehicleSpecifications: json("vehicle_specifications").$type<{
+    // Voiture
+    vehicleType?: string;
+    doors?: number;
+    fiscalHorsepower?: number;
+    upholstery?: string;
+
+    // Moto
+    motorcycleType?: string;
+    displacement?: number;
+    licenseType?: string;
+
+    // Utilitaire
+    utilityType?: string;
+    payload?: number;
+    volume?: number;
+    seats?: number;
+
+    // Remorque
+    trailerType?: string;
+    dimensions?: string;
+    emptyWeight?: number;
+    maxWeight?: number;
+
+    // Jet Ski
+    jetskiType?: string;
+    usageHours?: number;
+
+    // Équipements
+    equipment?: string[];
+  }>().default({}),
   condition: text("condition").notNull(),
   price: numeric("price", { precision: 12, scale: 2 }).notNull(),
   location: text("location").notNull(),
