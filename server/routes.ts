@@ -3238,7 +3238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         model: d.AWN_modele || null,
         firstRegistration: parseDateDDMMYYYY(d.AWN_date_mise_en_circulation),
         fuel: normalizeFuel(d.AWN_energie),
-        transmission: normalizeTransmission(d.AWN_type_boite_vites),
+        transmission: normalizeTransmission(d.boite_vitesse || d.AWN_type_boite_vites),
         color: d.AWN_couleur || null,
         engineSize: extractEngineSize(d.AWN_nbr_cylindre_energie),
         doors: d.AWN_nbr_portes ? String(d.AWN_nbr_portes) : null,
