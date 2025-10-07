@@ -1,243 +1,182 @@
-
-**Réponse :** JSON contenant `marque`, `modele`, `date1erCir_fr`, `energieNGC`, `boite_vitesse`, `couleur`, `ccm`, etc.
-
----
-
-## 🔄 Mapping des Champs  
-
-| Champ API              | Champ interne PassionAuto2Roues           |
-|------------------------|-------------------------------------------|
-| marque                 | specificDetails.brand                     |
-| modele                 | specificDetails.model                     |
-| date1erCir_fr          | specificDetails.firstRegistration         |
-| energieNGC             | specificDetails.fuel                      |
-| boite_vitesse          | specificDetails.transmission              |
-| couleur                | specificDetails.color                     |
-| ccm                    | specificDetails.engineSize (nombre seul)  |
-| nb_portes              | specificDetails.doors                     |
-| carrosserieCG          | specificDetails.bodyType                  |
-| co2                    | specificDetails.co2                       |
-| puisFisc               | specificDetails.fiscalHorsepower          |
-| genreVCGNGC            | Détection catégorie (VP=voiture, MOTO=moto, etc.) |
+# 🚧 Fonctionnalités en cours de développement
 
 ---
 
-## ⚙️ Architecture d’Implémentation
+## ✅ Auto-remplissage des données véhicules via plaque d'immatriculation (TERMINÉ)
 
-**3 couches principales :**
-1. **Backend** : Route `/api/vehicle-data` qui appelle l’API Plaque et met en cache la réponse (TTL 12h)  
-2. **Transformation** : Mapping des données API → structure interne `specificDetails`  
-3. **Frontend** : Bouton "Auto-compléter" connecté à la route backend, avec gestion de succès et erreurs  
+### 📋 Résumé de l'implémentation
 
----
+**Objectif :** Permettre aux utilisateurs de remplir automatiquement les informations d'un véhicule en saisissant sa plaque d'immatriculation.
 
-## 🧱 Stratégie d’Implémentation  
-
-### **Phase 1 : MVP (fonctionnelle)**
-- Créer la route backend `/api/vehicle-data`
-- Mapper les données vers `specificDetails`
-- Ajouter cache en mémoire (TTL 12h)
-- Gérer les erreurs (API indisponible, plaque invalide, etc.)
-- Connecter le bouton existant du formulaire
-- Remplir les champs via `setValue()` (React Hook Form)
-- Ajouter toasts (succès / erreur)
-- Tester le flux complet (saisie plaque → champs auto-remplis)
-
-### **Phase 2 : Polish (améliorations UX)**
-- Suivi des champs auto-remplis (`autoFilledFields`)
-- Badges **"✅ Auto-complété"** sur les champs concernés
-- Bouton **"Annuler l’import"** pour réinitialiser les champs
-- Suggestion automatique de catégorie via `genreVCG`
-
-### **Phase 3 : Production**
-- Remplacer le token démo `TokenDemo2025A` par le vrai token API (dans secrets Replit)
-- Activer mode production (`API_MODE=production`)
-- Ajout de logs légers et rate limiting
+**Statut :** ✅ **TERMINÉ et VALIDÉ**
 
 ---
 
-## 🧩 Points d’Expérience Utilisateur (UX)
+## 🎯 Fonctionnalité finale implémentée
 
-### 🔴 Problèmes initiaux
-- Validation inutile du format de plaque (à supprimer)
-- Double validation (“interroger API” puis “accepter”) créant de la friction
-- Redirection après import → mauvaise UX
-- Pas de retour visuel ni de bouton d’annulation
+### **Flux utilisateur (UX améliorée)**
+1. L'utilisateur saisit une plaque d'immatriculation dans le formulaire de création d'annonce
+2. L'utilisateur clique sur le bouton **"Auto-compléter depuis la plaque"**
+3. Un **modal de prévisualisation** s'affiche avec toutes les données récupérées depuis l'API
+4. L'utilisateur peut :
+   - **Confirmer** : Les champs se remplissent automatiquement dans le formulaire
+   - **Annuler** : Le modal se ferme sans remplir le formulaire
+5. L'utilisateur peut ensuite modifier ou compléter les informations avant de publier
 
-### ✅ Nouvelle approche adoptée
-1. L’utilisateur saisit sa plaque puis clique sur **"Auto-compléter"**
-2. Les champs se remplissent **immédiatement**
-3. Un **toast de confirmation** s’affiche :  
-   > ✅ Renault Megane III (2009) importée – vérifiez les détails
-4. L’utilisateur reste dans le formulaire, peut modifier ou compléter
-5. Possibilité de **réinitialiser** les champs auto-remplis
+### **Architecture technique**
+
+**Backend** (`server/routes.ts`)
+- Route `/api/vehicle-data` qui interroge l'API Plaque Immatriculation
+- Cache en mémoire (TTL 12h) pour optimiser les coûts
+- Normalisation et transformation des données API
+- Gestion des erreurs (plaque invalide, API indisponible)
+- Token démo : `TokenDemo2025A` (à remplacer par le vrai token en production)
+
+**Frontend** (`client/src/components/create-listing/CreateListingForm.tsx`)
+- Bouton "Auto-compléter depuis la plaque" dans le formulaire
+- Fonction `fetchVehicleData()` qui appelle l'API backend
+- Stockage temporaire des données dans `pendingVehicleData`
+- Affichage du modal de prévisualisation
+- Fonction `confirmAndFillVehicleData()` qui remplit le formulaire après confirmation
+
+**Modal de prévisualisation** (`client/src/components/create-listing/VehicleDataPreviewModal.tsx`)
+- Affichage des données récupérées de manière claire
+- Liste des champs disponibles avec icônes de validation
+- Boutons "Confirmer et remplir" et "Annuler"
+- Design cohérent avec le reste de l'application
 
 ---
 
-## 🧰 Détails Techniques Importants
+## 🔄 Mapping des Champs
 
-- Utilisation de `setValue()` (React Hook Form) pour remplir les champs,  
-  au lieu de `setFormData()` (erreur corrigée)
-- Mapping corrigé pour correspondre aux noms exacts du formulaire :
-  - `fuel → fuelType`
-  - `firstRegistration → year`
-  - `fiscalHorsepower → fiscalPower`
-- Normalisation des valeurs :
-  - Transmission : `M → manual`, `A → automatic`, `S → semi-automatic`
-  - Carburant : harmonisé (essence, diesel, hybride, électrique, GPL)
-  - Cylindrée : extraction du nombre pur (“1998”)
+### API → Formulaire
+
+| Champ API              | Champ formulaire PassionAuto2Roues       | Transformation              |
+|------------------------|------------------------------------------|-----------------------------|
+| marque                 | brand                                    | Direct                      |
+| modele                 | model                                    | Direct                      |
+| date1erCir_fr          | year                                     | Extraction année (YYYY)     |
+| energieNGC             | fuelType                                 | Normalisation (gasoline, diesel, etc.) |
+| boite_vitesse          | transmission                             | Normalisation (M→manual, A→automatic, S→semi-automatic) |
+| couleur                | color                                    | Direct                      |
+| ccm                    | engineSize                               | Extraction du nombre (ex: "1998 CM3" → "1998") |
+| nb_portes              | doors                                    | Conversion en string        |
+| co2                    | co2                                      | Extraction du nombre        |
+| puisFisc               | fiscalPower                              | Conversion en string        |
 
 ---
 
-## ✅ Fonctionnalité Finale Validée
+## ✅ Fonctionnalités validées
 
 ### **Backend**
-- Intégration complète de l’API Plaque Immatriculation
-- Cache mémoire 12h
-- Mapping JSON → base interne
-- Gestion des erreurs et du token démo
+- ✅ Intégration complète de l'API Plaque Immatriculation (apiplaqueimmatriculation.com)
+- ✅ Cache mémoire avec TTL de 12 heures
+- ✅ Mapping et normalisation des données
+- ✅ Gestion complète des erreurs
+- ✅ Token démo configuré (prêt pour le token production)
 
 ### **Frontend**
-- Auto-remplissage immédiat
-- Toasts FR (succès/erreur)
-- Suppression de la validation de format de plaque
-- Tracking des champs auto-remplis
-- Interface fluide et sans redirection
+- ✅ Modal de prévisualisation des données
+- ✅ Confirmation utilisateur avant remplissage
+- ✅ Auto-remplissage des champs via `setValue()` (React Hook Form)
+- ✅ Toasts de succès/erreur en français
+- ✅ Tracking des champs auto-remplis (`autoFilledFields`)
+- ✅ Interface fluide sans redirection
+
+### **UX**
+- ✅ Transparence : l'utilisateur voit les données avant de les accepter
+- ✅ Contrôle : possibilité d'annuler à tout moment
+- ✅ Feedback visuel : modal clair avec toutes les informations
+- ✅ Modification : l'utilisateur peut modifier les données après remplissage
 
 ---
 
-## 🧪 Tests Réalisés
+## 🧪 Tests réalisés
 
 | Plaque | Résultat |
 |--------|-----------|
-| FB452HG | ✅ JEEP COMPASS |
-| FY067NE | ✅ LEXUS UX |
+| FB452HG | ✅ JEEP COMPASS (données complètes) |
+| FY067NE | ✅ LEXUS UX (données complètes) |
 
-Champs correctement remplis (marque, modèle, portes, etc.)
+**Validation Architect :** ✅ PASS
+- Flux de confirmation utilisateur validé
+- Mapping correct entre API et formulaire
+- Modal conforme aux standards du projet
+- Gestion d'état appropriée
 
 ---
 
-## 🚧 Problèmes Rencontrés et Résolus
+## 🚧 Problèmes rencontrés et résolus
 
 | Problème | Cause | Solution |
-|-----------|--------|----------|
-| Page blanche sur Replit | Serveur arrêté (user inexistant) | Redémarrage + endpoint `/api/auth/force-logout` |
-| Mapping partiel (seulement modèle & portes) | Mauvaise correspondance API → champs form | Correction du mapping + `setValue()` |
-| Pas de feedback utilisateur | Bouton peu clair | Ajout de toasts + textes explicites |
-| Pas de réinitialisation possible | Absence de bouton reset | Ajout d’un bouton “Annuler l’import” |
+|----------|-------|----------|
+| Champs non remplis | Mauvais mapping (fiscalHorsepower vs fiscalPower) | Correction du mapping API → formulaire |
+| Remplissage direct sans confirmation | Pas de modal de prévisualisation | Ajout du VehicleDataPreviewModal |
+| Dépendance à shadcn/ui Dialog | Composants non installés dans le projet | Utilisation du pattern modal natif du projet |
+| Workflow en échec | Import de composants inexistants | Réécriture du modal avec le pattern existant |
 
 ---
 
-## 🚀 Résultat Final
-
-## ✅ Ce qui a déjà été fait
-
-### **Backend**
-- ✔️ Route `/api/vehicle-data` créée  
-- ✔️ Intégration de l’API avec `fetch()`  
-- ✔️ Gestion du **token démo** `TokenDemo2025A`  
-- ✔️ Ajout d’un **cache in-memory** (TTL 12h)  
-- ✔️ Gestion d’erreurs :  
-  - Plaque invalide  
-  - API indisponible  
-  - Fallback mock pour le développement  
-- ✔️ Normalisation prévue pour :
-  - Transmission (`M/A/S → manual/automatic/semi-automatic`)
-  - Carburant (`diesel`, `essence`, `hybride`, `électrique`, `GPL`)
-  - Date (`DD/MM/YYYY → YYYY-MM-DD`)
-  - Cylindrée (`"1870 CM3" → 1870`)
-
-### **Frontend**
-- ✔️ Bouton “Auto-compléter depuis la plaque” déjà présent  
-- ✔️ Appel au backend `/api/vehicle-data` intégré  
-- ✔️ Toasts de succès et d’erreur affichés en français  
-- ⚙️ **Utilisation de `setValue()` en cours d’ajustement**  
-- ⚙️ **Mapping partiel entre `API → formulaire` encore incorrect**  
-- ⚙️ **Certains champs (ex. fuel, year, fiscalPower)** ne sont pas encore alignés avec le nommage interne
-
----
-
-## 🧪 Problème actuel
-
-### 🔍 Symptômes
-- L’API renvoie bien les données JSON (ex : `FB452HG` → JEEP COMPASS).  
-- Mais seuls quelques champs sont réellement injectés dans le formulaire (`model`, `doors`).  
-- Le reste du mapping ne correspond pas aux noms attendus dans React Hook Form.
-
-### 🧭 Cause probable
-- Le code frontend utilise encore des clés internes différentes de celles renvoyées par le backend (`fuelType` vs `fuel`, `year` vs `firstRegistration`, etc.).  
-- `setFormData()` a été remplacé par `setValue()` mais les noms des champs ne sont pas encore homogènes.
-
----
-
-## 🧩 Prochaine étape prioritaire (Phase Debug)
-
-### 🎯 Objectif immédiat
-S’assurer que :
-1. L’API renvoie bien toutes les données attendues.  
-2. Le mapping backend → frontend est exact.  
-3. Chaque champ est correctement injecté dans le formulaire.
-
-### 🧰 Étapes concrètes
-- [ ] **Vérifier la structure JSON exacte** renvoyée par l’API (console log backend).  
-- [ ] **Lister les noms de champs du formulaire** React Hook Form (`useForm`).  
-- [ ] **Créer un mapping 1:1** entre les clés API et les clés du formulaire.  
-- [ ] **Corriger la fonction `fetchVehicleDataAndFill()`** pour utiliser les bons `setValue()`.  
-- [ ] **Afficher les valeurs reçues** dans un toast de debug temporaire.  
-- [ ] **Tester 3 plaques réelles** (auto / moto / utilitaire).  
-- [ ] **Valider le remplissage automatique complet**.
-
----
-
-## 🚧 Étapes suivantes (après validation du mapping)
-
-### **Phase Polish UX**
-- [ ] Ajouter un bouton **“Annuler l’import”** (reset des champs auto-remplis).  
-- [ ] Ajouter des badges **“✅ Auto-complété”** sur les champs remplis.  
-- [ ] Améliorer le texte du bouton (ex : *“Remplir automatiquement avec la plaque”*).  
-- [ ] Ajouter un tooltip explicatif à côté du bouton.  
-- [ ] Ajouter une détection automatique de catégorie via `genreVCG`.  
+## 🚀 Prochaines étapes (Production)
 
 ### **Phase Production**
-- [ ] Créer un compte API réel sur [apiplaqueimmatriculation.com](https://apiplaqueimmatriculation.com).  
-- [ ] Renseigner le token dans `VIN_API_TOKEN` (Replit secrets).  
-- [ ] Activer `API_MODE=production`.  
-- [ ] Tester 5 plaques réelles en environnement staging.  
-- [ ] Déployer en production après validation.  
+- [ ] Créer un compte API réel sur [apiplaqueimmatriculation.com](https://apiplaqueimmatriculation.com)
+- [ ] Remplacer le token démo par le vrai token dans les secrets Replit (`VIN_API_TOKEN`)
+- [ ] Activer le mode production (`API_MODE=production`)
+- [ ] Tester avec 10+ plaques réelles en environnement staging
+- [ ] Vérifier les quotas et limites de l'API
+- [ ] Déployer en production après validation complète
+
+### **Améliorations futures (optionnel)**
+- [ ] Ajouter des badges "✅ Auto-complété" sur les champs remplis
+- [ ] Bouton "Annuler l'import" pour réinitialiser uniquement les champs auto-remplis
+- [ ] Détection automatique de catégorie via `genreVCG` (VP=voiture, MOTO=moto)
+- [ ] Analytics : tracker l'utilisation de la fonctionnalité
+- [ ] Support des plaques de plusieurs pays (actuellement France uniquement)
 
 ---
 
-## 🚀 État actuel du projet
+## 📊 État actuel du projet
 
 | Élément | État |
 |----------|------|
 | Route backend `/api/vehicle-data` | ✅ Fonctionnelle |
 | Appel API Plaque | ✅ OK |
 | Cache mémoire 12h | ✅ Actif |
-| Mapping backend → frontend | ⚠️ En cours de correction |
-| Injection des champs dans le formulaire | ⚠️ Partielle |
+| Mapping backend → frontend | ✅ Validé |
+| Modal de prévisualisation | ✅ Implémenté et testé |
+| Injection des champs dans le formulaire | ✅ Fonctionnelle |
 | Toasts UX | ✅ Fonctionnels |
-| Documentation | ✅ Ajoutée dans `replit.md` |
-| Production (token réel) | 🚧 À faire |
+| Documentation | ✅ Complète |
+| Token production | 🚧 À configurer |
+| Tests en conditions réelles | 🚧 À effectuer |
 
 ---
 
-## 🔍 Prochaine étape immédiate (résumée)
-> 🔸 **Vérifier la correspondance complète entre la réponse JSON de l’API et les champs du formulaire.**  
-> 🔸 **Corriger le mapping et le remplissage automatique via `setValue()`.**  
-> 🔸 **Tester le flux complet avec plusieurs plaques.**
+## 📝 Notes techniques importantes
+
+### **Normalisation des données**
+- **Transmission** : `M → manual`, `A → automatic`, `S → semi-automatic`
+- **Carburant** : Harmonisation (essence, diesel, hybride, électrique, GPL)
+- **Année** : Extraction depuis `date1erCir_fr` (format DD/MM/YYYY → YYYY)
+- **Cylindrée** : Extraction du nombre pur ("1998 CM3" → "1998")
+
+### **Sécurité et performance**
+- Cache mémoire pour réduire les appels API (économie de coûts)
+- TTL de 12 heures (équilibre entre fraîcheur des données et performance)
+- Gestion d'erreurs robuste (API indisponible, plaque invalide, timeout)
+- Token stocké dans les secrets Replit (non exposé dans le code)
+
+### **Patterns utilisés**
+- Modal natif du projet (pas de dépendance shadcn/ui Dialog)
+- React Hook Form avec `setValue()` pour le remplissage
+- État temporaire `pendingVehicleData` pour la prévisualisation
+- Tracking des champs auto-remplis via `autoFilledFields`
 
 ---
 
-## 📅 Étape suivante après correction
-> Une fois le mapping validé → passage à la phase **Polish UX** :
-> - Ajout du bouton “Annuler l’import”  
-> - Badges “Auto-complété”  
-> - Meilleure signalisation utilisateur  
-> Puis intégration du vrai token API et déploiement en production.
+## 🎉 Conclusion
 
----
+La fonctionnalité d'auto-remplissage via plaque d'immatriculation est **complète et validée**. Elle offre une expérience utilisateur fluide avec confirmation avant remplissage, tout en respectant les patterns et l'architecture du projet PassionAuto2Roues.
 
-
-
----
+**Prochaine étape prioritaire :** Configuration du token API production et tests en conditions réelles.

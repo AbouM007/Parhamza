@@ -24,7 +24,7 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: Supabase Auth for session management.
 - **Core Features**:
     - **Listing Management**: Creation, display, and deletion of vehicle and spare parts listings.
-    - **Auto-Fill Vehicle Data**: Integration with API Plaque Immatriculation to retrieve and normalize vehicle information from license plates, with in-memory caching for cost optimization.
+    - **Auto-Fill Vehicle Data**: Integration with API Plaque Immatriculation to retrieve and normalize vehicle information from license plates, with user confirmation modal before auto-filling form fields, in-memory caching (12h TTL) for cost optimization.
     - **Compatibility Tags**: System for spare parts listings with intelligent matching.
     - **Subscription Management**: User subscriptions, professional account verification, and premium features (listing boosts).
     - **Messaging**: Integrated messaging system.
