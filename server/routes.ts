@@ -3079,6 +3079,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return match ? match[0] : null;
   }
 
+  function extractNumber(value: string | number | null): string | null {
+    if (!value) return null;
+    if (typeof value === 'number') return String(value);
+    const match = String(value).match(/\d+/);
+    return match ? match[0] : null;
+  }
+
   // Route API Vehicle Data
   app.post("/api/vehicle-data", async (req, res) => {
     try {
@@ -3152,8 +3159,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         engineSize: extractEngineSize(d.ccm),
         doors: d.nb_portes ? String(d.nb_portes) : null,
         bodyType: d.carrosserieCG || d.carrosserie || null,
-        co2: d.co2 ? String(d.co2) : null,
-        fiscalHorsepower: d.puisFisc || d.puissance_fiscale || null,
+        co2: extractNumber(d.co2),
+        fiscalHorsepower: extractNumber(d.puisFisc || d.puissance_fiscale),
       };
 
       // Informations pour le toast

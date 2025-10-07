@@ -11,6 +11,7 @@ interface VehicleDataPreviewModalProps {
     fuelType?: string;
     transmission?: string;
     color?: string;
+    bodyType?: string;
     engineSize?: string;
     doors?: string;
     co2?: string;
@@ -60,6 +61,7 @@ export function VehicleDataPreviewModal({
         : undefined,
     },
     { label: "Couleur", value: vehicleData.color },
+    { label: "Type de véhicule", value: vehicleData.bodyType },
     {
       label: "Cylindrée",
       value: vehicleData.engineSize ? `${vehicleData.engineSize} cm³` : undefined,

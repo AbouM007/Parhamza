@@ -569,12 +569,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const { specificDetails, vehicleInfo } = pendingVehicleData;
     const filledFields: string[] = [];
 
+    // DEBUG: Log des données reçues
+    console.log('🔍 DEBUG - Données reçues du backend:', specificDetails);
+
     // Pré-remplir automatiquement les détails spécifiques
     const newSpecificDetails = { ...formData.specificDetails };
 
     if (specificDetails.brand) {
       newSpecificDetails.brand = specificDetails.brand;
       filledFields.push('Marque');
+      console.log('✅ Marque remplie:', specificDetails.brand);
     }
     if (specificDetails.model) {
       newSpecificDetails.model = specificDetails.model;
@@ -590,6 +594,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       // Mapper fuel vers fuelType (champ du formulaire)
       newSpecificDetails.fuelType = specificDetails.fuel;
       filledFields.push('Carburant');
+      console.log('✅ Carburant rempli:', specificDetails.fuel);
     }
     if (specificDetails.transmission) {
       newSpecificDetails.transmission = specificDetails.transmission;
@@ -598,6 +603,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     if (specificDetails.color) {
       newSpecificDetails.color = specificDetails.color;
       filledFields.push('Couleur');
+    }
+    if (specificDetails.bodyType) {
+      // Mapper bodyType (API) vers vehicleType (formulaire)
+      newSpecificDetails.vehicleType = specificDetails.bodyType;
+      filledFields.push('Type de véhicule');
+      console.log('✅ Type de véhicule rempli:', specificDetails.bodyType);
     }
     if (specificDetails.engineSize) {
       // engineSize est numérique, le stocker tel quel
@@ -616,6 +627,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
       newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
       filledFields.push('Puissance fiscale');
+      console.log('✅ Puissance fiscale remplie:', specificDetails.fiscalHorsepower);
     }
 
     setFormData((prev) => ({
@@ -4172,6 +4184,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 fuelType: pendingVehicleData.specificDetails.fuel,
                 transmission: pendingVehicleData.specificDetails.transmission,
                 color: pendingVehicleData.specificDetails.color,
+                bodyType: pendingVehicleData.specificDetails.bodyType,
                 engineSize: pendingVehicleData.specificDetails.engineSize,
                 doors: pendingVehicleData.specificDetails.doors,
                 co2: pendingVehicleData.specificDetails.co2,
