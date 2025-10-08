@@ -680,42 +680,48 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       if (result.success && result.data) {
         const { specificDetails, vehicleInfo } = result.data;
 
-        // Stocker les données de l'API
-        setApiVehicleData({
-          brand: specificDetails.brand,
-          model: specificDetails.model,
-          year: specificDetails.firstRegistration 
-            ? specificDetails.firstRegistration.split('-')[0] 
-            : vehicleInfo.year,
-          fuel: specificDetails.fuel,
-          transmission: specificDetails.transmission,
-          power: specificDetails.power,
-          engineSize: specificDetails.engineSize,
-          doors: specificDetails.doors,
-          bodyType: specificDetails.bodyType,
-          color: specificDetails.color,
-          co2: specificDetails.co2,
-          fiscalHorsepower: specificDetails.fiscalHorsepower,
-          cylinders: specificDetails.cylinders,
-          genreVCG: specificDetails.genreVCG,
-        });
+        // 🎯 PRÉ-REMPLIR DIRECTEMENT formData.specificDetails (Step 6 sera automatiquement pré-rempli)
+        setFormData(prev => ({
+          ...prev,
+          specificDetails: {
+            ...prev.specificDetails,
+            // Champs de base
+            brand: specificDetails.brand || null,
+            model: specificDetails.model || null,
+            year: specificDetails.firstRegistration 
+              ? parseInt(specificDetails.firstRegistration.split('-')[0]) 
+              : (vehicleInfo.year ? parseInt(vehicleInfo.year) : null),
+            // Type de carburant et transmission
+            fuelType: specificDetails.fuel || null,
+            transmission: specificDetails.transmission || null,
+            // Puissance et caractéristiques
+            power: specificDetails.power ? parseInt(specificDetails.power) : null,
+            engineSize: specificDetails.engineSize || null,
+            doors: specificDetails.doors ? parseInt(specificDetails.doors) : null,
+            // Type de véhicule et couleur
+            vehicleType: specificDetails.bodyType || null, // bodyType → vehicleType
+            color: specificDetails.color || null,
+            // Puissance fiscale
+            fiscalPower: specificDetails.fiscalHorsepower ? parseInt(specificDetails.fiscalHorsepower) : null,
+          }
+        }));
 
-        // Passer au step 2 (validation)
-        setCurrentStep(2);
+        // Notification de succès
+        toast({
+          title: "✅ Données récupérées !",
+          description: `${specificDetails.brand} ${specificDetails.model} - Les champs ont été pré-remplis dans l'étape suivante`,
+        });
+        
+        setPlateApiError("");
       } else {
-        setPlateApiError(result.error || "Véhicule non trouvé. Essayez la saisie manuelle.");
+        setPlateApiError(result.error || "Véhicule non trouvé. Vous pouvez continuer en saisissant manuellement.");
       }
     } catch (error) {
       console.error("Erreur récupération données:", error);
-      setPlateApiError("Erreur de connexion. Veuillez réessayer ou saisir manuellement.");
+      setPlateApiError("Erreur de connexion. Vous pouvez continuer en saisissant manuellement.");
     } finally {
       setIsLoadingPlateData(false);
     }
-  };
-
-  const handleManualEntry = () => {
-    setUseManualMode(true);
-    setCurrentStep(3); // Passer directement au step 3 (ancien step 1 - type d'annonce)
   };
 
   const toggleEquipment = (equipment: string) => {
@@ -728,77 +734,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const nextStepHandler = () => {
-    // Mode PLAQUE : Après Step 2 (validation données), auto-remplir et sauter au titre
-    if (currentStep === 2 && !useManualMode && apiVehicleData) {
-      // Auto-remplir TOUTES les données : métadonnées ET détails du véhicule
-      setFormData(prev => ({
-        ...prev,
-        listingType: "sale", // C'est toujours une vente si on a saisi une plaque
-        category: "vehicules", // C'est toujours un véhicule
-        subcategory: "voiture", // On suppose que c'est une voiture (peut être ajusté si moto)
-        condition: "occasion", // Une plaque implique un véhicule d'occasion
-        // 🔧 COPIER LES DONNÉES DE L'API DANS specificDetails
-        // IMPORTANT: Mapper les noms de champs API vers les noms utilisés dans le Step 8
-        specificDetails: {
-          ...prev.specificDetails,
-          brand: formData.specificDetails.brand || apiVehicleData.brand,
-          model: formData.specificDetails.model || apiVehicleData.model,
-          year: formData.specificDetails.year || apiVehicleData.year,
-          fuelType: formData.specificDetails.fuelType || apiVehicleData.fuel,
-          transmission: formData.specificDetails.transmission || apiVehicleData.transmission,
-          power: formData.specificDetails.power || apiVehicleData.power,
-          engineSize: formData.specificDetails.engineSize || apiVehicleData.engineSize,
-          doors: formData.specificDetails.doors || apiVehicleData.doors,
-          // Mapper bodyType → vehicleType (utilisé dans Step 8)
-          vehicleType: formData.specificDetails.vehicleType || apiVehicleData.bodyType,
-          color: formData.specificDetails.color || apiVehicleData.color,
-          // Mapper fiscalHorsepower → fiscalPower (utilisé dans Step 8)
-          fiscalPower: formData.specificDetails.fiscalPower || apiVehicleData.fiscalHorsepower,
-          // Champs saisis manuellement dans le Step 2 (DataValidationStep)
-          mileage: formData.specificDetails.mileage || 0,
-          emissionClass: formData.specificDetails.emissionClass || null,
-          equipment: formData.specificDetails.equipment || [],
-        }
-      }));
-      
-      // Sauter directement au Step 7 (titre de l'annonce)
-      setCurrentStep(7);
-      return;
-    }
-    
-    // Mode PLAQUE : Depuis Step 7 (titre+description), aller au Step 8 (détails) comme le flux manuel
-    // On ne saute plus le Step 8 car on doit utiliser le même formulaire que le flux manuel
-    // Les données API sont déjà dans formData.specificDetails, elles seront pré-remplies
-    if (currentStep === 7 && !useManualMode && apiVehicleData) {
-      setCurrentStep(8); // Aller au Step 8 (détails) au lieu de sauter
-      return;
-    }
-    
-    // Mode MANUEL : Navigation spécifique pour Steps 3-6
-    if (useManualMode) {
-      if (currentStep === 3) {
-        // Step 3 (type d'annonce) → Step 4 (catégorie)
-        setCurrentStep(4);
-        return;
-      }
-      if (currentStep === 4) {
-        // Step 4 (catégorie) → Step 5 (sous-catégorie)
-        setCurrentStep(5);
-        return;
-      }
-      if (currentStep === 5) {
-        // Step 5 (sous-catégorie) → Step 6 (condition) ou Step 7 selon needsConditionStep()
-        setCurrentStep(needsConditionStep() ? 6 : 7);
-        return;
-      }
-      if (currentStep === 6) {
-        // Step 6 (condition) → Step 7 (titre+description)
-        setCurrentStep(7);
-        return;
-      }
-    }
-    
-    // Logique normale pour tous les autres cas
+    // Logique normale pour tous les steps
     goToNextStep();
   };
 
@@ -809,35 +745,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     // Effacer seulement les données de navigation (pas les contenus saisis par l'utilisateur)
     switch (currentStep) {
       case 2:
-        // En revenant du step 2 (validation) au step 1 (plaque), on efface les données API
-        setApiVehicleData(null);
-        setPlateApiError("");
-        break;
-
-      case 3:
-        // En revenant du step 3 (type d'annonce), gérer selon le mode
-        if (useManualMode) {
-          // Si mode manuel, retourner au step 1
-          setCurrentStep(1);
-          setUseManualMode(false);
-        } else {
-          // Si mode API, retourner au step 2
-          goToPreviousStep();
-        }
-        enableAutoAdvance();
-        return; // Sortir sans appeler goToPreviousStep à la fin
-
-      case 4:
         // En revenant de l'étape catégorie, on efface le type d'annonce
         setFormData((prev) => ({ ...prev, listingType: "" }));
         break;
 
-      case 5:
+      case 3:
         // En revenant de l'étape sous-famille, on efface la famille principale
         setFormData((prev) => ({ ...prev, category: "" }));
         break;
 
-      case 6:
+      case 4:
         // En revenant de l'étape état du bien, on efface la sous-famille
         setFormData((prev) => ({
           ...prev,
@@ -846,28 +763,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         }));
         break;
 
-      case 7:
-        // Mode PLAQUE : Revenir directement au Step 2 (validation données)
-        if (!useManualMode && apiVehicleData) {
-          setCurrentStep(2);
-          enableAutoAdvance();
-          return;
-        }
-        
-        // Mode MANUEL : En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
+      case 5:
+        // En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
         if (needsConditionStep()) {
           setFormData((prev) => ({ ...prev, condition: undefined }));
         } else {
           setFormData((prev) => ({ ...prev, subcategory: "" }));
-        }
-        break;
-      
-      case 10:
-        // Mode PLAQUE : Depuis Step 10 (photos), revenir au Step 7 (titre+description) en sautant Step 8 et 9
-        if (!useManualMode && apiVehicleData) {
-          setCurrentStep(7);
-          enableAutoAdvance();
-          return;
         }
         break;
       
@@ -886,7 +787,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const result = (() => {
       switch (currentStep) {
         case 1:
-          // Step 1: ListingTypeStep
+          // Step 1: ListingTypeStep  
           return formData.listingType !== "";
         case 2:
           // Step 2: CategoryStep
@@ -901,13 +802,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
           return true; // Si pas besoin d'état, toujours valide
         case 5:
-          // Step 5: Recherche plaque (optionnel) - toujours valide
-          return true;
-        case 6:
-          // Step 6: Titre et Description (fusionnés)
+          // Step 5: Titre et Description (fusionnés) - avec recherche plaque optionnelle
           return formData.title.trim() !== "" && formData.description && formData.description.trim().length > 0;
-        case 7:
-          // Step 7: Détails spécifiques
+        case 6:
+          // Step 6: Détails spécifiques
           // Ignorer pour les recherches de pièces détachées ET les services
           if (isSearchForParts() || isServiceCategory()) {
             return true;
@@ -3095,48 +2993,45 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 5:
-        // Recherche par plaque d'immatriculation (OPTIONNEL)
-        // Uniquement pour les véhicules d'occasion
-        if (formData.condition !== "occasion" || formData.category !== "vehicules") {
-          return null; // Sauter cette étape si ce n'est pas un véhicule d'occasion
-        }
-
+        // Titre et Description fusionnés + Recherche plaque optionnelle
         return (
           <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Recherche par plaque (optionnel)
-              </h2>
-              <p className="text-gray-600">
-                Gagnez du temps en récupérant automatiquement les données de votre véhicule
-              </p>
-            </div>
+            {/* Recherche par plaque (OPTIONNEL) - Uniquement pour véhicules d'occasion */}
+            {formData.condition === "occasion" && formData.category === "vehicules" && (
+              <div className="mb-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    🚗 Recherche par plaque d'immatriculation
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Gagnez du temps ! Les données de votre véhicule seront automatiquement pré-remplies
+                  </p>
+                </div>
 
-            <PlateInputStep
-              registrationNumber={formData.registrationNumber || ''}
-              onRegistrationNumberChange={(value) => updateFormData('registrationNumber', value)}
-              onSearchClick={handlePlateSearch}
-              onManualClick={() => setCurrentStep(6)} // Passer cette étape
-              isLoading={isLoadingPlateData}
-              error={plateApiError}
-            />
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={formData.registrationNumber || ''}
+                    onChange={(e) => updateFormData('registrationNumber', e.target.value.toUpperCase())}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Ex: AB-123-CD"
+                    maxLength={20}
+                  />
+                  <button
+                    onClick={handlePlateSearch}
+                    disabled={isLoadingPlateData || !formData.registrationNumber}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                  >
+                    {isLoadingPlateData ? "Recherche..." : "Rechercher"}
+                  </button>
+                </div>
 
-            <div className="text-center mt-4">
-              <button
-                onClick={() => setCurrentStep(6)}
-                className="text-gray-600 hover:text-gray-900 underline"
-                data-testid="button-skip-plate"
-              >
-                Passer cette étape et saisir manuellement
-              </button>
-            </div>
-          </div>
-        );
+                {plateApiError && (
+                  <p className="mt-3 text-sm text-red-600">{plateApiError}</p>
+                )}
+              </div>
+            )}
 
-      case 6:
-        // Titre et Description fusionnés
-        return (
-          <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Titre et description
@@ -3321,7 +3216,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 7:
+      case 6:
         // Détails spécifiques
         // Ignorer cette étape pour les services - ne pas afficher
         if (isServiceCategory()) {
@@ -3343,7 +3238,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 8:
+      case 7:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
