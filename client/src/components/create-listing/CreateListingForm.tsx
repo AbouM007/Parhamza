@@ -911,11 +911,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           // Step 8: Photos (anciennement Step 7)
           return true; // Photos optionnelles - toujours permettre de passer
         case 9:
-          // Step 9: Price
-          // Ignorer cette étape pour les recherches de pièces détachées ET les annonces de recherche
-          if (isSearchForParts() || isSearchListing()) {
-            return true;
-          }
+          // Step 9: Price - Obligatoire pour TOUS les types d'annonces
+          // Pour les ventes : prix de vente
+          // Pour les recherches : budget maximum
           return formData.price > 0;
         case 10:
           // Step 10: Localisation et Contacts (fusionnés)
@@ -3237,10 +3235,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 9:
-        // Masquer cette étape pour les annonces de recherche
-        if (isSearchListing()) {
-          return null;
-        }
+        // Step Prix - Visible pour TOUS les types d'annonces (vente ET recherche)
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3271,6 +3266,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all text-lg"
                   placeholder="0"
                   min="0"
+                  data-testid="input-price"
                 />
                 <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
                   €

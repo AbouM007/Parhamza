@@ -93,9 +93,6 @@ export const useListingNavigation = ({
       nextStepNumber = needsConditionStep() ? 4 : 5;
     } else if (currentStep === 4) {
       nextStepNumber = 5;
-    } else if (currentStep === 8) {
-      // De Photos (8) → Prix (9) OU Localisation (10) si recherche
-      nextStepNumber = isSearchListing() ? 10 : 9;
     } else {
       if (isSearchForParts()) {
         if (currentStep === 5) {
@@ -120,7 +117,6 @@ export const useListingNavigation = ({
     totalSteps,
     isSearchForParts,
     isServiceCategory,
-    isSearchListing,
     needsConditionStep,
   ]);
 
@@ -142,8 +138,8 @@ export const useListingNavigation = ({
       // De Prix (9) → Photos (8)
       previousStepNumber = 8;
     } else if (currentStep === 10) {
-      // De Localisation (10) → Prix (9) OU Photos (8) si recherche
-      previousStepNumber = isSearchListing() ? 8 : 9;
+      // De Localisation (10) → Prix (9) - toujours
+      previousStepNumber = 9;
     } else if (currentStep === 11) {
       // De Récapitulatif (11) → Localisation (10)
       previousStepNumber = 10;
