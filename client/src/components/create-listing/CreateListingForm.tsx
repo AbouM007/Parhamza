@@ -728,6 +728,23 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const nextStepHandler = () => {
+    // Mode PLAQUE : Après Step 2 (validation données), auto-remplir et sauter au titre
+    if (currentStep === 2 && !useManualMode && apiVehicleData) {
+      // Auto-remplir les données évidentes pour une vente de véhicule
+      setFormData(prev => ({
+        ...prev,
+        listingType: "sale", // C'est toujours une vente si on a saisi une plaque
+        category: "vehicules", // C'est toujours un véhicule
+        subcategory: "voiture", // On suppose que c'est une voiture (peut être ajusté si moto)
+        condition: "occasion" // Une plaque implique un véhicule d'occasion
+      }));
+      
+      // Sauter directement au Step 7 (titre de l'annonce)
+      setCurrentStep(7);
+      return;
+    }
+    
+    // Logique normale pour tous les autres cas
     goToNextStep();
   };
 
@@ -776,7 +793,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         break;
 
       case 7:
-        // En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
+        // Mode PLAQUE : Revenir directement au Step 2 (validation données)
+        if (!useManualMode && apiVehicleData) {
+          setCurrentStep(2);
+          enableAutoAdvance();
+          return;
+        }
+        
+        // Mode MANUEL : En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
         if (needsConditionStep()) {
           setFormData((prev) => ({ ...prev, condition: undefined }));
         } else {
