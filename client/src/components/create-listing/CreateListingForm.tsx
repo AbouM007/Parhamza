@@ -676,19 +676,29 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       if (result.success && result.data) {
         const { specificDetails, vehicleInfo } = result.data;
 
-        // 🎯 PRÉ-REMPLIR DIRECTEMENT formData.specificDetails (Step 6 sera automatiquement pré-rempli)
+        // 🎯 PRÉ-REMPLIR formData.specificDetails + GÉNÉRER LE TITRE AUTOMATIQUEMENT
+        const brand = specificDetails.brand || '';
+        const model = specificDetails.model || '';
+        const year = specificDetails.firstRegistration 
+          ? specificDetails.firstRegistration.split('-')[0] 
+          : (vehicleInfo.year || '');
+        const fuel = specificDetails.fuel || '';
+
+        // Générer le titre automatiquement : "Marque Modèle Carburant Année"
+        const autoTitle = [brand, model, fuel, year].filter(Boolean).join(' ');
+
         setFormData(prev => ({
           ...prev,
+          // Auto-générer le titre
+          title: autoTitle || prev.title,
           specificDetails: {
             ...prev.specificDetails,
             // Champs de base
-            brand: specificDetails.brand || null,
-            model: specificDetails.model || null,
-            year: specificDetails.firstRegistration 
-              ? parseInt(specificDetails.firstRegistration.split('-')[0]) 
-              : (vehicleInfo.year ? parseInt(vehicleInfo.year) : null),
+            brand: brand || null,
+            model: model || null,
+            year: year ? parseInt(year) : null,
             // Type de carburant et transmission
-            fuelType: specificDetails.fuel || null,
+            fuelType: fuel || null,
             transmission: specificDetails.transmission || null,
             // Puissance et caractéristiques
             power: specificDetails.power ? parseInt(specificDetails.power) : null,
@@ -702,10 +712,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
         }));
 
-        // Notification de succès
+        // Notification de succès avec titre généré
         toast({
           title: "✅ Données récupérées !",
-          description: `${specificDetails.brand} ${specificDetails.model} - Les champs ont été pré-remplis dans l'étape suivante`,
+          description: autoTitle 
+            ? `Titre généré : "${autoTitle}". Les détails ont été pré-remplis.`
+            : `Les détails ont été pré-remplis dans l'étape suivante.`,
         });
         
         setPlateApiError("");
@@ -2962,59 +2974,63 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 5:
-        // Titre et Description fusionnés + Recherche plaque optionnelle
+        // Immatriculation + Titre (sans description)
         return (
           <div className="space-y-6">
-            {/* Recherche par plaque (OPTIONNEL) - Uniquement pour véhicules d'occasion */}
-            {formData.condition === "occasion" && formData.category === "vehicules" && (
-              <div className="mb-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    🚗 Recherche par plaque d'immatriculation
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Gagnez du temps ! Les données de votre véhicule seront automatiquement pré-remplies
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={formData.registrationNumber || ''}
-                    onChange={(e) => updateFormData('registrationNumber', e.target.value.toUpperCase())}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: AB-123-CD"
-                    maxLength={20}
-                  />
-                  <button
-                    onClick={handlePlateSearch}
-                    disabled={isLoadingPlateData || !formData.registrationNumber}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
-                  >
-                    {isLoadingPlateData ? "Recherche..." : "Rechercher"}
-                  </button>
-                </div>
-
-                {plateApiError && (
-                  <p className="mt-3 text-sm text-red-600">{plateApiError}</p>
-                )}
-              </div>
-            )}
-
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Titre et description
+                Informations principales
               </h2>
               <p className="text-gray-600">
-                Présentez votre {formData.listingType === "sale" ? "annonce" : "recherche"} de manière attractive
+                {formData.condition === "occasion" && formData.category === "vehicules" 
+                  ? "Recherchez par plaque ou saisissez le titre manuellement"
+                  : `Donnez un titre à votre ${formData.listingType === "sale" ? "annonce" : "recherche"}`}
               </p>
             </div>
 
             <div className="space-y-6">
-              {/* Titre */}
+              {/* Recherche par plaque EN PREMIER - Uniquement pour véhicules d'occasion */}
+              {formData.condition === "occasion" && formData.category === "vehicules" && (
+                <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                      🚗 Recherche par plaque d'immatriculation
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Gagnez du temps ! Le titre et les détails seront automatiquement remplis
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={formData.registrationNumber || ''}
+                      onChange={(e) => updateFormData('registrationNumber', e.target.value.toUpperCase())}
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Ex: AB-123-CD"
+                      maxLength={20}
+                      data-testid="input-registration-number"
+                    />
+                    <button
+                      onClick={handlePlateSearch}
+                      disabled={isLoadingPlateData || !formData.registrationNumber}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                      data-testid="button-search-plate"
+                    >
+                      {isLoadingPlateData ? "Recherche..." : "Rechercher"}
+                    </button>
+                  </div>
+
+                  {plateApiError && (
+                    <p className="mt-3 text-sm text-red-600">{plateApiError}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Titre - Auto-généré si recherche plaque réussie */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Titre *
+                  Titre de l'annonce *
                 </label>
                 <input
                   type="text"
@@ -3031,10 +3047,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
-                    Un bon titre augmente vos chances de{" "}
-                    {formData.listingType === "sale"
-                      ? "vente"
-                      : "trouver ce que vous cherchez"}
+                    {formData.condition === "occasion" && formData.category === "vehicules"
+                      ? "Le titre sera généré automatiquement si vous utilisez la recherche par plaque"
+                      : `Un bon titre augmente vos chances de ${formData.listingType === "sale" ? "vente" : "trouver ce que vous cherchez"}`}
                   </p>
                   <span
                     className={`text-sm ${formData.title.length > 40 ? "text-orange-500" : "text-gray-400"}`}
@@ -3043,144 +3058,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   </span>
                 </div>
               </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={formData.description || ""}
-                  onChange={(e) => updateFormData("description", e.target.value)}
-                  rows={8}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all resize-y"
-                  placeholder={
-                    formData.condition === "damaged"
-                      ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
-                      : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
-                  }
-                  data-testid="input-description"
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-sm text-gray-500">
-                    {formData.condition === "damaged"
-                      ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
-                      : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."}
-                  </p>
-                  {formData.description && (
-                    <span className="text-sm text-gray-400">
-                      {formData.description.length} caractères
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Champ d'immatriculation conditionnel */}
-              {needsRegistrationNumber() && formData.listingType === "sale" && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Numéro d'immatriculation (optionnel)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.registrationNumber || ""}
-                    onChange={(e) => {
-                      updateFormData("registrationNumber", e.target.value.toUpperCase());
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                    placeholder="Ex: AB-123-CD ou AA123BC"
-                    maxLength={20}
-                    data-testid="input-registration-number"
-                  />
-                  <div className="mt-2 space-y-2">
-                    {/* Boutons pour récupérer les données automatiquement */}
-                    {formData.registrationNumber && formData.registrationNumber.trim().length > 0 && (
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              fetchVehicleData(formData.registrationNumber!)
-                            }
-                            disabled={vehicleDataLoading}
-                            className="flex items-center px-4 py-2 bg-primary-bolt-600 text-white text-sm rounded-lg hover:bg-primary-bolt-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            data-testid="button-auto-fill"
-                          >
-                            {vehicleDataLoading ? (
-                              <>
-                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                Recherche en cours...
-                              </>
-                            ) : (
-                              <>
-                                <Search className="h-4 w-4 mr-2" />
-                                Importer les données du véhicule
-                              </>
-                            )}
-                          </button>
-                          
-                          {/* Bouton Reset si des champs sont auto-remplis */}
-                          {autoFilledFields.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Réinitialiser les champs auto-remplis
-                                const resetDetails = { ...formData.specificDetails };
-                                if (autoFilledFields.includes('Marque')) resetDetails.brand = '';
-                                if (autoFilledFields.includes('Modèle')) resetDetails.model = '';
-                                if (autoFilledFields.includes('Année')) resetDetails.year = '';
-                                if (autoFilledFields.includes('Carburant')) resetDetails.fuelType = '';
-                                if (autoFilledFields.includes('Transmission')) resetDetails.transmission = '';
-                                if (autoFilledFields.includes('Couleur')) resetDetails.color = '';
-                                if (autoFilledFields.includes('Cylindrée')) resetDetails.engineSize = '';
-                                if (autoFilledFields.includes('Portes')) resetDetails.doors = '';
-                                if (autoFilledFields.includes('CO2')) resetDetails.co2 = '';
-                                if (autoFilledFields.includes('Puissance fiscale')) resetDetails.fiscalPower = '';
-                                
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  specificDetails: resetDetails,
-                                }));
-                                setAutoFilledFields([]);
-                                
-                                toast({
-                                  title: "Données réinitialisées",
-                                  description: "Les informations importées ont été supprimées",
-                                });
-                              }}
-                              className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-colors"
-                              data-testid="button-reset-auto-fill"
-                            >
-                              <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                              Réinitialiser ({autoFilledFields.length})
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                    {/* Message de retour */}
-                    {vehicleDataMessage && (
-                      <div
-                        className={`text-sm p-3 rounded-lg ${
-                          vehicleDataMessage.startsWith("✅")
-                            ? "bg-green-50 text-green-700 border border-green-200"
-                            : vehicleDataMessage.startsWith("⚠️")
-                              ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
-                              : "bg-red-50 text-red-700 border border-red-200"
-                        }`}
-                      >
-                        {vehicleDataMessage}
-                      </div>
-                    )}
-
-                    <p className="text-sm text-gray-500">
-                      Formats acceptés : SIV (AA-123-AA) depuis 2009 ou FNI
-                      (1234 AB 56) avant 2009
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         );
