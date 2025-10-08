@@ -2888,8 +2888,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             apiData={apiVehicleData || {}}
             formData={formData.specificDetails}
             onFieldChange={(field, value) => updateSpecificDetails(field, value)}
-            brands={getBrandsBySubcategory(formData.subcategory)}
-            models={carModelsByBrand[formData.specificDetails.brand as keyof typeof carModelsByBrand] || []}
+            brands={(() => {
+              const baseBrands = getBrandsBySubcategory(formData.subcategory);
+              if (apiVehicleData?.brand && !baseBrands.includes(apiVehicleData.brand)) {
+                return [apiVehicleData.brand, ...baseBrands];
+              }
+              return baseBrands;
+            })()}
+            models={(() => {
+              const baseModels = carModelsByBrand[formData.specificDetails.brand as keyof typeof carModelsByBrand] || [];
+              if (apiVehicleData?.model && !baseModels.includes(apiVehicleData.model)) {
+                return [apiVehicleData.model, ...baseModels];
+              }
+              return baseModels;
+            })()}
             fuelTypes={fuelTypes}
             transmissionTypes={TRANSMISSION_TYPES}
             colors={COLORS}
