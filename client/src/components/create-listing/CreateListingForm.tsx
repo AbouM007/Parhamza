@@ -688,8 +688,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         const { specificDetails, vehicleInfo } = result.data;
 
         // 🎯 PRÉ-REMPLIR formData.specificDetails + GÉNÉRER LE TITRE AUTOMATIQUEMENT
-        const brand = specificDetails.brand || "";
-        const model = specificDetails.model || "";
+        // Normaliser en MAJUSCULES pour matcher le mockData
+        const brand = specificDetails.brand ? specificDetails.brand.toUpperCase() : "";
+        const model = specificDetails.model ? specificDetails.model.toUpperCase() : "";
         const year = specificDetails.firstRegistration
           ? specificDetails.firstRegistration.split("-")[0]
           : vehicleInfo.year || "";
