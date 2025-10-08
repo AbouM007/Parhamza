@@ -3173,7 +3173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('✅ Vehicle data from cache:', normalizedPlate);
         return res.json({ 
           success: true, 
-          ...cached.data,
+          data: cached.data,
           source: 'cache' 
         });
       }
