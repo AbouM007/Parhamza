@@ -253,10 +253,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const loadUserContactData = async () => {
       if ((user || profile) && !hasPrefilledData) {
         try {
-          console.log(
-            "🔄 Récupération des données utilisateur depuis Supabase...",
-          );
-
           // Appel API pour récupérer les données fraîches de l'utilisateur
           const userEmail = user?.email || profile?.email;
           if (!userEmail) return;
@@ -272,7 +268,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
 
           const userData = await response.json();
-          console.log("📞 Données utilisateur récupérées:", userData);
 
           const userPhone = userData.phone
             ? formatPhoneNumber(userData.phone)
@@ -946,19 +941,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       }
     })();
 
-    // Debug log pour identifier le problème
-    console.log(`Step ${currentStep}: canProceed = ${result}`, {
-      listingType: formData.listingType,
-      category: formData.category,
-      subcategory: formData.subcategory,
-      title: formData.title,
-      description: formData.description,
-      price: formData.price,
-      photosCount: formData.photos.length,
-      needsCondition: needsConditionStep(),
-      condition: formData.condition,
-    });
-
     return result;
   };
 
@@ -1067,7 +1049,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return;
       }
 
-      console.log("Publier l'annonce:", formData);
 
       // Transformer les données pour l'API avec validation adaptée au type d'annonce
       const isService = formData.category === "services";
