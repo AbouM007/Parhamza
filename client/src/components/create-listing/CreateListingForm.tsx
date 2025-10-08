@@ -2905,8 +2905,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             fuelTypes={fuelTypes}
             transmissionTypes={TRANSMISSION_TYPES}
             colors={COLORS}
-            doors={DOORS}
-            bodyTypes={VEHICLE_TYPES}
+            doors={DOORS.map(String)}
+            bodyTypes={VEHICLE_TYPES.car}
           />
         );
 

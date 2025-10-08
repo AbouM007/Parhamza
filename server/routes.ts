@@ -3049,11 +3049,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!apiFuel) return null;
     const fuel = apiFuel.toUpperCase();
     
-    // Mapper les valeurs de l'API RapidAPI vers les valeurs du formulaire
+    // Détecter les hybrides : tout ce qui contient ÉLECTRIQUE + autre carburant
+    // Ex: "ESSENCE/ÉLECTRIQUE", "DIESEL/ÉLECTRIQUE", "ESS+ELEC", etc.
+    if (fuel.includes('HYBRIDE') || fuel.includes('HYBRID')) return 'hybrid';
+    if (fuel.includes('ELECTRIQUE') || fuel.includes('ELEC')) {
+      // Si contient ÉLECTRIQUE + autre chose = hybride
+      if (fuel.includes('ESSENCE') || fuel.includes('GAZOLE') || fuel.includes('DIESEL') || 
+          fuel.includes('GPL') || fuel.includes('ETHANOL') || fuel.includes('/')) {
+        return 'hybrid';
+      }
+      // Si seulement ÉLECTRIQUE = electric
+      return 'electric';
+    }
+    
+    // Carburants classiques
     if (fuel.includes('GAZOLE') || fuel.includes('DIESEL')) return 'diesel';
     if (fuel.includes('ESSENCE') || fuel.includes('PETROL') || fuel.includes('GASOLINE')) return 'gasoline';
-    if (fuel.includes('ELECTRIQUE') || fuel.includes('ELECTRIC')) return 'electric';
-    if (fuel.includes('HYBRIDE') || fuel.includes('HYBRID')) return 'hybrid';
     if (fuel.includes('GPL')) return 'gpl';
     
     return null; // Retourner null si pas de correspondance
@@ -3063,10 +3074,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!apiTransmission) return null;
     const trans = apiTransmission.toUpperCase();
     
-    // Mapper les valeurs RapidAPI (MANUELLE, AUTOMATIQUE) et les codes (M, A, S)
+    // Mapper les codes et descriptions de boîtes de vitesse
+    // Codes API: M=Manuelle, A=Automatique, S=Séquentielle, V=CVT, X=Robotisée
     if (trans === 'M' || trans.includes('MANUELLE') || trans.includes('MANUAL')) return 'manual';
     if (trans === 'A' || trans.includes('AUTOMATIQUE') || trans.includes('AUTOMATIC')) return 'automatic';
-    if (trans === 'S' || trans.includes('SEMI') || trans.includes('ROBOTISEE')) return 'semi-automatic';
+    if (trans === 'V' || trans.includes('CVT') || trans.includes('VARIABLE')) return 'automatic'; // CVT = automatique
+    if (trans === 'S' || trans.includes('SEQUENTIELLE') || trans.includes('SEQUENTIAL')) return 'semi-automatic';
+    if (trans === 'X' || trans.includes('ROBOTISEE') || trans.includes('ROBOTIZED') || trans.includes('SEMI')) return 'semi-automatic';
     
     return null; // Retourner null si pas de correspondance
   }
@@ -3075,9 +3089,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!apiBodyType) return null;
     const bodyType = apiBodyType.toUpperCase();
     
-    // Mapper les codes et descriptions de l'API RapidAPI vers les types valides du formulaire (VEHICLE_TYPES.car)
+    // Mapper les codes et descriptions de l'API vers les types valides du formulaire (VEHICLE_TYPES.car)
     // Types disponibles: Citadine, Berline, SUV, Break, Coupé, Cabriolet, Monospace, Pickup
     
+    // Codes numériques de carrosserie
+    if (bodyType === '53' || bodyType === '54') return 'SUV'; // 53=SUV, 54=Camionnette/SUV
+    if (bodyType === '29') return 'Coupé'; // 29=Coupé
+    if (bodyType === '30' || bodyType === '31') return 'Cabriolet'; // 30=Décapotable, 31=Targa
+    if (bodyType === '28' || bodyType === '21') return 'Break'; // 28=Break, 21=Fourgon/Break
+    if (bodyType === '27' || bodyType === '25' || bodyType === '52') return 'Berline'; // 27=3 volumes, 25=Bicorps, 52=Camionnette/Berline
+    if (bodyType === '40' || bodyType === '56') return 'Monospace'; // 40=Monospace, 56=Camionnette/Monospace
+    if (bodyType === '32') return 'Pickup'; // 32=Pick-up
+    if (bodyType === '38' || bodyType === '39' || bodyType === '55') return 'SUV'; // 38/39=Tout terrain, 55=Camionnette/Tout terrain
+    
+    // Descriptions textuelles
     // SUV et véhicules tout-chemin (VTC)
     if (bodyType.includes('SUV') || bodyType.includes('4X4') || bodyType.includes('TOUT') || bodyType === 'VTC' || bodyType.includes('VEHICULE TOUT CHEMIN')) return 'SUV';
     
