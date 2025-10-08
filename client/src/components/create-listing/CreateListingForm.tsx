@@ -810,8 +810,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
           return true; // Si pas besoin d'état, toujours valide
         case 5:
-          // Step 5: Titre et Description (fusionnés) - avec recherche plaque optionnelle
-          return formData.title.trim() !== "" && formData.description && formData.description.trim().length > 0;
+          // Step 5: Titre uniquement (immatriculation optionnelle en haut)
+          return formData.title.trim() !== "";
         case 6:
           // Step 6: Détails spécifiques
           // Ignorer pour les recherches de pièces détachées ET les services
@@ -904,14 +904,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             formData.specificDetails.model &&
             formData.specificDetails.year
           );
-        case 9:
-          // Step 9: OBSOLÈTE - Description fusionnée avec Step 7
-          return true; // Toujours valide pour permettre le passage
-        case 10:
-          // Step 10 (was 8): Photos
+        case 7:
+          // Step 7: Description (nouvelle étape)
+          return formData.description && formData.description.trim().length > 0;
+        case 8:
+          // Step 8: Photos (anciennement Step 7)
           return true; // Photos optionnelles - toujours permettre de passer
+        case 9:
+          // Step 9: OBSOLÈTE
+          return true;
+        case 10:
+          // Step 10: OBSOLÈTE
+          return true;
         case 11:
-          // Step 11 (was 9): Price
+          // Step 11: Price
           // Ignorer cette étape pour les recherches de pièces détachées ET les annonces de recherche
           if (isSearchForParts() || isSearchListing()) {
             return true;
