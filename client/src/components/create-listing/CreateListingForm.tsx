@@ -886,31 +886,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const result = (() => {
       switch (currentStep) {
         case 1:
-          // Step 1 (NEW): PlateInputStep - toujours valide (on peut rechercher ou passer en manuel)
-          return true;
-        case 2:
-          // Step 2 (NEW): DataValidationStep - vérifier les champs essentiels
-          return formData.specificDetails.brand && formData.specificDetails.model && formData.specificDetails.year;
-        case 3:
-          // Step 3 (was 1): ListingTypeStep
+          // Step 1: ListingTypeStep
           return formData.listingType !== "";
-        case 4:
-          // Step 4 (was 2): CategoryStep
+        case 2:
+          // Step 2: CategoryStep
           return formData.category !== "";
-        case 5:
-          // Step 5 (was 3): Subcategory
+        case 3:
+          // Step 3: Subcategory
           return formData.subcategory !== "";
-        case 6:
-          // Step 6 (was 4): Condition - état du bien (seulement pour biens matériels)
+        case 4:
+          // Step 4: Condition - état du bien (seulement pour biens matériels)
           if (needsConditionStep()) {
             return formData.condition !== undefined;
           }
           return true; // Si pas besoin d'état, toujours valide
-        case 7:
-          // Step 7: Titre et Description (fusionnés)
+        case 5:
+          // Step 5: Recherche plaque (optionnel) - toujours valide
+          return true;
+        case 6:
+          // Step 6: Titre et Description (fusionnés)
           return formData.title.trim() !== "" && formData.description && formData.description.trim().length > 0;
-        case 8:
-          // Step 8 (was 6): Details - détails spécifiques
+        case 7:
+          // Step 7: Détails spécifiques
           // Ignorer pour les recherches de pièces détachées ET les services
           if (isSearchForParts() || isServiceCategory()) {
             return true;
@@ -2998,56 +2995,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     switch (currentStep) {
       case 1:
         return (
-          <PlateInputStep
-            registrationNumber={formData.registrationNumber || ''}
-            onRegistrationNumberChange={(value) => updateFormData('registrationNumber', value)}
-            onSearchClick={handlePlateSearch}
-            onManualClick={handleManualEntry}
-            isLoading={isLoadingPlateData}
-            error={plateApiError}
-          />
-        );
-
-      case 2:
-        return (
-          <DataValidationStep
-            apiData={apiVehicleData || {}}
-            formData={formData.specificDetails}
-            onFieldChange={(field, value) => updateSpecificDetails(field, value)}
-            brands={(() => {
-              const baseBrands = getBrandsBySubcategory(formData.subcategory);
-              if (apiVehicleData?.brand && !baseBrands.includes(apiVehicleData.brand)) {
-                return [apiVehicleData.brand, ...baseBrands];
-              }
-              return baseBrands;
-            })()}
-            models={(() => {
-              const baseModels = carModelsByBrand[formData.specificDetails.brand as keyof typeof carModelsByBrand] || [];
-              if (apiVehicleData?.model && !baseModels.includes(apiVehicleData.model)) {
-                return [apiVehicleData.model, ...baseModels];
-              }
-              return baseModels;
-            })()}
-            fuelTypes={fuelTypes}
-            transmissionTypes={TRANSMISSION_TYPES}
-            colors={COLORS}
-            doors={DOORS.map(String)}
-            bodyTypes={VEHICLE_TYPES.car}
-            equipmentOptions={VEHICLE_EQUIPMENT.car}
-            emissionClasses={EMISSION_CLASSES}
-            onToggleEquipment={toggleEquipment}
-          />
-        );
-
-      case 3:
-        return (
           <ListingTypeStep
             value={formData.listingType}
             onSelect={(value) => updateFormData("listingType", value)}
           />
         );
 
-      case 4:
+      case 2:
         return (
           <CategoryStep
             categories={CATEGORIES}
@@ -3057,7 +3011,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           />
         );
 
-      case 5:
+      case 3:
         if (!selectedCategory) return null;
 
         return (
@@ -3070,7 +3024,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           />
         );
 
-      case 6:
+      case 4:
         // Étape état du bien (seulement pour biens matériels)
         if (!needsConditionStep()) {
           // Si pas besoin d'état du bien, aller directement au titre
@@ -3140,7 +3094,46 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 7:
+      case 5:
+        // Recherche par plaque d'immatriculation (OPTIONNEL)
+        // Uniquement pour les véhicules d'occasion
+        if (formData.condition !== "occasion" || formData.category !== "vehicules") {
+          return null; // Sauter cette étape si ce n'est pas un véhicule d'occasion
+        }
+
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Recherche par plaque (optionnel)
+              </h2>
+              <p className="text-gray-600">
+                Gagnez du temps en récupérant automatiquement les données de votre véhicule
+              </p>
+            </div>
+
+            <PlateInputStep
+              registrationNumber={formData.registrationNumber || ''}
+              onRegistrationNumberChange={(value) => updateFormData('registrationNumber', value)}
+              onSearchClick={handlePlateSearch}
+              onManualClick={() => setCurrentStep(6)} // Passer cette étape
+              isLoading={isLoadingPlateData}
+              error={plateApiError}
+            />
+
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setCurrentStep(6)}
+                className="text-gray-600 hover:text-gray-900 underline"
+                data-testid="button-skip-plate"
+              >
+                Passer cette étape et saisir manuellement
+              </button>
+            </div>
+          </div>
+        );
+
+      case 6:
         // Titre et Description fusionnés
         return (
           <div className="space-y-6">
@@ -3328,7 +3321,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 8:
+      case 7:
         // Détails spécifiques
         // Ignorer cette étape pour les services - ne pas afficher
         if (isServiceCategory()) {
@@ -3350,12 +3343,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 9:
-        // OBSOLÈTE - Description fusionnée avec Step 7 (Titre et description)
-        // La redirection vers Step 10 est gérée en haut de renderStepContent
-        return null;
-
-      case 10:
+      case 8:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
