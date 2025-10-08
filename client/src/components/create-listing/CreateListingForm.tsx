@@ -567,6 +567,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       newSpecificDetails.model = specificDetails.model.toUpperCase();
       filledFields.push("Modèle");
     }
+    if (specificDetails.version) {
+      newSpecificDetails.version = specificDetails.version;
+      filledFields.push("Version");
+    }
     if (specificDetails.firstRegistration) {
       // Extraire l'année de la date ISO
       const year = specificDetails.firstRegistration.split("-")[0];
@@ -695,6 +699,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             // Champs de base
             brand: brand || null,
             model: model || null,
+            version: specificDetails.version || null, // Version (ex: "TMAX 530")
             year: year ? parseInt(year) : null,
             // Type de carburant et transmission
             fuelType: fuel || null,
@@ -1099,6 +1104,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             ? parseInt(formData.specificDetails.displacement.toString())
             : null,
           licenseType: formData.specificDetails.licenseType || null,
+          version: formData.specificDetails.version || null,
           // Utilitaire
           utilityType: formData.specificDetails.utilityType || null,
           payload: formData.specificDetails.payload
@@ -2202,6 +2208,22 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                       </option>
                     ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Version
+                </label>
+                <input
+                  type="text"
+                  value={formData.specificDetails.version || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("version", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="ex: TMAX 530"
+                  data-testid="input-version"
+                />
               </div>
 
               <div>
@@ -3971,6 +3993,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                                 return "Cylindrée (cm³)";
                               case "motorcycleType":
                                 return "Type de moto";
+                              case "version":
+                                return "Version";
                               case "licenseType":
                                 return "Permis requis";
                               case "length":

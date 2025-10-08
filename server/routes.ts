@@ -3275,6 +3275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const specificDetails = {
         brand: normalizeBrand(d.marque),
         model: d.modele || null,
+        version: d.version || null, // Version complète (ex: "TMAX 530")
         firstRegistration: d.date1erCir_us || null, // Format YYYY-MM-DD
         fuel: normalizedFuel,
         transmission: normalizedTransmission,

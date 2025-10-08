@@ -73,6 +73,7 @@ export const annonces = pgTable("annonces", {
     motorcycleType?: string;
     displacement?: number;
     licenseType?: string;
+    version?: string;
 
     // Utilitaire
     utilityType?: string;
