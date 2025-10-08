@@ -3256,17 +3256,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // 🔍 DEBUG transmission
+      console.log('🔧 DEBUG - boite_vitesse brut:', d.boite_vitesse);
+      console.log('🔧 DEBUG - energieNGC brut:', d.energieNGC);
+      console.log('🔧 DEBUG - carrosserieCG brut:', d.carrosserieCG);
+      
+      const normalizedTransmission = normalizeTransmission(d.boite_vitesse);
+      const normalizedFuel = normalizeFuel(d.energieNGC || d.energie);
+      const normalizedBody = normalizeBodyType(d.carrosserieCG);
+      
+      console.log('✅ DEBUG - transmission normalisée:', normalizedTransmission);
+      console.log('✅ DEBUG - fuel normalisé:', normalizedFuel);
+      console.log('✅ DEBUG - bodyType normalisé:', normalizedBody);
+
       // Mapper vers specificDetails avec les champs de apiplaqueimmatriculation.com
       const specificDetails = {
         brand: normalizeBrand(d.marque),
         model: d.modele || null,
         firstRegistration: d.date1erCir_us || null, // Format YYYY-MM-DD
-        fuel: normalizeFuel(d.energieNGC || d.energie), // Priorité au texte, fallback sur code
-        transmission: normalizeTransmission(d.boite_vitesse),
+        fuel: normalizedFuel,
+        transmission: normalizedTransmission,
         color: d.couleur || null,
         engineSize: d.ccm || null, // Déjà en format "1870 CM3"
         doors: d.nb_portes ? String(d.nb_portes) : null,
-        bodyType: normalizeBodyType(d.carrosserieCG),
+        bodyType: normalizedBody,
         co2: extractNumber(d.co2),
         fiscalHorsepower: extractNumber(d.puisFisc),
         power: d.puisFiscReelCH || d.puisFiscReelKW || null, // Ajout puissance réelle
