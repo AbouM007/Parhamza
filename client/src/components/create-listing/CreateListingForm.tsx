@@ -802,7 +802,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           return true;
         case 2:
           // Step 2 (NEW): DataValidationStep - vérifier qu'on a au moins une description
-          return formData.description && formData.description.trim().length > 0;
+          return formData.specificDetails.description && formData.specificDetails.description.trim().length > 0;
         case 3:
           // Step 3 (was 1): ListingTypeStep
           return formData.listingType !== "";
