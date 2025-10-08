@@ -21,7 +21,7 @@ import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
 import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
 import { compressImage } from "@/utils/imageCompression";
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import {
   getBrandsBySubcategory,
   fuelTypes,
@@ -119,15 +119,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // État pour la recherche de compatibilités (pièces détachées)
   const [compatibilitySearch, setCompatibilitySearch] = useState("");
-  const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] = useState(false);
+  const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] =
+    useState(false);
 
   // État pour tracker les champs auto-remplis depuis API
   const [autoFilledFields, setAutoFilledFields] = useState<string[]>([]);
-  
+
   // États pour le modal de prévisualisation des données véhicule
   const [showVehiclePreview, setShowVehiclePreview] = useState(false);
   const [pendingVehicleData, setPendingVehicleData] = useState<any>(null);
-  const [pendingRegistrationNumber, setPendingRegistrationNumber] = useState("");
+  const [pendingRegistrationNumber, setPendingRegistrationNumber] =
+    useState("");
 
   // États pour la recherche de plaque (optionnelle dans Step 5)
   const [isLoadingPlateData, setIsLoadingPlateData] = useState(false);
@@ -386,7 +388,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Filtrer les marques
     const matchingBrands = brandsToSearch.filter((brand) =>
-      brand.toLowerCase().includes(searchTerm)
+      brand.toLowerCase().includes(searchTerm),
     );
     suggestions.push(...matchingBrands);
 
@@ -399,7 +401,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       } else {
         // Rechercher dans les modèles
         const matchingModels = models.filter((model) =>
-          model.toLowerCase().includes(searchTerm)
+          model.toLowerCase().includes(searchTerm),
         );
         matchingModels.forEach((model) => {
           suggestions.push(`${brand} ${model}`);
@@ -424,7 +426,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const currentTags = formData.specificDetails.compatibilityTags || [];
     updateSpecificDetails(
       "compatibilityTags",
-      currentTags.filter((tag: string) => tag !== tagToRemove)
+      currentTags.filter((tag: string) => tag !== tagToRemove),
     );
   };
 
@@ -518,8 +520,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         const previewData = {
           brand: specificDetails.brand,
           model: specificDetails.model,
-          year: specificDetails.firstRegistration 
-            ? specificDetails.firstRegistration.split('-')[0] 
+          year: specificDetails.firstRegistration
+            ? specificDetails.firstRegistration.split("-")[0]
             : vehicleInfo.year,
           fuelType: specificDetails.fuel,
           transmission: specificDetails.transmission,
@@ -533,7 +535,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         // Stocker les données complètes pour utilisation après confirmation
         setPendingVehicleData({ specificDetails, vehicleInfo });
         setPendingRegistrationNumber(registrationNumber);
-        
+
         // Afficher le modal de prévisualisation
         setShowVehiclePreview(true);
       } else {
@@ -563,64 +565,67 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const filledFields: string[] = [];
 
     // DEBUG: Log des données reçues
-    console.log('🔍 DEBUG - Données reçues du backend:', specificDetails);
+    console.log("🔍 DEBUG - Données reçues du backend:", specificDetails);
 
     // Pré-remplir automatiquement les détails spécifiques
     const newSpecificDetails = { ...formData.specificDetails };
 
     if (specificDetails.brand) {
       newSpecificDetails.brand = specificDetails.brand;
-      filledFields.push('Marque');
-      console.log('✅ Marque remplie:', specificDetails.brand);
+      filledFields.push("Marque");
+      console.log("✅ Marque remplie:", specificDetails.brand);
     }
     if (specificDetails.model) {
       newSpecificDetails.model = specificDetails.model;
-      filledFields.push('Modèle');
+      filledFields.push("Modèle");
     }
     if (specificDetails.firstRegistration) {
       // Extraire l'année de la date ISO
-      const year = specificDetails.firstRegistration.split('-')[0];
+      const year = specificDetails.firstRegistration.split("-")[0];
       newSpecificDetails.year = year;
-      filledFields.push('Année');
+      filledFields.push("Année");
     }
     if (specificDetails.fuel) {
       // Mapper fuel vers fuelType (champ du formulaire)
       newSpecificDetails.fuelType = specificDetails.fuel;
-      filledFields.push('Carburant');
-      console.log('✅ Carburant rempli:', specificDetails.fuel);
+      filledFields.push("Carburant");
+      console.log("✅ Carburant rempli:", specificDetails.fuel);
     }
     if (specificDetails.transmission) {
       newSpecificDetails.transmission = specificDetails.transmission;
-      filledFields.push('Transmission');
+      filledFields.push("Transmission");
     }
     if (specificDetails.color) {
       newSpecificDetails.color = specificDetails.color;
-      filledFields.push('Couleur');
+      filledFields.push("Couleur");
     }
     if (specificDetails.bodyType) {
       // Mapper bodyType (API) vers vehicleType (formulaire)
       newSpecificDetails.vehicleType = specificDetails.bodyType;
-      filledFields.push('Type de véhicule');
-      console.log('✅ Type de véhicule rempli:', specificDetails.bodyType);
+      filledFields.push("Type de véhicule");
+      console.log("✅ Type de véhicule rempli:", specificDetails.bodyType);
     }
     if (specificDetails.engineSize) {
       // engineSize est numérique, le stocker tel quel
       newSpecificDetails.engineSize = specificDetails.engineSize;
-      filledFields.push('Cylindrée');
+      filledFields.push("Cylindrée");
     }
     if (specificDetails.doors) {
       newSpecificDetails.doors = specificDetails.doors;
-      filledFields.push('Portes');
+      filledFields.push("Portes");
     }
     if (specificDetails.co2) {
       newSpecificDetails.co2 = specificDetails.co2;
-      filledFields.push('CO2');
+      filledFields.push("CO2");
     }
     if (specificDetails.fiscalHorsepower) {
       // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
       newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
-      filledFields.push('Puissance fiscale');
-      console.log('✅ Puissance fiscale remplie:', specificDetails.fiscalHorsepower);
+      filledFields.push("Puissance fiscale");
+      console.log(
+        "✅ Puissance fiscale remplie:",
+        specificDetails.fiscalHorsepower,
+      );
     }
 
     setFormData((prev) => ({
@@ -635,13 +640,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     setPendingVehicleData(null);
 
     // Toast avec info véhicule et liste des champs remplis
-    const vehicleDesc = `${vehicleInfo.brand || ''} ${vehicleInfo.model || ''}`.trim();
-    const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : '';
+    const vehicleDesc =
+      `${vehicleInfo.brand || ""} ${vehicleInfo.model || ""}`.trim();
+    const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : "";
     const fieldsCount = filledFields.length;
-    
+
     toast({
       title: `✅ ${vehicleDesc}${yearInfo} importé`,
-      description: `${fieldsCount} champ${fieldsCount > 1 ? 's' : ''} rempli${fieldsCount > 1 ? 's' : ''} : ${filledFields.join(', ')}. Vérifiez et complétez les informations manquantes.`,
+      description: `${fieldsCount} champ${fieldsCount > 1 ? "s" : ""} rempli${fieldsCount > 1 ? "s" : ""} : ${filledFields.join(", ")}. Vérifiez et complétez les informations manquantes.`,
     });
   };
 
@@ -654,7 +660,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // Nouveaux handlers pour le flux de plaque (Steps 1-2)
   const handlePlateSearch = async () => {
-    if (!formData.registrationNumber || formData.registrationNumber.trim().length < 5) {
+    if (
+      !formData.registrationNumber ||
+      formData.registrationNumber.trim().length < 5
+    ) {
       setPlateApiError("Veuillez saisir un numéro d'immatriculation valide");
       return;
     }
@@ -668,7 +677,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ registrationNumber: formData.registrationNumber }),
+        body: JSON.stringify({
+          registrationNumber: formData.registrationNumber,
+        }),
       });
 
       const result = await response.json();
@@ -677,17 +688,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         const { specificDetails, vehicleInfo } = result.data;
 
         // 🎯 PRÉ-REMPLIR formData.specificDetails + GÉNÉRER LE TITRE AUTOMATIQUEMENT
-        const brand = specificDetails.brand || '';
-        const model = specificDetails.model || '';
-        const year = specificDetails.firstRegistration 
-          ? specificDetails.firstRegistration.split('-')[0] 
-          : (vehicleInfo.year || '');
-        const fuel = specificDetails.fuel || '';
+        const brand = specificDetails.brand || "";
+        const model = specificDetails.model || "";
+        const year = specificDetails.firstRegistration
+          ? specificDetails.firstRegistration.split("-")[0]
+          : vehicleInfo.year || "";
+        const fuel = specificDetails.fuel || "";
 
         // Générer le titre automatiquement : "Marque Modèle Carburant Année"
-        const autoTitle = [brand, model, fuel, year].filter(Boolean).join(' ');
+        const autoTitle = [brand, model, year].filter(Boolean).join(" ");
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           // Auto-générer le titre
           title: autoTitle || prev.title,
@@ -701,32 +712,43 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             fuelType: fuel || null,
             transmission: specificDetails.transmission || null,
             // Puissance et caractéristiques
-            power: specificDetails.power ? parseInt(specificDetails.power) : null,
+            power: specificDetails.power
+              ? parseInt(specificDetails.power)
+              : null,
             engineSize: specificDetails.engineSize || null,
-            doors: specificDetails.doors ? parseInt(specificDetails.doors) : null,
+            doors: specificDetails.doors
+              ? parseInt(specificDetails.doors)
+              : null,
             // Type de véhicule et couleur
             vehicleType: specificDetails.bodyType || null, // bodyType → vehicleType
             color: specificDetails.color || null,
             // Puissance fiscale
-            fiscalPower: specificDetails.fiscalHorsepower ? parseInt(specificDetails.fiscalHorsepower) : null,
-          }
+            fiscalPower: specificDetails.fiscalHorsepower
+              ? parseInt(specificDetails.fiscalHorsepower)
+              : null,
+          },
         }));
 
         // Notification de succès avec titre généré
         toast({
           title: "✅ Données récupérées !",
-          description: autoTitle 
+          description: autoTitle
             ? `Titre généré : "${autoTitle}". Les détails ont été pré-remplis.`
             : `Les détails ont été pré-remplis dans l'étape suivante.`,
         });
-        
+
         setPlateApiError("");
       } else {
-        setPlateApiError(result.error || "Véhicule non trouvé. Vous pouvez continuer en saisissant manuellement.");
+        setPlateApiError(
+          result.error ||
+            "Véhicule non trouvé. Vous pouvez continuer en saisissant manuellement.",
+        );
       }
     } catch (error) {
       console.error("Erreur récupération données:", error);
-      setPlateApiError("Erreur de connexion. Vous pouvez continuer en saisissant manuellement.");
+      setPlateApiError(
+        "Erreur de connexion. Vous pouvez continuer en saisissant manuellement.",
+      );
     } finally {
       setIsLoadingPlateData(false);
     }
@@ -779,7 +801,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           setFormData((prev) => ({ ...prev, subcategory: "" }));
         }
         break;
-      
+
       // Pour les étapes 8 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
     }
 
@@ -795,7 +817,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const result = (() => {
       switch (currentStep) {
         case 1:
-          // Step 1: ListingTypeStep  
+          // Step 1: ListingTypeStep
           return formData.listingType !== "";
         case 2:
           // Step 2: CategoryStep
@@ -1086,32 +1108,52 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         // Nouveaux champs communs
         transmission: formData.specificDetails.transmission || null,
         color: formData.specificDetails.color || null,
-        power: formData.specificDetails.power ? parseInt(formData.specificDetails.power.toString()) : null,
+        power: formData.specificDetails.power
+          ? parseInt(formData.specificDetails.power.toString())
+          : null,
         emissionClass: formData.specificDetails.emissionClass || null,
         // Spécifications véhicule (JSON)
         vehicleSpecifications: {
           // Voiture
           vehicleType: formData.specificDetails.vehicleType || null,
-          doors: formData.specificDetails.doors ? parseInt(formData.specificDetails.doors.toString()) : null,
-          fiscalHorsepower: formData.specificDetails.fiscalPower ? parseInt(formData.specificDetails.fiscalPower.toString()) : null,
+          doors: formData.specificDetails.doors
+            ? parseInt(formData.specificDetails.doors.toString())
+            : null,
+          fiscalHorsepower: formData.specificDetails.fiscalPower
+            ? parseInt(formData.specificDetails.fiscalPower.toString())
+            : null,
           upholstery: formData.specificDetails.upholstery || null,
           // Moto
           motorcycleType: formData.specificDetails.motorcycleType || null,
-          displacement: formData.specificDetails.displacement ? parseInt(formData.specificDetails.displacement.toString()) : null,
+          displacement: formData.specificDetails.displacement
+            ? parseInt(formData.specificDetails.displacement.toString())
+            : null,
           licenseType: formData.specificDetails.licenseType || null,
           // Utilitaire
           utilityType: formData.specificDetails.utilityType || null,
-          payload: formData.specificDetails.payload ? parseInt(formData.specificDetails.payload.toString()) : null,
-          volume: formData.specificDetails.volume ? parseFloat(formData.specificDetails.volume.toString()) : null,
-          seats: formData.specificDetails.seats ? parseInt(formData.specificDetails.seats.toString()) : null,
+          payload: formData.specificDetails.payload
+            ? parseInt(formData.specificDetails.payload.toString())
+            : null,
+          volume: formData.specificDetails.volume
+            ? parseFloat(formData.specificDetails.volume.toString())
+            : null,
+          seats: formData.specificDetails.seats
+            ? parseInt(formData.specificDetails.seats.toString())
+            : null,
           // Remorque
           trailerType: formData.specificDetails.trailerType || null,
           dimensions: formData.specificDetails.dimensions || null,
-          emptyWeight: formData.specificDetails.emptyWeight ? parseInt(formData.specificDetails.emptyWeight.toString()) : null,
-          maxWeight: formData.specificDetails.maxWeight ? parseInt(formData.specificDetails.maxWeight.toString()) : null,
+          emptyWeight: formData.specificDetails.emptyWeight
+            ? parseInt(formData.specificDetails.emptyWeight.toString())
+            : null,
+          maxWeight: formData.specificDetails.maxWeight
+            ? parseInt(formData.specificDetails.maxWeight.toString())
+            : null,
           // Jet Ski
           jetskiType: formData.specificDetails.jetskiType || null,
-          usageHours: formData.specificDetails.usageHours ? parseInt(formData.specificDetails.usageHours.toString()) : null,
+          usageHours: formData.specificDetails.usageHours
+            ? parseInt(formData.specificDetails.usageHours.toString())
+            : null,
           // Équipements
           equipment: formData.specificDetails.equipment || [],
         },
@@ -1131,10 +1173,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 severity: formData.specificDetails.damageSeverity || "",
               }
             : null,
-        compatibilityTags:
-          isPiecePart()
-            ? formData.specificDetails.compatibilityTags || []
-            : null,
+        compatibilityTags: isPiecePart()
+          ? formData.specificDetails.compatibilityTags || []
+          : null,
         // Informations de contact spécifiques à l'annonce
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
@@ -1220,7 +1261,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           try {
             // Compresser seulement les fichiers > 500KB
             if (file.size > 500 * 1024) {
-              console.log(`Compression de ${file.name} (${(file.size / 1024).toFixed(0)}KB)...`);
+              console.log(
+                `Compression de ${file.name} (${(file.size / 1024).toFixed(0)}KB)...`,
+              );
               return await compressImage(file, {
                 maxWidth: 1920,
                 maxHeight: 1920,
@@ -1232,7 +1275,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             console.error(`Erreur compression ${file.name}:`, error);
             return file; // Fallback au fichier original
           }
-        })
+        }),
       );
 
       // Upload vers Supabase Storage
@@ -2973,7 +3016,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 Informations principales
               </h2>
               <p className="text-gray-600">
-                {formData.condition === "occasion" && (formData.category === "voiture-utilitaire" || formData.category === "motos-quad-marine")
+                {formData.condition === "occasion" &&
+                (formData.category === "voiture-utilitaire" ||
+                  formData.category === "motos-quad-marine")
                   ? "Recherchez par plaque ou saisissez le titre manuellement"
                   : `Donnez un titre à votre ${formData.listingType === "sale" ? "annonce" : "recherche"}`}
               </p>
@@ -2981,42 +3026,54 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
             <div className="space-y-6">
               {/* Recherche par plaque EN PREMIER - Uniquement pour véhicules/motos d'occasion */}
-              {formData.condition === "occasion" && (formData.category === "voiture-utilitaire" || formData.category === "motos-quad-marine") && (
-                <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                      🚗 Recherche par plaque d'immatriculation
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Gagnez du temps ! Le titre et les détails seront automatiquement remplis
-                    </p>
-                  </div>
+              {formData.condition === "occasion" &&
+                (formData.category === "voiture-utilitaire" ||
+                  formData.category === "motos-quad-marine") && (
+                  <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                        Recherche par plaque d'immatriculation
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Gagnez du temps ! Le titre et les détails seront
+                        automatiquement remplis
+                      </p>
+                    </div>
 
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={formData.registrationNumber || ''}
-                      onChange={(e) => updateFormData('registrationNumber', e.target.value.toUpperCase())}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: AB-123-CD"
-                      maxLength={20}
-                      data-testid="input-registration-number"
-                    />
-                    <button
-                      onClick={handlePlateSearch}
-                      disabled={isLoadingPlateData || !formData.registrationNumber}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
-                      data-testid="button-search-plate"
-                    >
-                      {isLoadingPlateData ? "Recherche..." : "Rechercher"}
-                    </button>
-                  </div>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={formData.registrationNumber || ""}
+                        onChange={(e) =>
+                          updateFormData(
+                            "registrationNumber",
+                            e.target.value.toUpperCase(),
+                          )
+                        }
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ex: AB-123-CD"
+                        maxLength={20}
+                        data-testid="input-registration-number"
+                      />
+                      <button
+                        onClick={handlePlateSearch}
+                        disabled={
+                          isLoadingPlateData || !formData.registrationNumber
+                        }
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                        data-testid="button-search-plate"
+                      >
+                        {isLoadingPlateData ? "Recherche..." : "Rechercher"}
+                      </button>
+                    </div>
 
-                  {plateApiError && (
-                    <p className="mt-3 text-sm text-red-600">{plateApiError}</p>
-                  )}
-                </div>
-              )}
+                    {plateApiError && (
+                      <p className="mt-3 text-sm text-red-600">
+                        {plateApiError}
+                      </p>
+                    )}
+                  </div>
+                )}
 
               {/* Titre - Auto-généré si recherche plaque réussie */}
               <div>
@@ -3038,7 +3095,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
-                    {formData.condition === "occasion" && (formData.category === "voiture-utilitaire" || formData.category === "motos-quad-marine")
+                    {formData.condition === "occasion" &&
+                    (formData.category === "voiture-utilitaire" ||
+                      formData.category === "motos-quad-marine")
                       ? "Le titre sera généré automatiquement si vous utilisez la recherche par plaque"
                       : `Un bon titre augmente vos chances de ${formData.listingType === "sale" ? "vente" : "trouver ce que vous cherchez"}`}
                   </p>
@@ -3084,7 +3143,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 Description de l'annonce
               </h2>
               <p className="text-gray-600">
-                Décrivez en détail votre {formData.listingType === "sale" ? "annonce" : "recherche"} pour attirer plus d'acheteurs
+                Décrivez en détail votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"} pour
+                attirer plus d'acheteurs
               </p>
             </div>
 
@@ -3343,7 +3404,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 Préférences de contact
               </h3>
               <p className="text-sm text-gray-600">
-                Comment les {formData.listingType === "sale" ? "acheteurs" : "vendeurs"} peuvent-ils vous contacter ?
+                Comment les{" "}
+                {formData.listingType === "sale" ? "acheteurs" : "vendeurs"}{" "}
+                peuvent-ils vous contacter ?
               </p>
 
               <div className="space-y-4">
@@ -3400,8 +3463,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             </div>
           </div>
         );
-
-
 
       case 9999999: // case obsolète supprimé
         return (
@@ -3529,7 +3590,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                           État
                         </dt>
                         <dd className="text-sm text-gray-900">
-                          {formData.condition === "neuf" ? "Neuf" : formData.condition === "occasion" ? "Occasion" : formData.condition === "damaged" ? "Accidenté" : formData.condition}
+                          {formData.condition === "neuf"
+                            ? "Neuf"
+                            : formData.condition === "occasion"
+                              ? "Occasion"
+                              : formData.condition === "damaged"
+                                ? "Accidenté"
+                                : formData.condition}
                         </dd>
                       </div>
                     )}
@@ -3555,87 +3622,147 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 </div>
 
                 {/* Détails du véhicule */}
-                {formData.specificDetails && Object.keys(formData.specificDetails).length > 0 && (
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      Détails du véhicule
-                    </h3>
-                    <dl className="space-y-3">
-                      {formData.specificDetails.brand && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Marque</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.brand}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.model && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Modèle</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.model}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.firstRegistration && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Première mise en circulation</dt>
-                          <dd className="text-sm text-gray-900">{new Date(formData.specificDetails.firstRegistration).toLocaleDateString('fr-FR')}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.mileage && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Kilométrage</dt>
-                          <dd className="text-sm text-gray-900">{parseInt(formData.specificDetails.mileage).toLocaleString()} km</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.fuel && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Carburant</dt>
-                          <dd className="text-sm text-gray-900 capitalize">{formData.specificDetails.fuel}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.transmission && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Transmission</dt>
-                          <dd className="text-sm text-gray-900 capitalize">{formData.specificDetails.transmission === 'manual' ? 'Manuelle' : formData.specificDetails.transmission === 'automatic' ? 'Automatique' : 'Semi-automatique'}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.bodyType && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Type de véhicule</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.bodyType}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.color && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Couleur</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.color}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.doors && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Nombre de portes</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.doors}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.fiscalHorsepower && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Puissance fiscale</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.fiscalHorsepower} CV</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.power && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Puissance</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.power}</dd>
-                        </div>
-                      )}
-                      {formData.specificDetails.engineSize && (
-                        <div>
-                          <dt className="text-sm font-medium text-gray-500">Cylindrée</dt>
-                          <dd className="text-sm text-gray-900">{formData.specificDetails.engineSize}</dd>
-                        </div>
-                      )}
-                    </dl>
-                  </div>
-                )}
+                {formData.specificDetails &&
+                  Object.keys(formData.specificDetails).length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Détails du véhicule
+                      </h3>
+                      <dl className="space-y-3">
+                        {formData.specificDetails.brand && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Marque
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.brand}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.model && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Modèle
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.model}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.firstRegistration && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Première mise en circulation
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {new Date(
+                                formData.specificDetails.firstRegistration,
+                              ).toLocaleDateString("fr-FR")}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.mileage && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Kilométrage
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {parseInt(
+                                formData.specificDetails.mileage,
+                              ).toLocaleString()}{" "}
+                              km
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.fuel && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Carburant
+                            </dt>
+                            <dd className="text-sm text-gray-900 capitalize">
+                              {formData.specificDetails.fuel}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.transmission && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Transmission
+                            </dt>
+                            <dd className="text-sm text-gray-900 capitalize">
+                              {formData.specificDetails.transmission ===
+                              "manual"
+                                ? "Manuelle"
+                                : formData.specificDetails.transmission ===
+                                    "automatic"
+                                  ? "Automatique"
+                                  : "Semi-automatique"}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.bodyType && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Type de véhicule
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.bodyType}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.color && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Couleur
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.color}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.doors && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Nombre de portes
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.doors}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.fiscalHorsepower && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Puissance fiscale
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.fiscalHorsepower} CV
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.power && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Puissance
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.power}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.engineSize && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Cylindrée
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.engineSize}
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+                  )}
 
                 <div className="bg-gray-50 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -4158,7 +4285,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 brand: pendingVehicleData.specificDetails.brand,
                 model: pendingVehicleData.specificDetails.model,
                 year: pendingVehicleData.specificDetails.firstRegistration
-                  ? pendingVehicleData.specificDetails.firstRegistration.split('-')[0]
+                  ? pendingVehicleData.specificDetails.firstRegistration.split(
+                      "-",
+                    )[0]
                   : pendingVehicleData.vehicleInfo.year,
                 fuelType: pendingVehicleData.specificDetails.fuel,
                 transmission: pendingVehicleData.specificDetails.transmission,
@@ -4167,7 +4296,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 engineSize: pendingVehicleData.specificDetails.engineSize,
                 doors: pendingVehicleData.specificDetails.doors,
                 co2: pendingVehicleData.specificDetails.co2,
-                fiscalPower: pendingVehicleData.specificDetails.fiscalHorsepower,
+                fiscalPower:
+                  pendingVehicleData.specificDetails.fiscalHorsepower,
               }
             : {}
         }
