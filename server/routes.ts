@@ -3268,7 +3268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: Date.now()
       });
 
-      console.log('✅ Vehicle data retrieved successfully:', d.AWN_marque, d.AWN_modele);
+      console.log('✅ Vehicle data retrieved successfully:', d.marque, d.modele);
       
       res.json({ 
         success: true, 

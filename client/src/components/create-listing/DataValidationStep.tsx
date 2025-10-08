@@ -135,6 +135,11 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Vérifiez les informations
         </h2>
+        {apiData.brand && apiData.model && (
+          <p className="text-xl font-semibold text-teal-600 mb-2">
+            {apiData.brand} {apiData.model}
+          </p>
+        )}
         <p className="text-gray-600">
           Les données ont été récupérées automatiquement. Vérifiez et complétez si nécessaire.
         </p>
