@@ -954,8 +954,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             formData.specificDetails.year
           );
         case 9:
-          // Step 9 (was 7): Description
-          return true; // Pas de validation minimum pour la description
+          // Step 9 (was 7): Description - maintenant obligatoire
+          return formData.description && formData.description.trim().length > 0;
         case 10:
           // Step 10 (was 8): Photos
           return true; // Photos optionnelles - toujours permettre de passer
