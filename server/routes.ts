@@ -3213,15 +3213,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const apiUrl = `https://api-plaque-immatriculation-siv.p.rapidapi.com/get-vehicule-info?token=TokenDemoRapidapi&host_name=https%3A%2F%2Fapiplaqueimmatriculation.com&immatriculation=${encodeURIComponent(normalizedPlate)}`;
+      const apiUrl = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(normalizedPlate)}&token=${rapidApiKey}&pays=FR`;
 
-      console.log('🔍 Calling RapidAPI for:', normalizedPlate);
+      console.log('🔍 Calling api.apiplaqueimmatriculation.com API for:', normalizedPlate);
       
       const apiResponse = await fetch(apiUrl, {
         method: 'GET',
         headers: {
-          'x-rapidapi-key': rapidApiKey,
-          'x-rapidapi-host': 'api-plaque-immatriculation-siv.p.rapidapi.com'
+          'Accept': 'application/json'
         }
       });
       
