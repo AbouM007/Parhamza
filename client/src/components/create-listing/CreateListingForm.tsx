@@ -750,6 +750,30 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       return;
     }
     
+    // Mode MANUEL : Navigation spécifique pour Steps 3-6
+    if (useManualMode) {
+      if (currentStep === 3) {
+        // Step 3 (type d'annonce) → Step 4 (catégorie)
+        setCurrentStep(4);
+        return;
+      }
+      if (currentStep === 4) {
+        // Step 4 (catégorie) → Step 5 (sous-catégorie)
+        setCurrentStep(5);
+        return;
+      }
+      if (currentStep === 5) {
+        // Step 5 (sous-catégorie) → Step 6 (condition) ou Step 7 selon needsConditionStep()
+        setCurrentStep(needsConditionStep() ? 6 : 7);
+        return;
+      }
+      if (currentStep === 6) {
+        // Step 6 (condition) → Step 7 (titre+description)
+        setCurrentStep(7);
+        return;
+      }
+    }
+    
     // Logique normale pour tous les autres cas
     goToNextStep();
   };
@@ -1104,6 +1128,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   const { formatRegistrationNumber, validateRegistrationNumber } =
     useRegistrationNumber();
+
+  // Désactiver l'auto-avancement en mode manuel pour éviter les conflits
+  useEffect(() => {
+    if (useManualMode && currentStep >= 3 && currentStep <= 6) {
+      disableAutoAdvance();
+    } else if (!useManualMode || currentStep < 3 || currentStep > 6) {
+      enableAutoAdvance();
+    }
+  }, [useManualMode, currentStep, disableAutoAdvance, enableAutoAdvance]);
 
   // Générer automatiquement le titre depuis les données API quand on arrive au Step 7
   useEffect(() => {
