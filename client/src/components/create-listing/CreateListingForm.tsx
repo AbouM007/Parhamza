@@ -967,7 +967,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
           return formData.price > 0;
         case 12:
-          // Step 12 (was 10): Location
+          // Step 12: Localisation et Contacts (fusionnés)
           // Ignorer cette étape pour les recherches de pièces détachées
           if (isSearchForParts()) {
             return true;
@@ -975,18 +975,19 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           const locationValid =
             formData.location.city !== "" &&
             formData.location.postalCode !== "";
+          const contactValid =
+            formData.contact.phone !== "" &&
+            validatePhoneNumber(formData.contact.phone).isValid;
           console.log("Step 12 validation:", {
             city: formData.location.city,
             postalCode: formData.location.postalCode,
             locationValid,
+            contactValid,
           });
-          return locationValid;
+          return locationValid && contactValid;
         case 13:
-          // Step 13 (was 11): Contact
-          return (
-            formData.contact.phone !== "" &&
-            validatePhoneNumber(formData.contact.phone).isValid
-          );
+          // Step 13: OBSOLÈTE - Contacts fusionnés avec Step 12
+          return true; // Toujours valide pour permettre le passage
         case 14:
           // Step 14 (was 12): Summary
           return true; // Étape de récapitulatif
@@ -2903,9 +2904,13 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const renderStepContent = () => {
     const selectedCategory = getSelectedCategory();
 
-    // Redirection pour le Step 9 (fusionné avec Step 7)
+    // Redirections pour les steps fusionnés
     if (currentStep === 9) {
-      setCurrentStep(10); // Rediriger vers Step 10 (photos)
+      setCurrentStep(10); // Step 9 fusionné avec Step 7 → rediriger vers Step 10 (photos)
+      return null;
+    }
+    if (currentStep === 13) {
+      setCurrentStep(14); // Step 13 fusionné avec Step 12 → rediriger vers Step 14 (récap)
       return null;
     }
 
@@ -2922,8 +2927,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return null;
       }
       if (currentStep === 12) {
-        // Rediriger l'étape 12 vers l'étape 13 (contacts)
-        setCurrentStep(13);
+        // Rediriger l'étape 12 vers l'étape 14 (récap) - Step 13 obsolète
+        setCurrentStep(14);
         return null;
       }
       if (currentStep === 15) {
@@ -3693,56 +3698,151 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 12:
+        // Localisation et Contacts fusionnés
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Localisation
+                Localisation et contacts
               </h2>
               <p className="text-gray-600">
-                Où se trouve votre{" "}
-                {getSelectedSubcategory()?.name.toLowerCase()} ?
+                Où se trouve votre annonce et comment vous contacter ?
               </p>
+            </div>
+
+            {/* Section Localisation */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <span className="text-2xl mr-2">📍</span>
+                Localisation
+              </h3>
               {(formData.location.city || formData.location.postalCode) && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700">
                     ℹ️ Informations pré-remplies depuis votre profil. Vous
                     pouvez les modifier si nécessaire.
                   </p>
                 </div>
               )}
+              <AddressInput
+                postalCode={formData.location.postalCode}
+                city={formData.location.city}
+                onPostalCodeChange={(postalCode) => {
+                  console.log("Form updating postal code:", postalCode);
+                  setFormData((prev) => {
+                    const newLocation = { ...prev.location, postalCode };
+                    const newData = { ...prev, location: newLocation };
+                    console.log(
+                      "Direct form update - new location:",
+                      newLocation,
+                    );
+                    console.log("Direct form update - complete data:", newData);
+                    return newData;
+                  });
+                }}
+                onCityChange={(city) => {
+                  console.log("Form updating city:", city);
+                  setFormData((prev) => {
+                    const newLocation = { ...prev.location, city };
+                    const newData = { ...prev, location: newLocation };
+                    console.log(
+                      "Direct form update - new location:",
+                      newLocation,
+                    );
+                    console.log("Direct form update - complete data:", newData);
+                    return newData;
+                  });
+                }}
+              />
             </div>
 
-            <AddressInput
-              postalCode={formData.location.postalCode}
-              city={formData.location.city}
-              onPostalCodeChange={(postalCode) => {
-                console.log("Form updating postal code:", postalCode);
-                setFormData((prev) => {
-                  const newLocation = { ...prev.location, postalCode };
-                  const newData = { ...prev, location: newLocation };
-                  console.log(
-                    "Direct form update - new location:",
-                    newLocation,
-                  );
-                  console.log("Direct form update - complete data:", newData);
-                  return newData;
-                });
-              }}
-              onCityChange={(city) => {
-                console.log("Form updating city:", city);
-                setFormData((prev) => {
-                  const newLocation = { ...prev.location, city };
-                  const newData = { ...prev, location: newLocation };
-                  console.log(
-                    "Direct form update - new location:",
-                    newLocation,
-                  );
-                  console.log("Direct form update - complete data:", newData);
-                  return newData;
-                });
-              }}
-            />
+            {/* Section Préférences de contact */}
+            <div className="space-y-6 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <span className="text-2xl mr-2">💬</span>
+                Préférences de contact
+              </h3>
+              <p className="text-sm text-gray-600">
+                Comment les {formData.listingType === "sale" ? "acheteurs" : "vendeurs"} peuvent-ils vous contacter ?
+              </p>
+
+              <div className="space-y-4">
+                {/* Téléphone */}
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <span className="font-semibold">Téléphone :</span>{" "}
+                    {profile?.phone || "Non renseigné"}
+                  </p>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.contact.showPhone}
+                      onChange={(e) =>
+                        updateFormData("contact", {
+                          ...formData.contact,
+                          showPhone: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                      data-testid="checkbox-show-phone"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Afficher mon numéro sur l'annonce
+                    </span>
+                  </label>
+                </div>
+
+                {/* WhatsApp */}
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <span className="font-semibold">WhatsApp :</span>{" "}
+                    {profile?.whatsapp || profile?.phone || "Non renseigné"}
+                  </p>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.contact.showWhatsapp}
+                      onChange={(e) =>
+                        updateFormData("contact", {
+                          ...formData.contact,
+                          showWhatsapp: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                      data-testid="checkbox-show-whatsapp"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Afficher mon WhatsApp sur l'annonce
+                    </span>
+                  </label>
+                </div>
+
+                {/* Messagerie interne */}
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <span className="font-semibold">Messagerie interne :</span>{" "}
+                    Toujours disponible
+                  </p>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.contact.showInternal}
+                      onChange={(e) =>
+                        updateFormData("contact", {
+                          ...formData.contact,
+                          showInternal: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                      data-testid="checkbox-show-internal"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Autoriser les messages via la plateforme
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
