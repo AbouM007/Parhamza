@@ -699,13 +699,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         // Générer le titre automatiquement : "Marque Modèle Année"
         const autoTitle = [brand, model, year].filter(Boolean).join(" ");
 
-        // 🐛 DEBUG: Vérifier les valeurs avant stockage
-        console.log("🔍 DEBUG AUTO-FILL - Valeurs extraites de l'API:");
-        console.log("  brand:", `"${brand}"`, `(length: ${brand.length})`);
-        console.log("  model:", `"${model}"`);
-        console.log("  year:", year);
-        console.log("  fuel:", fuel);
-
         setFormData((prev) => ({
           ...prev,
           // Auto-générer le titre
@@ -1478,19 +1471,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Champs communs pour la plupart des véhicules
     const renderCommonVehicleFields = () => {
-      // 🐛 DEBUG: Vérifier le matching entre la valeur et les options
-      const currentBrandValue = formData.specificDetails.brand || "";
-      const brandExists = brands.includes(currentBrandValue);
-      
-      console.log("🔍 DEBUG SELECT MARQUE:");
-      console.log("  Valeur actuelle:", `"${currentBrandValue}"`, `(length: ${currentBrandValue.length})`);
-      console.log("  Nombre d'options:", brands.length);
-      console.log("  3 premières options:", brands.slice(0, 3));
-      console.log("  Marque trouvée dans options?", brandExists);
-      if (!brandExists && currentBrandValue) {
-        console.log("  ❌ PROBLÈME: La marque n'est pas dans les options!");
-      }
-
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
