@@ -744,6 +744,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       return;
     }
     
+    // Mode PLAQUE : Depuis Step 7 (titre), sauter Step 8 (détails déjà remplis) → aller au Step 9 (équipements)
+    if (currentStep === 7 && !useManualMode && apiVehicleData) {
+      setCurrentStep(9); // Sauter le Step 8 (détails spécifiques)
+      return;
+    }
+    
     // Logique normale pour tous les autres cas
     goToNextStep();
   };
@@ -807,6 +813,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           setFormData((prev) => ({ ...prev, subcategory: "" }));
         }
         break;
+      
+      case 9:
+        // Mode PLAQUE : Depuis Step 9 (équipements), revenir au Step 7 (titre) en sautant Step 8
+        if (!useManualMode && apiVehicleData) {
+          setCurrentStep(7);
+          enableAutoAdvance();
+          return;
+        }
+        break;
+      
       // Pour les étapes 8 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
     }
 
