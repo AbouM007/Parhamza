@@ -16,8 +16,6 @@ import { ListingTypeStep, ListingTypeValue } from "./ListingTypeStep";
 import { VehicleDetailsStep } from "./VehicleDetailsStep";
 import { PlateBlurModal } from "../PlateBlurModal";
 import { VehicleDataPreviewModal } from "./VehicleDataPreviewModal";
-import { PlateInputStep } from "./PlateInputStep";
-import { DataValidationStep } from "./DataValidationStep";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
