@@ -744,9 +744,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       return;
     }
     
-    // Mode PLAQUE : Depuis Step 7 (titre), sauter Step 8 (détails déjà remplis) → aller au Step 9 (équipements)
+    // Mode PLAQUE : Depuis Step 7 (titre+description), sauter Step 8 et 9 → aller au Step 10 (photos)
     if (currentStep === 7 && !useManualMode && apiVehicleData) {
-      setCurrentStep(9); // Sauter le Step 8 (détails spécifiques)
+      setCurrentStep(10); // Sauter Step 8 et 9 (détails déjà remplis)
       return;
     }
     
@@ -814,8 +814,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         }
         break;
       
-      case 9:
-        // Mode PLAQUE : Depuis Step 9 (équipements), revenir au Step 7 (titre) en sautant Step 8
+      case 10:
+        // Mode PLAQUE : Depuis Step 10 (photos), revenir au Step 7 (titre+description) en sautant Step 8 et 9
         if (!useManualMode && apiVehicleData) {
           setCurrentStep(7);
           enableAutoAdvance();
@@ -859,8 +859,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
           return true; // Si pas besoin d'état, toujours valide
         case 7:
-          // Step 7 (was 5): Title
-          return formData.title.trim() !== "";
+          // Step 7: Titre et Description (fusionnés)
+          return formData.title.trim() !== "" && formData.description && formData.description.trim().length > 0;
         case 8:
           // Step 8 (was 6): Details - détails spécifiques
           // Ignorer pour les recherches de pièces détachées ET les services
@@ -954,8 +954,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             formData.specificDetails.year
           );
         case 9:
-          // Step 9 (was 7): Description - maintenant obligatoire
-          return formData.description && formData.description.trim().length > 0;
+          // Step 9: OBSOLÈTE - Description fusionnée avec Step 7
+          return true; // Toujours valide pour permettre le passage
         case 10:
           // Step 10 (was 8): Photos
           return true; // Photos optionnelles - toujours permettre de passer
@@ -2903,11 +2903,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const renderStepContent = () => {
     const selectedCategory = getSelectedCategory();
 
+    // Redirection pour le Step 9 (fusionné avec Step 7)
+    if (currentStep === 9) {
+      setCurrentStep(10); // Rediriger vers Step 10 (photos)
+      return null;
+    }
+
     // Pour les recherches de pièces détachées, rediriger automatiquement les étapes ignorées
     if (isSearchForParts()) {
       if (currentStep === 7) {
-        // Rediriger l'étape 7 vers l'étape 8 ou 9
-        setCurrentStep(needsConditionStep() ? 8 : 9);
+        // Rediriger l'étape 7 vers l'étape 8 ou 10
+        setCurrentStep(needsConditionStep() ? 8 : 10);
         return null;
       }
       if (currentStep === 11) {
@@ -3072,20 +3078,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 7:
-        // Titre
+        // Titre et Description fusionnés
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Titre de votre{" "}
-                {formData.listingType === "sale" ? "annonce" : "recherche"}
+                Titre et description
               </h2>
               <p className="text-gray-600">
-                Rédigez un titre accrocheur et descriptif
+                Présentez votre {formData.listingType === "sale" ? "annonce" : "recherche"} de manière attractive
               </p>
             </div>
 
             <div className="space-y-6">
+              {/* Titre */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Titre *
@@ -3101,6 +3107,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                       : "Ex: Recherche BMW 320d"
                   }
                   maxLength={50}
+                  data-testid="input-title"
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
@@ -3114,6 +3121,37 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   >
                     {formData.title.length}/50
                   </span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={formData.description || ""}
+                  onChange={(e) => updateFormData("description", e.target.value)}
+                  rows={8}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all resize-y"
+                  placeholder={
+                    formData.condition === "damaged"
+                      ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
+                      : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
+                  }
+                  data-testid="input-description"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-sm text-gray-500">
+                    {formData.condition === "damaged"
+                      ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
+                      : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."}
+                  </p>
+                  {formData.description && (
+                    <span className="text-sm text-gray-400">
+                      {formData.description.length} caractères
+                    </span>
+                  )}
                 </div>
               </div>
 
