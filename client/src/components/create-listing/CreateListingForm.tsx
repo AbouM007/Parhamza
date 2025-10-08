@@ -312,24 +312,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     loadUserContactData();
   }, [user, profile, hasPrefilledData]);
 
-  // Générer automatiquement le titre depuis les données API quand on arrive au Step 7
-  useEffect(() => {
-    if (currentStep === 7 && !useManualMode && apiVehicleData && !formData.title) {
-      const brand = formData.specificDetails.brand || apiVehicleData.brand || '';
-      const model = formData.specificDetails.model || apiVehicleData.model || '';
-      const fuelType = formData.specificDetails.fuelType || apiVehicleData.fuel || '';
-      const year = formData.specificDetails.year || apiVehicleData.year || '';
-
-      // Générer le titre au format: "Marque Modèle Carburant Année"
-      const autoTitle = [brand, model, fuelType, year].filter(Boolean).join(' ');
-      
-      if (autoTitle.trim()) {
-        updateFormData('title', autoTitle);
-        console.log('✨ Titre auto-généré:', autoTitle);
-      }
-    }
-  }, [currentStep, apiVehicleData, useManualMode]);
-
   const updateFormData = (field: string, value: any) => {
     console.log("updateFormData called:", field, value);
 
@@ -1121,6 +1103,24 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   const { formatRegistrationNumber, validateRegistrationNumber } =
     useRegistrationNumber();
+
+  // Générer automatiquement le titre depuis les données API quand on arrive au Step 7
+  useEffect(() => {
+    if (currentStep === 7 && !useManualMode && apiVehicleData && !formData.title) {
+      const brand = formData.specificDetails.brand || apiVehicleData.brand || '';
+      const model = formData.specificDetails.model || apiVehicleData.model || '';
+      const fuelType = formData.specificDetails.fuelType || apiVehicleData.fuel || '';
+      const year = formData.specificDetails.year || apiVehicleData.year || '';
+
+      // Générer le titre au format: "Marque Modèle Carburant Année"
+      const autoTitle = [brand, model, fuelType, year].filter(Boolean).join(' ');
+      
+      if (autoTitle.trim()) {
+        updateFormData('title', autoTitle);
+        console.log('✨ Titre auto-généré:', autoTitle);
+      }
+    }
+  }, [currentStep, apiVehicleData, useManualMode, formData.title]);
 
   // Fonction pour publier l'annonce
   const publishListing = async () => {
