@@ -1246,7 +1246,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         contactWhatsapp: formData.contact.whatsapp || "",
         hidePhone: !formData.contact.showPhone,
         hideWhatsapp: !formData.contact.showWhatsapp,
-        hideMessages: !formData.contact.showInternal,
+        hideMessages: false, // Messagerie toujours active
         isPremium: false,
         status: "draft", // Initialement en brouillon
         listingType: formData.listingType || "sale",
@@ -3607,31 +3607,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     </span>
                   </label>
                 </div>
-
-                {/* Messagerie interne */}
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-sm text-gray-700 mb-2">
-                    <span className="font-semibold">Messagerie interne :</span>{" "}
-                    Toujours disponible
-                  </p>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.contact.showInternal}
-                      onChange={(e) =>
-                        updateFormData("contact", {
-                          ...formData.contact,
-                          showInternal: e.target.checked,
-                        })
-                      }
-                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
-                      data-testid="checkbox-show-internal"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Autoriser les messages via la plateforme
-                    </span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -3707,30 +3682,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   />
                   <span className="text-sm text-gray-700">
                     Afficher mon WhatsApp sur l’annonce
-                  </span>
-                </label>
-              </div>
-
-              {/* Messagerie interne */}
-              <div className="bg-gray-50 p-4 rounded-xl">
-                <p className="text-sm text-gray-700 mb-2">
-                  <span className="font-semibold">Messagerie interne :</span>{" "}
-                  Toujours disponible
-                </p>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.contact.showInternal}
-                    onChange={(e) =>
-                      updateFormData("contact", {
-                        ...formData.contact,
-                        showInternal: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Autoriser les messages via la plateforme
                   </span>
                 </label>
               </div>
