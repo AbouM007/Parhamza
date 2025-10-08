@@ -3107,7 +3107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (bodyType.includes('SUV') || bodyType.includes('4X4') || bodyType.includes('TOUT') || bodyType === 'VTC' || bodyType.includes('VEHICULE TOUT CHEMIN')) return 'SUV';
     
     // Berline
-    if (bodyType.includes('BERLINE') || bodyType === 'VP' || bodyType === 'VOITURE PARTICULIERE' || bodyType === 'CI') return 'Berline';
+    if (bodyType.includes('BERLINE') || bodyType === 'VP' || bodyType === 'VOITURE PARTICULIERE' || bodyType === 'CI' || bodyType.includes('TROIS VOLUMES') || bodyType.includes('3 VOLUMES') || bodyType.includes('BICORPS')) return 'Berline';
     
     // Break
     if (bodyType.includes('BREAK')) return 'Break';

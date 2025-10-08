@@ -3520,14 +3520,32 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         Catégorie
                       </dt>
                       <dd className="text-sm text-gray-900">
-                        {formData.category}
+                        {getSelectedCategory()?.name}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-sm font-medium text-gray-500">
-                        Titre
+                        Sous-catégorie
                       </dt>
                       <dd className="text-sm text-gray-900">
+                        {getSelectedSubcategory()?.name}
+                      </dd>
+                    </div>
+                    {formData.condition && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          État
+                        </dt>
+                        <dd className="text-sm text-gray-900">
+                          {formData.condition === "neuf" ? "Neuf" : formData.condition === "occasion" ? "Occasion" : formData.condition === "damaged" ? "Accidenté" : formData.condition}
+                        </dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Titre
+                      </dt>
+                      <dd className="text-sm text-gray-900 font-medium">
                         {formData.title}
                       </dd>
                     </div>
@@ -3536,13 +3554,96 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         <dt className="text-sm font-medium text-gray-500">
                           Prix
                         </dt>
-                        <dd className="text-sm text-gray-900">
-                          {formData.price}€
+                        <dd className="text-lg font-bold text-primary-bolt-600">
+                          {formData.price.toLocaleString()}€
                         </dd>
                       </div>
                     )}
                   </dl>
                 </div>
+
+                {/* Détails du véhicule */}
+                {formData.specificDetails && Object.keys(formData.specificDetails).length > 0 && (
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Détails du véhicule
+                    </h3>
+                    <dl className="space-y-3">
+                      {formData.specificDetails.brand && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Marque</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.brand}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.model && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Modèle</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.model}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.firstRegistration && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Première mise en circulation</dt>
+                          <dd className="text-sm text-gray-900">{new Date(formData.specificDetails.firstRegistration).toLocaleDateString('fr-FR')}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.mileage && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Kilométrage</dt>
+                          <dd className="text-sm text-gray-900">{parseInt(formData.specificDetails.mileage).toLocaleString()} km</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.fuel && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Carburant</dt>
+                          <dd className="text-sm text-gray-900 capitalize">{formData.specificDetails.fuel}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.transmission && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Transmission</dt>
+                          <dd className="text-sm text-gray-900 capitalize">{formData.specificDetails.transmission === 'manual' ? 'Manuelle' : formData.specificDetails.transmission === 'automatic' ? 'Automatique' : 'Semi-automatique'}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.bodyType && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Type de véhicule</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.bodyType}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.color && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Couleur</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.color}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.doors && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Nombre de portes</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.doors}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.fiscalHorsepower && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Puissance fiscale</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.fiscalHorsepower} CV</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.power && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Puissance</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.power}</dd>
+                        </div>
+                      )}
+                      {formData.specificDetails.engineSize && (
+                        <div>
+                          <dt className="text-sm font-medium text-gray-500">Cylindrée</dt>
+                          <dd className="text-sm text-gray-900">{formData.specificDetails.engineSize}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+                )}
 
                 <div className="bg-gray-50 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
