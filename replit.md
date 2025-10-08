@@ -25,12 +25,14 @@ Preferred communication style: Simple, everyday language.
 - **Core Features**:
     - **Listing Management**: Creation, display, and deletion of vehicle and spare parts listings.
     - **Auto-Fill Vehicle Data**: 
-      - **New Dedicated Workflow (Oct 2025)**: Two-step process for vehicle registration plate data import
-        - **Step 1**: Plate input screen with "Search" or "Manual entry" options
-        - **Step 2**: Data validation screen showing retrieved API data with editable fields and visual indicators
-        - Conditional navigation: API mode flows through both steps, manual mode skips Step 2
-        - Integration with API Plaque Immatriculation (apiplaqueimmatriculation.com)
+      - **Unified Flow (Oct 2025)**: Optional plate search integrated within listing creation workflow
+        - Plate search field appears in Step 5 (Title/Description) for used vehicles only
+        - API retrieves data from API Plaque Immatriculation (apiplaqueimmatriculation.com)
+        - Retrieved data pre-fills formData.specificDetails directly
+        - Step 6 (Specific Details) displays pre-filled fields from API
+        - Field mapping: bodyType → vehicleType, fiscalHorsepower → fiscalPower
         - In-memory caching (12h TTL) for cost optimization
+        - Single unified flow without branching - plate search is fully optional
     - **Compatibility Tags**: System for spare parts listings with intelligent matching.
     - **Subscription Management**: User subscriptions, professional account verification, and premium features (listing boosts).
     - **Messaging**: Integrated messaging system.
