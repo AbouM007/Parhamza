@@ -83,7 +83,7 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
           )}
         </label>
 
-        {type === 'select' && options ? (
+        {type === 'select' && options && Array.isArray(options) ? (
           <select
             value={value || ''}
             onChange={(e) => onFieldChange(field, e.target.value)}
@@ -93,11 +93,11 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
             data-testid={`select-${field}`}
           >
             <option value="">Sélectionnez...</option>
-            {options.map((opt) => {
+            {options.map((opt, index) => {
               const optValue = typeof opt === 'string' ? opt : opt.value;
               const optLabel = typeof opt === 'string' ? opt : opt.label;
               return (
-                <option key={optValue} value={optValue}>
+                <option key={`${field}-${optValue}-${index}`} value={optValue}>
                   {optLabel}
                 </option>
               );
