@@ -3085,6 +3085,52 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 7:
+        // Description (nouvelle étape après Détails spécifiques)
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Description de l'annonce
+              </h2>
+              <p className="text-gray-600">
+                Décrivez en détail votre {formData.listingType === "sale" ? "annonce" : "recherche"} pour attirer plus d'acheteurs
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Description *
+              </label>
+              <textarea
+                value={formData.description || ""}
+                onChange={(e) => updateFormData("description", e.target.value)}
+                rows={10}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all resize-y"
+                placeholder={
+                  formData.condition === "damaged"
+                    ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
+                    : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
+                }
+                data-testid="input-description"
+              />
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-sm text-gray-500">
+                  {formData.condition === "damaged"
+                    ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
+                    : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."}
+                </p>
+                {formData.description && (
+                  <span className="text-sm text-gray-400">
+                    {formData.description.length} caractères
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 8:
+        // Photos (anciennement Step 7)
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
