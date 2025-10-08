@@ -225,7 +225,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [vehicleDataLoading, setVehicleDataLoading] = useState(false);
   const [vehicleDataMessage, setVehicleDataMessage] = useState("");
 
-  const totalSteps = 14; // Steps: 1-7 (Type→Category→Subcategory→Condition→Title→Details→Photos), 11-14 (Price→Location→Contacts→Summary)
+  const totalSteps = 11; // Steps: 1-5 (Type→Category→Subcategory→Condition→Title), 6-8 (Details→Description→Photos), 9-11 (Price→Location→Summary)
 
   // Réinitialiser la sous-catégorie quand la catégorie change
   useEffect(() => {
@@ -911,20 +911,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           // Step 8: Photos (anciennement Step 7)
           return true; // Photos optionnelles - toujours permettre de passer
         case 9:
-          // Step 9: OBSOLÈTE
-          return true;
-        case 10:
-          // Step 10: OBSOLÈTE
-          return true;
-        case 11:
-          // Step 11: Price
+          // Step 9: Price
           // Ignorer cette étape pour les recherches de pièces détachées ET les annonces de recherche
           if (isSearchForParts() || isSearchListing()) {
             return true;
           }
           return formData.price > 0;
-        case 12:
-          // Step 12: Localisation et Contacts (fusionnés)
+        case 10:
+          // Step 10: Localisation et Contacts (fusionnés)
           // Ignorer cette étape pour les recherches de pièces détachées
           if (isSearchForParts()) {
             return true;
@@ -942,11 +936,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             contactValid,
           });
           return locationValid && contactValid;
-        case 13:
-          // Step 13: OBSOLÈTE - Contacts fusionnés avec Step 12
-          return true; // Toujours valide pour permettre le passage
-        case 14:
-          // Step 14 (was 12): Summary
+        case 11:
+          // Step 11: Summary
           return true; // Étape de récapitulatif
         default:
           return false;
@@ -2988,15 +2979,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 Informations principales
               </h2>
               <p className="text-gray-600">
-                {formData.condition === "occasion" && formData.category === "vehicules" 
+                {formData.condition === "occasion" && (formData.category === "voiture-utilitaire" || formData.category === "motos-quad-marine")
                   ? "Recherchez par plaque ou saisissez le titre manuellement"
                   : `Donnez un titre à votre ${formData.listingType === "sale" ? "annonce" : "recherche"}`}
               </p>
             </div>
 
             <div className="space-y-6">
-              {/* Recherche par plaque EN PREMIER - Uniquement pour véhicules d'occasion */}
-              {formData.condition === "occasion" && formData.category === "vehicules" && (
+              {/* Recherche par plaque EN PREMIER - Uniquement pour véhicules/motos d'occasion */}
+              {formData.condition === "occasion" && (formData.category === "voiture-utilitaire" || formData.category === "motos-quad-marine") && (
                 <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
                   <div className="mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
@@ -3053,7 +3044,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
-                    {formData.condition === "occasion" && formData.category === "vehicules"
+                    {formData.condition === "occasion" && (formData.category === "voiture-utilitaire" || formData.category === "motos-quad-marine")
                       ? "Le titre sera généré automatiquement si vous utilisez la recherche par plaque"
                       : `Un bon titre augmente vos chances de ${formData.listingType === "sale" ? "vente" : "trouver ce que vous cherchez"}`}
                   </p>
@@ -3245,7 +3236,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 11:
+      case 9:
         // Masquer cette étape pour les annonces de recherche
         if (isSearchListing()) {
           return null;
@@ -3294,7 +3285,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 12:
+      case 10:
         // Localisation et Contacts fusionnés
         return (
           <div className="space-y-8">
@@ -3418,9 +3409,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 13:
-        // OBSOLÈTE - Contacts fusionnés avec Step 12
-        return null;
 
 
       case 9999999: // case obsolète supprimé
@@ -3495,7 +3483,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 14:
+      case 11:
         return (
           <div className="space-y-8">
             <div className="text-center mb-8">

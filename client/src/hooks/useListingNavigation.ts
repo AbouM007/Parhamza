@@ -100,7 +100,7 @@ export const useListingNavigation = ({
         } else if (currentStep === 7) {
           nextStepNumber = 8;
         } else if (currentStep === 8) {
-          nextStepNumber = 11;
+          nextStepNumber = 9;
         }
       } else if (isServiceCategory()) {
         if (currentStep === 5) {
@@ -134,7 +134,7 @@ export const useListingNavigation = ({
       previousStepNumber = needsConditionStep() ? 4 : 3;
     } else {
       if (isSearchForParts()) {
-        if (currentStep === 11) {
+        if (currentStep === 9) {
           previousStepNumber = 8;
         } else if (currentStep === 8) {
           previousStepNumber = 7;
