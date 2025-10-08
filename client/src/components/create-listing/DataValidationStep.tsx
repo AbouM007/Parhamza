@@ -29,6 +29,8 @@ interface DataValidationStepProps {
   colors: string[];
   doors: string[];
   bodyTypes: string[];
+  equipmentOptions: string[];
+  onToggleEquipment: (equipment: string) => void;
 }
 
 export const DataValidationStep: React.FC<DataValidationStepProps> = ({
@@ -42,6 +44,8 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
   colors,
   doors,
   bodyTypes,
+  equipmentOptions,
+  onToggleEquipment,
 }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
 
@@ -160,24 +164,36 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
           {renderField('Couleur', 'color', formData.color, 'select', colors)}
         </div>
 
-        {/* Description */}
+        {/* Équipements/Options */}
         <div className="mt-6 pt-6 border-t border-gray-200">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Description <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-gray-700 mb-4">
+            Équipements et options
           </label>
-          <textarea
-            value={formData.description || ''}
-            onChange={(e) => onFieldChange('description', e.target.value)}
-            placeholder="Décrivez votre véhicule en quelques mots..."
-            rows={6}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y ${
-              formData.description ? 'border-gray-300' : 'border-amber-300 bg-amber-50'
-            }`}
-            data-testid="textarea-description"
-          />
-          <p className="mt-2 text-sm text-gray-500">
-            {formData.description?.length || 0} caractères
+          <p className="text-sm text-gray-500 mb-4">
+            Sélectionnez les équipements présents sur votre véhicule
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {equipmentOptions.map((equipment) => (
+              <label
+                key={equipment}
+                className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                data-testid={`equipment-${equipment}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.equipment?.includes(equipment) || false}
+                  onChange={() => onToggleEquipment(equipment)}
+                  className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">{equipment}</span>
+              </label>
+            ))}
+          </div>
+          {formData.equipment && formData.equipment.length > 0 && (
+            <p className="mt-3 text-sm text-teal-600">
+              ✓ {formData.equipment.length} équipement{formData.equipment.length > 1 ? 's' : ''} sélectionné{formData.equipment.length > 1 ? 's' : ''}
+            </p>
+          )}
         </div>
       </div>
 

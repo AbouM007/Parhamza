@@ -841,8 +841,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           // Step 1 (NEW): PlateInputStep - toujours valide (on peut rechercher ou passer en manuel)
           return true;
         case 2:
-          // Step 2 (NEW): DataValidationStep - vérifier qu'on a au moins une description
-          return formData.specificDetails.description && formData.specificDetails.description.trim().length > 0;
+          // Step 2 (NEW): DataValidationStep - vérifier les champs essentiels
+          return formData.specificDetails.brand && formData.specificDetails.model && formData.specificDetails.year;
         case 3:
           // Step 3 (was 1): ListingTypeStep
           return formData.listingType !== "";
@@ -2947,6 +2947,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             colors={COLORS}
             doors={DOORS.map(String)}
             bodyTypes={VEHICLE_TYPES.car}
+            equipmentOptions={VEHICLE_EQUIPMENT.car}
+            onToggleEquipment={toggleEquipment}
           />
         );
 
