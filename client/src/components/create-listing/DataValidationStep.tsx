@@ -30,6 +30,7 @@ interface DataValidationStepProps {
   doors: string[];
   bodyTypes: string[];
   equipmentOptions: string[];
+  emissionClasses?: Array<{ value: string; label: string }>;
   onToggleEquipment: (equipment: string) => void;
 }
 
@@ -45,6 +46,7 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
   doors,
   bodyTypes,
   equipmentOptions,
+  emissionClasses,
   onToggleEquipment,
 }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -162,6 +164,8 @@ export const DataValidationStep: React.FC<DataValidationStepProps> = ({
           {renderField('Portes', 'doors', formData.doors, 'select', doors)}
           {renderField('Type de carrosserie', 'bodyType', formData.bodyType, 'select', bodyTypes)}
           {renderField('Couleur', 'color', formData.color, 'select', colors)}
+          {renderField('Kilométrage (km)', 'mileage', formData.mileage, 'number')}
+          {emissionClasses && renderField('Classe d\'émission', 'emissionClass', formData.emissionClass, 'select', emissionClasses)}
         </div>
 
         {/* Équipements/Options */}

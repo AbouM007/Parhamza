@@ -754,6 +754,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           fiscalHorsepower: formData.specificDetails.fiscalHorsepower || apiVehicleData.fiscalHorsepower,
           cylinders: formData.specificDetails.cylinders || apiVehicleData.cylinders,
           genreVCG: formData.specificDetails.genreVCG || apiVehicleData.genreVCG,
+          // Champs saisis manuellement dans le Step 2 (DataValidationStep)
+          mileage: formData.specificDetails.mileage || 0,
+          emissionClass: formData.specificDetails.emissionClass || null,
+          equipment: formData.specificDetails.equipment || [],
         }
       }));
       
@@ -3028,6 +3032,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             doors={DOORS.map(String)}
             bodyTypes={VEHICLE_TYPES.car}
             equipmentOptions={VEHICLE_EQUIPMENT.car}
+            emissionClasses={EMISSION_CLASSES}
             onToggleEquipment={toggleEquipment}
           />
         );
