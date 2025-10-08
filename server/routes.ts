@@ -3259,11 +3259,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 🔍 DEBUG transmission
       console.log('🔧 DEBUG - boite_vitesse brut:', d.boite_vitesse);
       console.log('🔧 DEBUG - energieNGC brut:', d.energieNGC);
+      console.log('🔧 DEBUG - carrosserie brut:', d.carrosserie);
       console.log('🔧 DEBUG - carrosserieCG brut:', d.carrosserieCG);
       
       const normalizedTransmission = normalizeTransmission(d.boite_vitesse);
       const normalizedFuel = normalizeFuel(d.energieNGC || d.energie);
-      const normalizedBody = normalizeBodyType(d.carrosserieCG);
+      // Priorité au champ texte 'carrosserie' (SUV, Berline, etc.), fallback sur code 'carrosserieCG'
+      const normalizedBody = normalizeBodyType(d.carrosserie || d.carrosserieCG);
       
       console.log('✅ DEBUG - transmission normalisée:', normalizedTransmission);
       console.log('✅ DEBUG - fuel normalisé:', normalizedFuel);
