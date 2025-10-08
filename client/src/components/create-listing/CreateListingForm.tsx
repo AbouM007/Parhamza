@@ -131,9 +131,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [pendingVehicleData, setPendingVehicleData] = useState<any>(null);
   const [pendingRegistrationNumber, setPendingRegistrationNumber] = useState("");
 
-  // Nouveaux états pour le flux de saisie de plaque
-  const [useManualMode, setUseManualMode] = useState(false);
-  const [apiVehicleData, setApiVehicleData] = useState<any>(null);
+  // États pour la recherche de plaque (optionnelle dans Step 5)
   const [isLoadingPlateData, setIsLoadingPlateData] = useState(false);
   const [plateApiError, setPlateApiError] = useState("");
 
@@ -229,7 +227,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [vehicleDataLoading, setVehicleDataLoading] = useState(false);
   const [vehicleDataMessage, setVehicleDataMessage] = useState("");
 
-  const totalSteps = 14; // 2 nouveaux steps pour plaque + 12 steps existants
+  const totalSteps = 14; // Steps: 1-7 (Type→Category→Subcategory→Condition→Title→Details→Photos), 11-14 (Price→Location→Contacts→Summary)
 
   // Réinitialiser la sous-catégorie quand la catégorie change
   useEffect(() => {
