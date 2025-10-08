@@ -738,6 +738,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         subcategory: "voiture", // On suppose que c'est une voiture (peut être ajusté si moto)
         condition: "occasion", // Une plaque implique un véhicule d'occasion
         // 🔧 COPIER LES DONNÉES DE L'API DANS specificDetails
+        // IMPORTANT: Mapper les noms de champs API vers les noms utilisés dans le Step 8
         specificDetails: {
           ...prev.specificDetails,
           brand: formData.specificDetails.brand || apiVehicleData.brand,
@@ -748,12 +749,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           power: formData.specificDetails.power || apiVehicleData.power,
           engineSize: formData.specificDetails.engineSize || apiVehicleData.engineSize,
           doors: formData.specificDetails.doors || apiVehicleData.doors,
-          bodyType: formData.specificDetails.bodyType || apiVehicleData.bodyType,
+          // Mapper bodyType → vehicleType (utilisé dans Step 8)
+          vehicleType: formData.specificDetails.vehicleType || apiVehicleData.bodyType,
           color: formData.specificDetails.color || apiVehicleData.color,
-          co2: formData.specificDetails.co2 || apiVehicleData.co2,
-          fiscalHorsepower: formData.specificDetails.fiscalHorsepower || apiVehicleData.fiscalHorsepower,
-          cylinders: formData.specificDetails.cylinders || apiVehicleData.cylinders,
-          genreVCG: formData.specificDetails.genreVCG || apiVehicleData.genreVCG,
+          // Mapper fiscalHorsepower → fiscalPower (utilisé dans Step 8)
+          fiscalPower: formData.specificDetails.fiscalPower || apiVehicleData.fiscalHorsepower,
           // Champs saisis manuellement dans le Step 2 (DataValidationStep)
           mileage: formData.specificDetails.mileage || 0,
           emissionClass: formData.specificDetails.emissionClass || null,
@@ -766,9 +766,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       return;
     }
     
-    // Mode PLAQUE : Depuis Step 7 (titre+description), sauter Step 8 et 9 → aller au Step 10 (photos)
+    // Mode PLAQUE : Depuis Step 7 (titre+description), aller au Step 8 (détails) comme le flux manuel
+    // On ne saute plus le Step 8 car on doit utiliser le même formulaire que le flux manuel
+    // Les données API sont déjà dans formData.specificDetails, elles seront pré-remplies
     if (currentStep === 7 && !useManualMode && apiVehicleData) {
-      setCurrentStep(10); // Sauter Step 8 et 9 (détails déjà remplis)
+      setCurrentStep(8); // Aller au Step 8 (détails) au lieu de sauter
       return;
     }
     
@@ -1220,7 +1222,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           // Voiture
           vehicleType: formData.specificDetails.vehicleType || null,
           doors: formData.specificDetails.doors ? parseInt(formData.specificDetails.doors.toString()) : null,
-          fiscalHorsepower: formData.specificDetails.fiscalHorsepower ? parseInt(formData.specificDetails.fiscalHorsepower.toString()) : null,
+          fiscalHorsepower: formData.specificDetails.fiscalPower ? parseInt(formData.specificDetails.fiscalPower.toString()) : null,
           upholstery: formData.specificDetails.upholstery || null,
           // Moto
           motorcycleType: formData.specificDetails.motorcycleType || null,
