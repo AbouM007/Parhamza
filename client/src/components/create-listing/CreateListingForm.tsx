@@ -730,13 +730,31 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const nextStepHandler = () => {
     // Mode PLAQUE : Après Step 2 (validation données), auto-remplir et sauter au titre
     if (currentStep === 2 && !useManualMode && apiVehicleData) {
-      // Auto-remplir les données évidentes pour une vente de véhicule
+      // Auto-remplir TOUTES les données : métadonnées ET détails du véhicule
       setFormData(prev => ({
         ...prev,
         listingType: "sale", // C'est toujours une vente si on a saisi une plaque
         category: "vehicules", // C'est toujours un véhicule
         subcategory: "voiture", // On suppose que c'est une voiture (peut être ajusté si moto)
-        condition: "occasion" // Une plaque implique un véhicule d'occasion
+        condition: "occasion", // Une plaque implique un véhicule d'occasion
+        // 🔧 COPIER LES DONNÉES DE L'API DANS specificDetails
+        specificDetails: {
+          ...prev.specificDetails,
+          brand: formData.specificDetails.brand || apiVehicleData.brand,
+          model: formData.specificDetails.model || apiVehicleData.model,
+          year: formData.specificDetails.year || apiVehicleData.year,
+          fuelType: formData.specificDetails.fuelType || apiVehicleData.fuel,
+          transmission: formData.specificDetails.transmission || apiVehicleData.transmission,
+          power: formData.specificDetails.power || apiVehicleData.power,
+          engineSize: formData.specificDetails.engineSize || apiVehicleData.engineSize,
+          doors: formData.specificDetails.doors || apiVehicleData.doors,
+          bodyType: formData.specificDetails.bodyType || apiVehicleData.bodyType,
+          color: formData.specificDetails.color || apiVehicleData.color,
+          co2: formData.specificDetails.co2 || apiVehicleData.co2,
+          fiscalHorsepower: formData.specificDetails.fiscalHorsepower || apiVehicleData.fiscalHorsepower,
+          cylinders: formData.specificDetails.cylinders || apiVehicleData.cylinders,
+          genreVCG: formData.specificDetails.genreVCG || apiVehicleData.genreVCG,
+        }
       }));
       
       // Sauter directement au Step 7 (titre de l'annonce)
