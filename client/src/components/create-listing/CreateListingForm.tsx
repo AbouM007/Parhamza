@@ -2832,11 +2832,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const renderStepContent = () => {
     const selectedCategory = getSelectedCategory();
 
-    // Redirections pour les steps fusionnés
-    if (currentStep === 9) {
-      setCurrentStep(10); // Step 9 fusionné avec Step 7 → rediriger vers Step 10 (photos)
-      return null;
-    }
+    // Redirections pour les steps obsolètes (ancienne structure)
     if (currentStep === 13) {
       setCurrentStep(14); // Step 13 fusionné avec Step 12 → rediriger vers Step 14 (récap)
       return null;
