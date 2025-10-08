@@ -297,7 +297,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }));
 
           setHasPrefilledData(true);
-          console.log("✅ Données auto-remplies depuis l'API");
         } catch (error) {
           console.error(
             "Erreur lors du chargement des données utilisateur:",
@@ -311,8 +310,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   }, [user, profile, hasPrefilledData]);
 
   const updateFormData = (field: string, value: any) => {
-    console.log("updateFormData called:", field, value);
-
     // Validation spéciale pour le titre
     if (field === "title") {
       // Limiter à 50 caractères et ne garder que lettres, chiffres, espaces et caractères accentués
@@ -320,17 +317,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         .replace(/[^a-zA-Z0-9\sÀ-ÿ]/g, "") // Garde uniquement lettres, chiffres, espaces et caractères accentués
         .substring(0, 50); // Limite à 50 caractères
 
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: cleanedValue };
-        console.log("New form data (title filtered):", newData);
-        return newData;
-      });
+      setFormData((prev) => ({
+        ...prev,
+        [field]: cleanedValue
+      }));
     } else {
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: value };
-        console.log("New form data:", newData);
-        return newData;
-      });
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value
+      }));
     }
 
     // Réactiver l'auto-avancement quand l'utilisateur fait un nouveau choix
@@ -564,19 +559,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const { specificDetails, vehicleInfo } = pendingVehicleData;
     const filledFields: string[] = [];
 
-    // DEBUG: Log des données reçues
-    console.log("🔍 DEBUG - Données reçues du backend:", specificDetails);
-
     // Pré-remplir automatiquement les détails spécifiques
     const newSpecificDetails = { ...formData.specificDetails };
 
     if (specificDetails.brand) {
-      newSpecificDetails.brand = specificDetails.brand;
+      // Normaliser en MAJUSCULES pour matcher le mockData
+      newSpecificDetails.brand = specificDetails.brand.toUpperCase();
       filledFields.push("Marque");
-      console.log("✅ Marque remplie:", specificDetails.brand);
     }
     if (specificDetails.model) {
-      newSpecificDetails.model = specificDetails.model;
+      // Normaliser en MAJUSCULES pour matcher le mockData
+      newSpecificDetails.model = specificDetails.model.toUpperCase();
       filledFields.push("Modèle");
     }
     if (specificDetails.firstRegistration) {
@@ -589,7 +582,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       // Mapper fuel vers fuelType (champ du formulaire)
       newSpecificDetails.fuelType = specificDetails.fuel;
       filledFields.push("Carburant");
-      console.log("✅ Carburant rempli:", specificDetails.fuel);
     }
     if (specificDetails.transmission) {
       newSpecificDetails.transmission = specificDetails.transmission;
@@ -603,7 +595,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       // Mapper bodyType (API) vers vehicleType (formulaire)
       newSpecificDetails.vehicleType = specificDetails.bodyType;
       filledFields.push("Type de véhicule");
-      console.log("✅ Type de véhicule rempli:", specificDetails.bodyType);
     }
     if (specificDetails.engineSize) {
       // engineSize est numérique, le stocker tel quel
@@ -622,10 +613,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
       newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
       filledFields.push("Puissance fiscale");
-      console.log(
-        "✅ Puissance fiscale remplie:",
-        specificDetails.fiscalHorsepower,
-      );
     }
 
     setFormData((prev) => ({
@@ -950,12 +937,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           const contactValid =
             formData.contact.phone !== "" &&
             validatePhoneNumber(formData.contact.phone).isValid;
-          console.log("Step 12 validation:", {
-            city: formData.location.city,
-            postalCode: formData.location.postalCode,
-            locationValid,
-            contactValid,
-          });
           return locationValid && contactValid;
         case 11:
           // Step 11: Summary
