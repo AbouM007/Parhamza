@@ -24,7 +24,13 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: Supabase Auth for session management.
 - **Core Features**:
     - **Listing Management**: Creation, display, and deletion of vehicle and spare parts listings.
-    - **Auto-Fill Vehicle Data**: Integration with API Plaque Immatriculation to retrieve and normalize vehicle information from license plates, with user confirmation modal before auto-filling form fields, in-memory caching (12h TTL) for cost optimization.
+    - **Auto-Fill Vehicle Data**: 
+      - **New Dedicated Workflow (Oct 2025)**: Two-step process for vehicle registration plate data import
+        - **Step 1**: Plate input screen with "Search" or "Manual entry" options
+        - **Step 2**: Data validation screen showing retrieved API data with editable fields and visual indicators
+        - Conditional navigation: API mode flows through both steps, manual mode skips Step 2
+        - Integration with API Plaque Immatriculation (apiplaqueimmatriculation.com)
+        - In-memory caching (12h TTL) for cost optimization
     - **Compatibility Tags**: System for spare parts listings with intelligent matching.
     - **Subscription Management**: User subscriptions, professional account verification, and premium features (listing boosts).
     - **Messaging**: Integrated messaging system.
