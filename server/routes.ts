@@ -3279,13 +3279,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fuel: normalizedFuel,
         transmission: normalizedTransmission,
         color: d.couleur || null,
-        engineSize: d.ccm || null, // Déjà en format "1870 CM3"
+        engineSize: extractNumber(d.ccm), // "530 CM3" → "530"
         doors: d.nb_portes ? String(d.nb_portes) : null,
         bodyType: normalizedBody,
         co2: extractNumber(d.co2),
         fiscalHorsepower: extractNumber(d.puisFisc),
-        power: d.puisFiscReelCH || d.puisFiscReelKW || null, // Ajout puissance réelle
-        cylinders: d.cylindres || null, // Ajout nombre de cylindres
+        power: extractNumber(d.puisFiscReelCH || d.puisFiscReelKW), // "46 CH" → "46"
+        cylinders: extractNumber(d.cylindres), // "2" → "2"
         genreVCG: d.genreVCGNGC || d.genreVCG || null, // Type véhicule (VP, CTTE, etc.)
       };
 
