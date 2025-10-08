@@ -592,9 +592,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       filledFields.push("Type de véhicule");
     }
     if (specificDetails.engineSize) {
-      // engineSize est numérique, le stocker tel quel
-      newSpecificDetails.engineSize = specificDetails.engineSize;
+      // Pour les motos: mapper engineSize → displacement
+      newSpecificDetails.displacement = parseInt(specificDetails.engineSize);
       filledFields.push("Cylindrée");
+    }
+    if (specificDetails.power) {
+      // Puissance réelle (déjà en nombre depuis le backend)
+      newSpecificDetails.power = parseInt(specificDetails.power);
+      filledFields.push("Puissance");
     }
     if (specificDetails.doors) {
       newSpecificDetails.doors = specificDetails.doors;
@@ -698,7 +703,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             power: specificDetails.power
               ? parseInt(specificDetails.power)
               : null,
-            engineSize: specificDetails.engineSize || null,
+            displacement: specificDetails.engineSize
+              ? parseInt(specificDetails.engineSize)
+              : null, // Pour les motos: cylindrée
             doors: specificDetails.doors
               ? parseInt(specificDetails.doors)
               : null,
