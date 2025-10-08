@@ -16,6 +16,8 @@ import { ListingTypeStep, ListingTypeValue } from "./ListingTypeStep";
 import { VehicleDetailsStep } from "./VehicleDetailsStep";
 import { PlateBlurModal } from "../PlateBlurModal";
 import { VehicleDataPreviewModal } from "./VehicleDataPreviewModal";
+import { PlateInputStep } from "./PlateInputStep";
+import { DataValidationStep } from "./DataValidationStep";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
@@ -129,6 +131,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [pendingVehicleData, setPendingVehicleData] = useState<any>(null);
   const [pendingRegistrationNumber, setPendingRegistrationNumber] = useState("");
 
+  // Nouveaux états pour le flux de saisie de plaque
+  const [useManualMode, setUseManualMode] = useState(false);
+  const [apiVehicleData, setApiVehicleData] = useState<any>(null);
+  const [isLoadingPlateData, setIsLoadingPlateData] = useState(false);
+  const [plateApiError, setPlateApiError] = useState("");
+
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
     // Supprimer tous les caractères non numériques sauf le +
@@ -221,7 +229,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [vehicleDataLoading, setVehicleDataLoading] = useState(false);
   const [vehicleDataMessage, setVehicleDataMessage] = useState("");
 
-  const totalSteps = 12; // Suppression de l'étape pack premium
+  const totalSteps = 14; // 2 nouveaux steps pour plaque + 12 steps existants
 
   // Réinitialiser la sous-catégorie quand la catégorie change
   useEffect(() => {
@@ -648,6 +656,68 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     setPendingRegistrationNumber("");
   };
 
+  // Nouveaux handlers pour le flux de plaque (Steps 1-2)
+  const handlePlateSearch = async () => {
+    if (!formData.registrationNumber || formData.registrationNumber.trim().length < 5) {
+      setPlateApiError("Veuillez saisir un numéro d'immatriculation valide");
+      return;
+    }
+
+    setIsLoadingPlateData(true);
+    setPlateApiError("");
+
+    try {
+      const response = await fetch("/api/vehicle-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ registrationNumber: formData.registrationNumber }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const { specificDetails, vehicleInfo } = result.data;
+
+        // Stocker les données de l'API
+        setApiVehicleData({
+          brand: specificDetails.brand,
+          model: specificDetails.model,
+          year: specificDetails.firstRegistration 
+            ? specificDetails.firstRegistration.split('-')[0] 
+            : vehicleInfo.year,
+          fuel: specificDetails.fuel,
+          transmission: specificDetails.transmission,
+          power: specificDetails.power,
+          engineSize: specificDetails.engineSize,
+          doors: specificDetails.doors,
+          bodyType: specificDetails.bodyType,
+          color: specificDetails.color,
+          co2: specificDetails.co2,
+          fiscalHorsepower: specificDetails.fiscalHorsepower,
+          cylinders: specificDetails.cylinders,
+          genreVCG: specificDetails.genreVCG,
+        });
+
+        // Passer au step 2 (validation)
+        setCurrentStep(2);
+      } else {
+        setPlateApiError(result.error || "Véhicule non trouvé. Essayez la saisie manuelle.");
+      }
+    } catch (error) {
+      console.error("Erreur récupération données:", error);
+      setPlateApiError("Erreur de connexion. Veuillez réessayer ou saisir manuellement.");
+    } finally {
+      setIsLoadingPlateData(false);
+    }
+  };
+
+  const handleManualEntry = () => {
+    setUseManualMode(true);
+    setCurrentStep(3); // Passer directement au step 3 (ancien step 1 - type d'annonce)
+  };
+
   const toggleEquipment = (equipment: string) => {
     const currentEquipment = formData.specificDetails.equipment || [];
     const updatedEquipment = currentEquipment.includes(equipment)
@@ -668,15 +738,35 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     // Effacer seulement les données de navigation (pas les contenus saisis par l'utilisateur)
     switch (currentStep) {
       case 2:
+        // En revenant du step 2 (validation) au step 1 (plaque), on efface les données API
+        setApiVehicleData(null);
+        setPlateApiError("");
+        break;
+
+      case 3:
+        // En revenant du step 3 (type d'annonce), gérer selon le mode
+        if (useManualMode) {
+          // Si mode manuel, retourner au step 1
+          setCurrentStep(1);
+          setUseManualMode(false);
+        } else {
+          // Si mode API, retourner au step 2
+          goToPreviousStep();
+        }
+        enableAutoAdvance();
+        return; // Sortir sans appeler goToPreviousStep à la fin
+
+      case 4:
         // En revenant de l'étape catégorie, on efface le type d'annonce
         setFormData((prev) => ({ ...prev, listingType: "" }));
         break;
 
-      case 3:
+      case 5:
         // En revenant de l'étape sous-famille, on efface la famille principale
         setFormData((prev) => ({ ...prev, category: "" }));
         break;
-      case 4:
+
+      case 6:
         // En revenant de l'étape état du bien, on efface la sous-famille
         setFormData((prev) => ({
           ...prev,
@@ -684,7 +774,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           condition: undefined,
         }));
         break;
-      case 5:
+
+      case 7:
         // En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
         if (needsConditionStep()) {
           setFormData((prev) => ({ ...prev, condition: undefined }));
@@ -692,7 +783,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           setFormData((prev) => ({ ...prev, subcategory: "" }));
         }
         break;
-      // Pour les étapes 6 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
+      // Pour les étapes 8 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
     }
 
     goToPreviousStep();
@@ -707,21 +798,32 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const result = (() => {
       switch (currentStep) {
         case 1:
-          return formData.listingType !== "";
+          // Step 1 (NEW): PlateInputStep - toujours valide (on peut rechercher ou passer en manuel)
+          return true;
         case 2:
-          return formData.category !== "";
+          // Step 2 (NEW): DataValidationStep - vérifier qu'on a au moins une description
+          return formData.description && formData.description.trim().length > 0;
         case 3:
-          return formData.subcategory !== "";
+          // Step 3 (was 1): ListingTypeStep
+          return formData.listingType !== "";
         case 4:
-          // Étape état du bien (seulement pour biens matériels)
+          // Step 4 (was 2): CategoryStep
+          return formData.category !== "";
+        case 5:
+          // Step 5 (was 3): Subcategory
+          return formData.subcategory !== "";
+        case 6:
+          // Step 6 (was 4): Condition - état du bien (seulement pour biens matériels)
           if (needsConditionStep()) {
             return formData.condition !== undefined;
           }
           return true; // Si pas besoin d'état, toujours valide
-        case 5:
+        case 7:
+          // Step 7 (was 5): Title
           return formData.title.trim() !== "";
-        case 6:
-          // Détails spécifiques - ignorer pour les recherches de pièces détachées ET les services
+        case 8:
+          // Step 8 (was 6): Details - détails spécifiques
+          // Ignorer pour les recherches de pièces détachées ET les services
           if (isSearchForParts() || isServiceCategory()) {
             return true;
           }
@@ -811,17 +913,21 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             formData.specificDetails.model &&
             formData.specificDetails.year
           );
-        case 7:
-          return true; // Pas de validation minimum pour la description
-        case 8:
-          return true; // Photos optionnelles - toujours permettre de passer
         case 9:
+          // Step 9 (was 7): Description
+          return true; // Pas de validation minimum pour la description
+        case 10:
+          // Step 10 (was 8): Photos
+          return true; // Photos optionnelles - toujours permettre de passer
+        case 11:
+          // Step 11 (was 9): Price
           // Ignorer cette étape pour les recherches de pièces détachées ET les annonces de recherche
           if (isSearchForParts() || isSearchListing()) {
             return true;
           }
           return formData.price > 0;
-        case 10:
+        case 12:
+          // Step 12 (was 10): Location
           // Ignorer cette étape pour les recherches de pièces détachées
           if (isSearchForParts()) {
             return true;
@@ -829,18 +935,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           const locationValid =
             formData.location.city !== "" &&
             formData.location.postalCode !== "";
-          console.log("Step 10 validation:", {
+          console.log("Step 12 validation:", {
             city: formData.location.city,
             postalCode: formData.location.postalCode,
             locationValid,
           });
           return locationValid;
-        case 11:
+        case 13:
+          // Step 13 (was 11): Contact
           return (
             formData.contact.phone !== "" &&
             validatePhoneNumber(formData.contact.phone).isValid
           );
-        case 12:
+        case 14:
+          // Step 14 (was 12): Summary
           return true; // Étape de récapitulatif
         default:
           return false;
@@ -2739,24 +2847,24 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Pour les recherches de pièces détachées, rediriger automatiquement les étapes ignorées
     if (isSearchForParts()) {
-      if (currentStep === 5) {
-        // Rediriger l'étape 5 vers l'étape 6 ou 7
-        setCurrentStep(needsConditionStep() ? 6 : 7);
+      if (currentStep === 7) {
+        // Rediriger l'étape 7 vers l'étape 8 ou 9
+        setCurrentStep(needsConditionStep() ? 8 : 9);
         return null;
       }
-      if (currentStep === 9) {
-        // Rediriger l'étape 9 vers l'étape 8 (photos) ou 11 (contacts)
-        setCurrentStep(8);
+      if (currentStep === 11) {
+        // Rediriger l'étape 11 vers l'étape 10 (photos) ou 13 (contacts)
+        setCurrentStep(10);
         return null;
       }
-      if (currentStep === 10) {
-        // Rediriger l'étape 10 vers l'étape 11 (contacts)
-        setCurrentStep(11);
+      if (currentStep === 12) {
+        // Rediriger l'étape 12 vers l'étape 13 (contacts)
+        setCurrentStep(13);
         return null;
       }
-      if (currentStep === 13) {
-        // Rediriger l'étape 13 (récapitulatif) vers l'étape 12 (pack premium)
-        setCurrentStep(12);
+      if (currentStep === 15) {
+        // Rediriger l'étape 15 (récapitulatif) vers l'étape 14 (pack premium)
+        setCurrentStep(14);
         return null;
       }
     }
@@ -2764,13 +2872,41 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     switch (currentStep) {
       case 1:
         return (
+          <PlateInputStep
+            registrationNumber={formData.registrationNumber || ''}
+            onRegistrationNumberChange={(value) => updateFormData('registrationNumber', value)}
+            onSearchClick={handlePlateSearch}
+            onManualClick={handleManualEntry}
+            isLoading={isLoadingPlateData}
+            error={plateApiError}
+          />
+        );
+
+      case 2:
+        return (
+          <DataValidationStep
+            apiData={apiVehicleData || {}}
+            formData={formData.specificDetails}
+            onFieldChange={(field, value) => updateSpecificDetails(field, value)}
+            brands={getBrandsBySubcategory(formData.subcategory)}
+            models={carModelsByBrand[formData.specificDetails.brand as keyof typeof carModelsByBrand] || []}
+            fuelTypes={fuelTypes}
+            transmissionTypes={TRANSMISSION_TYPES}
+            colors={COLORS}
+            doors={DOORS}
+            bodyTypes={VEHICLE_TYPES}
+          />
+        );
+
+      case 3:
+        return (
           <ListingTypeStep
             value={formData.listingType}
             onSelect={(value) => updateFormData("listingType", value)}
           />
         );
 
-      case 2:
+      case 4:
         return (
           <CategoryStep
             categories={CATEGORIES}
@@ -2780,7 +2916,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           />
         );
 
-      case 3:
+      case 5:
         if (!selectedCategory) return null;
 
         return (
@@ -2793,7 +2929,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           />
         );
 
-      case 4:
+      case 6:
         // Étape état du bien (seulement pour biens matériels)
         if (!needsConditionStep()) {
           // Si pas besoin d'état du bien, aller directement au titre
@@ -2863,8 +2999,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 5:
-        // Ancienne étape 4 déplacée en étape 5 : Titre
+      case 7:
+        // Titre
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3019,8 +3155,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 6:
-        // Étape 6 : Détails spécifiques (ancienne étape 5)
+      case 8:
+        // Détails spécifiques
         // Ignorer cette étape pour les services - ne pas afficher
         if (isServiceCategory()) {
           return null;
@@ -3041,8 +3177,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 7:
-        // Étape 7 : Description (ancienne étape 7 reste la même)
+      case 9:
+        // Description
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3288,7 +3424,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 8:
+      case 10:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3397,7 +3533,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 9:
+      case 11:
         // Masquer cette étape pour les annonces de recherche
         if (isSearchListing()) {
           return null;
@@ -3446,7 +3582,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 10:
+      case 12:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3500,7 +3636,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 11:
+      case 13:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3596,7 +3732,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 12:
+      case 14:
         return (
           <div className="space-y-8">
             <div className="text-center mb-8">
@@ -3780,7 +3916,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 13:
+      case 15:
         return (
           <div className="space-y-8">
             <div className="text-center mb-8">
