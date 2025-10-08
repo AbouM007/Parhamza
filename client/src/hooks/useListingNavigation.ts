@@ -93,6 +93,9 @@ export const useListingNavigation = ({
       nextStepNumber = needsConditionStep() ? 4 : 5;
     } else if (currentStep === 4) {
       nextStepNumber = 5;
+    } else if (currentStep === 8) {
+      // De Photos (8) → Prix (9) OU Localisation (10) si recherche
+      nextStepNumber = isSearchListing() ? 10 : 9;
     } else {
       if (isSearchForParts()) {
         if (currentStep === 5) {
@@ -105,10 +108,6 @@ export const useListingNavigation = ({
       } else if (isServiceCategory()) {
         if (currentStep === 5) {
           nextStepNumber = 7;
-        }
-      } else if (isSearchListing()) {
-        if (currentStep === 8) {
-          nextStepNumber = 10;
         }
       }
     }
@@ -143,14 +142,14 @@ export const useListingNavigation = ({
       // De Prix (9) → Photos (8)
       previousStepNumber = 8;
     } else if (currentStep === 10) {
-      // De Localisation (10) → Prix (9) ou Photos (8) si recherche
+      // De Localisation (10) → Prix (9) OU Photos (8) si recherche
       previousStepNumber = isSearchListing() ? 8 : 9;
     } else if (currentStep === 11) {
       // De Récapitulatif (11) → Localisation (10)
       previousStepNumber = 10;
     }
 
-    // Cas spéciaux pour catégories spécifiques
+    // Cas spéciaux pour catégories spécifiques (avant les règles générales)
     if (isSearchForParts()) {
       if (currentStep === 9) {
         previousStepNumber = 8;

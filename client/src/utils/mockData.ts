@@ -1975,6 +1975,7 @@ export const carModelsByBrand = {
     "Autre Volkswagen",
   ],
   Ford: [
+    "KA",
     "Fiesta",
     "Focus",
     "Mondeo",
