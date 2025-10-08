@@ -3052,7 +3052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Détecter les hybrides : tout ce qui contient ÉLECTRIQUE + autre carburant
     // Ex: "ESSENCE/ÉLECTRIQUE", "DIESEL/ÉLECTRIQUE", "ESS+ELEC", etc.
     if (fuel.includes('HYBRIDE') || fuel.includes('HYBRID')) return 'hybrid';
-    if (fuel.includes('ELECTRIQUE') || fuel.includes('ELEC')) {
+    if (fuel.includes('ÉLECTRIQUE') || fuel.includes('ELECTRIQUE') || fuel.includes('ELEC')) {
       // Si contient ÉLECTRIQUE + autre chose = hybride
       if (fuel.includes('ESSENCE') || fuel.includes('GAZOLE') || fuel.includes('DIESEL') || 
           fuel.includes('GPL') || fuel.includes('ETHANOL') || fuel.includes('/')) {
