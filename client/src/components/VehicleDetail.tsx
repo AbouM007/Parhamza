@@ -556,16 +556,6 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   )}
               </div>
 
-              {/* Description */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Description
-                </h3>
-                <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-                  {vehicle.description}
-                </p>
-              </div>
-
               {/* Caractéristiques techniques */}
               {!isServiceCategory(vehicle.category) && (vehicle.fuelType || vehicle.transmission || vehicle.color || vehicle.power || vehicle.emissionClass || vehicle.vehicleSpecifications) && (
                 <div className="mb-6">
@@ -764,20 +754,6 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                         <div className="font-semibold">{vehicle.vehicleSpecifications.utilityType}</div>
                       </div>
                     )}
-
-                    {/* Équipements spécifiques */}
-                    {vehicle.vehicleSpecifications?.equipment && vehicle.vehicleSpecifications.equipment.length > 0 && (
-                      <div className="p-3 bg-gray-50 rounded-lg md:col-span-2">
-                        <div className="text-sm text-gray-600 mb-2">Équipements</div>
-                        <div className="flex flex-wrap gap-1">
-                          {vehicle.vehicleSpecifications.equipment.map((eq, idx) => (
-                            <span key={idx} className="inline-block px-2 py-0.5 bg-cyan-100 text-cyan-800 rounded text-xs font-medium">
-                              {eq}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -901,7 +877,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
               {/* Features */}
               {vehicle.features && vehicle.features.length > 0 && (
-                <div>
+                <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
                     Équipements
                   </h3>
@@ -909,7 +885,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     {vehicle.features.map((feature, index) => (
                       <div
                         key={index}
-                        className="flex items-center space-x-2 p-2 bg-cyan-50 text-[#0CBFDE] rounded-lg"
+                        className="flex items-center space-x-2 p-2 bg-gray-50 text-gray-900 rounded-lg"
                       >
                         <CheckCircle className="h-4 w-4" />
                         <span className="text-sm font-medium">{feature}</span>
@@ -918,6 +894,16 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Description */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Description
+                </h3>
+                <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {vehicle.description}
+                </p>
+              </div>
             </div>
           </div>
 
