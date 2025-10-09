@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, HelpCircle, MessageCircle, Phone, Mail, ChevronDown, ChevronUp } from 'lucide-react';
-import { BRAND } from '../config/legalConfig';
+import React, { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Search,
+  HelpCircle,
+  MessageCircle,
+  Phone,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { BRAND } from "../config/legalConfig";
 
 interface HelpPageProps {
   onBack: () => void;
@@ -14,92 +23,105 @@ interface FAQItem {
   category: string;
 }
 
-export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+export const HelpPage: React.FC<HelpPageProps> = ({
+  onBack,
+  setCurrentView,
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const faqData: FAQItem[] = [
     {
       id: 1,
       question: `Comment publier une annonce sur ${BRAND.SITE_NAME} ?`,
-      answer: "Pour publier une annonce, connectez-vous à votre compte, cliquez sur 'Déposer une annonce' et suivez les étapes guidées. Vous devrez renseigner le type d'annonce, la catégorie, les détails du véhicule, ajouter des photos et définir un prix.",
-      category: "annonces"
+      answer:
+        "Pour publier une annonce, connectez-vous à votre compte, cliquez sur 'Déposer une annonce' et suivez les étapes guidées. Vous devrez renseigner le type d'annonce, la catégorie, les détails du véhicule, ajouter des photos et définir un prix.",
+      category: "annonces",
     },
     {
       id: 2,
       question: "Combien coûte la publication d'une annonce ?",
-      answer: "La publication d'une annonce de base est gratuite. Vous pouvez booster votre annonce avec nos packs premium : Daily (0,99€), Weekly (4,99€) ou Monthly (19,90€) pour une meilleure visibilité.",
-      category: "tarifs"
+      answer:
+        "La publication d'une annonce de base est gratuite. Vous pouvez booster votre annonce avec nos packs premium : Daily (0,99€), Weekly (4,99€) ou Monthly (19,90€) pour une meilleure visibilité.",
+      category: "tarifs",
     },
     {
       id: 3,
       question: "Comment modifier ou supprimer mon annonce ?",
-      answer: "Rendez-vous dans votre espace personnel, section 'Mes annonces'. Cliquez sur l'annonce à modifier, puis sur 'Modifier' ou 'Supprimer'. Les modifications sont prises en compte immédiatement.",
-      category: "annonces"
+      answer:
+        "Rendez-vous dans votre espace personnel, section 'Mes annonces'. Cliquez sur l'annonce à modifier, puis sur 'Modifier' ou 'Supprimer'. Les modifications sont prises en compte immédiatement.",
+      category: "annonces",
     },
     {
       id: 4,
       question: "Puis-je publier plusieurs photos pour mon véhicule ?",
-      answer: "Oui, vous pouvez ajouter jusqu'à 4 photos par annonce. Des photos de qualité augmentent significativement vos chances de vente. Veillez à montrer l'extérieur, l'intérieur et les détails importants.",
-      category: "annonces"
+      answer:
+        "Oui, vous pouvez ajouter jusqu'à 4 photos par annonce. Des photos de qualité augmentent significativement vos chances de vente. Veillez à montrer l'extérieur, l'intérieur et les détails importants.",
+      category: "annonces",
     },
     {
       id: 5,
       question: "Comment contacter un vendeur ?",
-      answer: "Chaque annonce dispose d'un bouton 'Contacter le vendeur'. Vous pouvez l'appeler directement, lui envoyer un message via WhatsApp ou utiliser notre système de messagerie interne.",
-      category: "achat"
+      answer:
+        "Chaque annonce dispose d'un bouton 'Contacter le vendeur'. Vous pouvez l'appeler directement, lui envoyer un message via WhatsApp ou utiliser notre système de messagerie interne.",
+      category: "achat",
     },
     {
       id: 6,
       question: "Comment fonctionne le système de premium ?",
-      answer: "Les packs premium boostent la visibilité de votre annonce en la plaçant en tête des résultats de recherche. Trois formules sont disponibles : Daily (1 jour), Weekly (7 jours) ou Monthly (30 jours).",
-      category: "tarifs"
+      answer:
+        "Les packs premium boostent la visibilité de votre annonce en la plaçant en tête des résultats de recherche. Trois formules sont disponibles : Daily (1 jour), Weekly (7 jours) ou Monthly (30 jours).",
+      category: "tarifs",
     },
     {
       id: 7,
       question: "Comment créer un compte professionnel ?",
-      answer: "Lors de l'inscription, sélectionnez 'Compte professionnel' et renseignez les informations de votre entreprise (nom, SIRET, adresse). Les comptes professionnels bénéficient d'avantages spécifiques.",
-      category: "compte"
+      answer:
+        "Lors de l'inscription, sélectionnez 'Compte professionnel' et renseignez les informations de votre entreprise (nom, SIRET, adresse). Les comptes professionnels bénéficient d'avantages spécifiques.",
+      category: "compte",
     },
     {
       id: 8,
       question: "Mes données personnelles sont-elles protégées ?",
       answer: `Absolument. ${BRAND.SITE_NAME} respecte le RGPD et protège vos données personnelles. Elles ne sont jamais vendues à des tiers et sont utilisées uniquement pour le fonctionnement de la plateforme.`,
-      category: "securite"
+      category: "securite",
     },
     {
       id: 9,
       question: "Comment signaler une annonce suspecte ?",
       answer: `Chaque annonce dispose d'un bouton 'Signaler' en bas de page. Vous pouvez également nous contacter directement à ${BRAND.CONTACT_EMAIL} pour signaler tout contenu inapproprié.`,
-      category: "securite"
+      category: "securite",
     },
     {
       id: 10,
       question: "Puis-je modifier mon mot de passe ?",
-      answer: "Oui, depuis le formulaire de connexion, cliquer sur mot de passe oublié, rensiegnez votre email et vous receverez un lien pour modifier votre mot de passe urrez modifier votre mot de passe, vos informations personnelles et vos préférences de communicatio.",
-      category: "compte"
-    }
+      answer:
+        "Oui, depuis le formulaire de connexion, cliquez sur mot de passe oublié, renseignez votre adresse email et vous receverez un lien pour modifier votre mot de passe.",
+      category: "compte",
+    },
   ];
 
   const categories = [
-    { id: 'all', name: 'Toutes les catégories' },
-    { id: 'annonces', name: 'Annonces' },
-    { id: 'achat', name: 'Achat' },
-    { id: 'tarifs', name: 'Tarifs' },
-    { id: 'compte', name: 'Compte' },
-    { id: 'securite', name: 'Sécurité' }
+    { id: "all", name: "Toutes les catégories" },
+    { id: "annonces", name: "Annonces" },
+    { id: "achat", name: "Achat" },
+    { id: "tarifs", name: "Tarifs" },
+    { id: "compte", name: "Compte" },
+    { id: "securite", name: "Sécurité" },
   ];
 
-  const filteredFAQ = faqData.filter(item => {
-    const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.answer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+  const filteredFAQ = faqData.filter((item) => {
+    const matchesSearch =
+      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -139,7 +161,8 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
             Comment pouvons-nous vous aider ?
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Trouvez rapidement les réponses à vos questions ou contactez notre équipe support.
+            Trouvez rapidement les réponses à vos questions ou contactez notre
+            équipe support.
           </p>
         </div>
 
@@ -162,16 +185,18 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
           <div className="lg:col-span-1">
             {/* Categories */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Catégories</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Catégories
+              </h3>
               <div className="space-y-2">
-                {categories.map(category => (
+                {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                       selectedCategory === category.id
-                        ? 'bg-primary-bolt-500 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? "bg-primary-bolt-500 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     {category.name}
@@ -182,7 +207,9 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
 
             {/* Contact Support */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Besoin d'aide ?</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Besoin d'aide ?
+              </h3>
               <div className="space-y-3">
                 <a
                   href={`mailto:${BRAND.CONTACT_EMAIL}`}
@@ -212,10 +239,11 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Questions Fréquentes
                 <span className="text-lg font-normal text-gray-500 ml-2">
-                  ({filteredFAQ.length} résultat{filteredFAQ.length > 1 ? 's' : ''})
+                  ({filteredFAQ.length} résultat
+                  {filteredFAQ.length > 1 ? "s" : ""})
                 </span>
               </h2>
-              
+
               {filteredFAQ.length === 0 ? (
                 <div className="text-center py-12">
                   <HelpCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -228,13 +256,18 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredFAQ.map(item => (
-                    <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                  {filteredFAQ.map((item) => (
+                    <div
+                      key={item.id}
+                      className="border border-gray-200 rounded-lg overflow-hidden"
+                    >
                       <button
                         onClick={() => toggleFAQ(item.id)}
                         className="w-full px-6 py-4 text-left bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
                       >
-                        <span className="text-lg font-medium text-gray-900">{item.question}</span>
+                        <span className="text-lg font-medium text-gray-900">
+                          {item.question}
+                        </span>
                         {expandedFAQ === item.id ? (
                           <ChevronUp className="h-5 w-5 text-gray-500" />
                         ) : (
@@ -243,7 +276,9 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
                       </button>
                       {expandedFAQ === item.id && (
                         <div className="px-6 py-4 bg-white border-t border-gray-200">
-                          <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+                          <p className="text-gray-700 leading-relaxed">
+                            {item.answer}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -260,9 +295,12 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
             <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageCircle className="h-8 w-8 text-blue-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tutoriels Vidéo</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Tutoriels Vidéo
+            </h3>
             <p className="text-gray-600 mb-4">
-              Apprenez à utiliser {BRAND.SITE_NAME} avec nos tutoriels vidéo détaillés
+              Apprenez à utiliser {BRAND.SITE_NAME} avec nos tutoriels vidéo
+              détaillés
             </p>
             <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
               Voir les tutoriels
@@ -273,9 +311,12 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
             <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <HelpCircle className="h-8 w-8 text-green-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Guide d'Utilisation</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Guide d'Utilisation
+            </h3>
             <p className="text-gray-600 mb-4">
-              Consultez notre guide complet pour maîtriser toutes les fonctionnalités
+              Consultez notre guide complet pour maîtriser toutes les
+              fonctionnalités
             </p>
             <button className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
               Lire le guide
@@ -286,7 +327,9 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
             <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Phone className="h-8 w-8 text-purple-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Support Téléphonique</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Support Téléphonique
+            </h3>
             <p className="text-gray-600 mb-4">
               Parlez directement à notre équipe support du lundi au vendredi
             </p>
