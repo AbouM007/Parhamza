@@ -3330,7 +3330,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         Recherche par plaque d'immatriculation
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Gagnez du temps ! Le titre et les détails seront
+                        Le titre sera prposé 
                         automatiquement remplis
                       </p>
                     </div>
