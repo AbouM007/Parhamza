@@ -48,6 +48,11 @@ const isServiceCategory = (category: string): boolean => {
   return serviceSubcategories.includes(category);
 };
 
+// Helper to check if subcategory is a spare part
+const isSparePart = (category: string): boolean => {
+  return category.startsWith("piece-");
+};
+
 interface VehicleDetailProps {
   vehicle: Vehicle;
   onBack: () => void;
@@ -519,33 +524,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   </div>
                 </div>
 
-                {/* Année - seulement pour les véhicules, pas pour les services */}
-                {!isServiceCategory(vehicle.category) && (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                    <Calendar className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <div className="text-sm text-gray-500">Année</div>
-                      <div className="font-bold text-gray-900">{vehicle.year}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Kilométrage - seulement pour les véhicules avec kilométrage */}
-                {!isServiceCategory(vehicle.category) &&
-                  vehicle.mileage &&
-                  vehicle.mileage > 0 && (
-                    <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                      <Gauge className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <div className="text-sm text-gray-500">Kilométrage</div>
-                        <div className="font-bold text-gray-900">
-                          {formatMileage(vehicle.mileage)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                {/* Marque - seulement pour les véhicules, pas pour les services */}
+                {/* Marque - pour pièces détachées et véhicules (pas pour services) */}
                 {!isServiceCategory(vehicle.category) &&
                   vehicle.brand !== "Non spécifié" && (
                     <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
@@ -557,6 +536,33 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       <div>
                         <div className="text-sm text-gray-500">Marque</div>
                         <div className="font-bold text-gray-900">{vehicle.brand}</div>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Année - pour pièces détachées et véhicules si elle existe */}
+                {!isServiceCategory(vehicle.category) && vehicle.year && (
+                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                    <Calendar className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <div className="text-sm text-gray-500">Année</div>
+                      <div className="font-bold text-gray-900">{vehicle.year}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Kilométrage - uniquement pour véhicules (PAS pour pièces détachées) */}
+                {!isServiceCategory(vehicle.category) &&
+                  !isSparePart(vehicle.category) &&
+                  vehicle.mileage &&
+                  vehicle.mileage > 0 && (
+                    <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                      <Gauge className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <div className="text-sm text-gray-500">Kilométrage</div>
+                        <div className="font-bold text-gray-900">
+                          {formatMileage(vehicle.mileage)}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -655,6 +661,31 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       )}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Compatibilités - EN PREMIER pour pièces détachées */}
+              {vehicle.compatibilityTags && vehicle.compatibilityTags.length > 0 && (
+                <div className="mb-8 bg-primary-bolt-50 border-2 border-primary-bolt-300 rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center space-x-3 mb-5">
+                    <div className="p-2 bg-primary-bolt-100 rounded-lg">
+                      <CheckCircle className="h-6 w-6 text-primary-bolt-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-primary-bolt-700">
+                      Compatibilités
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {vehicle.compatibilityTags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-primary-bolt-700 border-2 border-primary-bolt-300 hover:bg-primary-bolt-100 transition-colors"
+                        data-testid={`tag-compatibility-${index}`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -925,29 +956,6 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                         <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.utilityType}</div>
                       </div>
                     )}
-                  </div>
-                </div>
-              )}
-
-              {/* Compatibilités */}
-              {vehicle.compatibilityTags && vehicle.compatibilityTags.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-blue-900">
-                      Compatibilités
-                    </h3>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {vehicle.compatibilityTags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                        data-testid={`tag-compatibility-${index}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
                   </div>
                 </div>
               )}
