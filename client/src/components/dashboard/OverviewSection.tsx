@@ -14,7 +14,6 @@ import {
   Plus,
 } from "lucide-react";
 import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanner";
-import { CATEGORIES } from "@/data/categories";
 
 interface OverviewSectionProps {
   profile: any;
@@ -41,30 +40,6 @@ export default function OverviewSection({
   onCreateListing,
   formatPrice,
 }: OverviewSectionProps) {
-  // Helper function to get subcategory icon and colors
-  const getSubcategoryInfo = (subcategoryId: string) => {
-    for (const category of CATEGORIES) {
-      const subcategory = category.subcategories.find(
-        (sub) => sub.id === subcategoryId
-      );
-      if (subcategory) {
-        return {
-          image: subcategory.image,
-          color: subcategory.color,
-          bgColor: subcategory.bgColor || "bg-gray-100",
-          name: subcategory.name,
-        };
-      }
-    }
-    // Fallback to default
-    return {
-      image: null,
-      color: "text-primary-bolt-500",
-      bgColor: "bg-primary-bolt-100",
-      name: "Annonce",
-    };
-  };
-
   return (
 
   <div className="space-y-8">
@@ -346,22 +321,28 @@ export default function OverviewSection({
         {userVehicles.length > 0 ? (
           <div className="space-y-4">
             {userVehicles.slice(0, 5).map((vehicle) => {
-              const subcategoryInfo = getSubcategoryInfo(vehicle.subcategory);
+              // Récupérer la première photo ou utiliser un placeholder
+              const thumbnail = vehicle.photos && vehicle.photos.length > 0 
+                ? vehicle.photos[0] 
+                : null;
+              
               return (
                 <div
                   key={vehicle.id}
                   className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl hover:from-primary-bolt-50 hover:to-primary-bolt-100/50 transition-all duration-200"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`w-14 h-14 ${subcategoryInfo.bgColor} rounded-xl flex items-center justify-center shadow-lg`}>
-                      {subcategoryInfo.image ? (
+                    <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg bg-gray-200 flex-shrink-0">
+                      {thumbnail ? (
                         <img 
-                          src={subcategoryInfo.image} 
-                          alt={subcategoryInfo.name}
-                          className="h-8 w-8 object-contain"
+                          src={thumbnail} 
+                          alt={vehicle.title}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <Car className={`h-7 w-7 ${subcategoryInfo.color}`} />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400">
+                          <Car className="h-8 w-8 text-white" />
+                        </div>
                       )}
                     </div>
                     <div>
