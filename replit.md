@@ -51,6 +51,11 @@ Preferred communication style: Simple, everyday language.
         - Visual tag display with primary-bolt color scheme and easy removal
         - Click-outside handler for better UX
         - Helps buyers find compatible parts through targeted search
+      - **Spare Parts Fields (Oct 2025)**: Enhanced information for spare parts listings
+        - État (Condition): "Neuf" or "Occasion" - mandatory field
+        - Type de pièce (Part Type): Moteur, Transmission, Freinage, Suspension, Électronique, Carrosserie, Intérieur, Éclairage, Pneumatiques, Autre - mandatory field
+        - Year field hidden in display for spare parts (auto-filled with current year in DB)
+        - Dedicated "Informations sur la pièce" section in VehicleDetail for part-specific data
     - **Subscription Management**: User subscriptions, professional account verification, and premium features (listing boosts).
     - **Messaging**: Integrated messaging system.
     - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
