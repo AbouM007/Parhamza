@@ -376,13 +376,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     } else if (formData.subcategory === "piece-utilitaire") {
       brandsToSearch = brandsByVehicleType.utilitaire || [];
       shouldIncludeCarModels = false; // Pas de modèles d'utilitaires pour l'instant
-    } else if (formData.subcategory === "piece-voiture-utilitaire") {
-      // Garde compatibilité avec anciennes annonces
-      brandsToSearch = [
-        ...(brandsByVehicleType.voiture || []),
-        ...(brandsByVehicleType.utilitaire || []),
-      ];
-      shouldIncludeCarModels = true;
     } else if (formData.subcategory === "piece-moto-scooter") {
       brandsToSearch = brandsByVehicleType.moto || [];
       shouldIncludeCarModels = false;
@@ -1055,7 +1048,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     return (
       formData.subcategory === "piece-voiture" ||
       formData.subcategory === "piece-utilitaire" ||
-      formData.subcategory === "piece-voiture-utilitaire" || // Garde compatibilité
       formData.subcategory === "piece-moto-scooter" ||
       formData.subcategory === "piece-quad" ||
       formData.subcategory === "piece-caravane-remorque" ||
@@ -2870,7 +2862,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
       case "piece-voiture":
       case "piece-utilitaire":
-      case "piece-voiture-utilitaire": // Garde compatibilité
       case "piece-moto-scooter":
       case "piece-quad":
       case "piece-caravane-remorque":
