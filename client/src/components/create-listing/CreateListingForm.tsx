@@ -1165,6 +1165,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             : null,
           // Équipements
           equipment: formData.specificDetails.equipment || [],
+          // Pièces détachées
+          sparePartCondition: formData.specificDetails.partCondition || null,
+          sparePartType: formData.specificDetails.partCategory || null,
         },
         condition: formData.condition || "good",
         price: formData.price || 0,
