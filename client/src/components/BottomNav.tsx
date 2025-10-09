@@ -1,0 +1,98 @@
+import { Home, Search, PlusCircle, MessageCircle, User } from "lucide-react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+
+export function BottomNav() {
+  const [location, setLocation] = useLocation();
+  const { user } = useAuth();
+
+  const navItems = [
+    {
+      icon: Home,
+      label: "Accueil",
+      path: "/",
+      active: location === "/",
+    },
+    {
+      icon: Search,
+      label: "Recherche",
+      path: "/search",
+      active: location === "/search",
+    },
+    {
+      icon: PlusCircle,
+      label: "Déposer",
+      path: "/create-listing",
+      active: location === "/create-listing",
+      primary: true,
+    },
+    {
+      icon: MessageCircle,
+      label: "Messages",
+      path: "/messages",
+      active: location === "/messages",
+    },
+    {
+      icon: User,
+      label: "Profil",
+      path: user ? "/profile" : "/auth",
+      active: location === "/profile" || location === "/auth",
+    },
+  ];
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50"
+      data-testid="bottom-nav"
+    >
+      <div className="flex items-center justify-around h-16 px-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.active;
+
+          return (
+            <button
+              key={item.path}
+              onClick={() => setLocation(item.path)}
+              className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                item.primary
+                  ? "transform -translate-y-2"
+                  : ""
+              }`}
+              data-testid={`bottom-nav-${item.label.toLowerCase()}`}
+            >
+              <div
+                className={`flex items-center justify-center ${
+                  item.primary
+                    ? "w-14 h-14 rounded-full bg-primary-bolt-500 text-white shadow-lg"
+                    : "w-10 h-10"
+                }`}
+              >
+                <Icon
+                  className={`${
+                    item.primary
+                      ? "w-6 h-6"
+                      : isActive
+                      ? "w-6 h-6 text-primary-bolt-500"
+                      : "w-6 h-6 text-gray-500"
+                  }`}
+                />
+              </div>
+              <span
+                className={`text-xs mt-1 ${
+                  item.primary
+                    ? "text-primary-bolt-500 font-semibold"
+                    : isActive
+                    ? "text-primary-bolt-500 font-semibold"
+                    : "text-gray-500"
+                }`}
+              >
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
