@@ -952,15 +952,15 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
               {/* Features */}
               {vehicle.features && vehicle.features.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold text-primary-bolt-600 mb-4">
+                <div className="mb-8 bg-gray-50 rounded-2xl p-6 shadow-sm">
+                  <h3 className="text-xl font-bold text-primary-bolt-600 mb-5">
                     Équipements
                   </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="flex flex-wrap gap-2">
                     {vehicle.features.map((feature, index) => (
                       <div
                         key={index}
-                        className="flex items-center space-x-2 p-2 bg-gray-50 text-gray-900 rounded-lg"
+                        className="inline-flex items-center space-x-2 px-4 py-2 bg-primary-bolt-50 text-primary-bolt-700 border border-primary-bolt-200 rounded-full hover:bg-primary-bolt-100 transition-colors"
                       >
                         <CheckCircle className="h-4 w-4" />
                         <span className="text-sm font-medium">{feature}</span>
@@ -971,8 +971,8 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
               )}
 
               {/* Description */}
-              <div className="mb-6 bg-gray-50 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-primary-bolt-600 mb-4">
+              <div className="mb-8 bg-gray-50 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-xl font-bold text-primary-bolt-600 mb-5">
                   Description
                 </h3>
                 <p className="text-gray-700 whitespace-pre-line leading-relaxed text-justify">
@@ -1241,12 +1241,15 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
         {/* Similar Products Section */}
         {similarVehicles.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Ces annonces peuvent vous intéresser
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {similarVehicles.map((similarVehicle) => (
+          <div className="mt-12 mb-12">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-primary-bolt-600 mb-3">
+                Annonces similaires
+              </h2>
+              <div className="h-1 w-24 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-300 rounded-full"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {similarVehicles.slice(0, 3).map((similarVehicle) => (
                 <VehicleCard
                   key={similarVehicle.id}
                   vehicle={similarVehicle}
