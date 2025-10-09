@@ -384,8 +384,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
-      {/* Hero Section - Now Boxed */}
-      <section className="py-16 bg-gray-50">
+      {/* Hero Section - Hidden on mobile */}
+      <section className="hidden md:block py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-3xl p-8 lg:p-12 relative overflow-hidden shadow-2xl">
             {/* Background decorative elements */}
@@ -445,15 +445,45 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         </div>
       </section>
 
-      {/* Véhicules Section - Redesigned to match the image */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {/* Véhicules Section - Horizontal scroll on mobile, grid on desktop */}
+      <section className="py-8 md:py-16 bg-white">
+        <div className="max-w-7xl mx-auto md:px-4 sm:px-6 lg:px-8">
+          {/* Mobile: Horizontal scroll */}
+          <div className="md:hidden overflow-x-auto px-4 pb-4 -mx-4 scrollbar-hide">
+            <div className="flex gap-4 min-w-min">
+              {mainCategories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryClick(category.id)}
+                  className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden p-6 text-center flex-shrink-0 w-40"
+                  data-testid={`category-${category.id}`}
+                >
+                  {/* Category Image */}
+                  <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center relative bg-white rounded-2xl">
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+
+                  {/* Category Title */}
+                  <h3 className="text-sm font-bold text-gray-900 group-hover:text-primary-bolt-500 transition-colors leading-tight">
+                    {category.name}
+                  </h3>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop: Grid layout */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {mainCategories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
                 className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden p-8 text-center hover:scale-105 transform relative"
+                data-testid={`category-${category.id}`}
               >
                 {/* Category Image - White background without shadow */}
                 <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center relative bg-white rounded-2xl">
@@ -482,8 +512,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         </div>
       </section>
 
-      {/* Advertising Carousel */}
-      <section className="py-8 bg-gray-50">
+      {/* Advertising Carousel - Responsive */}
+      <section className="py-4 md:py-8 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative">
             {/* Carousel Container */}
@@ -795,8 +825,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         />
       </div>
 
-      {/* Mobile App Section */}
-      <section className="py-16 bg-white">
+      {/* Mobile App Section - Hidden on mobile */}
+      <section className="hidden md:block py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
