@@ -240,13 +240,25 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const totalSteps = 11; // Steps: 1-5 (Type→Category→Subcategory→Condition→Title), 6-8 (Details→Description→Photos), 9-11 (Price→Location→Summary)
 
   // Réinitialiser la sous-catégorie quand la catégorie change
+  // ⚠️ Mais PAS si la sous-catégorie appartient déjà à cette catégorie (restauration de brouillon)
   useEffect(() => {
-    if (formData.category) {
-      setFormData((prev) => ({
-        ...prev,
-        subcategory: "",
-        specificDetails: {},
-      }));
+    if (formData.category && formData.subcategory) {
+      // Vérifier si la sous-catégorie actuelle appartient bien à la catégorie
+      const category = CATEGORIES.find(cat => cat.id === formData.category);
+      const subcategoryExists = category?.subcategories.some(
+        sub => sub.id === formData.subcategory
+      );
+      
+      // Ne réinitialiser que si la sous-catégorie ne correspond pas à la catégorie
+      if (!subcategoryExists) {
+        setFormData((prev) => ({
+          ...prev,
+          subcategory: "",
+          specificDetails: {},
+        }));
+      }
+    } else if (formData.category && !formData.subcategory) {
+      // Pas de sous-catégorie : ne rien faire (sera sélectionnée par l'utilisateur)
     }
   }, [formData.category]);
 
