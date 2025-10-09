@@ -93,6 +93,10 @@ export const annonces = pgTable("annonces", {
 
     // Équipements
     equipment?: string[];
+
+    // Pièces détachées
+    sparePartCondition?: string; // "neuf" | "occasion"
+    sparePartType?: string; // "moteur" | "carrosserie" | "electrique" | "freinage" | "suspension" | "interieur" | "vitrage" | "autres"
   }>().default({}),
   condition: text("condition").notNull(),
   price: numeric("price", { precision: 12, scale: 2 }).notNull(),
