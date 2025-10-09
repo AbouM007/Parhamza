@@ -82,7 +82,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, setCurrentView }) =>
     {
       id: 10,
       question: "Puis-je modifier mon mot de passe ?",
-      answer: "Oui, rendez-vous dans votre espace personnel, section 'Paramètres du compte'. Vous pourrez modifier votre mot de passe, vos informations personnelles et vos préférences de communication.",
+      answer: "Oui, depuis le formulaire de connexion, cliquer sur mot de passe oublié, rensiegnez votre email et vous receverez un lien pour modifier votre mot de passe urrez modifier votre mot de passe, vos informations personnelles et vos préférences de communicatio.",
       category: "compte"
     }
   ];
