@@ -3324,18 +3324,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
               {(formData.condition === "occasion" || formData.condition === "damaged") &&
                 (formData.category === "voiture-utilitaire" ||
                   formData.category === "motos-quad-marine") && (
-                  <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                  <div className="p-4 md:p-6 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className="mb-4 text-center md:text-left">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
                         Recherche par plaque d'immatriculation
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Le titre sera prposé 
-                        automatiquement remplis
+                        Le titre sera proposé automatiquement
                       </p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-col md:flex-row gap-3 md:gap-3">
                       <input
                         type="text"
                         value={formData.registrationNumber || ""}
@@ -3345,7 +3344,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                             e.target.value.toUpperCase(),
                           )
                         }
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full md:flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center md:text-left"
                         placeholder="Ex: AB-123-CD"
                         maxLength={20}
                         data-testid="input-registration-number"
@@ -3355,7 +3354,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         disabled={
                           isLoadingPlateData || !formData.registrationNumber
                         }
-                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                        className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
                         data-testid="button-search-plate"
                       >
                         {isLoadingPlateData ? "Recherche..." : "Rechercher"}
@@ -3363,7 +3362,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     </div>
 
                     {plateApiError && (
-                      <p className="mt-3 text-sm text-red-600">
+                      <p className="mt-3 text-sm text-red-600 text-center md:text-left">
                         {plateApiError}
                       </p>
                     )}
