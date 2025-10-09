@@ -15,6 +15,13 @@ Preferred communication style: Simple, everyday language.
 - **Routing**: Wouter.
 - **Form Handling**: React Hook Form with Zod validation.
 - **UI/UX Decisions**: Consistent design language, intuitive user flows for listing creation, messaging, and subscription management, unified tab colors and designs, international phone input formatting.
+  - **VehicleDetail Display Optimization (Oct 2025)**:
+    - Spare parts (categories starting with "piece-") display only essential info: Location, Brand, Year (if exists)
+    - Mileage hidden for spare parts listings to reduce clutter
+    - Compatibility section positioned FIRST (before technical characteristics) with primary-bolt color scheme (#067D92)
+    - Technical characteristics block conditionally hidden when empty
+    - Damage section for damaged vehicles uses primary-bolt colors and appears first
+    - Contextual icons throughout with white card backgrounds for better visual hierarchy
 
 ### Backend
 - **Framework**: Node.js + Express with TypeScript.
