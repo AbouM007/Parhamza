@@ -1447,7 +1447,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     // Champs communs pour la plupart des véhicules
     const renderCommonVehicleFields = () => {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Marque *
@@ -1578,7 +1578,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de véhicule *
@@ -1794,7 +1794,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type d'utilitaire *
@@ -1986,7 +1986,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de caravane *
@@ -2077,7 +2077,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "remorque":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de remorque *
@@ -2180,9 +2180,60 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "scooter":
         return (
           <div className="space-y-6">
-            {renderCommonVehicleFields()}
+            {/* Ligne 1 : Marque, Modèle, Version */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Marque *
+                </label>
+                <select
+                  value={formData.specificDetails.brand || ""}
+                  onChange={(e) => updateSpecificDetails("brand", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                >
+                  <option value="">Sélectionnez une marque</option>
+                  {brands.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Modèle *
+                </label>
+                <input
+                  type="text"
+                  value={formData.specificDetails.model || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("model", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="Ex: CBR, R1, TMAX..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Version
+                </label>
+                <input
+                  type="text"
+                  value={formData.specificDetails.version || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("version", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="ex: TMAX 530"
+                  data-testid="input-version"
+                />
+              </div>
+            </div>
+
+            {/* Ligne 2 : Type, Cylindrée, Année */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type {subcategory.id === "moto" ? "de moto" : "de scooter"} *
@@ -2212,20 +2263,43 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Version
+                  Cylindrée (cm³) *
                 </label>
                 <input
-                  type="text"
-                  value={formData.specificDetails.version || ""}
+                  type="number"
+                  value={formData.specificDetails.displacement || ""}
                   onChange={(e) =>
-                    updateSpecificDetails("version", e.target.value)
+                    updateSpecificDetails(
+                      "displacement",
+                      parseInt(e.target.value) || "",
+                    )
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                  placeholder="ex: TMAX 530"
-                  data-testid="input-version"
+                  placeholder="600"
+                  min="0"
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Année *
+                </label>
+                <input
+                  type="number"
+                  value={formData.specificDetails.year || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("year", parseInt(e.target.value) || "")
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="2020"
+                  min="1990"
+                  max={new Date().getFullYear() + 1}
+                />
+              </div>
+            </div>
+
+            {/* Ligne 3 : Kilométrage, Couleur, Type de permis */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Kilométrage *
@@ -2241,25 +2315,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="15000"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Cylindrée (cm³) *
-                </label>
-                <input
-                  type="number"
-                  value={formData.specificDetails.displacement || ""}
-                  onChange={(e) =>
-                    updateSpecificDetails(
-                      "displacement",
-                      parseInt(e.target.value) || "",
-                    )
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                  placeholder="600"
                   min="0"
                 />
               </div>
@@ -2316,7 +2371,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de quad *
@@ -2422,7 +2477,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de jetski *
@@ -2514,7 +2569,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type d'aéronef *
@@ -2607,7 +2662,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de bateau *
@@ -2718,7 +2773,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "autre-service":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de service *
@@ -2781,7 +2836,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "autre-piece":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de pièce *
