@@ -498,100 +498,68 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
-          <div className="px-4 py-4 space-y-4">
-            {/* Mobile Search */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Rechercher sur Passion Auto2Roues"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-              />
-              <button
-                onClick={handleSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-primary-bolt-500 transition-colors"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Mobile Deposit Button */}
-            <button
-              onClick={handleCreateListingClick}
-              className="w-full bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200"
-            >
-              Déposer une annonce
-            </button>
-
-            {/* Mobile Categories */}
-            <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                Catégories
-              </h3>
-              <div className="grid grid-cols-1 gap-3">
-                {categories.map((category) => (
-                  <div key={category.id}>
-                    {category.id === "conseils" ? (
-                      // Conseils reste un simple bouton
-                      <button
-                        onClick={() => handleCategoryClick(category.id)}
-                        className={`w-full text-left py-2 px-3 rounded-xl text-sm transition-all duration-200 ${
-                          activeCategory === category.id
-                            ? "bg-primary-bolt-50 text-primary-bolt-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {category.label}
-                      </button>
-                    ) : (
-                      // Catégories avec sous-catégories
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 py-2 px-3">
-                          {category.label}
-                        </div>
-                        <div className="ml-4 space-y-1">
-                          {categoryStructure[
-                            category.id as keyof typeof categoryStructure
-                          ]?.subcategories.map((subcategory) => (
-                            <button
-                              key={subcategory.id}
-                              onClick={() =>
-                                handleSubcategoryClick(subcategory.id)
-                              }
-                              className="block w-full text-left py-2 px-3 rounded-lg text-sm text-gray-600 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                            >
-                              {subcategory.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Mobile Boutons Services, Pièces détachées & Véhicules Accidentés */}
-            <div className="border-t border-gray-200 pt-4 space-y-2">
-              <button
-                onClick={handleServicesClick}
-                className="w-full bg-black hover:bg-gray-800 text-green-500 hover:text-green-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                data-testid="button-services-mobile"
-              >
-                Services
-              </button>
-              <button
-                onClick={handleSparePartsClick}
-                className="w-full bg-black hover:bg-gray-800 text-blue-500 hover:text-blue-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
-                data-testid="button-spare-parts-mobile"
-              >
-                Pièces détachées
-              </button>
+          <div className="px-4 py-4 space-y-3">
+            {/* Mobile Categories - Direct Links Only */}
+            <div className="space-y-2">
+              {/* Voitures - Utilitaires */}
+              {categoryStructure["voiture-utilitaire"]?.subcategories.map((subcategory) => (
+                <button
+                  key={subcategory.id}
+                  onClick={() => handleSubcategoryClick(subcategory.id)}
+                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
+                >
+                  {subcategory.label}
+                </button>
+              ))}
+              
+              {/* Motos, Scooters, Quads */}
+              {categoryStructure["moto-scooter-quad"]?.subcategories.map((subcategory) => (
+                <button
+                  key={subcategory.id}
+                  onClick={() => handleSubcategoryClick(subcategory.id)}
+                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
+                >
+                  {subcategory.label}
+                </button>
+              ))}
+              
+              {/* Nautisme, Sport et Plein air */}
+              {categoryStructure["nautisme-sport-aerien"]?.subcategories.map((subcategory) => (
+                <button
+                  key={subcategory.id}
+                  onClick={() => handleSubcategoryClick(subcategory.id)}
+                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
+                >
+                  {subcategory.label}
+                </button>
+              ))}
+              
+              {/* Services */}
+              {categoryStructure.services?.subcategories.map((subcategory) => (
+                <button
+                  key={subcategory.id}
+                  onClick={() => handleSubcategoryClick(subcategory.id)}
+                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
+                >
+                  {subcategory.label}
+                </button>
+              ))}
+              
+              {/* Pièces détachées */}
+              {categoryStructure.pieces?.subcategories.map((subcategory) => (
+                <button
+                  key={subcategory.id}
+                  onClick={() => handleSubcategoryClick(subcategory.id)}
+                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
+                >
+                  {subcategory.label}
+                </button>
+              ))}
+              
+              {/* Accidentés */}
               <button
                 onClick={handleDamagedVehiclesClick}
-                className="w-full bg-black hover:bg-gray-800 text-orange-500 hover:text-orange-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
                 data-testid="button-damaged-vehicles-mobile"
               >
                 Accidentés
