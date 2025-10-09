@@ -322,7 +322,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
   // Advertising banners data
   const advertisingBanners = [
     {
-      id: 1,
+      id: 2,
       type: "garage",
       title: "GARAGE MARTIN",
       subtitle: "Depuis 1985 • Paris 11ème",
@@ -351,7 +351,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
       iconColor: "text-red-600",
     },
     {
-      id: 2,
+      id: 3,
       type: "tire",
       title: "PNEUS EXPRESS",
       subtitle: "Expert pneumatiques • Toute la France",
