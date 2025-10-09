@@ -248,7 +248,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Logo (center on mobile, left on desktop) */}
           <div
-            className="flex items-center cursor-pointer relative z-[105] lg:order-1 order-2 mx-auto lg:mx-0"
+            className="flex items-center cursor-pointer relative z-[105] order-2 lg:order-none mx-auto lg:mx-0"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -263,7 +263,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-6 flex-1 max-w-4xl mx-8">
+          <div className="hidden lg:flex items-center space-x-6 flex-1 max-w-4xl mx-8 lg:order-none">
             {/* Deposit Button */}
             <button
               onClick={() =>
@@ -298,7 +298,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Icons */}
-          <div className="hidden lg:flex items-center space-x-6 lg:order-3">
+          <div className="hidden lg:flex items-center space-x-6">
             {isAuthenticated ? (
               <div className="flex items-center space-x-6">
                 {/* Mes annonces */}

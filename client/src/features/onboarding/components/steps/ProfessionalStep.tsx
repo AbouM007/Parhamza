@@ -277,7 +277,7 @@ export function ProfessionalStep({
                   <>
                     <CheckCircle2 className="h-4 w-4 text-green-600" />
                     <span className="text-green-600 font-medium">
-                      Numéro disponible
+                      Numéro valide
                     </span>
                   </>
                 )}
