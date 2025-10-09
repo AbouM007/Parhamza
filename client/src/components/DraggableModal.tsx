@@ -7,6 +7,7 @@ interface DraggableModalProps {
   title: string;
   children: ReactNode;
   className?: string;
+  onBeforeClose?: () => boolean; // Retourne false pour empêcher la fermeture
 }
 
 export const DraggableModal: React.FC<DraggableModalProps> = ({
@@ -14,9 +15,26 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   onClose,
   title,
   children,
-  className = ''
+  className = '',
+  onBeforeClose
 }) => {
   if (!isOpen) return null;
+
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
+    // Si une validation est définie, l'exécuter
+    if (onBeforeClose) {
+      const canClose = onBeforeClose();
+      if (!canClose) {
+        return; // Ne pas fermer si la validation retourne false
+      }
+    }
+    
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -53,13 +71,10 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           </div>
 
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
+            onClick={handleClose}
             className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
             type="button"
-            title="Fermer (les données seront perdues)"
+            title="Fermer"
           >
             <X className="h-5 w-5" />
           </button>
