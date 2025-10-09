@@ -178,11 +178,18 @@ export const CATEGORIES: CategoryDefinition[] = [
     isMaterial: false,
     subcategories: [
       {
-        id: "piece-voiture-utilitaire",
-        name: "Pièces voiture / utilitaire",
+        id: "piece-voiture",
+        name: "Pièces voiture",
         image: voitureImage,
         color: "text-blue-500",
         bgColor: "bg-blue-100",
+      },
+      {
+        id: "piece-utilitaire",
+        name: "Pièces utilitaire",
+        image: utilitaireIcon,
+        color: "text-indigo-500",
+        bgColor: "bg-indigo-100",
       },
       {
         id: "piece-moto-scooter",

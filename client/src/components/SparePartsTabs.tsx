@@ -23,8 +23,11 @@ export const SparePartsTabs: React.FC<SparePartsTabsProps> = ({
       
       return {
         tous: spareParts,
-        "piece-voiture-utilitaire": spareParts.filter(
-          (v) => (v.category as string) === "piece-voiture-utilitaire",
+        "piece-voiture": spareParts.filter(
+          (v) => (v.category as string) === "piece-voiture" || (v.category as string) === "piece-voiture-utilitaire",
+        ),
+        "piece-utilitaire": spareParts.filter(
+          (v) => (v.category as string) === "piece-utilitaire" || (v.category as string) === "piece-voiture-utilitaire",
         ),
         "piece-moto-scooter": spareParts.filter(
           (v) => (v.category as string) === "piece-moto-scooter",
@@ -50,9 +53,14 @@ export const SparePartsTabs: React.FC<SparePartsTabsProps> = ({
       count: categorizedParts.tous.length,
     },
     {
-      id: "piece-voiture-utilitaire" as const,
-      label: "Voitures & Utilitaires",
-      count: categorizedParts["piece-voiture-utilitaire"].length,
+      id: "piece-voiture" as const,
+      label: "Voitures",
+      count: categorizedParts["piece-voiture"].length,
+    },
+    {
+      id: "piece-utilitaire" as const,
+      label: "Utilitaires",
+      count: categorizedParts["piece-utilitaire"].length,
     },
     {
       id: "piece-moto-scooter" as const,

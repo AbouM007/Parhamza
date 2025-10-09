@@ -368,34 +368,49 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Récupérer les marques selon le type de pièce
     let brandsToSearch: string[] = [];
-    if (formData.subcategory === "piece-voiture-utilitaire") {
-      // Combiner les marques de voitures ET d'utilitaires
+    let shouldIncludeCarModels = false;
+    
+    if (formData.subcategory === "piece-voiture") {
+      brandsToSearch = brandsByVehicleType.voiture || [];
+      shouldIncludeCarModels = true;
+    } else if (formData.subcategory === "piece-utilitaire") {
+      brandsToSearch = brandsByVehicleType.utilitaire || [];
+      shouldIncludeCarModels = false; // Pas de modèles d'utilitaires pour l'instant
+    } else if (formData.subcategory === "piece-voiture-utilitaire") {
+      // Garde compatibilité avec anciennes annonces
       brandsToSearch = [
         ...(brandsByVehicleType.voiture || []),
         ...(brandsByVehicleType.utilitaire || []),
       ];
+      shouldIncludeCarModels = true;
     } else if (formData.subcategory === "piece-moto-scooter") {
       brandsToSearch = brandsByVehicleType.moto || [];
+      shouldIncludeCarModels = false;
     } else if (formData.subcategory === "piece-quad") {
       brandsToSearch = brandsByVehicleType.quad || [];
+      shouldIncludeCarModels = false;
     } else if (formData.subcategory === "piece-jetski-bateau") {
       brandsToSearch = [
         ...(brandsByVehicleType.jetski || []),
         ...(brandsByVehicleType.bateau || []),
       ];
+      shouldIncludeCarModels = false;
     } else if (formData.subcategory === "piece-caravane-remorque") {
       brandsToSearch = [
         ...(brandsByVehicleType.caravane || []),
         ...(brandsByVehicleType.remorque || []),
       ];
+      shouldIncludeCarModels = false;
     } else if (formData.subcategory === "piece-aerien") {
       brandsToSearch = brandsByVehicleType.aerien || [];
+      shouldIncludeCarModels = false;
     } else {
       // Pour autres catégories de pièces, on prend toutes les marques
       brandsToSearch = [
         ...(brandsByVehicleType.voiture || []),
         ...(brandsByVehicleType.moto || []),
       ];
+      shouldIncludeCarModels = true;
     }
 
     // Filtrer les marques
@@ -404,22 +419,24 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     );
     suggestions.push(...matchingBrands);
 
-    // Si la recherche correspond à une marque, ajouter les modèles
-    Object.entries(carModelsByBrand).forEach(([brand, models]) => {
-      if (brand.toLowerCase().includes(searchTerm)) {
-        models.forEach((model) => {
-          suggestions.push(`${brand} ${model}`);
-        });
-      } else {
-        // Rechercher dans les modèles
-        const matchingModels = models.filter((model) =>
-          model.toLowerCase().includes(searchTerm),
-        );
-        matchingModels.forEach((model) => {
-          suggestions.push(`${brand} ${model}`);
-        });
-      }
-    });
+    // Ajouter les modèles seulement pour les pièces voiture
+    if (shouldIncludeCarModels) {
+      Object.entries(carModelsByBrand).forEach(([brand, models]) => {
+        if (brand.toLowerCase().includes(searchTerm)) {
+          models.forEach((model) => {
+            suggestions.push(`${brand} ${model}`);
+          });
+        } else {
+          // Rechercher dans les modèles
+          const matchingModels = models.filter((model) =>
+            model.toLowerCase().includes(searchTerm),
+          );
+          matchingModels.forEach((model) => {
+            suggestions.push(`${brand} ${model}`);
+          });
+        }
+      });
+    }
 
     // Limiter à 10 suggestions et retirer les doublons
     return [...new Set(suggestions)].slice(0, 10);
@@ -1036,7 +1053,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // Vérifier si c'est une pièce détachée
   const isPiecePart = () => {
     return (
-      formData.subcategory === "piece-voiture-utilitaire" ||
+      formData.subcategory === "piece-voiture" ||
+      formData.subcategory === "piece-utilitaire" ||
+      formData.subcategory === "piece-voiture-utilitaire" || // Garde compatibilité
       formData.subcategory === "piece-moto-scooter" ||
       formData.subcategory === "piece-quad" ||
       formData.subcategory === "piece-caravane-remorque" ||
@@ -2849,7 +2868,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case "piece-voiture-utilitaire":
+      case "piece-voiture":
+      case "piece-utilitaire":
+      case "piece-voiture-utilitaire": // Garde compatibilité
       case "piece-moto-scooter":
       case "piece-quad":
       case "piece-caravane-remorque":

@@ -41,9 +41,14 @@ Preferred communication style: Simple, everyday language.
         - In-memory caching (12h TTL) for cost optimization
         - Single unified flow without branching - plate search is fully optional
     - **Compatibility Tags**: System for spare parts listings with intelligent matching.
-      - **Tags UI Restoration (Oct 2025)**: Full interface restored in Step 6 (Specific Details) for spare parts
+      - **Category Separation (Oct 2025)**: Spare parts categories separated for better targeting
+        - "Pièces voiture / utilitaire" split into "Pièces voiture" and "Pièces utilitaire"
+        - piece-voiture: Shows car brands + models from carModelsByBrand
+        - piece-utilitaire: Shows utility vehicle brands (IVECO, MAN, DAF, etc.) without models
+        - Backward compatibility maintained for existing "piece-voiture-utilitaire" listings
+      - **Tags UI (Oct 2025)**: Full interface in Step 6 (Specific Details) for spare parts
         - Smart search field with auto-suggestions based on vehicle brands/models
-        - Dynamic filtering by spare part subcategory (piece-voiture-utilitaire → car brands, etc.)
+        - Dynamic filtering by spare part subcategory (piece-voiture → car brands, piece-utilitaire → utility brands)
         - Visual tag display with primary-bolt color scheme and easy removal
         - Click-outside handler for better UX
         - Helps buyers find compatible parts through targeted search

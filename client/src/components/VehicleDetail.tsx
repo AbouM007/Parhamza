@@ -201,8 +201,8 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
     // Precise mapping: vehicle category → compatible spare parts category
     const vehicleToPartsMapping: Record<string, string> = {
-      "voiture": "piece-voiture-utilitaire",
-      "utilitaire": "piece-voiture-utilitaire",
+      "voiture": "piece-voiture",
+      "utilitaire": "piece-utilitaire",
       "moto": "piece-moto-scooter",
       "scooter": "piece-moto-scooter",
       "quad": "piece-quad",
