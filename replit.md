@@ -45,7 +45,6 @@ Preferred communication style: Simple, everyday language.
         - "Pièces voiture / utilitaire" split into "Pièces voiture" and "Pièces utilitaire"
         - piece-voiture: Shows car brands + models from carModelsByBrand
         - piece-utilitaire: Shows utility vehicle brands (IVECO, MAN, DAF, etc.) without models
-        - Backward compatibility maintained for existing "piece-voiture-utilitaire" listings
       - **Tags UI (Oct 2025)**: Full interface in Step 6 (Specific Details) for spare parts
         - Smart search field with auto-suggestions based on vehicle brands/models
         - Dynamic filtering by spare part subcategory (piece-voiture → car brands, piece-utilitaire → utility brands)
