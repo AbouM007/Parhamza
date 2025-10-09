@@ -20,6 +20,8 @@ import {
   MoreHorizontal,
   ChevronLeft,
   ChevronDown,
+  Megaphone,
+  ShieldCheck,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -186,8 +188,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
           ) && vehicle.condition === "used",
       )
       .sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 6); // Reduced from 8 to 6 for faster loading
@@ -205,8 +207,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         if (a.isBoosted && !b.isBoosted) return -1;
         if (!a.isBoosted && b.isBoosted) return 1;
         // Then by date (most recent first)
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 6); // Reduced from 8 to 6 for faster loading
@@ -220,39 +222,23 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         if (a.isBoosted && !b.isBoosted) return -1;
         if (!a.isBoosted && b.isBoosted) return 1;
         // Then by date (most recent first)
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 4); // Reduced from 8 to 4 for faster loading
   }, [vehicles]);
 
-  /*
   const latestSearchRequests = useMemo(() => {
     return vehicles
-      .filter(vehicle => vehicle.title.startsWith('RECHERCHE') || vehicle.title.includes('RECHERCHE'))
-      .sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
-        return dateB.getTime() - dateA.getTime();
-      })
-      .slice(0, 4); // Reduced from 8 to 4 for faster loading
-  }, [vehicles]);
-  */
-
-  const latestSearchRequests = useMemo(() => {
-    return vehicles
-      .filter(
-        (vehicle) =>
-          vehicle.listing_type === "search" || vehicle.listingType === "search",
-      )
+      .filter((vehicle) => vehicle.listingType === "search")
       .sort((a, b) => {
         // Boosted listings first
         if (a.isBoosted && !b.isBoosted) return -1;
         if (!a.isBoosted && b.isBoosted) return 1;
         // Then by date (most recent first)
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 4); // Toujours limité à 4
@@ -270,8 +256,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         if (a.isBoosted && !b.isBoosted) return -1;
         if (!a.isBoosted && b.isBoosted) return 1;
         // Then by date (most recent first)
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 4); // Reduced from 8 to 4 for faster loading
@@ -285,8 +271,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         if (a.isBoosted && !b.isBoosted) return -1;
         if (!a.isBoosted && b.isBoosted) return 1;
         // Puis par date de création (plus récent en premier)
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        const dateA = new Date(a.createdAt || 0);
+        const dateB = new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, 8); // Afficher les 8 plus récentes toutes catégories confondues
@@ -321,6 +307,99 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
 
   // Advertising banners data
   const advertisingBanners = [
+    {
+      id: 1,
+      type: "bodyshop",
+      title: "SOS MON GARAGE",
+      subtitle: "Réseau national de garages partenaires • France entière",
+      mainOffer: "0€ AVANCE",
+      offerTitle: "GESTION DE SINISTRE TOUT-INCLUS",
+      offerSubtitle: "Votre réparation prise en charge à 100 %",
+      features: [
+        "✓ Zéro avance de frais",
+        "✓ Véhicule de prêt inclus",
+        "✓ Garantie à vie sur les réparations",
+        "✓ Assistance & gestion assurance",
+      ],
+      phone: "0806 110 911",
+      address: "Plus de 300 garages partenaires en France",
+      rating: "4.9/5 (12 874 avis)",
+      ctaText: "🚗 DÉCLARER MON SINISTRE",
+      promoText: "OFFRE SÉRÉNITÉ",
+      tickerItems: [
+        "🛠️ GARANTIE À VIE SUR LES RÉPARATIONS",
+        "🚘 VÉHICULE DE PRÊT GRATUIT",
+        "💳 AUCUNE AVANCE DE FRAIS",
+        "📞 ASSISTANCE 24h/7j",
+        "🏆 RÉSEAU AGRÉÉ ASSURANCES",
+      ],
+      gradient: "from-[#0467ca] via-[#0cbfdf] to-[#032e97]",
+      icon: ShieldCheck,
+      iconColor: "text-[#0cbfdf]",
+      logo: "https://www-static.sosmongarage.com/wp-content/uploads/2025/02/cropped-En-tete_sos__1-removebg-preview.png",
+    },
+    {
+      id: 4,
+      type: "advertising",
+      title: "VOTRE PUB ICI",
+      subtitle: "Gagnez en visibilité et développez votre activité",
+      mainOffer: "ESPACE DISPONIBLE",
+      offerTitle: "BOOSTEZ VOTRE GARAGE",
+      offerSubtitle: "Touchez des milliers d’automobilistes chaque mois",
+      features: [
+        "✓ Mettez en avant vos services",
+        "✓ Générez plus de rendez-vous",
+        "✓ Valorisez votre expertise locale",
+        "✓ Réseau auto qualifié & ciblé",
+      ],
+      phone: "Contactez-nous",
+      address: "Espace pub réservé aux garages et pros de l’automobile",
+      rating: "10 000+ vues/mois",
+      ctaText: "📢 NOUS CONTACTER",
+      promoText: "DEVENEZ PARTENAIRE",
+      tickerItems: [
+        "💼 VISIBILITÉ GARANTIE",
+        "🚗 PUBLIC CIBLÉ AUTOMOBILISTES",
+        "⭐ PROMOTION SUR VOTRE RÉGION",
+        "🔧 GARAGES, CARROSSERIES, PNEUS",
+        "📈 BOOSTEZ VOTRE ACTIVITÉ",
+      ],
+      gradient: "from-[#032e97] via-[#0467ca] to-[#0cbfdf]",
+      icon: Megaphone,
+      iconColor: "text-white",
+    },
+
+    /*{
+      id: 1,
+      type: "bodyshop",
+      title: "SOS MON GARAGE",
+      subtitle: "Réseau national de garages partenaires • France entière",
+      mainOffer: "0€ AVANCE",
+      offerTitle: "GESTION DE SINISTRE TOUT-INCLUS",
+      offerSubtitle: "Votre réparation prise en charge 100 %",
+      features: [
+        "✓ Zéro avance de frais",
+        "✓ Véhicule de prêt inclus",
+        "✓ Garantie à vie sur les réparations",
+        "✓ Assistance & gestion assurance",
+      ],
+      phone: "0806 110 911",
+      address: "Plus de 300 garages partenaires en France",
+      rating: "4.9/5 (12 874 avis)",
+      ctaText: "🚗 DÉCLARER MON SINISTRE",
+      promoText: "OFFRE SÉRÉNITÉ",
+      tickerItems: [
+        "🛠️ GARANTIE À VIE SUR LES RÉPARATIONS",
+        "🚘 VÉHICULE DE PRÊT GRATUIT",
+        "💳 AUCUNE AVANCE DE FRAIS",
+        "📞 ASSISTANCE 24h/7j",
+        "🏆 RÉSEAU AGRÉÉ ASSURANCES",
+      ],
+      gradient: "from-yellow-500 via-amber-600 to-orange-700",
+      icon: ShieldCheck, // (ou un pictogramme de voiture si tu veux rester cohérent)
+      iconColor: "text-yellow-500",
+    },*/
+    /*
     {
       id: 2,
       type: "garage",
@@ -380,7 +459,8 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
       gradient: "from-slate-600 via-slate-700 to-slate-800",
       icon: Car,
       iconColor: "text-slate-600",
-    },
+    }, 
+    */
   ];
 
   // Auto-rotate carousel every 8 seconds
@@ -475,112 +555,262 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
           <div className="md:hidden">
             <div className="grid grid-cols-3 gap-3">
               {/* 6 principales catégories toujours visibles */}
-              <button onClick={() => handleSubcategoryClick("voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-voiture">
+              <button
+                onClick={() => handleSubcategoryClick("voiture")}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                data-testid="subcategory-voiture"
+              >
                 <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                  <img src={voitureIcon} alt="Voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <img
+                    src={voitureIcon}
+                    alt="Voiture"
+                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Voiture</h3>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                  Voiture
+                </h3>
               </button>
-              
-              <button onClick={() => handleSubcategoryClick("moto")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-moto">
+
+              <button
+                onClick={() => handleSubcategoryClick("moto")}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                data-testid="subcategory-moto"
+              >
                 <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                  <img src={motoIcon} alt="Moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <img
+                    src={motoIcon}
+                    alt="Moto"
+                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Moto</h3>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                  Moto
+                </h3>
               </button>
-              
-              <button onClick={() => handleSubcategoryClick("bateau")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-bateau">
+
+              <button
+                onClick={() => handleSubcategoryClick("bateau")}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                data-testid="subcategory-bateau"
+              >
                 <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                  <img src={bateauImage} alt="Bateau" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <img
+                    src={bateauImage}
+                    alt="Bateau"
+                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Bateau</h3>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                  Bateau
+                </h3>
               </button>
-              
-              <button onClick={() => handleSubcategoryClick("piece-voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-voiture">
+
+              <button
+                onClick={() => handleSubcategoryClick("piece-voiture")}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                data-testid="subcategory-piece-voiture"
+              >
                 <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                  <img src={piecesVoitureIcon} alt="Pièces voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <img
+                    src={piecesVoitureIcon}
+                    alt="Pièces voiture"
+                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces auto</h3>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                  Pièces auto
+                </h3>
               </button>
-              
-              <button onClick={() => handleSubcategoryClick("reparation")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-reparation">
+
+              <button
+                onClick={() => handleSubcategoryClick("reparation")}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                data-testid="subcategory-reparation"
+              >
                 <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                  <img src={reparationIcon} alt="Réparation" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <img
+                    src={reparationIcon}
+                    alt="Réparation"
+                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Réparation</h3>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                  Réparation
+                </h3>
               </button>
-              
-              <button onClick={handleViewDamagedVehicles} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-accidentes">
+
+              <button
+                onClick={handleViewDamagedVehicles}
+                className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                data-testid="subcategory-accidentes"
+              >
                 <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                  <img src={voitureIcon} alt="Accidentés" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                  <img
+                    src={voitureIcon}
+                    alt="Accidentés"
+                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Accidentés</h3>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                  Accidentés
+                </h3>
               </button>
 
               {/* 9 autres catégories affichées conditionnellement */}
               {showAllCategories && (
                 <>
-                  <button onClick={() => handleSubcategoryClick("utilitaire")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-utilitaire">
+                  <button
+                    onClick={() => handleSubcategoryClick("utilitaire")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-utilitaire"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={utilitaireIcon} alt="Utilitaire" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={utilitaireIcon}
+                        alt="Utilitaire"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Utilitaire</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Utilitaire
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("caravane")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-caravane">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("caravane")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-caravane"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={caravaneIcon} alt="Caravane" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={caravaneIcon}
+                        alt="Caravane"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Caravane</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Caravane
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("remorque")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-remorque">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("remorque")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-remorque"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={remorqueIcon} alt="Remorque" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={remorqueIcon}
+                        alt="Remorque"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Remorque</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Remorque
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-scooter">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("scooter")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-scooter"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={scooterIcon} alt="Scooter" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={scooterIcon}
+                        alt="Scooter"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Scooter</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Scooter
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("quad")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-quad">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("quad")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-quad"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={quadIcon} alt="Quad" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={quadIcon}
+                        alt="Quad"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Quad</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Quad
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("jetski")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-jetski">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("jetski")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-jetski"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={jetskiIcon} alt="Jetski" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={jetskiIcon}
+                        alt="Jetski"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Jetski</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Jetski
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("aerien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-aerien">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("aerien")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-aerien"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={aerienIcon} alt="Aérien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={aerienIcon}
+                        alt="Aérien"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Aérien</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Aérien
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("entretien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-entretien">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("entretien")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-entretien"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={entretienImage} alt="Entretien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={entretienImage}
+                        alt="Entretien"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Entretien</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Entretien
+                    </h3>
                   </button>
-                  
-                  <button onClick={() => handleSubcategoryClick("piece-moto-scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-moto">
+
+                  <button
+                    onClick={() => handleSubcategoryClick("piece-moto-scooter")}
+                    className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center"
+                    data-testid="subcategory-piece-moto"
+                  >
                     <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                      <img src={piecesMotoIcon} alt="Pièces moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                      <img
+                        src={piecesMotoIcon}
+                        alt="Pièces moto"
+                        className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces moto</h3>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">
+                      Pièces moto
+                    </h3>
                   </button>
                 </>
               )}
@@ -593,9 +823,13 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
               data-testid="toggle-categories"
             >
               <span className="text-sm font-medium text-gray-700 group-hover:text-primary-bolt-600">
-                {showAllCategories ? "Voir moins de catégories" : "Voir toutes les catégories"}
+                {showAllCategories
+                  ? "Voir moins de catégories"
+                  : "Voir toutes les catégories"}
               </span>
-              <ChevronDown className={`h-4 w-4 text-gray-500 group-hover:text-primary-bolt-600 transition-transform duration-300 ${showAllCategories ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`h-4 w-4 text-gray-500 group-hover:text-primary-bolt-600 transition-transform duration-300 ${showAllCategories ? "rotate-180" : ""}`}
+              />
             </button>
           </div>
 
@@ -843,7 +1077,9 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
                 <div className="text-center">
                   <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-3">
                     <Store className="h-4 w-4" />
-                    <span className="font-semibold text-sm">Espace Professionnel</span>
+                    <span className="font-semibold text-sm">
+                      Espace Professionnel
+                    </span>
                   </div>
                   <h3 className="text-2xl font-bold mb-2">
                     Développez votre activité avec nous
@@ -861,7 +1097,9 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
                   <div className="w-px h-12 bg-white/30"></div>
                   <div className="text-center">
                     <div className="font-bold text-2xl">∞</div>
-                    <div className="text-primary-bolt-100 text-xs">Annonces</div>
+                    <div className="text-primary-bolt-100 text-xs">
+                      Annonces
+                    </div>
                   </div>
                 </div>
               </div>
