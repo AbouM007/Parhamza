@@ -53,6 +53,11 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
     setCurrentView("listings");
   };
 
+  const handleSubcategoryClick = (subcategoryId: string) => {
+    setSearchFilters({ category: subcategoryId });
+    setCurrentView("listings");
+  };
+
   const handleViewAllCategory = (category: string) => {
     setSearchFilters({ category });
     setCurrentView("listings");
@@ -826,87 +831,38 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         ))}
       </div>
 
-      {/* Professional Space CTA - Now Boxed */}
-      <section className="py-16 bg-gray-50">
+      {/* Professional Space Banner - Simplified */}
+      <section className="py-8 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-3xl p-8 lg:p-12 relative overflow-hidden shadow-2xl">
+          <div className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl">
             {/* Background decorative elements */}
             <div className="absolute inset-0 bg-black/10"></div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
 
             <div className="relative z-10">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center text-white">
-                <div>
-                  <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                    <Store className="h-5 w-5" />
-                    <span className="font-semibold">Espace Professionnel</span>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-white">
+                <div className="text-center md:text-left">
+                  <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-3">
+                    <Store className="h-4 w-4" />
+                    <span className="font-semibold text-sm">Espace Professionnel</span>
                   </div>
-                  <h2 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                    Développez votre activité avec Passion Auto2Roues
-                  </h2>
-                  <p className="text-xl mb-8 leading-relaxed">
-                    Rejoignez plus de 2,500 professionnels qui font confiance à
-                    notre plateforme pour développer leur business automobile.
+                  <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                    Développez votre activité avec nous
+                  </h3>
+                  <p className="text-primary-bolt-100 text-sm md:text-base">
+                    Plus de 2,500 professionnels nous font confiance
                   </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-white/20 p-2 rounded-xl">
-                        <TrendingUp className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-lg">
-                          Visibilité maximale
-                        </div>
-                        <div className="text-cyan-200 text-sm">
-                          Annonces illimitées
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-white/20 p-2 rounded-xl">
-                        <Users className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-lg">45,000+ clients</div>
-                        <div className="text-cyan-200 text-sm">
-                          Audience qualifiée
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button className="bg-white text-primary-bolt-500 hover:bg-gray-50 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200">
-                    Ouvrir ma boutique pro
-                  </button>
                 </div>
 
-                <div className="relative">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-                    <h3 className="text-2xl font-bold mb-6">Avantages Pro</h3>
-                    <ul className="space-y-4 text-primary-bolt-100">
-                      <li className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                        <span>Annonces illimitées et mises en avant</span>
-                      </li>
-                      <li className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                        <span>Statistiques détaillées et analytics</span>
-                      </li>
-                      <li className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                        <span>Badge "Professionnel vérifié"</span>
-                      </li>
-                      <li className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                        <span>Support client prioritaire</span>
-                      </li>
-                      <li className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                        <span>Outils de gestion avancés</span>
-                      </li>
-                    </ul>
+                <div className="flex items-center gap-4 md:gap-6">
+                  <div className="text-center">
+                    <div className="font-bold text-2xl md:text-3xl">45k+</div>
+                    <div className="text-primary-bolt-100 text-xs md:text-sm">Clients</div>
+                  </div>
+                  <div className="w-px h-12 bg-white/30"></div>
+                  <div className="text-center">
+                    <div className="font-bold text-2xl md:text-3xl">∞</div>
+                    <div className="text-primary-bolt-100 text-xs md:text-sm">Annonces</div>
                   </div>
                 </div>
               </div>
