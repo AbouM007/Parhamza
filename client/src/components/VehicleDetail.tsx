@@ -562,6 +562,102 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                   )}
               </div>
 
+              {/* Damage Details - Always shown FIRST for damaged vehicles */}
+              {vehicle.condition === "damaged" && (
+                <div className="mb-8 bg-primary-bolt-50 border-2 border-primary-bolt-300 rounded-2xl p-6 shadow-lg">
+                  <div className="flex items-center space-x-3 mb-5">
+                    <div className="p-2 bg-primary-bolt-100 rounded-lg">
+                      <AlertTriangle className="h-6 w-6 text-primary-bolt-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-primary-bolt-700">
+                      Informations sur les dommages
+                    </h3>
+                  </div>
+
+                  {hasDamageInfo ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Types de dommages */}
+                      {damageTypes.length > 0 && (
+                        <div className="bg-white rounded-lg p-4 border border-primary-bolt-200">
+                          <div className="text-sm font-bold text-primary-bolt-700 mb-3">
+                            Types de dommages
+                          </div>
+                          <div className="space-y-2">
+                            {damageTypes.map((type, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center space-x-2 text-sm text-gray-700"
+                              >
+                                <span className="w-2 h-2 bg-primary-bolt-500 rounded-full"></span>
+                                <span className="capitalize font-medium">
+                                  {type.replace(/_/g, " ")}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* État mécanique */}
+                      {mechanicalState && (
+                        <div className="bg-white rounded-lg p-4 border border-primary-bolt-200">
+                          <div className="text-sm font-bold text-primary-bolt-700 mb-3 flex items-center space-x-2">
+                            <Wrench className="h-4 w-4" />
+                            <span>État mécanique</span>
+                          </div>
+                          <div className="text-sm text-gray-800 capitalize font-medium">
+                            {mechanicalState === "fonctionne"
+                              ? "Fonctionne"
+                              : mechanicalState === "reparer"
+                                ? "À réparer"
+                                : mechanicalState === "hs"
+                                  ? "Hors service"
+                                  : mechanicalState}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gravité */}
+                      {severity && (
+                        <div className="bg-white rounded-lg p-4 border border-primary-bolt-200">
+                          <div className="text-sm font-bold text-primary-bolt-700 mb-3">
+                            Gravité
+                          </div>
+                          <div className="text-sm">
+                            <span
+                              className={`inline-flex px-3 py-1.5 rounded-full text-sm font-bold ${
+                                severity === "leger"
+                                  ? "bg-green-100 text-green-700 border border-green-300"
+                                  : severity === "moyen"
+                                    ? "bg-yellow-100 text-yellow-700 border border-yellow-300"
+                                    : "bg-red-100 text-red-700 border border-red-300"
+                              }`}
+                            >
+                              {severity === "leger"
+                                ? "Léger"
+                                : severity === "moyen"
+                                  ? "Moyen"
+                                  : "Grave"}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 bg-white rounded-lg border border-primary-bolt-200">
+                      <p className="text-sm text-gray-600 mb-2">
+                        Aucune information détaillée disponible pour le moment.
+                      </p>
+                      {currentUser?.id === vehicle.userId && (
+                        <p className="text-sm text-primary-bolt-600 font-medium">
+                          💡 Vous pouvez modifier votre annonce pour ajouter ces informations.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Caractéristiques techniques */}
               {!isServiceCategory(vehicle.category) && (vehicle.fuelType || vehicle.transmission || vehicle.color || vehicle.power || vehicle.emissionClass || vehicle.vehicleSpecifications) && (
                 <div className="mb-8 bg-gray-50 rounded-2xl p-6 shadow-sm">
@@ -830,100 +926,6 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-
-              {/* Damage Details - Always shown for damaged vehicles */}
-              {vehicle.condition === "damaged" && (
-                <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <AlertTriangle className="h-5 w-5 text-orange-600" />
-                    <h3 className="text-lg font-semibold text-orange-900">
-                      Informations sur les dommages
-                    </h3>
-                  </div>
-
-                  {hasDamageInfo ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Types de dommages */}
-                      {damageTypes.length > 0 && (
-                        <div>
-                          <div className="text-sm font-medium text-orange-700 mb-2">
-                            Types de dommages
-                          </div>
-                          <div className="space-y-1">
-                            {damageTypes.map((type, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center space-x-2 text-sm text-orange-900"
-                              >
-                                <span className="w-1.5 h-1.5 bg-orange-600 rounded-full"></span>
-                                <span className="capitalize">
-                                  {type.replace(/_/g, " ")}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* État mécanique */}
-                      {mechanicalState && (
-                        <div>
-                          <div className="text-sm font-medium text-orange-700 mb-2 flex items-center space-x-1">
-                            <Wrench className="h-4 w-4" />
-                            <span>État mécanique</span>
-                          </div>
-                          <div className="text-sm text-orange-900 capitalize">
-                            {mechanicalState === "fonctionne"
-                              ? "Fonctionne"
-                              : mechanicalState === "reparer"
-                                ? "À réparer"
-                                : mechanicalState === "hs"
-                                  ? "Hors service"
-                                  : mechanicalState}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Gravité */}
-                      {severity && (
-                        <div>
-                          <div className="text-sm font-medium text-orange-700 mb-2">
-                            Gravité
-                          </div>
-                          <div className="text-sm text-orange-900">
-                            <span
-                              className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
-                                severity === "leger"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : severity === "moyen"
-                                    ? "bg-orange-100 text-orange-800"
-                                    : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {severity === "leger"
-                                ? "Léger"
-                                : severity === "moyen"
-                                  ? "Moyen"
-                                  : "Grave"}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-orange-800 mb-2">
-                        Aucune information détaillée disponible pour le moment.
-                      </p>
-                      {currentUser?.id === vehicle.userId && (
-                        <p className="text-sm text-orange-700 font-medium">
-                          💡 Vous pouvez modifier votre annonce pour ajouter ces informations.
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
 
