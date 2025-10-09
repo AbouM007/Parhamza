@@ -16,6 +16,12 @@ import {
   Send,
   AlertTriangle,
   Wrench,
+  Fuel,
+  Zap,
+  Palette,
+  Car,
+  Settings,
+  Users,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { Vehicle } from "@/types";
@@ -558,16 +564,19 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
               {/* Caractéristiques techniques */}
               {!isServiceCategory(vehicle.category) && (vehicle.fuelType || vehicle.transmission || vehicle.color || vehicle.power || vehicle.emissionClass || vehicle.vehicleSpecifications) && (
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold text-primary-bolt-600 mb-4">
+                <div className="mb-8 bg-gray-50 rounded-2xl p-6 shadow-sm">
+                  <h3 className="text-xl font-bold text-primary-bolt-600 mb-5">
                     Caractéristiques techniques
                   </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Carburant */}
                     {vehicle.fuelType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Carburant</div>
-                        <div className="font-bold text-gray-900 capitalize">
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Fuel className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Carburant</div>
+                        </div>
+                        <div className="font-bold text-gray-900 capitalize ml-6">
                           {vehicle.fuelType === 'gasoline' ? 'Essence' : 
                            vehicle.fuelType === 'diesel' ? 'Diesel' :
                            vehicle.fuelType === 'electric' ? 'Électrique' :
@@ -578,9 +587,12 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     
                     {/* Transmission */}
                     {vehicle.transmission && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Boîte de vitesses</div>
-                        <div className="font-bold text-gray-900 capitalize">
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Settings className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Boîte de vitesses</div>
+                        </div>
+                        <div className="font-bold text-gray-900 capitalize ml-6">
                           {vehicle.transmission === 'manual' ? 'Manuelle' : 
                            vehicle.transmission === 'automatic' ? 'Automatique' : vehicle.transmission}
                         </div>
@@ -589,169 +601,232 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     
                     {/* Couleur */}
                     {vehicle.color && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Couleur</div>
-                        <div className="font-bold text-gray-900">{vehicle.color}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Palette className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Couleur</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.color}</div>
                       </div>
                     )}
                     
                     {/* Puissance */}
                     {vehicle.power && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Puissance</div>
-                        <div className="font-bold text-gray-900">{vehicle.power} CH</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Zap className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Puissance</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.power} CH</div>
                       </div>
                     )}
 
                     {/* Classe d'émissions */}
                     {vehicle.emissionClass && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Norme Euro</div>
-                        <div className="font-bold text-gray-900">{vehicle.emissionClass}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Norme Euro</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.emissionClass}</div>
                       </div>
                     )}
                     
                     {/* Cylindrée */}
                     {vehicle.vehicleSpecifications?.displacement && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Cylindrée</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.displacement} cm³</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Settings className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Cylindrée</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.displacement} cm³</div>
                       </div>
                     )}
                     
                     {/* Version */}
                     {vehicle.vehicleSpecifications?.version && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Version</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.version}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Version</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.version}</div>
                       </div>
                     )}
                     
                     {/* Type de moto */}
                     {vehicle.vehicleSpecifications?.motorcycleType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Type de moto</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.motorcycleType}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Type de moto</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.motorcycleType}</div>
                       </div>
                     )}
                     
                     {/* Type de véhicule (voiture) */}
                     {vehicle.vehicleSpecifications?.vehicleType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Type de véhicule</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.vehicleType}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Type de véhicule</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.vehicleType}</div>
                       </div>
                     )}
                     
                     {/* Permis requis */}
                     {vehicle.vehicleSpecifications?.licenseType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Permis requis</div>
-                        <div className="font-bold text-gray-900">Permis {vehicle.vehicleSpecifications.licenseType}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Permis requis</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">Permis {vehicle.vehicleSpecifications.licenseType}</div>
                       </div>
                     )}
                     
                     {/* Puissance fiscale */}
                     {vehicle.vehicleSpecifications?.fiscalHorsepower && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Puissance fiscale</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.fiscalHorsepower} CV</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Zap className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Puissance fiscale</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.fiscalHorsepower} CV</div>
                       </div>
                     )}
                     
                     {/* Portes */}
                     {vehicle.vehicleSpecifications?.doors && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Portes</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.doors}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Portes</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.doors}</div>
                       </div>
                     )}
 
                     {/* Sièges */}
                     {vehicle.vehicleSpecifications?.seats && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Places</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.seats}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Users className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Places</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.seats}</div>
                       </div>
                     )}
                     
                     {/* Sellerie */}
                     {vehicle.vehicleSpecifications?.upholstery && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Sellerie</div>
-                        <div className="font-bold text-gray-900 capitalize">{vehicle.vehicleSpecifications.upholstery}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Settings className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Sellerie</div>
+                        </div>
+                        <div className="font-bold text-gray-900 capitalize ml-6">{vehicle.vehicleSpecifications.upholstery}</div>
                       </div>
                     )}
 
                     {/* Volume (utilitaire) */}
                     {vehicle.vehicleSpecifications?.volume && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Volume de chargement</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.volume} m³</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Volume de chargement</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.volume} m³</div>
                       </div>
                     )}
 
                     {/* Charge utile (utilitaire) */}
                     {vehicle.vehicleSpecifications?.payload && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Charge utile</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.payload} kg</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Charge utile</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.payload} kg</div>
                       </div>
                     )}
 
                     {/* Poids maximum (caravane/remorque) */}
                     {vehicle.vehicleSpecifications?.maxWeight && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Poids maximum</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.maxWeight} kg</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Poids maximum</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.maxWeight} kg</div>
                       </div>
                     )}
 
                     {/* Poids à vide */}
                     {vehicle.vehicleSpecifications?.emptyWeight && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Poids à vide</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.emptyWeight} kg</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Poids à vide</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.emptyWeight} kg</div>
                       </div>
                     )}
 
                     {/* Dimensions */}
                     {vehicle.vehicleSpecifications?.dimensions && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Dimensions</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.dimensions}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Dimensions</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.dimensions}</div>
                       </div>
                     )}
 
                     {/* Type de jetski */}
                     {vehicle.vehicleSpecifications?.jetskiType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Type de jet-ski</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.jetskiType}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Type de jet-ski</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.jetskiType}</div>
                       </div>
                     )}
 
                     {/* Heures d'utilisation */}
                     {vehicle.vehicleSpecifications?.usageHours && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Heures d'utilisation</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.usageHours}h</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Gauge className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Heures d'utilisation</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.usageHours}h</div>
                       </div>
                     )}
 
                     {/* Type de remorque */}
                     {vehicle.vehicleSpecifications?.trailerType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Type de remorque</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.trailerType}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Type de remorque</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.trailerType}</div>
                       </div>
                     )}
 
                     {/* Type d'utilitaire */}
                     {vehicle.vehicleSpecifications?.utilityType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-500">Type d'utilitaire</div>
-                        <div className="font-bold text-gray-900">{vehicle.vehicleSpecifications.utilityType}</div>
+                      <div className="p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="h-4 w-4 text-primary-bolt-500" />
+                          <div className="text-sm text-gray-500">Type d'utilitaire</div>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-6">{vehicle.vehicleSpecifications.utilityType}</div>
                       </div>
                     )}
                   </div>
