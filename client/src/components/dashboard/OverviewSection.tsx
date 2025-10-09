@@ -321,9 +321,9 @@ export default function OverviewSection({
         {userVehicles.length > 0 ? (
           <div className="space-y-4">
             {userVehicles.slice(0, 5).map((vehicle) => {
-              // Récupérer la première photo ou utiliser un placeholder
-              const thumbnail = vehicle.photos && vehicle.photos.length > 0 
-                ? vehicle.photos[0] 
+              // Récupérer la première image ou utiliser un placeholder
+              const thumbnail = vehicle.images && vehicle.images.length > 0 
+                ? vehicle.images[0] 
                 : null;
               
               return (
