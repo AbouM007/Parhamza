@@ -253,6 +253,13 @@ export interface IStorage {
   addToWishlist(item: InsertWishlist): Promise<Wishlist>;
   removeFromWishlist(userId: string, vehicleId: string): Promise<boolean>;
   isInWishlist(userId: string, vehicleId: string): Promise<boolean>;
+  
+  // Vehicle Views
+  recordVehicleView(vehicleId: string, userId: string | null, ipAddress: string | null): Promise<boolean>;
+  hasUserViewedVehicle(vehicleId: string, userId: string | null, ipAddress: string | null): Promise<boolean>;
+  incrementVehicleViewCount(vehicleId: string): Promise<boolean>;
+  incrementFavoriteCount(vehicleId: string): Promise<boolean>;
+  decrementFavoriteCount(vehicleId: string): Promise<boolean>;
 
   // Saved Searches
   getUserSavedSearches(userId: string): Promise<SavedSearch[]>;
@@ -1369,6 +1376,178 @@ export class SupabaseStorage implements IStorage {
       const favorites = bioData.favorites || [];
       return favorites.includes(vehicleId);
     } catch (e) {
+      return false;
+    }
+  }
+
+  // Vehicle Views methods
+  async recordVehicleView(
+    vehicleId: string,
+    userId: string | null,
+    ipAddress: string | null
+  ): Promise<boolean> {
+    try {
+      const viewId = crypto.randomUUID();
+      
+      const { error } = await supabaseServer
+        .from("vehicle_views")
+        .insert({
+          id: viewId,
+          user_id: userId,
+          vehicle_id: vehicleId,
+          ip_address: ipAddress,
+          created_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error("❌ Erreur enregistrement vue:", error);
+        return false;
+      }
+
+      console.log("✅ Vue enregistrée pour véhicule:", vehicleId);
+      return true;
+    } catch (error) {
+      console.error("❌ Erreur recordVehicleView:", error);
+      return false;
+    }
+  }
+
+  async hasUserViewedVehicle(
+    vehicleId: string,
+    userId: string | null,
+    ipAddress: string | null
+  ): Promise<boolean> {
+    try {
+      let query = supabaseServer
+        .from("vehicle_views")
+        .select("id")
+        .eq("vehicle_id", vehicleId)
+        .limit(1);
+
+      // Si l'utilisateur est connecté, vérifier par userId
+      if (userId) {
+        query = query.eq("user_id", userId);
+      } 
+      // Sinon, vérifier par IP
+      else if (ipAddress) {
+        query = query.eq("ip_address", ipAddress);
+      } else {
+        // Pas de moyen de vérifier l'unicité
+        return false;
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("❌ Erreur vérification vue:", error);
+        return false;
+      }
+
+      return data && data.length > 0;
+    } catch (error) {
+      console.error("❌ Erreur hasUserViewedVehicle:", error);
+      return false;
+    }
+  }
+
+  async incrementVehicleViewCount(vehicleId: string): Promise<boolean> {
+    try {
+      // Lire la valeur actuelle
+      const { data: vehicle, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("views")
+        .eq("id", vehicleId)
+        .single();
+
+      if (fetchError || !vehicle) {
+        console.error("❌ Erreur lecture véhicule:", fetchError);
+        return false;
+      }
+
+      // Incrémenter
+      const newViews = (vehicle.views || 0) + 1;
+      const { error: updateError } = await supabaseServer
+        .from("annonces")
+        .update({ views: newViews })
+        .eq("id", vehicleId);
+        
+      if (updateError) {
+        console.error("❌ Erreur UPDATE vues:", updateError);
+        return false;
+      }
+
+      console.log("✅ Compteur vues incrémenté pour:", vehicleId, "->", newViews);
+      return true;
+    } catch (error) {
+      console.error("❌ Erreur incrementVehicleViewCount:", error);
+      return false;
+    }
+  }
+
+  async incrementFavoriteCount(vehicleId: string): Promise<boolean> {
+    try {
+      // Lire la valeur actuelle
+      const { data: vehicle, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("favorites")
+        .eq("id", vehicleId)
+        .single();
+
+      if (fetchError || !vehicle) {
+        console.error("❌ Erreur lecture véhicule:", fetchError);
+        return false;
+      }
+
+      // Incrémenter
+      const newFavorites = (vehicle.favorites || 0) + 1;
+      const { error: updateError } = await supabaseServer
+        .from("annonces")
+        .update({ favorites: newFavorites })
+        .eq("id", vehicleId);
+        
+      if (updateError) {
+        console.error("❌ Erreur UPDATE favoris:", updateError);
+        return false;
+      }
+
+      console.log("✅ Compteur favoris incrémenté pour:", vehicleId, "->", newFavorites);
+      return true;
+    } catch (error) {
+      console.error("❌ Erreur incrementFavoriteCount:", error);
+      return false;
+    }
+  }
+
+  async decrementFavoriteCount(vehicleId: string): Promise<boolean> {
+    try {
+      // Lire la valeur actuelle
+      const { data: vehicle, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("favorites")
+        .eq("id", vehicleId)
+        .single();
+
+      if (fetchError || !vehicle) {
+        console.error("❌ Erreur lecture véhicule:", fetchError);
+        return false;
+      }
+
+      // Décrémenter (minimum 0)
+      const newFavorites = Math.max((vehicle.favorites || 0) - 1, 0);
+      const { error: updateError } = await supabaseServer
+        .from("annonces")
+        .update({ favorites: newFavorites })
+        .eq("id", vehicleId);
+        
+      if (updateError) {
+        console.error("❌ Erreur UPDATE favoris:", updateError);
+        return false;
+      }
+
+      console.log("✅ Compteur favoris décrémenté pour:", vehicleId, "->", newFavorites);
+      return true;
+    } catch (error) {
+      console.error("❌ Erreur decrementFavoriteCount:", error);
       return false;
     }
   }
