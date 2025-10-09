@@ -16,6 +16,7 @@ import { ListingTypeStep, ListingTypeValue } from "./ListingTypeStep";
 import { VehicleDetailsStep } from "./VehicleDetailsStep";
 import { PlateBlurModal } from "../PlateBlurModal";
 import { VehicleDataPreviewModal } from "./VehicleDataPreviewModal";
+import { DraftRestoreDialog } from "./DraftRestoreDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
@@ -206,6 +207,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // 💾 Restaurer le brouillon sauvegardé au chargement (sera finalisé plus bas avec currentStep)
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [showDraftDialog, setShowDraftDialog] = useState(false);
+  const [draftInfo, setDraftInfo] = useState<{ photoCount: number; savedAt: Date } | null>(null);
+  const [pendingDraft, setPendingDraft] = useState<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 🔧 Gestion mémoire des preview URLs (évite crash mobile)
@@ -1095,55 +1099,34 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const { formatRegistrationNumber, validateRegistrationNumber } =
     useRegistrationNumber();
 
-  // 💾 Restaurer le brouillon sauvegardé au montage (une seule fois)
+  // 💾 Détecter le brouillon sauvegardé au montage (une seule fois)
   useEffect(() => {
     if (!draftLoaded) {
-      const restoreDraft = async () => {
+      const checkDraft = async () => {
         const result = await loadFormDraft();
         if (result) {
           const { data: draft, photos, missingPhotosCount } = result;
-          console.log("📦 Brouillon trouvé, restauration des données...");
-          setFormData({
-            listingType: draft.listingType as ListingTypeValue | "",
-            category: draft.category,
-            subcategory: draft.subcategory,
-            condition: draft.condition as FormData["condition"],
-            title: draft.title,
-            registrationNumber: draft.registrationNumber,
-            specificDetails: draft.specificDetails,
-            description: draft.description,
-            photos, // URLs + objets File restaurés depuis IndexedDB
-            price: draft.price,
-            location: draft.location,
-            contact: draft.contact,
-            premiumPack: draft.premiumPack,
+          console.log("📦 Brouillon trouvé, affichage de la modale de choix...");
+          
+          // Stocker les données du brouillon
+          setPendingDraft({ draft, photos, missingPhotosCount });
+          
+          // Préparer les infos pour la modale
+          const savedAt = draft.savedAt ? new Date(draft.savedAt) : new Date();
+          setDraftInfo({
+            photoCount: photos.length,
+            savedAt,
           });
           
-          // Restaurer aussi currentStep si sauvegardé
-          if (draft.currentStep && draft.currentStep > 1) {
-            setCurrentStep(draft.currentStep);
-          }
-          
-          // Avertir l'utilisateur si des photos sont manquantes
-          if (missingPhotosCount > 0) {
-            toast({
-              title: "Brouillon restauré avec avertissement",
-              description: `Vos données ont été récupérées mais ${missingPhotosCount} photo${missingPhotosCount > 1 ? 's ont' : ' a'} été perdue${missingPhotosCount > 1 ? 's' : ''}. Vous pouvez les ajouter à nouveau.`,
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Brouillon restauré",
-              description: `Vos données ont été récupérées (${photos.length} photo${photos.length > 1 ? 's' : ''}). Vous pouvez continuer votre annonce.`,
-            });
-          }
+          // Afficher la modale de choix
+          setShowDraftDialog(true);
         }
+        setDraftLoaded(true);
       };
       
-      restoreDraft();
-      setDraftLoaded(true);
+      checkDraft();
     }
-  }, [draftLoaded, setCurrentStep, toast]);
+  }, [draftLoaded]);
 
   // 💾 Sauvegarde automatique à chaque modification
   useEffect(() => {
@@ -1357,6 +1340,71 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const handleBoostListing = () => {
     setShowSuccessModal(false);
     setShowBoostModal(true);
+  };
+
+  // Fonctions pour gérer le choix de l'utilisateur pour le brouillon
+  const handleContinueDraft = () => {
+    if (pendingDraft) {
+      const { draft, photos, missingPhotosCount } = pendingDraft;
+      
+      // Restaurer les données du formulaire
+      setFormData({
+        listingType: draft.listingType as ListingTypeValue | "",
+        category: draft.category,
+        subcategory: draft.subcategory,
+        condition: draft.condition as FormData["condition"],
+        title: draft.title,
+        registrationNumber: draft.registrationNumber,
+        specificDetails: draft.specificDetails,
+        description: draft.description,
+        photos, // URLs + objets File restaurés depuis IndexedDB
+        price: draft.price,
+        location: draft.location,
+        contact: draft.contact,
+        premiumPack: draft.premiumPack,
+      });
+      
+      // Restaurer aussi currentStep si sauvegardé
+      if (draft.currentStep && draft.currentStep > 1) {
+        setCurrentStep(draft.currentStep);
+      }
+      
+      // Avertir l'utilisateur si des photos sont manquantes
+      if (missingPhotosCount > 0) {
+        toast({
+          title: "Brouillon restauré avec avertissement",
+          description: `Vos données ont été récupérées mais ${missingPhotosCount} photo${missingPhotosCount > 1 ? 's ont' : ' a'} été perdue${missingPhotosCount > 1 ? 's' : ''}. Vous pouvez les ajouter à nouveau.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "✅ Brouillon restauré",
+          description: `Vos données ont été récupérées (${photos.length} photo${photos.length > 1 ? 's' : ''}). Continuez votre annonce !`,
+        });
+      }
+    }
+    
+    // Fermer la modale
+    setShowDraftDialog(false);
+    setPendingDraft(null);
+  };
+
+  const handleDiscardDraft = async () => {
+    // Supprimer le brouillon
+    await clearFormDraft();
+    
+    // Réinitialiser le formulaire
+    setFormData(initializeFormData());
+    setCurrentStep(1);
+    
+    // Fermer la modale
+    setShowDraftDialog(false);
+    setPendingDraft(null);
+    
+    toast({
+      title: "Brouillon supprimé",
+      description: "Vous pouvez commencer une nouvelle annonce.",
+    });
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -4570,6 +4618,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         }
         onConfirm={handleApplyMask}
       />
+
+      {/* Modale de restauration du brouillon */}
+      {draftInfo && (
+        <DraftRestoreDialog
+          open={showDraftDialog}
+          onContinue={handleContinueDraft}
+          onDiscard={handleDiscardDraft}
+          draftInfo={draftInfo}
+        />
+      )}
 
       <VehicleDataPreviewModal
         isOpen={showVehiclePreview}
