@@ -74,15 +74,20 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] cursor-pointer overflow-hidden border border-gray-100"
+      className="relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] cursor-pointer overflow-hidden border border-gray-100"
     >
+      {/* Demo Badge */}
+      {vehicle.isDemo && (
+        <div className="absolute top-3 left-3 z-10 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+          DEMO
+        </div>
+      )}
+      
       {/* Boost Badge */}
       {vehicle.isBoosted && (
-        <div className="relative">
-          <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
-            <Crown className="h-3 w-3" />
-            <span>Boosté</span>
-          </div>
+        <div className={`absolute top-3 ${vehicle.isDemo ? 'left-14' : 'left-3'} z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg`}>
+          <Crown className="h-3 w-3" />
+          <span>Boosté</span>
         </div>
       )}
 
@@ -102,6 +107,15 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
                 transition={{ duration: 0.4 }}
               />
             </AnimatePresence>
+            
+            {/* Filigrane DEMO */}
+            {vehicle.isDemo && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-7xl font-bold text-white/30 transform rotate-[-20deg] select-none tracking-wider">
+                  DEMO
+                </span>
+              </div>
+            )}
 
             {/* Flèches */}
             {vehicle.images.length > 1 && (

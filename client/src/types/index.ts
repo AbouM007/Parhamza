@@ -103,6 +103,8 @@ export interface Vehicle {
   deletedAt?: Date | null;
   deletionReason?: string | null;
   deletionComment?: string | null;
+  // Marqueur DEMO
+  isDemo?: boolean;
 }
 
 export interface Message {

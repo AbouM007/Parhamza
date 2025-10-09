@@ -391,6 +391,15 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     alt={vehicle.title}
                     className="w-full h-full object-cover"
                   />
+                  
+                  {/* Filigrane DEMO */}
+                  {vehicle.isDemo && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="text-9xl font-bold text-white/30 transform rotate-[-20deg] select-none tracking-wider">
+                        DEMO
+                      </span>
+                    </div>
+                  )}
 
                   {vehicle.images.length > 1 && (
                     <div>
@@ -409,9 +418,16 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     </div>
                   )}
 
+                  {/* Demo Badge */}
+                  {vehicle.isDemo && (
+                    <div className="absolute top-4 left-4 bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                      DEMO
+                    </div>
+                  )}
+                  
                   {/* Premium Badge */}
                   {vehicle.isPremium && (
-                    <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
+                    <div className={`absolute top-4 ${vehicle.isDemo ? 'left-20' : 'left-4'} bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1`}>
                       <Crown className="h-4 w-4" />
                       <span>Premium</span>
                     </div>

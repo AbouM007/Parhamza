@@ -85,6 +85,12 @@ Preferred communication style: Simple, everyday language.
 - **Relationships**: Foreign key constraints with cascade deletes.
 - **Security**: Supabase Row Level Security (RLS).
 - **Constraints**: UNIQUE constraints on phone/whatsapp fields.
+- **Demo Listings (Oct 2025)**: 
+  - Added `is_demo` boolean field to `annonces` table for marking demonstration listings
+  - Demo listings display a yellow "DEMO" badge in top-left corner
+  - Semi-transparent watermark "DEMO" overlays images at -20° rotation
+  - Applies to both VehicleCard (listings grid) and VehicleDetail (detail page)
+  - Existing listings marked as demo via SQL; new listings default to `false`
 
 ### Authentication & Authorization
 - **Provider**: Supabase Auth (registration, login, session management).
