@@ -39,8 +39,11 @@ router.post('/add', async (req, res) => {
       vehicleId
     };
     const result = await storage.addToWishlist(wishlistItem);
+    
+    // Incrémenter le compteur de favoris
+    await storage.incrementFavoriteCount(vehicleId.toString());
 
-    console.log('✅ Favori ajouté');
+    console.log('✅ Favori ajouté et compteur incrémenté');
     res.json({ success: true, id: result.id });
     
   } catch (error) {
@@ -57,8 +60,11 @@ router.delete('/remove', async (req, res) => {
     console.log('🔄 Suppression favori:', { userId, vehicleId });
     
     await storage.removeFromWishlist(userId, vehicleId);
+    
+    // Décrémenter le compteur de favoris
+    await storage.decrementFavoriteCount(vehicleId.toString());
 
-    console.log('✅ Favori supprimé');
+    console.log('✅ Favori supprimé et compteur décrémenté');
     res.json({ success: true });
     
   } catch (error) {
