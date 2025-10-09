@@ -232,9 +232,22 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Main Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Mobile: Menu burger (left) */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 rounded-xl text-gray-600 hover:text-primary-bolt-500 hover:bg-gray-50 transition-all duration-200 order-1"
+            data-testid="mobile-menu-button"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+
+          {/* Logo (center on mobile, left on desktop) */}
           <div
-            className="flex items-center cursor-pointer relative z-[105]"
+            className="flex items-center cursor-pointer relative z-[105] lg:order-1 order-2 mx-auto lg:mx-0"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -284,7 +297,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Icons */}
-          <div className="hidden lg:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-6 lg:order-3">
             {isAuthenticated ? (
               <div className="flex items-center space-x-6">
                 {/* Mes annonces */}
@@ -337,18 +350,47 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile: User icon (right) */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-gray-600 hover:text-primary-bolt-500 hover:bg-gray-50 transition-all duration-200"
+            onClick={() => isAuthenticated ? handleDashboardNavClick("profile") : handleAuthClick("signin")}
+            className="lg:hidden p-2 rounded-xl text-gray-600 hover:text-primary-bolt-500 hover:bg-gray-50 transition-all duration-200 order-3"
+            data-testid="mobile-user-button"
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
+            <User className="h-6 w-6" />
           </button>
         </div>
+      </div>
+
+      {/* Mobile Search Bar & Create Button */}
+      <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 space-y-3">
+        {/* Search Bar */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Rechercher..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="w-full pl-4 pr-12 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all text-gray-900 placeholder-gray-500"
+            data-testid="mobile-search-input"
+          />
+          <button
+            onClick={handleSearch}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-primary-bolt-500 transition-colors"
+          >
+            <Search className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Create Listing Button */}
+        <button
+          onClick={handleCreateListingClick}
+          className="w-full bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center space-x-2"
+          data-testid="mobile-create-listing-button"
+        >
+          <Plus className="h-5 w-5" />
+          <span>Déposer une annonce</span>
+        </button>
       </div>
 
       {/* Categories Menu */}
