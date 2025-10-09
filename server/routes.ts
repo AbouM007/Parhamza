@@ -670,6 +670,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Record a view for a vehicle (unique per user/IP)
+  app.post("/api/vehicles/:id/view", async (req, res) => {
+    try {
+      const vehicleId = req.params.id;
+      const { userId } = req.body;
+      
+      // Extract IP address from request
+      const ipAddress = req.headers['x-forwarded-for'] 
+        ? (req.headers['x-forwarded-for'] as string).split(',')[0].trim()
+        : req.socket.remoteAddress || null;
+      
+      console.log('🔄 Enregistrement vue:', { vehicleId, userId, ipAddress });
+      
+      // Check if this user/IP has already viewed this vehicle
+      const alreadyViewed = await storage.hasUserViewedVehicle(vehicleId, userId || null, ipAddress);
+      
+      if (alreadyViewed) {
+        console.log('ℹ️ Vue déjà enregistrée');
+        return res.json({ success: true, alreadyViewed: true });
+      }
+      
+      // Record the view
+      const viewRecorded = await storage.recordVehicleView(vehicleId, userId || null, ipAddress);
+      
+      if (!viewRecorded) {
+        return res.status(500).json({ error: 'Failed to record view' });
+      }
+      
+      // Increment the view counter
+      await storage.incrementVehicleViewCount(vehicleId);
+      
+      console.log('✅ Vue enregistrée et compteur incrémenté');
+      res.json({ success: true, alreadyViewed: false });
+      
+    } catch (error) {
+      console.error('❌ Erreur enregistrement vue:', error);
+      res.status(500).json({ error: 'Failed to record view' });
+    }
+  });
+
   app.get("/api/users/:id/quota/check", async (req, res) => {
     try {
       const userId = req.params.id;
