@@ -34,6 +34,22 @@ import appStoreIcon from "@/assets/AppStore_1752058292770.png";
 import googlePlayIcon from "@/assets/googlePlay_1752058332269.png";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 
+import voitureIcon from "@/assets/voiture-_1752249166092.png";
+import utilitaireIcon from "@/assets/utilitaire_1752249166091.png";
+import caravaneIcon from "@/assets/caravane_1752249166091.png";
+import remorqueIcon from "@/assets/remorque_1752249166090.png";
+import motoIcon from "@/assets/motos-scooters_1752244968742.png";
+import scooterIcon from "@/assets/scooter_1752088210843.png";
+import quadIcon from "@/assets/Quad_1752249742337.png";
+import jetskiIcon from "@/assets/Jetski_1752249742334.png";
+import aerienIcon from "@/assets/aerien_1753810777764.png";
+import reparationIcon from "@/assets/reparation_1752251142655.png";
+import remorquageIcon from "@/assets/remorquage_1752251142654.png";
+import autreServiceIcon from "@/assets/autre_1752251142652.png";
+import piecesVoitureIcon from "@/assets/voiture-2_1752244968736.png";
+import piecesMotoIcon from "@/assets/motos-scooters_1752244968742.png";
+import autrePieceIcon from "@/assets/pieces-detachees_1752244968743.png";
+
 interface HeroProps {
   setCurrentView: (view: string) => void;
 }
@@ -450,181 +466,142 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         </div>
       </section>
 
-      {/* Subcategories Section - Grid on mobile, same grid on desktop */}
+      {/* Categories Section - Different layouts for mobile and desktop */}
       <section className="py-8 md:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Mobile & Desktop: Grid of all subcategories */}
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {/* Voitures - Utilitaires */}
-            <button
-              onClick={() => handleSubcategoryClick("voiture")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-voiture"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={voituresImage} alt="Voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+          {/* Mobile: Grid of all subcategories with specific icons */}
+          <div className="md:hidden grid grid-cols-3 gap-3">
+            <button onClick={() => handleSubcategoryClick("voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-voiture">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={voitureIcon} alt="Voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Voiture</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("utilitaire")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-utilitaire"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={voituresImage} alt="Utilitaire" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("utilitaire")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-utilitaire">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={utilitaireIcon} alt="Utilitaire" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Utilitaire</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("caravane")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-caravane"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={voituresImage} alt="Caravane" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("caravane")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-caravane">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={caravaneIcon} alt="Caravane" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Caravane</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("remorque")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-remorque"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={voituresImage} alt="Remorque" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("remorque")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-remorque">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={remorqueIcon} alt="Remorque" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Remorque</h3>
             </button>
             
-            {/* Motos - Scooters - Quads */}
-            <button
-              onClick={() => handleSubcategoryClick("moto")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-moto"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={motosImage} alt="Moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("moto")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-moto">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={motoIcon} alt="Moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Moto</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("scooter")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-scooter"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={motosImage} alt="Scooter" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-scooter">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={scooterIcon} alt="Scooter" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Scooter</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("quad")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-quad"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={motosImage} alt="Quad" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("quad")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-quad">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={quadIcon} alt="Quad" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Quad</h3>
             </button>
             
-            {/* Nautisme - Sport - Plein air */}
-            <button
-              onClick={() => handleSubcategoryClick("bateau")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-bateau"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
+            <button onClick={() => handleSubcategoryClick("bateau")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-bateau">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
                 <img src={bateauImage} alt="Bateau" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Bateau</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("jetski")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-jetski"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={bateauImage} alt="Jetski" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("jetski")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-jetski">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={jetskiIcon} alt="Jetski" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Jetski</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("aerien")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-aerien"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={bateauImage} alt="Aérien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("aerien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-aerien">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={aerienIcon} alt="Aérien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Aérien</h3>
             </button>
             
-            {/* Services */}
-            <button
-              onClick={() => handleSubcategoryClick("reparation")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-reparation"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={entretienImage} alt="Réparation" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("reparation")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-reparation">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={reparationIcon} alt="Réparation" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Réparation</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("entretien")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-entretien"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
+            <button onClick={() => handleSubcategoryClick("entretien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-entretien">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
                 <img src={entretienImage} alt="Entretien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Entretien</h3>
             </button>
             
-            {/* Pièces détachées */}
-            <button
-              onClick={() => handleSubcategoryClick("piece-voiture")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-piece-voiture"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={piecesImage} alt="Pièces voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("piece-voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-voiture">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={piecesVoitureIcon} alt="Pièces voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces auto</h3>
             </button>
             
-            <button
-              onClick={() => handleSubcategoryClick("piece-moto-scooter")}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-piece-moto"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={piecesImage} alt="Pièces moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={() => handleSubcategoryClick("piece-moto-scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-moto">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={piecesMotoIcon} alt="Pièces moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces moto</h3>
             </button>
             
-            {/* Accidentés */}
-            <button
-              onClick={handleViewDamagedVehicles}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-4 text-center"
-              data-testid="subcategory-accidentes"
-            >
-              <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center relative">
-                <img src={voituresImage} alt="Accidentés" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+            <button onClick={handleViewDamagedVehicles} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-accidentes">
+              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                <img src={voitureIcon} alt="Accidentés" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
               </div>
               <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Accidentés</h3>
             </button>
+          </div>
+
+          {/* Desktop: 4 main category cards (original layout) */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {mainCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden p-8 text-center hover:scale-105 transform relative"
+                data-testid={`category-${category.id}`}
+              >
+                <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center relative bg-white rounded-2xl">
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-16 h-16 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-bolt-500 transition-colors">
+                  {category.name}
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {category.description}
+                </p>
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary-bolt-500 rounded-2xl transition-all duration-300"></div>
+              </button>
+            ))}
           </div>
         </div>
       </section>
@@ -831,38 +808,119 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         ))}
       </div>
 
-      {/* Professional Space Banner - Simplified */}
-      <section className="py-8 bg-gray-50">
+      {/* Professional Space - Mobile: Simplified, Desktop: Full */}
+      <section className="py-8 md:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl">
-            {/* Background decorative elements */}
+          {/* Mobile: Simplified banner */}
+          <div className="md:hidden bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-2xl p-6 relative overflow-hidden shadow-xl">
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
 
             <div className="relative z-10">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-white">
-                <div className="text-center md:text-left">
+              <div className="flex flex-col items-center justify-between gap-6 text-white">
+                <div className="text-center">
                   <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-3">
                     <Store className="h-4 w-4" />
                     <span className="font-semibold text-sm">Espace Professionnel</span>
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                  <h3 className="text-2xl font-bold mb-2">
                     Développez votre activité avec nous
                   </h3>
-                  <p className="text-primary-bolt-100 text-sm md:text-base">
+                  <p className="text-primary-bolt-100 text-sm">
                     Plus de 2,500 professionnels nous font confiance
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4 md:gap-6">
+                <div className="flex items-center gap-4">
                   <div className="text-center">
-                    <div className="font-bold text-2xl md:text-3xl">45k+</div>
-                    <div className="text-primary-bolt-100 text-xs md:text-sm">Clients</div>
+                    <div className="font-bold text-2xl">45k+</div>
+                    <div className="text-primary-bolt-100 text-xs">Clients</div>
                   </div>
                   <div className="w-px h-12 bg-white/30"></div>
                   <div className="text-center">
-                    <div className="font-bold text-2xl md:text-3xl">∞</div>
-                    <div className="text-primary-bolt-100 text-xs md:text-sm">Annonces</div>
+                    <div className="font-bold text-2xl">∞</div>
+                    <div className="text-primary-bolt-100 text-xs">Annonces</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Full professional space */}
+          <div className="hidden md:block bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-3xl p-8 lg:p-12 relative overflow-hidden shadow-2xl">
+            {/* Background decorative elements */}
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+
+            <div className="relative z-10">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center text-white">
+                <div>
+                  <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                    <Store className="h-5 w-5" />
+                    <span className="font-semibold">Espace Professionnel</span>
+                  </div>
+                  <h2 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                    Développez votre activité avec Passion Auto2Roues
+                  </h2>
+                  <p className="text-xl mb-8 leading-relaxed">
+                    Rejoignez plus de 2,500 professionnels qui font confiance à
+                    notre plateforme pour développer leur business automobile.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-white/20 p-2 rounded-xl">
+                        <TrendingUp className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg">
+                          Visibilité maximale
+                        </div>
+                        <div className="text-cyan-200 text-sm">
+                          Annonces illimitées
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-white/20 p-2 rounded-xl">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg">45,000+ clients</div>
+                        <div className="text-cyan-200 text-sm">
+                          Audience qualifiée
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                    <h3 className="text-2xl font-bold mb-6">Avantages Pro</h3>
+                    <ul className="space-y-4 text-primary-bolt-100">
+                      <li className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <span>Annonces illimitées et mises en avant</span>
+                      </li>
+                      <li className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <span>Statistiques détaillées et analytics</span>
+                      </li>
+                      <li className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <span>Badge "Professionnel vérifié"</span>
+                      </li>
+                      <li className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <span>Support client prioritaire</span>
+                      </li>
+                      <li className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <span>Outils de gestion avancés</span>
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>
