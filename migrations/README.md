@@ -15,18 +15,27 @@ Ce dossier contient les scripts de migration SQL pour la base de données Supaba
 
 ### 001_create_vehicle_views_table.sql
 
-**Objectif :** Créer la table `vehicle_views` pour tracker les vues uniques par véhicule.
+**Objectif :** Créer la table `vehicle_views` et les fonctions RPC pour tracker les vues et favoris.
 
-**Description :**
-- Crée une table pour enregistrer les vues de véhicules
-- Chaque vue est unique par utilisateur (userId) ou par adresse IP (pour les anonymes)
-- Ajoute des index pour optimiser les requêtes
-- Empêche les doublons avec des contraintes UNIQUE
+**Description - Partie 1 (Table et contraintes) :**
+- Crée la table `vehicle_views` pour enregistrer les vues de véhicules
+- Contraintes uniques partielles :
+  - Utilisateurs connectés : (user_id, vehicle_id) WHERE user_id IS NOT NULL
+  - Utilisateurs anonymes : (ip_address, vehicle_id) WHERE ip_address IS NOT NULL AND user_id IS NULL
+- Index pour optimiser les requêtes
+- Empêche les doublons au niveau base de données
+
+**Description - Partie 2 (Fonctions RPC atomiques) :**
+- `increment_vehicle_views(p_vehicle_id TEXT)` : Incrémente atomiquement le compteur de vues
+- `increment_vehicle_favorites(p_vehicle_id TEXT)` : Incrémente atomiquement le compteur de favoris
+- `decrement_vehicle_favorites(p_vehicle_id TEXT)` : Décrémente atomiquement le compteur de favoris (min 0)
+- Garantit la cohérence des compteurs même sous forte concurrence
 
 **Cette migration est requise pour :**
-- Le système de compteur de vues
-- Le tracking des vues uniques par utilisateur/IP
-- L'affichage du nombre de vues sur les cartes de véhicules
+- Le système de compteur de vues avec tracking unique
+- Le système de compteur de favoris
+- L'affichage des statistiques (vues/favoris) sur les cartes de véhicules
+- La prévention des incrémentations multiples sous concurrence
 
 ## Notes importantes
 

@@ -91,6 +91,18 @@ Preferred communication style: Simple, everyday language.
   - Semi-transparent watermark "DEMO" overlays images at -20° rotation
   - Applies to both VehicleCard (listings grid) and VehicleDetail (detail page)
   - Existing listings marked as demo via SQL; new listings default to `false`
+- **Views and Favorites Counters (Oct 2025)**:
+  - `vehicle_views` table tracks unique views per vehicle by userId or IP address
+  - Partial unique constraints prevent duplicate views:
+    - Logged users: (user_id, vehicle_id) WHERE user_id IS NOT NULL
+    - Anonymous: (ip_address, vehicle_id) WHERE ip_address IS NOT NULL AND user_id IS NULL
+  - Atomic RPC functions for thread-safe counter updates:
+    - `increment_vehicle_views(p_vehicle_id)`: Atomic view counter increment
+    - `increment_vehicle_favorites(p_vehicle_id)`: Atomic favorite counter increment
+    - `decrement_vehicle_favorites(p_vehicle_id)`: Atomic favorite counter decrement (min 0)
+  - VehicleDetail component automatically records view on page load
+  - Favorites routes call increment/decrement when adding/removing from wishlist
+  - Migration script: `migrations/001_create_vehicle_views_table.sql`
 
 ### Authentication & Authorization
 - **Provider**: Supabase Auth (registration, login, session management).
