@@ -39,13 +39,9 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
-  const {
-    setSearchFilters,
-    setSelectedVehicle,
-    vehicles,
-    openAuthModal,
-  } = useApp();
-  
+  const { setSearchFilters, setSelectedVehicle, vehicles, openAuthModal } =
+    useApp();
+
   const handleCreateListingWithQuota = useCreateListingGuard();
   const { user } = useAuth();
   const isAuthenticated = !!user;
@@ -804,10 +800,10 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center space-x-2 bg-green-100 rounded-full px-4 py-2 mb-6">
-                <Smartphone className="h-5 w-5 text-green-700" />
-                <span className="font-semibold text-green-700">
-                  Disponible maintenant
+              <div className="inline-flex items-center space-x-2 bg-orange-100 rounded-full px-4 py-2 mb-6">
+                <Smartphone className="h-5 w-5 text-orange-700" />
+                <span className="font-semibold text-orange-700">
+                  Disponible prochainement !
                 </span>
               </div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
