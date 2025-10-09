@@ -184,12 +184,14 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
 
         {/* Vehicle Details */}
         <div className="grid grid-cols-3 gap-3 mb-4 text-sm text-gray-600">
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <span>{vehicle.year}</span>
-          </div>
+          {vehicle.year && vehicle.year > 0 && (
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4 text-gray-400" />
+              <span>{vehicle.year}</span>
+            </div>
+          )}
 
-          {vehicle.mileage && (
+          {vehicle.mileage && vehicle.mileage > 0 && (
             <div className="flex items-center space-x-2">
               <Gauge className="h-4 w-4 text-gray-400" />
               <span>{formatMileage(vehicle.mileage)}</span>
