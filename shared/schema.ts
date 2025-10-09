@@ -167,6 +167,17 @@ export const vehicleViews = pgTable("vehicle_views", {
   vehicleId: text("vehicle_id").notNull(),
   ipAddress: text("ip_address"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    // Unique constraint for logged-in users: one view per user per vehicle
+    uniqueUserView: uniqueIndex("unique_user_vehicle_view")
+      .on(table.userId, table.vehicleId)
+      .where(sql`${table.userId} IS NOT NULL`),
+    // Unique constraint for anonymous users: one view per IP per vehicle
+    uniqueIpView: uniqueIndex("unique_ip_vehicle_view")
+      .on(table.ipAddress, table.vehicleId)
+      .where(sql`${table.ipAddress} IS NOT NULL AND ${table.userId} IS NULL`),
+  };
 });
 
 // Admin tables
