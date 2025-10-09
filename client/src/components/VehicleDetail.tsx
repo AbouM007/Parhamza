@@ -566,6 +566,120 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                 </p>
               </div>
 
+              {/* Caractéristiques techniques */}
+              {vehicle.vehicleSpecifications && !isServiceCategory(vehicle.category) && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Caractéristiques techniques
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {/* Cylindrée */}
+                    {vehicle.vehicleSpecifications.displacement && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Cylindrée</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.displacement} cm³</div>
+                      </div>
+                    )}
+                    
+                    {/* Version */}
+                    {vehicle.vehicleSpecifications.version && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Version</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.version}</div>
+                      </div>
+                    )}
+                    
+                    {/* Type de moto */}
+                    {vehicle.vehicleSpecifications.motorcycleType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type de moto</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.motorcycleType}</div>
+                      </div>
+                    )}
+                    
+                    {/* Type de véhicule */}
+                    {vehicle.vehicleSpecifications.vehicleType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type de véhicule</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.vehicleType}</div>
+                      </div>
+                    )}
+                    
+                    {/* Permis requis */}
+                    {vehicle.vehicleSpecifications.licenseType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Permis requis</div>
+                        <div className="font-semibold">Permis {vehicle.vehicleSpecifications.licenseType}</div>
+                      </div>
+                    )}
+                    
+                    {/* Puissance fiscale */}
+                    {vehicle.vehicleSpecifications.fiscalHorsepower && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Puissance fiscale</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.fiscalHorsepower} CV</div>
+                      </div>
+                    )}
+                    
+                    {/* Portes */}
+                    {vehicle.vehicleSpecifications.doors && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Portes</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.doors}</div>
+                      </div>
+                    )}
+                    
+                    {/* Sellerie */}
+                    {vehicle.vehicleSpecifications.upholstery && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Sellerie</div>
+                        <div className="font-semibold capitalize">{vehicle.vehicleSpecifications.upholstery}</div>
+                      </div>
+                    )}
+                    
+                    {/* Carburant */}
+                    {vehicle.fuelType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Carburant</div>
+                        <div className="font-semibold capitalize">
+                          {vehicle.fuelType === 'gasoline' ? 'Essence' : 
+                           vehicle.fuelType === 'diesel' ? 'Diesel' :
+                           vehicle.fuelType === 'electric' ? 'Électrique' :
+                           vehicle.fuelType === 'hybrid' ? 'Hybride' : vehicle.fuelType}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Transmission */}
+                    {vehicle.transmission && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Boîte de vitesses</div>
+                        <div className="font-semibold capitalize">
+                          {vehicle.transmission === 'manual' ? 'Manuelle' : 
+                           vehicle.transmission === 'automatic' ? 'Automatique' : vehicle.transmission}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Couleur */}
+                    {vehicle.color && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Couleur</div>
+                        <div className="font-semibold">{vehicle.color}</div>
+                      </div>
+                    )}
+                    
+                    {/* Puissance */}
+                    {vehicle.power && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Puissance</div>
+                        <div className="font-semibold">{vehicle.power} CH</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Damage Details - Always shown for damaged vehicles */}
               {vehicle.condition === "damaged" && (
                 <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">

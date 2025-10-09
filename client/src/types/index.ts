@@ -37,6 +37,9 @@ export interface Vehicle {
   mileage?: number;
   fuelType?: string;
   transmission?: string; // Boîte de vitesses (voiture/utilitaire)
+  color?: string; // Couleur
+  power?: number; // Puissance en CH
+  emissionClass?: string; // Classe d'émissions
   engineSize?: number; // Cylindrée (moto/scooter)
   vehicleType?: string; // Type de véhicule (voiture, moto, bateau, etc.)
   length?: number; // Longueur en mètres (bateau)
@@ -54,6 +57,27 @@ export interface Vehicle {
     severity?: string;
   };
   compatibilityTags?: string[];
+  vehicleSpecifications?: {
+    doors?: number | null;
+    seats?: number | null;
+    volume?: number | null;
+    payload?: number | null;
+    version?: string | null;
+    equipment?: string[];
+    maxWeight?: number | null;
+    dimensions?: string | null;
+    jetskiType?: string | null;
+    upholstery?: string | null;
+    usageHours?: number | null;
+    emptyWeight?: number | null;
+    licenseType?: string | null;
+    trailerType?: string | null;
+    utilityType?: string | null;
+    vehicleType?: string | null;
+    displacement?: number | null;
+    motorcycleType?: string | null;
+    fiscalHorsepower?: number | null;
+  };
   isPremium: boolean;
   premiumType?: "daily" | "weekly" | "monthly";
   premiumExpiresAt?: Date | null;
