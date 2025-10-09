@@ -690,7 +690,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
               )}
 
               {/* Caractéristiques techniques */}
-              {!isServiceCategory(vehicle.category) && (vehicle.fuelType || vehicle.transmission || vehicle.color || vehicle.power || vehicle.emissionClass || vehicle.vehicleSpecifications) && (
+              {!isServiceCategory(vehicle.category) && !isSparePart(vehicle.category) && (vehicle.fuelType || vehicle.transmission || vehicle.color || vehicle.power || vehicle.emissionClass || vehicle.vehicleSpecifications) && (
                 <div className="mb-8 bg-gray-50 rounded-2xl p-6 shadow-sm">
                   <h3 className="text-xl font-bold text-primary-bolt-600 mb-5">
                     Caractéristiques techniques
