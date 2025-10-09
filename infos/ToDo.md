@@ -1,9 +1,8 @@
-# todo
+# Todo
 
 **A faire**  
 - Améliorer design annonces (sections et rubriques de l'annonce)  
 - Ajouter OTP Tél Whatsapp post creation compte    
-- Nettoyer annonce démos : lier accidentés aux pièces  
 - Systeme de mailing et notifications :
    - Créer des API events pour notifications et emails  
    - Emailing : Templates (confirmation, OTP, reset password, notifications) Nodemail  
@@ -22,3 +21,5 @@ Refactoriser la page messagerie / routes.ts / Dashboard / BD
 Optimiser performance globale (lazy loading, pagination, cache, Supabase)  
 Mettre un vendeur aux favoris + suivre ses annonces  
 Responsive + Adpatation mobile (pages, menus, headers…) 
+
+**Possibilité d'amélioration**  
