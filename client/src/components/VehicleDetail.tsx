@@ -567,76 +567,12 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
               </div>
 
               {/* Caractéristiques techniques */}
-              {vehicle.vehicleSpecifications && !isServiceCategory(vehicle.category) && (
+              {!isServiceCategory(vehicle.category) && (vehicle.fuelType || vehicle.transmission || vehicle.color || vehicle.power || vehicle.emissionClass || vehicle.vehicleSpecifications) && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Caractéristiques techniques
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {/* Cylindrée */}
-                    {vehicle.vehicleSpecifications.displacement && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Cylindrée</div>
-                        <div className="font-semibold">{vehicle.vehicleSpecifications.displacement} cm³</div>
-                      </div>
-                    )}
-                    
-                    {/* Version */}
-                    {vehicle.vehicleSpecifications.version && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Version</div>
-                        <div className="font-semibold">{vehicle.vehicleSpecifications.version}</div>
-                      </div>
-                    )}
-                    
-                    {/* Type de moto */}
-                    {vehicle.vehicleSpecifications.motorcycleType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Type de moto</div>
-                        <div className="font-semibold">{vehicle.vehicleSpecifications.motorcycleType}</div>
-                      </div>
-                    )}
-                    
-                    {/* Type de véhicule */}
-                    {vehicle.vehicleSpecifications.vehicleType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Type de véhicule</div>
-                        <div className="font-semibold">{vehicle.vehicleSpecifications.vehicleType}</div>
-                      </div>
-                    )}
-                    
-                    {/* Permis requis */}
-                    {vehicle.vehicleSpecifications.licenseType && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Permis requis</div>
-                        <div className="font-semibold">Permis {vehicle.vehicleSpecifications.licenseType}</div>
-                      </div>
-                    )}
-                    
-                    {/* Puissance fiscale */}
-                    {vehicle.vehicleSpecifications.fiscalHorsepower && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Puissance fiscale</div>
-                        <div className="font-semibold">{vehicle.vehicleSpecifications.fiscalHorsepower} CV</div>
-                      </div>
-                    )}
-                    
-                    {/* Portes */}
-                    {vehicle.vehicleSpecifications.doors && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Portes</div>
-                        <div className="font-semibold">{vehicle.vehicleSpecifications.doors}</div>
-                      </div>
-                    )}
-                    
-                    {/* Sellerie */}
-                    {vehicle.vehicleSpecifications.upholstery && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-sm text-gray-600">Sellerie</div>
-                        <div className="font-semibold capitalize">{vehicle.vehicleSpecifications.upholstery}</div>
-                      </div>
-                    )}
-                    
                     {/* Carburant */}
                     {vehicle.fuelType && (
                       <div className="p-3 bg-gray-50 rounded-lg">
@@ -674,6 +610,172 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       <div className="p-3 bg-gray-50 rounded-lg">
                         <div className="text-sm text-gray-600">Puissance</div>
                         <div className="font-semibold">{vehicle.power} CH</div>
+                      </div>
+                    )}
+
+                    {/* Classe d'émissions */}
+                    {vehicle.emissionClass && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Norme Euro</div>
+                        <div className="font-semibold">{vehicle.emissionClass}</div>
+                      </div>
+                    )}
+                    
+                    {/* Cylindrée */}
+                    {vehicle.vehicleSpecifications?.displacement && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Cylindrée</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.displacement} cm³</div>
+                      </div>
+                    )}
+                    
+                    {/* Version */}
+                    {vehicle.vehicleSpecifications?.version && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Version</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.version}</div>
+                      </div>
+                    )}
+                    
+                    {/* Type de moto */}
+                    {vehicle.vehicleSpecifications?.motorcycleType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type de moto</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.motorcycleType}</div>
+                      </div>
+                    )}
+                    
+                    {/* Type de véhicule (voiture) */}
+                    {vehicle.vehicleSpecifications?.vehicleType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type de véhicule</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.vehicleType}</div>
+                      </div>
+                    )}
+                    
+                    {/* Permis requis */}
+                    {vehicle.vehicleSpecifications?.licenseType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Permis requis</div>
+                        <div className="font-semibold">Permis {vehicle.vehicleSpecifications.licenseType}</div>
+                      </div>
+                    )}
+                    
+                    {/* Puissance fiscale */}
+                    {vehicle.vehicleSpecifications?.fiscalHorsepower && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Puissance fiscale</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.fiscalHorsepower} CV</div>
+                      </div>
+                    )}
+                    
+                    {/* Portes */}
+                    {vehicle.vehicleSpecifications?.doors && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Portes</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.doors}</div>
+                      </div>
+                    )}
+
+                    {/* Sièges */}
+                    {vehicle.vehicleSpecifications?.seats && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Places</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.seats}</div>
+                      </div>
+                    )}
+                    
+                    {/* Sellerie */}
+                    {vehicle.vehicleSpecifications?.upholstery && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Sellerie</div>
+                        <div className="font-semibold capitalize">{vehicle.vehicleSpecifications.upholstery}</div>
+                      </div>
+                    )}
+
+                    {/* Volume (utilitaire) */}
+                    {vehicle.vehicleSpecifications?.volume && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Volume de chargement</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.volume} m³</div>
+                      </div>
+                    )}
+
+                    {/* Charge utile (utilitaire) */}
+                    {vehicle.vehicleSpecifications?.payload && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Charge utile</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.payload} kg</div>
+                      </div>
+                    )}
+
+                    {/* Poids maximum (caravane/remorque) */}
+                    {vehicle.vehicleSpecifications?.maxWeight && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Poids maximum</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.maxWeight} kg</div>
+                      </div>
+                    )}
+
+                    {/* Poids à vide */}
+                    {vehicle.vehicleSpecifications?.emptyWeight && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Poids à vide</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.emptyWeight} kg</div>
+                      </div>
+                    )}
+
+                    {/* Dimensions */}
+                    {vehicle.vehicleSpecifications?.dimensions && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Dimensions</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.dimensions}</div>
+                      </div>
+                    )}
+
+                    {/* Type de jetski */}
+                    {vehicle.vehicleSpecifications?.jetskiType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type de jet-ski</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.jetskiType}</div>
+                      </div>
+                    )}
+
+                    {/* Heures d'utilisation */}
+                    {vehicle.vehicleSpecifications?.usageHours && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Heures d'utilisation</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.usageHours}h</div>
+                      </div>
+                    )}
+
+                    {/* Type de remorque */}
+                    {vehicle.vehicleSpecifications?.trailerType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type de remorque</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.trailerType}</div>
+                      </div>
+                    )}
+
+                    {/* Type d'utilitaire */}
+                    {vehicle.vehicleSpecifications?.utilityType && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm text-gray-600">Type d'utilitaire</div>
+                        <div className="font-semibold">{vehicle.vehicleSpecifications.utilityType}</div>
+                      </div>
+                    )}
+
+                    {/* Équipements spécifiques */}
+                    {vehicle.vehicleSpecifications?.equipment && vehicle.vehicleSpecifications.equipment.length > 0 && (
+                      <div className="p-3 bg-gray-50 rounded-lg md:col-span-2">
+                        <div className="text-sm text-gray-600 mb-2">Équipements</div>
+                        <div className="flex flex-wrap gap-1">
+                          {vehicle.vehicleSpecifications.equipment.map((eq, idx) => (
+                            <span key={idx} className="inline-block px-2 py-0.5 bg-cyan-100 text-cyan-800 rounded text-xs font-medium">
+                              {eq}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
