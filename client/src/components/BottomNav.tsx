@@ -1,10 +1,22 @@
 import { Home, Search, PlusCircle, MessageCircle, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import { useApp } from "@/contexts/AppContext";
 
 export function BottomNav() {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
+  const { openAuthModal } = useApp();
+
+  const handleProfileClick = () => {
+    if (user) {
+      // Si connecté, aller au dashboard
+      setLocation("/dashboard");
+    } else {
+      // Si non connecté, ouvrir le modal de connexion
+      openAuthModal("login");
+    }
+  };
 
   const navItems = [
     {
@@ -12,12 +24,14 @@ export function BottomNav() {
       label: "Accueil",
       path: "/",
       active: location === "/",
+      onClick: () => setLocation("/"),
     },
     {
       icon: Search,
       label: "Recherche",
       path: "/search",
       active: location === "/search",
+      onClick: () => setLocation("/search"),
     },
     {
       icon: PlusCircle,
@@ -25,18 +39,21 @@ export function BottomNav() {
       path: "/create-listing",
       active: location === "/create-listing",
       primary: true,
+      onClick: () => setLocation("/create-listing"),
     },
     {
       icon: MessageCircle,
       label: "Messages",
       path: "/messages",
       active: location === "/messages",
+      onClick: () => setLocation("/messages"),
     },
     {
       icon: User,
       label: "Profil",
-      path: user ? "/profile" : "/auth",
-      active: location === "/profile" || location === "/auth",
+      path: user ? "/dashboard" : "#",
+      active: location === "/dashboard",
+      onClick: handleProfileClick,
     },
   ];
 
@@ -52,8 +69,8 @@ export function BottomNav() {
 
           return (
             <button
-              key={item.path}
-              onClick={() => setLocation(item.path)}
+              key={item.label}
+              onClick={item.onClick}
               className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
                 item.primary
                   ? "transform -translate-y-2"
