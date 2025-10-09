@@ -22,6 +22,7 @@ import { useListingNavigation } from "@/hooks/useListingNavigation";
 import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
 import { compressImage } from "@/utils/imageCompression";
 import { useToast } from "@/hooks/use-toast";
+import { saveFormDraft, loadFormDraft, clearFormDraft, hasDraft } from "@/utils/formPersistence";
 import {
   getBrandsBySubcategory,
   fuelTypes,
@@ -202,6 +203,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   });
 
   const [formData, setFormData] = useState<FormData>(initializeFormData());
+
+  // 💾 Restaurer le brouillon sauvegardé au chargement (sera finalisé plus bas avec currentStep)
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   // 🔧 Gestion mémoire des preview URLs (évite crash mobile)
   const photoPreviewUrls = useMemo(() => {
@@ -1082,6 +1086,65 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const { formatRegistrationNumber, validateRegistrationNumber } =
     useRegistrationNumber();
 
+  // 💾 Restaurer le brouillon sauvegardé au montage (une seule fois)
+  useEffect(() => {
+    if (!draftLoaded) {
+      const draft = loadFormDraft();
+      if (draft) {
+        console.log("📦 Brouillon trouvé, restauration des données...");
+        setFormData({
+          listingType: draft.listingType as ListingTypeValue | "",
+          category: draft.category,
+          subcategory: draft.subcategory,
+          condition: draft.condition as FormData["condition"],
+          title: draft.title,
+          registrationNumber: draft.registrationNumber,
+          specificDetails: draft.specificDetails,
+          description: draft.description,
+          photos: draft.photoUrls, // Les URLs Supabase déjà uploadées
+          price: draft.price,
+          location: draft.location,
+          contact: draft.contact,
+          premiumPack: draft.premiumPack,
+        });
+        
+        // Restaurer aussi currentStep si sauvegardé
+        if (draft.currentStep && draft.currentStep > 1) {
+          setCurrentStep(draft.currentStep);
+        }
+        
+        toast({
+          title: "Brouillon restauré",
+          description: "Vos données ont été récupérées. Vous pouvez continuer votre annonce.",
+        });
+      }
+      setDraftLoaded(true);
+    }
+  }, [draftLoaded, setCurrentStep, toast]);
+
+  // 💾 Sauvegarde automatique à chaque modification
+  useEffect(() => {
+    // Ne pas sauvegarder avant la première restauration
+    if (!draftLoaded) return;
+    
+    // Ne sauvegarder que si au moins un champ important est rempli
+    const hasData = 
+      formData.listingType ||
+      formData.category ||
+      formData.title ||
+      formData.description ||
+      formData.photos.length > 0;
+    
+    if (hasData) {
+      const saveTimeout = setTimeout(() => {
+        saveFormDraft(formData, currentStep);
+        console.log("💾 Brouillon sauvegardé automatiquement");
+      }, 1000); // Délai de 1 seconde pour éviter les sauvegardes trop fréquentes
+      
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [formData, currentStep, draftLoaded]);
+
   // Fonction pour publier l'annonce
   const publishListing = async () => {
     try {
@@ -1222,6 +1285,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           id: newVehicle.id?.toString() || "",
           title: newVehicle.title || formData.title,
         });
+
+        // Nettoyer le brouillon sauvegardé
+        clearFormDraft();
+        console.log("🗑️ Brouillon supprimé après publication réussie");
 
         // Afficher le modal de succès
         setShowSuccessModal(true);
