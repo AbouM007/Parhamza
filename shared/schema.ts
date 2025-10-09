@@ -132,6 +132,7 @@ export const annonces = pgTable("annonces", {
   professionalAccountId: integer("professional_account_id").references(
     () => professionalAccounts.id,
   ),
+  isDemo: boolean("is_demo").default(false),
 });
 
 export const messages = pgTable("messages", {
