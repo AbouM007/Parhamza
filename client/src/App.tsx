@@ -39,6 +39,65 @@ import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
 
+// Composant de protection pour la route Dashboard
+function DashboardRoute({
+  dashboardTab,
+  showCreateListingModal,
+  setShowCreateListingModal,
+  refreshVehicles,
+  setSearchFilters,
+  setCurrentView,
+}: {
+  dashboardTab: string;
+  showCreateListingModal: boolean;
+  setShowCreateListingModal: (show: boolean) => void;
+  refreshVehicles: boolean;
+  setSearchFilters: (filters: any) => void;
+  setCurrentView: (view: string) => void;
+}) {
+  const { user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+  const handleCreateListingGuard = useCreateListingGuard();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/");
+    }
+  }, [loading, user, setLocation]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-bolt-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <Dashboard
+      initialTab={dashboardTab}
+      onCreateListing={() =>
+        handleCreateListingGuard(
+          () => setShowCreateListingModal(true),
+          "dashboard-button",
+        )
+      }
+      onRedirectHome={() => setLocation("/")}
+      onRedirectToSearch={() => setLocation("/search")}
+      setSearchFilters={setSearchFilters}
+      setCurrentView={setCurrentView}
+      refreshVehicles={refreshVehicles}
+    />
+  );
+}
+
 function AppContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCreateListingModal, setShowCreateListingModal] = useState(false);
@@ -225,43 +284,14 @@ function AppContent() {
                   <VehicleListings />
                 </Route>
                 <Route path="/dashboard">
-                  {(() => {
-                    // Protection contre l'erreur de hooks React quand user devient null
-                    if (loading) {
-                      return (
-                        <div className="min-h-screen flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-bolt-500 mx-auto"></div>
-                            <p className="mt-4 text-gray-600">Chargement...</p>
-                          </div>
-                        </div>
-                      );
-                    }
-                    
-                    if (!user) {
-                      // Redirection immédiate si pas d'utilisateur (évite le crash de hooks)
-                      setLocation("/");
-                      return null;
-                    }
-                    
-                    // Montage du Dashboard seulement si utilisateur authentifié
-                    return (
-                      <Dashboard
-                        initialTab={dashboardTab}
-                        onCreateListing={() =>
-                          handleCreateListingGuard(
-                            () => setShowCreateListingModal(true),
-                            "dashboard-button",
-                          )
-                        }
-                        onRedirectHome={() => setLocation("/")}
-                        onRedirectToSearch={() => setLocation("/search")}
-                        setSearchFilters={setSearchFilters}
-                        setCurrentView={setCurrentView}
-                        refreshVehicles={refreshVehicles}
-                      />
-                    );
-                  })()}
+                  <DashboardRoute
+                    dashboardTab={dashboardTab}
+                    showCreateListingModal={showCreateListingModal}
+                    setShowCreateListingModal={setShowCreateListingModal}
+                    refreshVehicles={refreshVehicles}
+                    setSearchFilters={setSearchFilters}
+                    setCurrentView={setCurrentView}
+                  />
                 </Route>
                 <Route path="/create-listing">
                   <Hero setCurrentView={setCurrentView} />
