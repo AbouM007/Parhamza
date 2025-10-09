@@ -85,15 +85,15 @@ const CategorySectionComponent: React.FC<CategorySectionProps> = ({
     <section className="py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Container with background and padding */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-primary-bolt-500">
+        <div className="bg-white rounded-2xl shadow-lg p-4 md:p-8">
+          {/* Header - Desktop: title + link, Mobile: title only */}
+          <div className="flex justify-between items-center mb-6 md:mb-8">
+            <h2 className="text-xl md:text-2xl font-bold text-primary-bolt-500">
               {title}
             </h2>
             <button
               onClick={onViewAll}
-              className="flex items-center space-x-1 text-primary-bolt-500 hover:text-primary-bolt-600 font-medium transition-colors"
+              className="hidden md:flex items-center space-x-1 text-primary-bolt-500 hover:text-primary-bolt-600 font-medium transition-colors"
             >
               <span>Voir plus d'annonces</span>
               <ChevronRight className="h-4 w-4" />
@@ -101,7 +101,7 @@ const CategorySectionComponent: React.FC<CategorySectionProps> = ({
           </div>
 
           {/* Listings Grid - Wider cards with better spacing */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
             {vehicles.slice(0, 4).map((vehicle) => (
               <VehicleCard
                 key={vehicle.id}
@@ -109,6 +109,17 @@ const CategorySectionComponent: React.FC<CategorySectionProps> = ({
                 onClick={() => onVehicleClick(vehicle)}
               />
             ))}
+          </div>
+
+          {/* Mobile: "Voir plus" button at the end */}
+          <div className="mt-6 md:hidden">
+            <button
+              onClick={onViewAll}
+              className="w-full bg-primary-bolt-500 hover:bg-primary-bolt-600 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <span>Voir plus d'annonces</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
