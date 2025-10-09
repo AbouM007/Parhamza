@@ -159,6 +159,16 @@ export const wishlist = pgTable("wishlist", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Vehicle views table for tracking unique views
+export const vehicleViews = pgTable("vehicle_views", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => users.id),
+  vehicleId: text("vehicle_id").notNull(),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Admin tables
 export const admins = pgTable("admins", {
   id: text("id").primaryKey(),
@@ -422,6 +432,7 @@ export const insertVehicleSchema = createInsertSchema(annonces).omit({
 });
 export const insertMessageSchema = createInsertSchema(messages);
 export const insertWishlistSchema = createInsertSchema(wishlist);
+export const insertVehicleViewSchema = createInsertSchema(vehicleViews);
 export const insertSavedSearchSchema = createInsertSchema(savedSearches);
 export const insertProfessionalAccountSchema = createInsertSchema(
   professionalAccounts,
@@ -447,6 +458,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertVehicle = z.infer<typeof insertVehicleSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertWishlist = z.infer<typeof insertWishlistSchema>;
+export type InsertVehicleView = z.infer<typeof insertVehicleViewSchema>;
 export type InsertSavedSearch = z.infer<typeof insertSavedSearchSchema>;
 export type InsertProfessionalAccount = z.infer<
   typeof insertProfessionalAccountSchema
@@ -466,6 +478,7 @@ export type User = typeof users.$inferSelect;
 export type Vehicle = typeof annonces.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Wishlist = typeof wishlist.$inferSelect;
+export type VehicleView = typeof vehicleViews.$inferSelect;
 export type SavedSearch = typeof savedSearches.$inferSelect;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type ProfessionalAccount = typeof professionalAccounts.$inferSelect;
