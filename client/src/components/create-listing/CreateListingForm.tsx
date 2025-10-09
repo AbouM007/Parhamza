@@ -339,6 +339,14 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         ...prev,
         [field]: cleanedValue
       }));
+    } else if (field === "category") {
+      // Quand la catégorie change, réinitialiser la sous-catégorie pour éviter les incohérences
+      setFormData((prev) => ({
+        ...prev,
+        category: value,
+        subcategory: "", // Reset subcategory quand category change
+        specificDetails: {} // Reset aussi les détails spécifiques
+      }));
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -1537,7 +1545,28 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   const renderSpecificDetailsFields = () => {
     const subcategory = getSelectedSubcategory();
-    if (!subcategory) return null;
+    if (!subcategory) {
+      // Fallback si sous-catégorie non trouvée (données corrompues/incohérentes)
+      return (
+        <div className="text-center py-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md mx-auto">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+              ⚠️ Erreur de configuration
+            </h3>
+            <p className="text-yellow-700 mb-4">
+              La catégorie sélectionnée n'est pas valide. Veuillez retourner en arrière et resélectionner votre catégorie.
+            </p>
+            <button
+              type="button"
+              onClick={() => setCurrentStep(3)}
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              Retour à la sélection de catégorie
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     const brands = getBrandsBySubcategory(subcategory.id);
     // Mapper les sous-catégories aux clés d'équipement
