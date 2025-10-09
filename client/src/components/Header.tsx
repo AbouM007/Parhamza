@@ -10,6 +10,7 @@ import {
   LogIn,
   Settings,
   Car,
+  Plus,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
