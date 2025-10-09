@@ -369,7 +369,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     // Récupérer les marques selon le type de pièce
     let brandsToSearch: string[] = [];
     if (formData.subcategory === "piece-voiture-utilitaire") {
-      brandsToSearch = brandsByVehicleType.voiture || [];
+      // Combiner les marques de voitures ET d'utilitaires
+      brandsToSearch = [
+        ...(brandsByVehicleType.voiture || []),
+        ...(brandsByVehicleType.utilitaire || []),
+      ];
     } else if (formData.subcategory === "piece-moto-scooter") {
       brandsToSearch = brandsByVehicleType.moto || [];
     } else if (formData.subcategory === "piece-quad") {
