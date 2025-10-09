@@ -2892,6 +2892,93 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 />
               </div>
             </div>
+
+            {/* Section Tags de compatibilité */}
+            <div className="border-t border-gray-200 pt-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Compatibilité avec marques / modèles
+              </label>
+              <p className="text-sm text-gray-500 mb-4">
+                Ajoutez les marques ou modèles compatibles avec cette pièce pour aider les acheteurs à la trouver plus facilement.
+              </p>
+
+              {/* Champ de recherche avec suggestions */}
+              <div className="relative mb-4">
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={compatibilitySearch}
+                      onChange={(e) => {
+                        setCompatibilitySearch(e.target.value);
+                        setShowCompatibilitySuggestions(true);
+                      }}
+                      onFocus={() => setShowCompatibilitySuggestions(true)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                      placeholder="Ex: BMW, Peugeot 308, Renault Clio..."
+                    />
+                    
+                    {/* Liste de suggestions */}
+                    {showCompatibilitySuggestions && compatibilitySearch && (
+                      <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                        {getCompatibilitySuggestions().length > 0 ? (
+                          getCompatibilitySuggestions().map((suggestion, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => addCompatibilityTag(suggestion)}
+                              className="w-full text-left px-4 py-3 hover:bg-primary-bolt-50 transition-colors border-b border-gray-100 last:border-0"
+                            >
+                              <span className="text-gray-900">{suggestion}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-4 py-3 text-gray-500 text-sm">
+                            Aucune suggestion trouvée
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (compatibilitySearch.trim()) {
+                        addCompatibilityTag(compatibilitySearch.trim());
+                      }
+                    }}
+                    className="px-6 py-3 bg-primary-bolt-500 text-white rounded-xl hover:bg-primary-bolt-600 transition-colors font-medium"
+                  >
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+
+              {/* Tags sélectionnés */}
+              {formData.specificDetails.compatibilityTags && formData.specificDetails.compatibilityTags.length > 0 && (
+                <div className="bg-primary-bolt-50 border border-primary-bolt-200 rounded-xl p-4">
+                  <div className="flex flex-wrap gap-2">
+                    {formData.specificDetails.compatibilityTags.map((tag: string, index: number) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-2 px-3 py-2 bg-white border-2 border-primary-bolt-300 text-primary-bolt-700 rounded-full text-sm font-medium"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeCompatibilityTag(tag)}
+                          className="hover:bg-primary-bolt-100 rounded-full p-1 transition-colors"
+                          aria-label={`Retirer ${tag}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         );
 
