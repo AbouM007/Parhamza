@@ -206,6 +206,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // 💾 Restaurer le brouillon sauvegardé au chargement (sera finalisé plus bas avec currentStep)
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 🔧 Gestion mémoire des preview URLs (évite crash mobile)
   const photoPreviewUrls = useMemo(() => {
@@ -1089,35 +1090,49 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   // 💾 Restaurer le brouillon sauvegardé au montage (une seule fois)
   useEffect(() => {
     if (!draftLoaded) {
-      const draft = loadFormDraft();
-      if (draft) {
-        console.log("📦 Brouillon trouvé, restauration des données...");
-        setFormData({
-          listingType: draft.listingType as ListingTypeValue | "",
-          category: draft.category,
-          subcategory: draft.subcategory,
-          condition: draft.condition as FormData["condition"],
-          title: draft.title,
-          registrationNumber: draft.registrationNumber,
-          specificDetails: draft.specificDetails,
-          description: draft.description,
-          photos: draft.photoUrls, // Les URLs Supabase déjà uploadées
-          price: draft.price,
-          location: draft.location,
-          contact: draft.contact,
-          premiumPack: draft.premiumPack,
-        });
-        
-        // Restaurer aussi currentStep si sauvegardé
-        if (draft.currentStep && draft.currentStep > 1) {
-          setCurrentStep(draft.currentStep);
+      const restoreDraft = async () => {
+        const result = await loadFormDraft();
+        if (result) {
+          const { data: draft, photos, missingPhotosCount } = result;
+          console.log("📦 Brouillon trouvé, restauration des données...");
+          setFormData({
+            listingType: draft.listingType as ListingTypeValue | "",
+            category: draft.category,
+            subcategory: draft.subcategory,
+            condition: draft.condition as FormData["condition"],
+            title: draft.title,
+            registrationNumber: draft.registrationNumber,
+            specificDetails: draft.specificDetails,
+            description: draft.description,
+            photos, // URLs + objets File restaurés depuis IndexedDB
+            price: draft.price,
+            location: draft.location,
+            contact: draft.contact,
+            premiumPack: draft.premiumPack,
+          });
+          
+          // Restaurer aussi currentStep si sauvegardé
+          if (draft.currentStep && draft.currentStep > 1) {
+            setCurrentStep(draft.currentStep);
+          }
+          
+          // Avertir l'utilisateur si des photos sont manquantes
+          if (missingPhotosCount > 0) {
+            toast({
+              title: "Brouillon restauré avec avertissement",
+              description: `Vos données ont été récupérées mais ${missingPhotosCount} photo${missingPhotosCount > 1 ? 's ont' : ' a'} été perdue${missingPhotosCount > 1 ? 's' : ''}. Vous pouvez les ajouter à nouveau.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Brouillon restauré",
+              description: `Vos données ont été récupérées (${photos.length} photo${photos.length > 1 ? 's' : ''}). Vous pouvez continuer votre annonce.`,
+            });
+          }
         }
-        
-        toast({
-          title: "Brouillon restauré",
-          description: "Vos données ont été récupérées. Vous pouvez continuer votre annonce.",
-        });
-      }
+      };
+      
+      restoreDraft();
       setDraftLoaded(true);
     }
   }, [draftLoaded, setCurrentStep, toast]);
@@ -1126,6 +1141,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   useEffect(() => {
     // Ne pas sauvegarder avant la première restauration
     if (!draftLoaded) return;
+    
+    // Annuler le timeout précédent pour éviter les sauvegardes multiples
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
     
     // Ne sauvegarder que si au moins un champ important est rempli
     const hasData = 
@@ -1136,13 +1156,19 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       formData.photos.length > 0;
     
     if (hasData) {
-      const saveTimeout = setTimeout(() => {
-        saveFormDraft(formData, currentStep);
+      saveTimeoutRef.current = setTimeout(async () => {
+        await saveFormDraft(formData, currentStep);
         console.log("💾 Brouillon sauvegardé automatiquement");
+        saveTimeoutRef.current = null;
       }, 1000); // Délai de 1 seconde pour éviter les sauvegardes trop fréquentes
-      
-      return () => clearTimeout(saveTimeout);
     }
+    
+    // Cleanup
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [formData, currentStep, draftLoaded]);
 
   // Fonction pour publier l'annonce
@@ -1286,8 +1312,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           title: newVehicle.title || formData.title,
         });
 
-        // Nettoyer le brouillon sauvegardé
-        clearFormDraft();
+        // Nettoyer le brouillon sauvegardé (localStorage + IndexedDB)
+        await clearFormDraft();
         console.log("🗑️ Brouillon supprimé après publication réussie");
 
         // Afficher le modal de succès

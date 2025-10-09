@@ -93,16 +93,35 @@ Preferred communication style: Simple, everyday language.
   - Existing listings marked as demo via SQL; new listings default to `false`
 - **Views and Favorites Counters (Oct 2025)**:
   - `vehicle_views` table tracks unique views per vehicle by userId or IP address
-  - Partial unique constraints prevent duplicate views:
-    - Logged users: (user_id, vehicle_id) WHERE user_id IS NOT NULL
-    - Anonymous: (ip_address, vehicle_id) WHERE ip_address IS NOT NULL AND user_id IS NULL
+  - Generated column `viewer_identity` replaces partial unique indexes for PostgreSQL compatibility:
+    - Formula: `CASE WHEN user_id IS NOT NULL THEN 'user:'||user_id ELSE 'ip:'||ip_address END`
+    - Single UNIQUE constraint on (vehicle_id, viewer_identity)
   - Atomic RPC functions for thread-safe counter updates:
     - `increment_vehicle_views(p_vehicle_id)`: Atomic view counter increment
     - `increment_vehicle_favorites(p_vehicle_id)`: Atomic favorite counter increment
     - `decrement_vehicle_favorites(p_vehicle_id)`: Atomic favorite counter decrement (min 0)
   - VehicleDetail component automatically records view on page load
   - Favorites routes call increment/decrement when adding/removing from wishlist
-  - Migration script: `migrations/001_create_vehicle_views_table.sql`
+  - Migration scripts: `migrations/001_create_vehicle_views_table.sql`, `migrations/002_add_viewer_identity.sql`
+- **Form Persistence System (Oct 2025)**:
+  - Hybrid storage for create listing form to prevent data loss
+  - **Storage Strategy**:
+    - Text data (form fields) → localStorage (lightweight, no size limit issues)
+    - Photo Files (local images) → IndexedDB (supports large binary data, no 5MB limit)
+    - Photo URLs (uploaded) → localStorage (just strings)
+  - **Photo Order Preservation**: PhotoEntry structure maintains exact order with type and reference
+  - **Atomic Writes**: IndexedDB writes complete before localStorage commit to prevent inconsistency
+  - Utility functions in `client/src/utils/formPersistence.ts`:
+    - `saveFormDraft()`: Async function that saves to both stores atomically
+    - `loadFormDraft()`: Async function that restores data in original order
+    - `clearFormDraft()`: Cleans up both localStorage and IndexedDB
+    - `hasDraft()`: Checks if draft exists
+  - Auto-save triggers on every form field change (1 second debounce)
+  - Auto-restore on form mount with toast notification showing photo count
+  - Cleanup after successful listing publication
+  - Confirmation dialog before closing form if unsaved data exists
+  - Mobile-friendly to prevent data loss on app switching or browser refresh
+  - Handles large photo sets without quota errors
 
 ### Authentication & Authorization
 - **Provider**: Supabase Auth (registration, login, session management).
