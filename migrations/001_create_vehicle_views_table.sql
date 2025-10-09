@@ -36,3 +36,44 @@ COMMENT ON TABLE vehicle_views IS 'Tracks unique views of vehicles by users or I
 COMMENT ON COLUMN vehicle_views.user_id IS 'User ID if logged in, NULL if anonymous';
 COMMENT ON COLUMN vehicle_views.ip_address IS 'IP address for anonymous tracking';
 COMMENT ON COLUMN vehicle_views.vehicle_id IS 'Reference to annonces.id (as TEXT)';
+
+-- ============================================================================
+-- PART 2: Atomic Counter Functions
+-- ============================================================================
+-- These functions ensure that view and favorite counters are incremented/
+-- decremented atomically, preventing race conditions under concurrent requests.
+
+-- Function to atomically increment vehicle view counter
+CREATE OR REPLACE FUNCTION increment_vehicle_views(p_vehicle_id TEXT)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE annonces
+  SET views = COALESCE(views, 0) + 1
+  WHERE id = p_vehicle_id::INTEGER;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to atomically increment vehicle favorites counter
+CREATE OR REPLACE FUNCTION increment_vehicle_favorites(p_vehicle_id TEXT)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE annonces
+  SET favorites = COALESCE(favorites, 0) + 1
+  WHERE id = p_vehicle_id::INTEGER;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to atomically decrement vehicle favorites counter (never below 0)
+CREATE OR REPLACE FUNCTION decrement_vehicle_favorites(p_vehicle_id TEXT)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE annonces
+  SET favorites = GREATEST(COALESCE(favorites, 0) - 1, 0)
+  WHERE id = p_vehicle_id::INTEGER;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Comment on functions
+COMMENT ON FUNCTION increment_vehicle_views IS 'Atomically increments the view counter for a vehicle';
+COMMENT ON FUNCTION increment_vehicle_favorites IS 'Atomically increments the favorites counter for a vehicle';
+COMMENT ON FUNCTION decrement_vehicle_favorites IS 'Atomically decrements the favorites counter for a vehicle (min 0)';
