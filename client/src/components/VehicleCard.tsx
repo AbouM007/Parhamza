@@ -183,7 +183,7 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
         </div>
 
         {/* Vehicle Details */}
-        <div className="grid grid-cols-3 gap-3 mb-4 text-sm text-gray-600">
+        <div className="flex flex-wrap gap-3 mb-4 text-sm text-gray-600">
           {vehicle.year && vehicle.year > 0 && (
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-gray-400" />
