@@ -1389,23 +1389,32 @@ export class SupabaseStorage implements IStorage {
     try {
       const viewId = crypto.randomUUID();
       
+      // Use upsert with ignoreDuplicates to handle unique constraint violations
       const { error } = await supabaseServer
         .from("vehicle_views")
-        .insert({
+        .upsert({
           id: viewId,
           user_id: userId,
           vehicle_id: vehicleId,
           ip_address: ipAddress,
           created_at: new Date().toISOString(),
+        }, {
+          onConflict: userId ? 'user_id,vehicle_id' : 'ip_address,vehicle_id',
+          ignoreDuplicates: true
         });
 
       if (error) {
+        // If error is a duplicate key violation (23505), this is expected and ok
+        if (error.code === '23505') {
+          console.log("ℹ️ Vue déjà enregistrée pour véhicule:", vehicleId);
+          return false; // Return false to indicate no new view was recorded
+        }
         console.error("❌ Erreur enregistrement vue:", error);
         return false;
       }
 
       console.log("✅ Vue enregistrée pour véhicule:", vehicleId);
-      return true;
+      return true; // Return true to indicate a new view was recorded
     } catch (error) {
       console.error("❌ Erreur recordVehicleView:", error);
       return false;

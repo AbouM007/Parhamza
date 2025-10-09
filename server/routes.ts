@@ -683,26 +683,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('🔄 Enregistrement vue:', { vehicleId, userId, ipAddress });
       
-      // Check if this user/IP has already viewed this vehicle
-      const alreadyViewed = await storage.hasUserViewedVehicle(vehicleId, userId || null, ipAddress);
+      // Record the view (will return false if already exists)
+      const isNewView = await storage.recordVehicleView(vehicleId, userId || null, ipAddress);
       
-      if (alreadyViewed) {
-        console.log('ℹ️ Vue déjà enregistrée');
-        return res.json({ success: true, alreadyViewed: true });
+      // Only increment counter if this is a new view
+      if (isNewView) {
+        await storage.incrementVehicleViewCount(vehicleId);
+        console.log('✅ Vue enregistrée et compteur incrémenté');
+        return res.json({ success: true, alreadyViewed: false });
       }
       
-      // Record the view
-      const viewRecorded = await storage.recordVehicleView(vehicleId, userId || null, ipAddress);
-      
-      if (!viewRecorded) {
-        return res.status(500).json({ error: 'Failed to record view' });
-      }
-      
-      // Increment the view counter
-      await storage.incrementVehicleViewCount(vehicleId);
-      
-      console.log('✅ Vue enregistrée et compteur incrémenté');
-      res.json({ success: true, alreadyViewed: false });
+      console.log('ℹ️ Vue déjà enregistrée, compteur non incrémenté');
+      res.json({ success: true, alreadyViewed: true });
       
     } catch (error) {
       console.error('❌ Erreur enregistrement vue:', error);
