@@ -1163,6 +1163,20 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     };
   }, [formData, currentStep, draftLoaded]);
 
+  // ⏱️ Restaurer l'étape seulement après que formData soit à jour
+  useEffect(() => {
+    // Si on a une étape en attente de restauration et que les données sont valides
+    if (
+      pendingStepToRestore !== null &&
+      formData.category &&
+      formData.subcategory
+    ) {
+      console.log(`⏱️ Données prêtes, restauration de l'étape ${pendingStepToRestore}`);
+      setCurrentStep(pendingStepToRestore);
+      setPendingStepToRestore(null); // Réinitialiser après application
+    }
+  }, [pendingStepToRestore, formData.category, formData.subcategory]);
+
   // Fonction pour publier l'annonce
   const publishListing = async () => {
     try {
