@@ -690,36 +690,36 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
               )}
 
               {/* Informations sur la pièce - uniquement pour pièces détachées */}
-              {isSparePart(vehicle.category) && (vehicle.vehicleSpecifications?.sparePartType || vehicle.vehicleSpecifications?.sparePartCondition) && (
+              {isSparePart(vehicle.category) && ((vehicle.vehicleSpecifications as any)?.sparePartType || (vehicle.vehicleSpecifications as any)?.sparePartCondition) && (
                 <div className="mb-8 bg-gray-50 rounded-2xl p-6 shadow-sm">
                   <h3 className="text-xl font-bold text-primary-bolt-600 mb-5">
                     Informations sur la pièce
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Type de pièce */}
-                    {vehicle.vehicleSpecifications?.sparePartType && (
+                    {(vehicle.vehicleSpecifications as any)?.sparePartType && (
                       <div className="p-4 bg-white rounded-lg border border-gray-200">
                         <div className="flex items-center space-x-2 mb-2">
                           <Settings className="h-4 w-4 text-primary-bolt-500" />
                           <div className="text-sm text-gray-500">Type de pièce</div>
                         </div>
                         <div className="font-bold text-gray-900 ml-6">
-                          {vehicle.vehicleSpecifications.sparePartType}
+                          {(vehicle.vehicleSpecifications as any).sparePartType}
                         </div>
                       </div>
                     )}
                     
                     {/* État */}
-                    {vehicle.vehicleSpecifications?.sparePartCondition && (
+                    {(vehicle.vehicleSpecifications as any)?.sparePartCondition && (
                       <div className="p-4 bg-white rounded-lg border border-gray-200">
                         <div className="flex items-center space-x-2 mb-2">
                           <CheckCircle className="h-4 w-4 text-primary-bolt-500" />
                           <div className="text-sm text-gray-500">État</div>
                         </div>
                         <div className="font-bold text-gray-900 ml-6">
-                          {vehicle.vehicleSpecifications.sparePartCondition === 'new' ? 'Neuf' : 
-                           vehicle.vehicleSpecifications.sparePartCondition === 'used' ? 'Occasion' : 
-                           vehicle.vehicleSpecifications.sparePartCondition}
+                          {(vehicle.vehicleSpecifications as any).sparePartCondition === 'new' ? 'Neuf' : 
+                           (vehicle.vehicleSpecifications as any).sparePartCondition === 'used' ? 'Occasion' : 
+                           (vehicle.vehicleSpecifications as any).sparePartCondition}
                         </div>
                       </div>
                     )}
