@@ -41,6 +41,12 @@ Preferred communication style: Simple, everyday language.
         - In-memory caching (12h TTL) for cost optimization
         - Single unified flow without branching - plate search is fully optional
     - **Compatibility Tags**: System for spare parts listings with intelligent matching.
+      - **Tags UI Restoration (Oct 2025)**: Full interface restored in Step 6 (Specific Details) for spare parts
+        - Smart search field with auto-suggestions based on vehicle brands/models
+        - Dynamic filtering by spare part subcategory (piece-voiture-utilitaire → car brands, etc.)
+        - Visual tag display with primary-bolt color scheme and easy removal
+        - Click-outside handler for better UX
+        - Helps buyers find compatible parts through targeted search
     - **Subscription Management**: User subscriptions, professional account verification, and premium features (listing boosts).
     - **Messaging**: Integrated messaging system.
     - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
