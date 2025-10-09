@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Vehicle } from "@/types";
+import { VehicleCard } from "./VehicleCard";
 
 interface ServicesTabsProps {
   vehicles: Vehicle[];
@@ -62,56 +63,6 @@ export const ServicesTabs: React.FC<ServicesTabsProps> = ({
     },
   ].filter((tab) => tab.count > 0);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const ServiceCard: React.FC<{ service: Vehicle }> = ({ service }) => (
-    <div
-      onClick={() => onVehicleClick(service)}
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden group"
-      data-testid={`card-service-${service.id}`}
-    >
-      <div className="relative">
-        {service.images && service.images.length > 0 ? (
-          <img
-            src={service.images[0]}
-            alt={service.title}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
-          />
-        ) : (
-          <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">Aucune image</span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
-          {service.title}
-        </h3>
-
-        {service.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-            {service.description}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-primary-bolt-600">
-            {formatPrice(service.price)}
-          </span>
-          {service.location && (
-            <span className="text-sm text-gray-500">{service.location}</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -144,7 +95,7 @@ export const ServicesTabs: React.FC<ServicesTabsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categorizedServices[activeTab].length > 0 ? (
           categorizedServices[activeTab].map((service) => (
-            <ServiceCard key={service.id} service={service} />
+            <VehicleCard key={service.id} vehicle={service} onClick={() => onVehicleClick(service)} />
           ))
         ) : (
           <div className="col-span-full text-center py-12">

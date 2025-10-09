@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Vehicle } from "@/types";
+import { VehicleCard as VehicleCardComponent } from "./VehicleCard";
 
 interface DamagedVehiclesTabsProps {
   vehicles: Vehicle[];
@@ -72,58 +73,6 @@ export const DamagedVehiclesTabs: React.FC<DamagedVehiclesTabsProps> = ({
     },
   ].filter((tab) => tab.count > 0); // Masquer les onglets vides
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const VehicleCard: React.FC<{ vehicle: Vehicle }> = ({ vehicle }) => (
-    <div
-      onClick={() => onVehicleClick(vehicle)}
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden group"
-    >
-      <div className="relative">
-        {vehicle.images && vehicle.images.length > 0 ? (
-          <img
-            src={vehicle.images[0]}
-            alt={vehicle.title}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
-          />
-        ) : (
-          <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">Aucune image</span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-          {vehicle.title}
-        </h3>
-
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-2xl font-bold text-primary-bolt-600">
-            {formatPrice(vehicle.price)}
-          </span>
-        </div>
-
-        <div className="text-sm text-gray-600 space-y-1">
-          {vehicle.brand && vehicle.model && (
-            <p>
-              {vehicle.brand} {vehicle.model}
-            </p>
-          )}
-          {vehicle.year && <p>{vehicle.year}</p>}
-          {vehicle.mileage && <p>{vehicle.mileage.toLocaleString()} km</p>}
-          {vehicle.location && <p>📍 {vehicle.location}</p>}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-200">
@@ -155,7 +104,7 @@ export const DamagedVehiclesTabs: React.FC<DamagedVehiclesTabsProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categorizedVehicles[activeTab].length > 0 ? (
           categorizedVehicles[activeTab].map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            <VehicleCardComponent key={vehicle.id} vehicle={vehicle} onClick={() => onVehicleClick(vehicle)} />
           ))
         ) : (
           <div className="col-span-full text-center py-12">
