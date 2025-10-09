@@ -1389,7 +1389,7 @@ export class SupabaseStorage implements IStorage {
     try {
       const viewId = crypto.randomUUID();
       
-      // Use upsert with ignoreDuplicates to handle unique constraint violations
+      // Use upsert with ignoreDuplicates on viewer_identity constraint
       const { error } = await supabaseServer
         .from("vehicle_views")
         .upsert({
@@ -1399,7 +1399,7 @@ export class SupabaseStorage implements IStorage {
           ip_address: ipAddress,
           created_at: new Date().toISOString(),
         }, {
-          onConflict: userId ? 'user_id,vehicle_id' : 'ip_address,vehicle_id',
+          onConflict: 'vehicle_id,viewer_identity',
           ignoreDuplicates: true
         });
 
