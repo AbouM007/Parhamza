@@ -1365,9 +1365,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         premiumPack: draft.premiumPack,
       });
       
-      // Restaurer aussi currentStep si sauvegardé
+      // ⏱️ Stocker l'étape à restaurer (sera appliquée par useEffect après la mise à jour de formData)
       if (draft.currentStep && draft.currentStep > 1) {
-        setCurrentStep(draft.currentStep);
+        setPendingStepToRestore(draft.currentStep);
       }
       
       // Avertir l'utilisateur si des photos sont manquantes
