@@ -119,6 +119,27 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
     }
   }, [vehicle.user?.id, vehicle.user?.type]);
 
+  // Record view when vehicle is displayed
+  useEffect(() => {
+    const recordView = async () => {
+      try {
+        await fetch(`/api/vehicles/${vehicle.id}/view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: authUser?.id || null,
+          }),
+        });
+      } catch (error) {
+        console.error('Error recording view:', error);
+      }
+    };
+
+    recordView();
+  }, [vehicle.id, authUser?.id]);
+
   // Function to find similar vehicles
   const getSimilarVehicles = (
     currentVehicle: Vehicle,
