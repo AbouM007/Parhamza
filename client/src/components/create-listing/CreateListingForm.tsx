@@ -3189,7 +3189,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 Informations principales
               </h2>
               <p className="text-gray-600">
-                {formData.condition === "occasion" &&
+                {(formData.condition === "occasion" || formData.condition === "damaged") &&
                 (formData.category === "voiture-utilitaire" ||
                   formData.category === "motos-quad-marine")
                   ? "Recherchez par plaque ou saisissez le titre manuellement"
@@ -3198,8 +3198,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             </div>
 
             <div className="space-y-6">
-              {/* Recherche par plaque EN PREMIER - Uniquement pour véhicules/motos d'occasion */}
-              {formData.condition === "occasion" &&
+              {/* Recherche par plaque EN PREMIER - Pour véhicules/motos d'occasion ou accidentés */}
+              {(formData.condition === "occasion" || formData.condition === "damaged") &&
                 (formData.category === "voiture-utilitaire" ||
                   formData.category === "motos-quad-marine") && (
                   <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
@@ -3268,7 +3268,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
-                    {formData.condition === "occasion" &&
+                    {(formData.condition === "occasion" || formData.condition === "damaged") &&
                     (formData.category === "voiture-utilitaire" ||
                       formData.category === "motos-quad-marine")
                       ? "Le titre sera généré automatiquement si vous utilisez la recherche par plaque"
