@@ -19,6 +19,7 @@ import {
   Plus,
   MoreHorizontal,
   ChevronLeft,
+  ChevronDown,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,6 +65,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("");
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const handleCategoryClick = (category: string) => {
     setSearchFilters({ category });
     setCurrentView("listings");
@@ -469,111 +471,131 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
       {/* Categories Section - Different layouts for mobile and desktop */}
       <section className="py-8 md:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Mobile: Grid of all subcategories with specific icons */}
-          <div className="md:hidden grid grid-cols-3 gap-3">
-            <button onClick={() => handleSubcategoryClick("voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-voiture">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={voitureIcon} alt="Voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Voiture</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("utilitaire")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-utilitaire">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={utilitaireIcon} alt="Utilitaire" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Utilitaire</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("caravane")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-caravane">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={caravaneIcon} alt="Caravane" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Caravane</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("remorque")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-remorque">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={remorqueIcon} alt="Remorque" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Remorque</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("moto")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-moto">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={motoIcon} alt="Moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Moto</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-scooter">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={scooterIcon} alt="Scooter" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Scooter</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("quad")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-quad">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={quadIcon} alt="Quad" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Quad</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("bateau")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-bateau">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={bateauImage} alt="Bateau" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Bateau</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("jetski")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-jetski">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={jetskiIcon} alt="Jetski" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Jetski</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("aerien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-aerien">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={aerienIcon} alt="Aérien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Aérien</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("reparation")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-reparation">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={reparationIcon} alt="Réparation" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Réparation</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("entretien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-entretien">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={entretienImage} alt="Entretien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Entretien</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("piece-voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-voiture">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={piecesVoitureIcon} alt="Pièces voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces auto</h3>
-            </button>
-            
-            <button onClick={() => handleSubcategoryClick("piece-moto-scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-moto">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={piecesMotoIcon} alt="Pièces moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces moto</h3>
-            </button>
-            
-            <button onClick={handleViewDamagedVehicles} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-accidentes">
-              <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
-                <img src={voitureIcon} alt="Accidentés" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Accidentés</h3>
+          {/* Mobile: Progressive category display - 6 main + expand for others */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-3 gap-3">
+              {/* 6 principales catégories toujours visibles */}
+              <button onClick={() => handleSubcategoryClick("voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-voiture">
+                <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                  <img src={voitureIcon} alt="Voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Voiture</h3>
+              </button>
+              
+              <button onClick={() => handleSubcategoryClick("moto")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-moto">
+                <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                  <img src={motoIcon} alt="Moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Moto</h3>
+              </button>
+              
+              <button onClick={() => handleSubcategoryClick("bateau")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-bateau">
+                <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                  <img src={bateauImage} alt="Bateau" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Bateau</h3>
+              </button>
+              
+              <button onClick={() => handleSubcategoryClick("piece-voiture")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-voiture">
+                <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                  <img src={piecesVoitureIcon} alt="Pièces voiture" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces auto</h3>
+              </button>
+              
+              <button onClick={() => handleSubcategoryClick("reparation")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-reparation">
+                <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                  <img src={reparationIcon} alt="Réparation" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Réparation</h3>
+              </button>
+              
+              <button onClick={handleViewDamagedVehicles} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-accidentes">
+                <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                  <img src={voitureIcon} alt="Accidentés" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                </div>
+                <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Accidentés</h3>
+              </button>
+
+              {/* 9 autres catégories affichées conditionnellement */}
+              {showAllCategories && (
+                <>
+                  <button onClick={() => handleSubcategoryClick("utilitaire")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-utilitaire">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={utilitaireIcon} alt="Utilitaire" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Utilitaire</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("caravane")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-caravane">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={caravaneIcon} alt="Caravane" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Caravane</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("remorque")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-remorque">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={remorqueIcon} alt="Remorque" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Remorque</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-scooter">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={scooterIcon} alt="Scooter" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Scooter</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("quad")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-quad">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={quadIcon} alt="Quad" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Quad</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("jetski")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-jetski">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={jetskiIcon} alt="Jetski" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Jetski</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("aerien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-aerien">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={aerienIcon} alt="Aérien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Aérien</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("entretien")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-entretien">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={entretienImage} alt="Entretien" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Entretien</h3>
+                  </button>
+                  
+                  <button onClick={() => handleSubcategoryClick("piece-moto-scooter")} className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden p-3 text-center" data-testid="subcategory-piece-moto">
+                    <div className="w-12 h-12 mx-auto mb-1.5 flex items-center justify-center">
+                      <img src={piecesMotoIcon} alt="Pièces moto" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 group-hover:text-primary-bolt-500 transition-colors">Pièces moto</h3>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Bouton Voir plus / Voir moins */}
+            <button
+              onClick={() => setShowAllCategories(!showAllCategories)}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all duration-300 group"
+              data-testid="toggle-categories"
+            >
+              <span className="text-sm font-medium text-gray-700 group-hover:text-primary-bolt-600">
+                {showAllCategories ? "Voir moins de catégories" : "Voir toutes les catégories"}
+              </span>
+              <ChevronDown className={`h-4 w-4 text-gray-500 group-hover:text-primary-bolt-600 transition-transform duration-300 ${showAllCategories ? 'rotate-180' : ''}`} />
             </button>
           </div>
 
