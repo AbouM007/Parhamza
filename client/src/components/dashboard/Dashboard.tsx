@@ -2787,6 +2787,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 totalFavorites={totalFavorites}
                 premiumListings={premiumListings}
                 onCreateListing={handleCreateListing}
+                onVehicleClick={setSelectedVehicle}
                 formatPrice={formatPrice}
               />
             )}

@@ -25,6 +25,7 @@ interface OverviewSectionProps {
   totalFavorites: number;
   premiumListings: number;
   onCreateListing: () => void;
+  onVehicleClick?: (vehicle: any) => void;
   formatPrice: (price: number) => string;
 }
 
@@ -38,8 +39,16 @@ export default function OverviewSection({
   totalFavorites,
   premiumListings,
   onCreateListing,
+  onVehicleClick,
   formatPrice,
 }: OverviewSectionProps) {
+  const handleVehicleClick = (vehicle: any) => {
+    // Vérifier si l'annonce est active et approuvée
+    if (vehicle.status === 'approved' && !vehicle.deletedAt && onVehicleClick) {
+      onVehicleClick(vehicle);
+    }
+  };
+
   return (
 
   <div className="space-y-8">
@@ -329,7 +338,13 @@ export default function OverviewSection({
               return (
                 <div
                   key={vehicle.id}
-                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl hover:from-primary-bolt-50 hover:to-primary-bolt-100/50 transition-all duration-200"
+                  onClick={() => handleVehicleClick(vehicle)}
+                  className={`flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl hover:from-primary-bolt-50 hover:to-primary-bolt-100/50 transition-all duration-200 ${
+                    vehicle.status === 'approved' && !vehicle.deletedAt
+                      ? 'cursor-pointer'
+                      : 'opacity-75 cursor-not-allowed'
+                  }`}
+                  data-testid={`activity-card-${vehicle.id}`}
                 >
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg bg-gray-200 flex-shrink-0">
