@@ -22,6 +22,18 @@ Preferred communication style: Simple, everyday language.
     - Technical characteristics block conditionally hidden when empty
     - Damage section for damaged vehicles uses primary-bolt colors and appears first
     - Contextual icons throughout with white card backgrounds for better visual hierarchy
+  - **Responsive Home Page Optimization (Oct 2025)**:
+    - **Mobile**: 
+      - Grid layout showing all 15 subcategories with specific icons (voiture, utilitaire, caravane, remorque, moto, scooter, quad, bateau, jetski, aérien, réparation, entretien, pièces auto, pièces moto, accidentés)
+      - Each subcategory uses its dedicated icon from categories.ts
+      - 3 columns grid on mobile for easy navigation
+      - Simplified professional space banner with key statistics
+      - Full-width "Voir plus d'annonces" buttons at section end
+    - **Desktop**: 
+      - Original 4 main category cards preserved (Voitures-Utilitaires, Motos-Scooters, Nautisme, Services)
+      - Full professional space section with complete benefits list and detailed information
+      - Inline "Voir plus" links at section titles
+    - Dual layouts ensure optimal UX for each device type while maintaining consistency
 
 ### Backend
 - **Framework**: Node.js + Express with TypeScript.
