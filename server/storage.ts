@@ -1461,31 +1461,17 @@ export class SupabaseStorage implements IStorage {
 
   async incrementVehicleViewCount(vehicleId: string): Promise<boolean> {
     try {
-      // Lire la valeur actuelle
-      const { data: vehicle, error: fetchError } = await supabaseServer
-        .from("annonces")
-        .select("views")
-        .eq("id", vehicleId)
-        .single();
+      // Use atomic RPC function for safe concurrent increments
+      const { error } = await supabaseServer.rpc('increment_vehicle_views', {
+        p_vehicle_id: vehicleId
+      });
 
-      if (fetchError || !vehicle) {
-        console.error("❌ Erreur lecture véhicule:", fetchError);
+      if (error) {
+        console.error("❌ Erreur incrémentation vues:", error);
         return false;
       }
 
-      // Incrémenter
-      const newViews = (vehicle.views || 0) + 1;
-      const { error: updateError } = await supabaseServer
-        .from("annonces")
-        .update({ views: newViews })
-        .eq("id", vehicleId);
-        
-      if (updateError) {
-        console.error("❌ Erreur UPDATE vues:", updateError);
-        return false;
-      }
-
-      console.log("✅ Compteur vues incrémenté pour:", vehicleId, "->", newViews);
+      console.log("✅ Compteur vues incrémenté atomiquement pour:", vehicleId);
       return true;
     } catch (error) {
       console.error("❌ Erreur incrementVehicleViewCount:", error);
@@ -1495,31 +1481,17 @@ export class SupabaseStorage implements IStorage {
 
   async incrementFavoriteCount(vehicleId: string): Promise<boolean> {
     try {
-      // Lire la valeur actuelle
-      const { data: vehicle, error: fetchError } = await supabaseServer
-        .from("annonces")
-        .select("favorites")
-        .eq("id", vehicleId)
-        .single();
+      // Use atomic RPC function for safe concurrent increments
+      const { error } = await supabaseServer.rpc('increment_vehicle_favorites', {
+        p_vehicle_id: vehicleId
+      });
 
-      if (fetchError || !vehicle) {
-        console.error("❌ Erreur lecture véhicule:", fetchError);
+      if (error) {
+        console.error("❌ Erreur incrémentation favoris:", error);
         return false;
       }
 
-      // Incrémenter
-      const newFavorites = (vehicle.favorites || 0) + 1;
-      const { error: updateError } = await supabaseServer
-        .from("annonces")
-        .update({ favorites: newFavorites })
-        .eq("id", vehicleId);
-        
-      if (updateError) {
-        console.error("❌ Erreur UPDATE favoris:", updateError);
-        return false;
-      }
-
-      console.log("✅ Compteur favoris incrémenté pour:", vehicleId, "->", newFavorites);
+      console.log("✅ Compteur favoris incrémenté atomiquement pour:", vehicleId);
       return true;
     } catch (error) {
       console.error("❌ Erreur incrementFavoriteCount:", error);
@@ -1529,31 +1501,17 @@ export class SupabaseStorage implements IStorage {
 
   async decrementFavoriteCount(vehicleId: string): Promise<boolean> {
     try {
-      // Lire la valeur actuelle
-      const { data: vehicle, error: fetchError } = await supabaseServer
-        .from("annonces")
-        .select("favorites")
-        .eq("id", vehicleId)
-        .single();
+      // Use atomic RPC function for safe concurrent decrements
+      const { error } = await supabaseServer.rpc('decrement_vehicle_favorites', {
+        p_vehicle_id: vehicleId
+      });
 
-      if (fetchError || !vehicle) {
-        console.error("❌ Erreur lecture véhicule:", fetchError);
+      if (error) {
+        console.error("❌ Erreur décrémentation favoris:", error);
         return false;
       }
 
-      // Décrémenter (minimum 0)
-      const newFavorites = Math.max((vehicle.favorites || 0) - 1, 0);
-      const { error: updateError } = await supabaseServer
-        .from("annonces")
-        .update({ favorites: newFavorites })
-        .eq("id", vehicleId);
-        
-      if (updateError) {
-        console.error("❌ Erreur UPDATE favoris:", updateError);
-        return false;
-      }
-
-      console.log("✅ Compteur favoris décrémenté pour:", vehicleId, "->", newFavorites);
+      console.log("✅ Compteur favoris décrémenté atomiquement pour:", vehicleId);
       return true;
     } catch (error) {
       console.error("❌ Erreur decrementFavoriteCount:", error);
