@@ -1,11 +1,12 @@
 # todo
 
 **A faire**  
-Améliorer design annonces (sections et rubriques de l'annonce)
-Tél Whatsapp OTP  
-Nettoyer annonce démos : lier accidentés aux pièces
-Créer des API events pour notifications et emails  
-Emailing : Templates (confirmation, OTP, reset password, notifications) Nodemail  
+- Améliorer design annonces (sections et rubriques de l'annonce)  
+- Ajouter OTP Tél Whatsapp post creation compte    
+- Nettoyer annonce démos : lier accidentés aux pièces  
+- Systeme de mailing et notifications :
+   - Créer des API events pour notifications et emails  
+   - Emailing : Templates (confirmation, OTP, reset password, notifications) Nodemail  
 
 
 **Planifié**  
