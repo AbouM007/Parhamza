@@ -38,6 +38,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
+import { BottomNav } from "@/components/BottomNav";
 
 // Composant de protection pour la route Dashboard
 function DashboardRoute({
@@ -218,7 +219,7 @@ function AppContent() {
     (loading || (user && profile?.profileCompleted !== true));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-16 md:pb-0">
       {shouldMaskHomepage ? (
         <div className="min-h-screen bg-gray-50" />
       ) : (
@@ -401,7 +402,12 @@ function AppContent() {
                   <Hero setCurrentView={setCurrentView} />
                 </Route>
               </Switch>
-              {!isAdminRoute && <Footer setCurrentView={setCurrentView} />}
+              {!isAdminRoute && (
+                <>
+                  <Footer setCurrentView={setCurrentView} />
+                  <BottomNav />
+                </>
+              )}
             </>
           )}
         </>

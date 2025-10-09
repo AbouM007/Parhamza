@@ -1,6 +1,6 @@
 import { Home, Search, PlusCircle, MessageCircle, User } from "lucide-react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function BottomNav() {
   const [location, setLocation] = useLocation();
