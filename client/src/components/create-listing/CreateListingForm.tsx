@@ -210,6 +210,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [draftInfo, setDraftInfo] = useState<{ photoCount: number; savedAt: Date } | null>(null);
   const [pendingDraft, setPendingDraft] = useState<any>(null);
+  const [pendingStepToRestore, setPendingStepToRestore] = useState<number | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 🔧 Gestion mémoire des preview URLs (évite crash mobile)
