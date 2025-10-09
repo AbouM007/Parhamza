@@ -540,8 +540,8 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     </div>
                   )}
 
-                {/* Année - pour pièces détachées et véhicules si elle existe */}
-                {!isServiceCategory(vehicle.category) && vehicle.year && (
+                {/* Année - uniquement pour véhicules (PAS pour pièces détachées) */}
+                {!isServiceCategory(vehicle.category) && !isSparePart(vehicle.category) && vehicle.year && (
                   <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
                     <Calendar className="h-5 w-5 text-gray-400" />
                     <div>
