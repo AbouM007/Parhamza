@@ -24,10 +24,10 @@ export const SparePartsTabs: React.FC<SparePartsTabsProps> = ({
       return {
         tous: spareParts,
         "piece-voiture": spareParts.filter(
-          (v) => (v.category as string) === "piece-voiture" || (v.category as string) === "piece-voiture-utilitaire",
+          (v) => (v.category as string) === "piece-voiture",
         ),
         "piece-utilitaire": spareParts.filter(
-          (v) => (v.category as string) === "piece-utilitaire" || (v.category as string) === "piece-voiture-utilitaire",
+          (v) => (v.category as string) === "piece-utilitaire",
         ),
         "piece-moto-scooter": spareParts.filter(
           (v) => (v.category as string) === "piece-moto-scooter",
