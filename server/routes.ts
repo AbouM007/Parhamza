@@ -32,6 +32,44 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Force logout - clears Supabase session
+  app.get("/api/auth/force-logout", async (req, res) => {
+    try {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Déconnexion forcée</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1>Déconnexion en cours...</h1>
+          <p>Vous allez être redirigé vers la page d'accueil.</p>
+          <script>
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+              document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Redirect to home
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1000);
+          </script>
+        </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("Error during force logout:", error);
+      res.status(500).send("Erreur lors de la déconnexion");
+    }
+  });
+
   // Users API
   app.get("/api/users", async (req, res) => {
     try {
@@ -2999,6 +3037,292 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in /api/boost/success:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Cache in-memory pour les données véhicule (TTL 12h)
+  const vehicleDataCache = new Map<string, { data: any; timestamp: number }>();
+  const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 heures
+
+  // Fonctions de normalisation pour API RapidAPI (AWN)
+  function normalizeFuel(apiFuel: string | null): string | null {
+    if (!apiFuel) return null;
+    const fuel = apiFuel.toUpperCase();
+    
+    // Détecter les hybrides : tout ce qui contient ÉLECTRIQUE + autre carburant
+    // Ex: "ESSENCE/ÉLECTRIQUE", "DIESEL/ÉLECTRIQUE", "ESS+ELEC", etc.
+    if (fuel.includes('HYBRIDE') || fuel.includes('HYBRID')) return 'hybrid';
+    if (fuel.includes('ÉLECTRIQUE') || fuel.includes('ELECTRIQUE') || fuel.includes('ELEC')) {
+      // Si contient ÉLECTRIQUE + autre chose = hybride
+      if (fuel.includes('ESSENCE') || fuel.includes('GAZOLE') || fuel.includes('DIESEL') || 
+          fuel.includes('GPL') || fuel.includes('ETHANOL') || fuel.includes('/')) {
+        return 'hybrid';
+      }
+      // Si seulement ÉLECTRIQUE = electric
+      return 'electric';
+    }
+    
+    // Carburants classiques
+    if (fuel.includes('GAZOLE') || fuel.includes('DIESEL')) return 'diesel';
+    if (fuel.includes('ESSENCE') || fuel.includes('PETROL') || fuel.includes('GASOLINE')) return 'gasoline';
+    if (fuel.includes('GPL')) return 'gpl';
+    
+    return null; // Retourner null si pas de correspondance
+  }
+
+  function normalizeTransmission(apiTransmission: string | null): string | null {
+    if (!apiTransmission) return null;
+    const trans = apiTransmission.toUpperCase();
+    
+    // Mapper les codes et descriptions de boîtes de vitesse
+    // Codes API: M=Manuelle, A=Automatique, S=Séquentielle, V=CVT, X=Robotisée
+    if (trans === 'M' || trans.includes('MANUELLE') || trans.includes('MANUAL')) return 'manual';
+    if (trans === 'A' || trans.includes('AUTOMATIQUE') || trans.includes('AUTOMATIC')) return 'automatic';
+    if (trans === 'V' || trans.includes('CVT') || trans.includes('VARIABLE')) return 'automatic'; // CVT = automatique
+    if (trans === 'S' || trans.includes('SEQUENTIELLE') || trans.includes('SEQUENTIAL')) return 'semi-automatic';
+    if (trans === 'X' || trans.includes('ROBOTISEE') || trans.includes('ROBOTIZED') || trans.includes('SEMI')) return 'semi-automatic';
+    
+    return null; // Retourner null si pas de correspondance
+  }
+
+  function normalizeBodyType(apiBodyType: string | null): string | null {
+    if (!apiBodyType) return null;
+    const bodyType = apiBodyType.toUpperCase();
+    
+    // Mapper les codes et descriptions de l'API vers les types valides du formulaire (VEHICLE_TYPES.car)
+    // Types disponibles: Citadine, Berline, SUV, Break, Coupé, Cabriolet, Monospace, Pickup
+    
+    // Codes numériques de carrosserie
+    if (bodyType === '53' || bodyType === '54') return 'SUV'; // 53=SUV, 54=Camionnette/SUV
+    if (bodyType === '29') return 'Coupé'; // 29=Coupé
+    if (bodyType === '30' || bodyType === '31') return 'Cabriolet'; // 30=Décapotable, 31=Targa
+    if (bodyType === '28' || bodyType === '21') return 'Break'; // 28=Break, 21=Fourgon/Break
+    if (bodyType === '27' || bodyType === '25' || bodyType === '52') return 'Berline'; // 27=3 volumes, 25=Bicorps, 52=Camionnette/Berline
+    if (bodyType === '40' || bodyType === '56') return 'Monospace'; // 40=Monospace, 56=Camionnette/Monospace
+    if (bodyType === '32') return 'Pickup'; // 32=Pick-up
+    if (bodyType === '38' || bodyType === '39' || bodyType === '55') return 'SUV'; // 38/39=Tout terrain, 55=Camionnette/Tout terrain
+    
+    // Descriptions textuelles
+    // SUV et véhicules tout-chemin (VTC)
+    if (bodyType.includes('SUV') || bodyType.includes('4X4') || bodyType.includes('TOUT') || bodyType === 'VTC' || bodyType.includes('VEHICULE TOUT CHEMIN')) return 'SUV';
+    
+    // Berline
+    if (bodyType.includes('BERLINE') || bodyType === 'VP' || bodyType === 'VOITURE PARTICULIERE' || bodyType === 'CI' || bodyType.includes('TROIS VOLUMES') || bodyType.includes('3 VOLUMES') || bodyType.includes('BICORPS')) return 'Berline';
+    
+    // Break
+    if (bodyType.includes('BREAK')) return 'Break';
+    
+    // Coupé
+    if (bodyType.includes('COUPE') || bodyType.includes('COUPÉ')) return 'Coupé';
+    
+    // Cabriolet
+    if (bodyType.includes('CABRIOLET') || bodyType.includes('DECAPOTABLE')) return 'Cabriolet';
+    
+    // Monospace
+    if (bodyType.includes('MONOSPACE') || bodyType.includes('LUDOSPACE')) return 'Monospace';
+    
+    // Citadine
+    if (bodyType.includes('CITADINE') || bodyType.includes('MINI') || bodyType.includes('PETITE')) return 'Citadine';
+    
+    // Pickup et utilitaires (mapper vers Pickup - plus proche pour une voiture)
+    if (bodyType.includes('PICKUP') || bodyType.includes('PICK-UP') || bodyType.includes('CAMIONNETTE') || bodyType === 'CTTE' || bodyType.includes('FOURGON')) return 'Pickup';
+    
+    return null; // Retourner null si pas de correspondance pour ne pas remplir avec une mauvaise valeur
+  }
+
+  function normalizeBrand(apiBrand: string | null): string | null {
+    if (!apiBrand) return null;
+    
+    // Normaliser la casse : première lettre en majuscule, reste en minuscule
+    // Ex: "VOLKSWAGEN" → "Volkswagen", "MERCEDES-BENZ" → "Mercedes-benz"
+    const normalized = apiBrand
+      .toLowerCase()
+      .split(/(\s|-|')/) // Garder les espaces, tirets et apostrophes
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('');
+    
+    // Cas spéciaux pour certaines marques
+    const specialCases: Record<string, string> = {
+      'Mercedes-benz': 'Mercedes-Benz',
+      'Bmw': 'BMW',
+      'Audi': 'Audi',
+      'Volkswagen': 'Volkswagen',
+      'Peugeot': 'Peugeot',
+      'Renault': 'Renault',
+      'Citroën': 'Citroën',
+      'Citroen': 'Citroën',
+    };
+    
+    return specialCases[normalized] || normalized;
+  }
+
+  function parseDateDDMMYYYY(dateStr: string | null): string | null {
+    if (!dateStr) return null;
+    const parts = dateStr.split(/[-\/]/);
+    if (parts.length !== 3) return null;
+    const [d, m, y] = parts;
+    return `${y.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+
+  function extractEngineSize(ccm: string | null): string | null {
+    if (!ccm) return null;
+    const match = ccm.match(/\d+/);
+    return match ? match[0] : null;
+  }
+
+  function extractNumber(value: string | number | null): string | null {
+    if (!value) return null;
+    if (typeof value === 'number') return String(value);
+    const match = String(value).match(/\d+/);
+    return match ? match[0] : null;
+  }
+
+  // Route API Vehicle Data
+  app.post("/api/vehicle-data", async (req, res) => {
+    try {
+      const { registrationNumber } = req.body;
+      
+      if (!registrationNumber) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Numéro d'immatriculation requis" 
+        });
+      }
+
+      // Normaliser la plaque pour cache (uppercase, trim)
+      const normalizedPlate = registrationNumber.trim().toUpperCase().replace(/\s+/g, '');
+      
+      // Vérifier le cache
+      const cached = vehicleDataCache.get(normalizedPlate);
+      if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+        console.log('✅ Vehicle data from cache:', normalizedPlate);
+        return res.json({ 
+          success: true, 
+          data: cached.data,
+          source: 'cache' 
+        });
+      }
+
+      // Appeler l'API RapidAPI
+      const rapidApiKey = process.env.RAPIDAPI_KEY;
+      if (!rapidApiKey) {
+        console.error('❌ RAPIDAPI_KEY not configured');
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Configuration API manquante' 
+        });
+      }
+
+      const apiUrl = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(normalizedPlate)}&token=${rapidApiKey}&pays=FR`;
+
+      console.log('🔍 Calling api.apiplaqueimmatriculation.com API for:', normalizedPlate);
+      
+      const apiResponse = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!apiResponse.ok) {
+        console.error('❌ API error:', apiResponse.status, await apiResponse.text());
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Service temporairement indisponible' 
+        });
+      }
+
+      const apiData = await apiResponse.json();
+      
+      // Debug: afficher la réponse complète de l'API
+      console.log('📦 API Response:', JSON.stringify(apiData).substring(0, 800));
+      
+      const d = apiData.data;
+      console.log('📊 Data keys:', d ? Object.keys(d).slice(0, 15) : 'no data');
+      
+      // Vérifier si erreur dans la réponse
+      if (!d || d.erreur) {
+        console.log('❌ API returned error:', d?.erreur);
+        return res.json({ 
+          success: false, 
+          error: d?.erreur || 'Plaque non reconnue' 
+        });
+      }
+      
+      if (!d.marque) {
+        return res.json({ 
+          success: false, 
+          error: 'Aucune information disponible pour cette plaque' 
+        });
+      }
+
+      // 🔍 DEBUG transmission
+      console.log('🔧 DEBUG - boite_vitesse brut:', d.boite_vitesse);
+      console.log('🔧 DEBUG - energieNGC brut:', d.energieNGC);
+      console.log('🔧 DEBUG - carrosserie brut:', d.carrosserie);
+      console.log('🔧 DEBUG - carrosserieCG brut:', d.carrosserieCG);
+      
+      const normalizedTransmission = normalizeTransmission(d.boite_vitesse);
+      const normalizedFuel = normalizeFuel(d.energieNGC || d.energie);
+      // Priorité au champ texte 'carrosserie' (SUV, Berline, etc.), fallback sur code 'carrosserieCG'
+      const normalizedBody = normalizeBodyType(d.carrosserie || d.carrosserieCG);
+      
+      console.log('✅ DEBUG - transmission normalisée:', normalizedTransmission);
+      console.log('✅ DEBUG - fuel normalisé:', normalizedFuel);
+      console.log('✅ DEBUG - bodyType normalisé:', normalizedBody);
+
+      // Mapper vers specificDetails avec les champs de apiplaqueimmatriculation.com
+      const specificDetails = {
+        brand: normalizeBrand(d.marque),
+        model: d.modele || null,
+        version: d.version || null, // Version complète (ex: "TMAX 530")
+        firstRegistration: d.date1erCir_us || null, // Format YYYY-MM-DD
+        fuel: normalizedFuel,
+        transmission: normalizedTransmission,
+        color: d.couleur || null,
+        engineSize: extractNumber(d.ccm), // "530 CM3" → "530"
+        doors: d.nb_portes ? String(d.nb_portes) : null,
+        bodyType: normalizedBody,
+        co2: extractNumber(d.co2),
+        fiscalHorsepower: extractNumber(d.puisFisc),
+        power: extractNumber(d.puisFiscReelCH || d.puisFiscReelKW), // "46 CH" → "46"
+        cylinders: extractNumber(d.cylindres), // "2" → "2"
+        genreVCG: d.genreVCGNGC || d.genreVCG || null, // Type véhicule (VP, CTTE, etc.)
+      };
+
+      // Informations pour le toast
+      const vehicleInfo = {
+        brand: d.marque,
+        model: d.modele,
+        year: d.date1erCir_us ? d.date1erCir_us.split('-')[0] : null,
+        genreVCG: d.genreVCGNGC || d.genreVCG
+      };
+
+      const responseData = {
+        specificDetails,
+        vehicleInfo
+      };
+
+      // Stocker en cache
+      vehicleDataCache.set(normalizedPlate, {
+        data: responseData,
+        timestamp: Date.now()
+      });
+
+      console.log('✅ Vehicle data retrieved successfully:', d.marque, d.modele);
+      
+      res.json({ 
+        success: true, 
+        data: responseData,
+        source: 'api'
+      });
+
+    } catch (error) {
+      console.error('❌ Error in /api/vehicle-data:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erreur de connexion au service' 
+      });
     }
   });
 

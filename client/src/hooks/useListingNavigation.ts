@@ -100,15 +100,11 @@ export const useListingNavigation = ({
         } else if (currentStep === 7) {
           nextStepNumber = 8;
         } else if (currentStep === 8) {
-          nextStepNumber = 11;
+          nextStepNumber = 9;
         }
       } else if (isServiceCategory()) {
         if (currentStep === 5) {
           nextStepNumber = 7;
-        }
-      } else if (isSearchListing()) {
-        if (currentStep === 8) {
-          nextStepNumber = 10;
         }
       }
     }
@@ -121,34 +117,46 @@ export const useListingNavigation = ({
     totalSteps,
     isSearchForParts,
     isServiceCategory,
-    isSearchListing,
     needsConditionStep,
   ]);
 
   const goToPreviousStep = useCallback(() => {
     let previousStepNumber = currentStep - 1;
 
+    // Gestion des sauts d'étapes spéciaux
     if (currentStep === 4 && !needsConditionStep()) {
       previousStepNumber = 3;
     } else if (currentStep === 5) {
       previousStepNumber = needsConditionStep() ? 4 : 3;
-    } else {
-      if (isSearchForParts()) {
-        if (currentStep === 11) {
-          previousStepNumber = 8;
-        } else if (currentStep === 8) {
-          previousStepNumber = 7;
-        } else if (currentStep === 7) {
-          previousStepNumber = 5;
-        }
-      } else if (isServiceCategory()) {
-        if (currentStep === 7) {
-          previousStepNumber = 5;
-        }
-      } else if (isSearchListing()) {
-        if (currentStep === 10) {
-          previousStepNumber = 8;
-        }
+    } else if (currentStep === 7) {
+      // De Description (7) → Détails (6)
+      previousStepNumber = 6;
+    } else if (currentStep === 8) {
+      // De Photos (8) → Description (7)
+      previousStepNumber = 7;
+    } else if (currentStep === 9) {
+      // De Prix (9) → Photos (8)
+      previousStepNumber = 8;
+    } else if (currentStep === 10) {
+      // De Localisation (10) → Prix (9) - toujours
+      previousStepNumber = 9;
+    } else if (currentStep === 11) {
+      // De Récapitulatif (11) → Localisation (10)
+      previousStepNumber = 10;
+    }
+
+    // Cas spéciaux pour catégories spécifiques (avant les règles générales)
+    if (isSearchForParts()) {
+      if (currentStep === 9) {
+        previousStepNumber = 8;
+      } else if (currentStep === 8) {
+        previousStepNumber = 7;
+      } else if (currentStep === 7) {
+        previousStepNumber = 5;
+      }
+    } else if (isServiceCategory()) {
+      if (currentStep === 7) {
+        previousStepNumber = 5;
       }
     }
 

@@ -16,7 +16,15 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+<<<<<<< HEAD
 localPort = 39907
+=======
+localPort = 34919
+externalPort = 3003
+
+[[ports]]
+localPort = 35063
+>>>>>>> feature/api-immatriculation
 externalPort = 3000
 
 [[ports]]

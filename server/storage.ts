@@ -156,6 +156,11 @@ function transformVehicleFromSupabase(vehicleRow: any): any {
     year: vehicleRow.year,
     mileage: vehicleRow.mileage,
     fuelType: vehicleRow.fuel_type,
+    transmission: vehicleRow.transmission || null,
+    color: vehicleRow.color || null,
+    power: vehicleRow.power || null,
+    emissionClass: vehicleRow.emission_class || null,
+    vehicleSpecifications: vehicleRow.vehicle_specifications || {},
     condition: vehicleRow.condition,
     price: vehicleRow.price,
     location: vehicleRow.location,
@@ -646,6 +651,18 @@ export class SupabaseStorage implements IStorage {
     annonceData.fuel_type = cleanVehicle.fuelType || "Non spécifié";
     annonceData.condition = cleanVehicle.condition || "good";
 
+    // Nouveaux champs de spécifications véhicule
+    if ((cleanVehicle as any).transmission)
+      annonceData.transmission = (cleanVehicle as any).transmission;
+    if ((cleanVehicle as any).color)
+      annonceData.color = (cleanVehicle as any).color;
+    if ((cleanVehicle as any).power)
+      annonceData.power = (cleanVehicle as any).power;
+    if ((cleanVehicle as any).emissionClass)
+      annonceData.emission_class = (cleanVehicle as any).emissionClass;
+    if ((cleanVehicle as any).vehicleSpecifications)
+      annonceData.vehicle_specifications = (cleanVehicle as any).vehicleSpecifications;
+
     // Informations de contact spécifiques à l'annonce
     if ((cleanVehicle as any).contactPhone)
       annonceData.contact_phone = (cleanVehicle as any).contactPhone;
@@ -716,6 +733,11 @@ export class SupabaseStorage implements IStorage {
       year: data.year,
       mileage: data.mileage,
       fuelType: data.fuel_type,
+      transmission: data.transmission || null,
+      color: data.color || null,
+      power: data.power || null,
+      emissionClass: data.emission_class || null,
+      vehicleSpecifications: data.vehicle_specifications || {},
       condition: data.condition,
       price: data.price,
       location: data.location,

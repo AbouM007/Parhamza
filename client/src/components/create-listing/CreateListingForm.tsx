@@ -15,13 +15,13 @@ import { CategoryStep } from "./CategoryStep";
 import { ListingTypeStep, ListingTypeValue } from "./ListingTypeStep";
 import { VehicleDetailsStep } from "./VehicleDetailsStep";
 import { PlateBlurModal } from "../PlateBlurModal";
+import { VehicleDataPreviewModal } from "./VehicleDataPreviewModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuota } from "@/hooks/useQuota";
 import { useListingNavigation } from "@/hooks/useListingNavigation";
 import { useRegistrationNumber } from "@/hooks/useRegistrationNumber";
 import { compressImage } from "@/utils/imageCompression";
-// Temporairement commenté pour éviter l'erreur d'import
-// import { useToast } from '../../hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import {
   getBrandsBySubcategory,
   fuelTypes,
@@ -98,7 +98,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 }) => {
   const { user, profile } = useAuth();
   const { data: quotaInfo } = useQuota(profile?.id);
-  // const { toast } = useToast();
+  const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdVehicle, setCreatedVehicle] = useState<{
@@ -119,7 +119,21 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // État pour la recherche de compatibilités (pièces détachées)
   const [compatibilitySearch, setCompatibilitySearch] = useState("");
-  const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] = useState(false);
+  const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] =
+    useState(false);
+
+  // État pour tracker les champs auto-remplis depuis API
+  const [autoFilledFields, setAutoFilledFields] = useState<string[]>([]);
+
+  // États pour le modal de prévisualisation des données véhicule
+  const [showVehiclePreview, setShowVehiclePreview] = useState(false);
+  const [pendingVehicleData, setPendingVehicleData] = useState<any>(null);
+  const [pendingRegistrationNumber, setPendingRegistrationNumber] =
+    useState("");
+
+  // États pour la recherche de plaque (optionnelle dans Step 5)
+  const [isLoadingPlateData, setIsLoadingPlateData] = useState(false);
+  const [plateApiError, setPlateApiError] = useState("");
 
   // Fonction pour détecter et formater le numéro de téléphone international
   const formatPhoneNumber = (phone: string): string => {
@@ -213,7 +227,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [vehicleDataLoading, setVehicleDataLoading] = useState(false);
   const [vehicleDataMessage, setVehicleDataMessage] = useState("");
 
-  const totalSteps = 12; // Suppression de l'étape pack premium
+  const totalSteps = 11; // Steps: 1-5 (Type→Category→Subcategory→Condition→Title), 6-8 (Details→Description→Photos), 9-11 (Price→Location→Summary)
 
   // Réinitialiser la sous-catégorie quand la catégorie change
   useEffect(() => {
@@ -239,10 +253,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const loadUserContactData = async () => {
       if ((user || profile) && !hasPrefilledData) {
         try {
-          console.log(
-            "🔄 Récupération des données utilisateur depuis Supabase...",
-          );
-
           // Appel API pour récupérer les données fraîches de l'utilisateur
           const userEmail = user?.email || profile?.email;
           if (!userEmail) return;
@@ -258,7 +268,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }
 
           const userData = await response.json();
-          console.log("📞 Données utilisateur récupérées:", userData);
 
           const userPhone = userData.phone
             ? formatPhoneNumber(userData.phone)
@@ -283,7 +292,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           }));
 
           setHasPrefilledData(true);
-          console.log("✅ Données auto-remplies depuis l'API");
         } catch (error) {
           console.error(
             "Erreur lors du chargement des données utilisateur:",
@@ -297,8 +305,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   }, [user, profile, hasPrefilledData]);
 
   const updateFormData = (field: string, value: any) => {
-    console.log("updateFormData called:", field, value);
-
     // Validation spéciale pour le titre
     if (field === "title") {
       // Limiter à 50 caractères et ne garder que lettres, chiffres, espaces et caractères accentués
@@ -306,28 +312,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         .replace(/[^a-zA-Z0-9\sÀ-ÿ]/g, "") // Garde uniquement lettres, chiffres, espaces et caractères accentués
         .substring(0, 50); // Limite à 50 caractères
 
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: cleanedValue };
-        console.log("New form data (title filtered):", newData);
-        return newData;
-      });
-    } else if (field === "description") {
-      // Validation spéciale pour la description - ne garder que lettres, chiffres, espaces et caractères accentués
-      const cleanedValue = value
-        .replace(/[^a-zA-Z0-9\sÀ-ÿ.,!?;:()\-]/g, "") // Garde uniquement lettres, chiffres, espaces, caractères accentués et ponctuation de base
-        .substring(0, 300); // Limite à 300 caractères
-
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: cleanedValue };
-        console.log("New form data (description filtered):", newData);
-        return newData;
-      });
+      setFormData((prev) => ({
+        ...prev,
+        [field]: cleanedValue
+      }));
     } else {
-      setFormData((prev) => {
-        const newData = { ...prev, [field]: value };
-        console.log("New form data:", newData);
-        return newData;
-      });
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value
+      }));
     }
 
     // Réactiver l'auto-avancement quand l'utilisateur fait un nouveau choix
@@ -385,7 +378,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
     // Filtrer les marques
     const matchingBrands = brandsToSearch.filter((brand) =>
-      brand.toLowerCase().includes(searchTerm)
+      brand.toLowerCase().includes(searchTerm),
     );
     suggestions.push(...matchingBrands);
 
@@ -398,7 +391,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       } else {
         // Rechercher dans les modèles
         const matchingModels = models.filter((model) =>
-          model.toLowerCase().includes(searchTerm)
+          model.toLowerCase().includes(searchTerm),
         );
         matchingModels.forEach((model) => {
           suggestions.push(`${brand} ${model}`);
@@ -423,7 +416,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const currentTags = formData.specificDetails.compatibilityTags || [];
     updateSpecificDetails(
       "compatibilityTags",
-      currentTags.filter((tag: string) => tag !== tagToRemove)
+      currentTags.filter((tag: string) => tag !== tagToRemove),
     );
   };
 
@@ -492,10 +485,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
   // Fonction pour récupérer les données véhicule via API
   const fetchVehicleData = async (registrationNumber: string) => {
-    if (
-      !registrationNumber ||
-      !validateRegistrationNumber(registrationNumber).isValid
-    ) {
+    if (!registrationNumber || registrationNumber.trim().length === 0) {
       return;
     }
 
@@ -514,52 +504,248 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       const result = await response.json();
 
       if (result.success && result.data) {
-        // Pré-remplir automatiquement les détails spécifiques
-        const apiData = result.data;
-        const newSpecificDetails = {
-          ...formData.specificDetails,
-          brand: apiData.brand || formData.specificDetails.brand,
-          model: apiData.model || formData.specificDetails.model,
-          year: apiData.year || formData.specificDetails.year,
-          fuelType: apiData.fuelType || formData.specificDetails.fuelType,
-          power: apiData.power || formData.specificDetails.power,
-          displacement:
-            apiData.displacement || formData.specificDetails.displacement,
-          transmission:
-            apiData.transmission || formData.specificDetails.transmission,
-          doors: apiData.doors || formData.specificDetails.doors,
-          color: apiData.color || formData.specificDetails.color,
-          vehicleType:
-            apiData.vehicleType || formData.specificDetails.vehicleType,
-          emissionClass:
-            apiData.emissionClass || formData.specificDetails.emissionClass,
-          critAir: apiData.critAir || formData.specificDetails.critAir,
-          firstRegistrationDate:
-            apiData.firstRegistrationDate ||
-            formData.specificDetails.firstRegistrationDate,
+        const { specificDetails, vehicleInfo } = result.data;
+
+        // Préparer les données pour le modal de prévisualisation
+        const previewData = {
+          brand: specificDetails.brand,
+          model: specificDetails.model,
+          year: specificDetails.firstRegistration
+            ? specificDetails.firstRegistration.split("-")[0]
+            : vehicleInfo.year,
+          fuelType: specificDetails.fuel,
+          transmission: specificDetails.transmission,
+          color: specificDetails.color,
+          engineSize: specificDetails.engineSize,
+          doors: specificDetails.doors,
+          co2: specificDetails.co2,
+          fiscalPower: specificDetails.fiscalHorsepower,
         };
+
+        // Stocker les données complètes pour utilisation après confirmation
+        setPendingVehicleData({ specificDetails, vehicleInfo });
+        setPendingRegistrationNumber(registrationNumber);
+
+        // Afficher le modal de prévisualisation
+        setShowVehiclePreview(true);
+      } else {
+        toast({
+          title: "❌ " + (result.error || "Véhicule non trouvé"),
+          description: "Veuillez remplir les champs manuellement",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erreur récupération données:", error);
+      toast({
+        title: "❌ Erreur de connexion",
+        description: "Impossible de récupérer les données du véhicule",
+        variant: "destructive",
+      });
+    } finally {
+      setVehicleDataLoading(false);
+    }
+  };
+
+  // Fonction pour confirmer et remplir le formulaire avec les données
+  const confirmAndFillVehicleData = () => {
+    if (!pendingVehicleData) return;
+
+    const { specificDetails, vehicleInfo } = pendingVehicleData;
+    const filledFields: string[] = [];
+
+    // Pré-remplir automatiquement les détails spécifiques
+    const newSpecificDetails = { ...formData.specificDetails };
+
+    if (specificDetails.brand) {
+      // Normaliser en MAJUSCULES pour matcher le mockData
+      newSpecificDetails.brand = specificDetails.brand.toUpperCase();
+      filledFields.push("Marque");
+    }
+    if (specificDetails.model) {
+      // Normaliser en MAJUSCULES pour matcher le mockData
+      newSpecificDetails.model = specificDetails.model.toUpperCase();
+      filledFields.push("Modèle");
+    }
+    if (specificDetails.version) {
+      newSpecificDetails.version = specificDetails.version;
+      filledFields.push("Version");
+    }
+    if (specificDetails.firstRegistration) {
+      // Extraire l'année de la date ISO
+      const year = specificDetails.firstRegistration.split("-")[0];
+      newSpecificDetails.year = year;
+      filledFields.push("Année");
+    }
+    if (specificDetails.fuel) {
+      // Mapper fuel vers fuelType (champ du formulaire)
+      newSpecificDetails.fuelType = specificDetails.fuel;
+      filledFields.push("Carburant");
+    }
+    if (specificDetails.transmission) {
+      newSpecificDetails.transmission = specificDetails.transmission;
+      filledFields.push("Transmission");
+    }
+    if (specificDetails.color) {
+      newSpecificDetails.color = specificDetails.color;
+      filledFields.push("Couleur");
+    }
+    if (specificDetails.bodyType) {
+      // Mapper bodyType (API) vers vehicleType (formulaire)
+      newSpecificDetails.vehicleType = specificDetails.bodyType;
+      filledFields.push("Type de véhicule");
+    }
+    if (specificDetails.engineSize) {
+      // Pour les motos: mapper engineSize → displacement
+      newSpecificDetails.displacement = parseInt(specificDetails.engineSize);
+      filledFields.push("Cylindrée");
+    }
+    if (specificDetails.power) {
+      // Puissance réelle (déjà en nombre depuis le backend)
+      newSpecificDetails.power = parseInt(specificDetails.power);
+      filledFields.push("Puissance");
+    }
+    if (specificDetails.doors) {
+      newSpecificDetails.doors = specificDetails.doors;
+      filledFields.push("Portes");
+    }
+    if (specificDetails.co2) {
+      newSpecificDetails.co2 = specificDetails.co2;
+      filledFields.push("CO2");
+    }
+    if (specificDetails.fiscalHorsepower) {
+      // Mapper fiscalHorsepower vers fiscalPower (champ du formulaire)
+      newSpecificDetails.fiscalPower = specificDetails.fiscalHorsepower;
+      filledFields.push("Puissance fiscale");
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      specificDetails: newSpecificDetails,
+    }));
+
+    setAutoFilledFields(filledFields);
+
+    // Fermer le modal
+    setShowVehiclePreview(false);
+    setPendingVehicleData(null);
+
+    // Toast avec info véhicule et liste des champs remplis
+    const vehicleDesc =
+      `${vehicleInfo.brand || ""} ${vehicleInfo.model || ""}`.trim();
+    const yearInfo = vehicleInfo.year ? ` (${vehicleInfo.year})` : "";
+    const fieldsCount = filledFields.length;
+
+    toast({
+      title: `✅ ${vehicleDesc}${yearInfo} importé`,
+      description: `${fieldsCount} champ${fieldsCount > 1 ? "s" : ""} rempli${fieldsCount > 1 ? "s" : ""} : ${filledFields.join(", ")}. Vérifiez et complétez les informations manquantes.`,
+    });
+  };
+
+  // Fonction pour annuler la prévisualisation
+  const cancelVehicleDataPreview = () => {
+    setShowVehiclePreview(false);
+    setPendingVehicleData(null);
+    setPendingRegistrationNumber("");
+  };
+
+  // Nouveaux handlers pour le flux de plaque (Steps 1-2)
+  const handlePlateSearch = async () => {
+    if (
+      !formData.registrationNumber ||
+      formData.registrationNumber.trim().length < 5
+    ) {
+      setPlateApiError("Veuillez saisir un numéro d'immatriculation valide");
+      return;
+    }
+
+    setIsLoadingPlateData(true);
+    setPlateApiError("");
+
+    try {
+      const response = await fetch("/api/vehicle-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          registrationNumber: formData.registrationNumber,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const { specificDetails, vehicleInfo } = result.data;
+
+        // 🎯 PRÉ-REMPLIR formData.specificDetails + GÉNÉRER LE TITRE AUTOMATIQUEMENT
+        // Normaliser en MAJUSCULES pour matcher le mockData
+        const brand = specificDetails.brand ? specificDetails.brand.toUpperCase() : "";
+        const model = specificDetails.model ? specificDetails.model.toUpperCase() : "";
+        const year = specificDetails.firstRegistration
+          ? specificDetails.firstRegistration.split("-")[0]
+          : vehicleInfo.year || "";
+        const fuel = specificDetails.fuel || "";
+
+        // Générer le titre automatiquement : "Marque Modèle Année"
+        const autoTitle = [brand, model, year].filter(Boolean).join(" ");
 
         setFormData((prev) => ({
           ...prev,
-          specificDetails: newSpecificDetails,
+          // Auto-générer le titre
+          title: autoTitle || prev.title,
+          specificDetails: {
+            ...prev.specificDetails,
+            // Champs de base
+            brand: brand || null,
+            model: model || null,
+            version: specificDetails.version || null, // Version (ex: "TMAX 530")
+            year: year ? parseInt(year) : null,
+            // Type de carburant et transmission
+            fuelType: fuel || null,
+            transmission: specificDetails.transmission || null,
+            // Puissance et caractéristiques
+            power: specificDetails.power
+              ? parseInt(specificDetails.power)
+              : null,
+            displacement: specificDetails.engineSize
+              ? parseInt(specificDetails.engineSize)
+              : null, // Pour les motos: cylindrée
+            doors: specificDetails.doors
+              ? parseInt(specificDetails.doors)
+              : null,
+            // Type de véhicule et couleur
+            vehicleType: specificDetails.bodyType || null, // bodyType → vehicleType
+            color: specificDetails.color || null,
+            // Puissance fiscale
+            fiscalPower: specificDetails.fiscalHorsepower
+              ? parseInt(specificDetails.fiscalHorsepower)
+              : null,
+          },
         }));
 
-        const source = result.source === "cache" ? "cache" : "API officielle";
-        setVehicleDataMessage(
-          `✅ Données récupérées depuis ${source} et pré-remplies automatiquement`,
-        );
+        // Notification de succès avec titre généré
+        toast({
+          title: "✅ Données récupérées !",
+          description: autoTitle
+            ? `Titre généré : "${autoTitle}". Les détails ont été pré-remplis.`
+            : `Les détails ont été pré-remplis dans l'étape suivante.`,
+        });
+
+        setPlateApiError("");
       } else {
-        setVehicleDataMessage(
-          `⚠️ ${result.error || "Véhicule non trouvé dans la base de données"}`,
+        setPlateApiError(
+          result.error ||
+            "Véhicule non trouvé. Vous pouvez continuer en saisissant manuellement.",
         );
       }
     } catch (error) {
       console.error("Erreur récupération données:", error);
-      setVehicleDataMessage(
-        "❌ Erreur de connexion au service de données véhicule",
+      setPlateApiError(
+        "Erreur de connexion. Vous pouvez continuer en saisissant manuellement.",
       );
     } finally {
-      setVehicleDataLoading(false);
+      setIsLoadingPlateData(false);
     }
   };
 
@@ -573,6 +759,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const nextStepHandler = () => {
+    // Logique normale pour tous les steps
     goToNextStep();
   };
 
@@ -591,6 +778,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         // En revenant de l'étape sous-famille, on efface la famille principale
         setFormData((prev) => ({ ...prev, category: "" }));
         break;
+
       case 4:
         // En revenant de l'étape état du bien, on efface la sous-famille
         setFormData((prev) => ({
@@ -599,6 +787,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           condition: undefined,
         }));
         break;
+
       case 5:
         // En revenant du titre, on efface l'état du bien ou la sous-famille selon le cas
         if (needsConditionStep()) {
@@ -607,7 +796,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           setFormData((prev) => ({ ...prev, subcategory: "" }));
         }
         break;
-      // Pour les étapes 6 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
+
+      // Pour les étapes 8 et suivantes, on ne supprime rien - on préserve tout le contenu utilisateur
     }
 
     goToPreviousStep();
@@ -622,21 +812,26 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const result = (() => {
       switch (currentStep) {
         case 1:
+          // Step 1: ListingTypeStep
           return formData.listingType !== "";
         case 2:
+          // Step 2: CategoryStep
           return formData.category !== "";
         case 3:
+          // Step 3: Subcategory
           return formData.subcategory !== "";
         case 4:
-          // Étape état du bien (seulement pour biens matériels)
+          // Step 4: Condition - état du bien (seulement pour biens matériels)
           if (needsConditionStep()) {
             return formData.condition !== undefined;
           }
           return true; // Si pas besoin d'état, toujours valide
         case 5:
+          // Step 5: Titre uniquement (immatriculation optionnelle en haut)
           return formData.title.trim() !== "";
         case 6:
-          // Détails spécifiques - ignorer pour les recherches de pièces détachées ET les services
+          // Step 6: Détails spécifiques
+          // Ignorer pour les recherches de pièces détachées ET les services
           if (isSearchForParts() || isServiceCategory()) {
             return true;
           }
@@ -727,16 +922,18 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             formData.specificDetails.year
           );
         case 7:
-          return formData.description.trim().length >= 30;
+          // Step 7: Description (nouvelle étape)
+          return formData.description && formData.description.trim().length > 0;
         case 8:
+          // Step 8: Photos (anciennement Step 7)
           return true; // Photos optionnelles - toujours permettre de passer
         case 9:
-          // Ignorer cette étape pour les recherches de pièces détachées ET les annonces de recherche
-          if (isSearchForParts() || isSearchListing()) {
-            return true;
-          }
+          // Step 9: Price - Obligatoire pour TOUS les types d'annonces
+          // Pour les ventes : prix de vente
+          // Pour les recherches : budget maximum
           return formData.price > 0;
         case 10:
+          // Step 10: Localisation et Contacts (fusionnés)
           // Ignorer cette étape pour les recherches de pièces détachées
           if (isSearchForParts()) {
             return true;
@@ -744,36 +941,17 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           const locationValid =
             formData.location.city !== "" &&
             formData.location.postalCode !== "";
-          console.log("Step 10 validation:", {
-            city: formData.location.city,
-            postalCode: formData.location.postalCode,
-            locationValid,
-          });
-          return locationValid;
-        case 11:
-          return (
+          const contactValid =
             formData.contact.phone !== "" &&
-            validatePhoneNumber(formData.contact.phone).isValid
-          );
-        case 12:
+            validatePhoneNumber(formData.contact.phone).isValid;
+          return locationValid && contactValid;
+        case 11:
+          // Step 11: Summary
           return true; // Étape de récapitulatif
         default:
           return false;
       }
     })();
-
-    // Debug log pour identifier le problème
-    console.log(`Step ${currentStep}: canProceed = ${result}`, {
-      listingType: formData.listingType,
-      category: formData.category,
-      subcategory: formData.subcategory,
-      title: formData.title,
-      description: formData.description,
-      price: formData.price,
-      photosCount: formData.photos.length,
-      needsCondition: needsConditionStep(),
-      condition: formData.condition,
-    });
 
     return result;
   };
@@ -883,7 +1061,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         return;
       }
 
-      console.log("Publier l'annonce:", formData);
 
       // Transformer les données pour l'API avec validation adaptée au type d'annonce
       const isService = formData.category === "services";
@@ -903,6 +1080,59 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           : new Date().getFullYear(),
         mileage: formData.specificDetails.mileage || 0,
         fuelType: formData.specificDetails.fuelType || "Non spécifié",
+        // Nouveaux champs communs
+        transmission: formData.specificDetails.transmission || null,
+        color: formData.specificDetails.color || null,
+        power: formData.specificDetails.power
+          ? parseInt(formData.specificDetails.power.toString())
+          : null,
+        emissionClass: formData.specificDetails.emissionClass || null,
+        // Spécifications véhicule (JSON)
+        vehicleSpecifications: {
+          // Voiture
+          vehicleType: formData.specificDetails.vehicleType || null,
+          doors: formData.specificDetails.doors
+            ? parseInt(formData.specificDetails.doors.toString())
+            : null,
+          fiscalHorsepower: formData.specificDetails.fiscalPower
+            ? parseInt(formData.specificDetails.fiscalPower.toString())
+            : null,
+          upholstery: formData.specificDetails.upholstery || null,
+          // Moto
+          motorcycleType: formData.specificDetails.motorcycleType || null,
+          displacement: formData.specificDetails.displacement
+            ? parseInt(formData.specificDetails.displacement.toString())
+            : null,
+          licenseType: formData.specificDetails.licenseType || null,
+          version: formData.specificDetails.version || null,
+          // Utilitaire
+          utilityType: formData.specificDetails.utilityType || null,
+          payload: formData.specificDetails.payload
+            ? parseInt(formData.specificDetails.payload.toString())
+            : null,
+          volume: formData.specificDetails.volume
+            ? parseFloat(formData.specificDetails.volume.toString())
+            : null,
+          seats: formData.specificDetails.seats
+            ? parseInt(formData.specificDetails.seats.toString())
+            : null,
+          // Remorque
+          trailerType: formData.specificDetails.trailerType || null,
+          dimensions: formData.specificDetails.dimensions || null,
+          emptyWeight: formData.specificDetails.emptyWeight
+            ? parseInt(formData.specificDetails.emptyWeight.toString())
+            : null,
+          maxWeight: formData.specificDetails.maxWeight
+            ? parseInt(formData.specificDetails.maxWeight.toString())
+            : null,
+          // Jet Ski
+          jetskiType: formData.specificDetails.jetskiType || null,
+          usageHours: formData.specificDetails.usageHours
+            ? parseInt(formData.specificDetails.usageHours.toString())
+            : null,
+          // Équipements
+          equipment: formData.specificDetails.equipment || [],
+        },
         condition: formData.condition || "good",
         price: formData.price || 0,
         location: formData.location || "",
@@ -919,17 +1149,16 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                 severity: formData.specificDetails.damageSeverity || "",
               }
             : null,
-        compatibilityTags:
-          isPiecePart()
-            ? formData.specificDetails.compatibilityTags || []
-            : null,
+        compatibilityTags: isPiecePart()
+          ? formData.specificDetails.compatibilityTags || []
+          : null,
         // Informations de contact spécifiques à l'annonce
         contactPhone: formData.contact.phone || "",
         contactEmail: formData.contact.email || "",
         contactWhatsapp: formData.contact.whatsapp || "",
         hidePhone: !formData.contact.showPhone,
         hideWhatsapp: !formData.contact.showWhatsapp,
-        hideMessages: !formData.contact.showInternal,
+        hideMessages: false, // Messagerie toujours active
         isPremium: false,
         status: "draft", // Initialement en brouillon
         listingType: formData.listingType || "sale",
@@ -1008,7 +1237,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           try {
             // Compresser seulement les fichiers > 500KB
             if (file.size > 500 * 1024) {
-              console.log(`Compression de ${file.name} (${(file.size / 1024).toFixed(0)}KB)...`);
+              console.log(
+                `Compression de ${file.name} (${(file.size / 1024).toFixed(0)}KB)...`,
+              );
               return await compressImage(file, {
                 maxWidth: 1920,
                 maxHeight: 1920,
@@ -1020,7 +1251,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             console.error(`Erreur compression ${file.name}:`, error);
             return file; // Fallback au fichier original
           }
-        })
+        }),
       );
 
       // Upload vers Supabase Storage
@@ -1214,24 +1445,25 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     const selectedEquipment = formData.specificDetails.equipment || [];
 
     // Champs communs pour la plupart des véhicules
-    const renderCommonVehicleFields = () => (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Marque *
-          </label>
-          <select
-            value={formData.specificDetails.brand || ""}
-            onChange={(e) => updateSpecificDetails("brand", e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-          >
-            <option value="">Sélectionnez une marque</option>
-            {brands.map((brand) => (
-              <option key={brand} value={brand}>
-                {brand}
-              </option>
-            ))}
-          </select>
+    const renderCommonVehicleFields = () => {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Marque *
+            </label>
+            <select
+              value={formData.specificDetails.brand || ""}
+              onChange={(e) => updateSpecificDetails("brand", e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+            >
+              <option value="">Sélectionnez une marque</option>
+              {brands.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
         </div>
 
         <div>
@@ -1305,6 +1537,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         </div>
       </div>
     );
+  };
 
     // Équipements
     const renderEquipment = () =>
@@ -1345,7 +1578,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de véhicule *
@@ -1561,7 +1794,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type d'utilitaire *
@@ -1753,7 +1986,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de caravane *
@@ -1844,7 +2077,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "remorque":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de remorque *
@@ -1947,9 +2180,60 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "scooter":
         return (
           <div className="space-y-6">
-            {renderCommonVehicleFields()}
+            {/* Ligne 1 : Marque, Modèle, Version */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Marque *
+                </label>
+                <select
+                  value={formData.specificDetails.brand || ""}
+                  onChange={(e) => updateSpecificDetails("brand", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                >
+                  <option value="">Sélectionnez une marque</option>
+                  {brands.map((brand) => (
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Modèle *
+                </label>
+                <input
+                  type="text"
+                  value={formData.specificDetails.model || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("model", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="Ex: CBR, R1, TMAX..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Version
+                </label>
+                <input
+                  type="text"
+                  value={formData.specificDetails.version || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("version", e.target.value)
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="ex: TMAX 530"
+                  data-testid="input-version"
+                />
+              </div>
+            </div>
+
+            {/* Ligne 2 : Type, Cylindrée, Année */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type {subcategory.id === "moto" ? "de moto" : "de scooter"} *
@@ -1979,25 +2263,6 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Kilométrage *
-                </label>
-                <input
-                  type="number"
-                  value={formData.specificDetails.mileage || ""}
-                  onChange={(e) =>
-                    updateSpecificDetails(
-                      "mileage",
-                      parseInt(e.target.value) || "",
-                    )
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                  placeholder="15000"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Cylindrée (cm³) *
                 </label>
                 <input
@@ -2011,6 +2276,45 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="600"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Année *
+                </label>
+                <input
+                  type="number"
+                  value={formData.specificDetails.year || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails("year", parseInt(e.target.value) || "")
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="2020"
+                  min="1990"
+                  max={new Date().getFullYear() + 1}
+                />
+              </div>
+            </div>
+
+            {/* Ligne 3 : Kilométrage, Couleur, Type de permis */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Kilométrage *
+                </label>
+                <input
+                  type="number"
+                  value={formData.specificDetails.mileage || ""}
+                  onChange={(e) =>
+                    updateSpecificDetails(
+                      "mileage",
+                      parseInt(e.target.value) || "",
+                    )
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                  placeholder="15000"
                   min="0"
                 />
               </div>
@@ -2067,7 +2371,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de quad *
@@ -2173,7 +2477,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de jetski *
@@ -2265,7 +2569,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type d'aéronef *
@@ -2358,7 +2662,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           <div className="space-y-6">
             {renderCommonVehicleFields()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de bateau *
@@ -2469,7 +2773,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "autre-service":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de service *
@@ -2532,7 +2836,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       case "autre-piece":
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Type de pièce *
@@ -2620,26 +2924,32 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const renderStepContent = () => {
     const selectedCategory = getSelectedCategory();
 
+    // Redirections pour les steps obsolètes (ancienne structure)
+    if (currentStep === 13) {
+      setCurrentStep(14); // Step 13 fusionné avec Step 12 → rediriger vers Step 14 (récap)
+      return null;
+    }
+
     // Pour les recherches de pièces détachées, rediriger automatiquement les étapes ignorées
     if (isSearchForParts()) {
-      if (currentStep === 5) {
-        // Rediriger l'étape 5 vers l'étape 6 ou 7
-        setCurrentStep(needsConditionStep() ? 6 : 7);
+      if (currentStep === 7) {
+        // Rediriger l'étape 7 vers l'étape 8 ou 10
+        setCurrentStep(needsConditionStep() ? 8 : 10);
         return null;
       }
-      if (currentStep === 9) {
-        // Rediriger l'étape 9 vers l'étape 8 (photos) ou 11 (contacts)
-        setCurrentStep(8);
+      if (currentStep === 11) {
+        // Rediriger l'étape 11 vers l'étape 10 (photos) ou 13 (contacts)
+        setCurrentStep(10);
         return null;
       }
-      if (currentStep === 10) {
-        // Rediriger l'étape 10 vers l'étape 11 (contacts)
-        setCurrentStep(11);
+      if (currentStep === 12) {
+        // Rediriger l'étape 12 vers l'étape 14 (récap) - Step 13 obsolète
+        setCurrentStep(14);
         return null;
       }
-      if (currentStep === 13) {
-        // Rediriger l'étape 13 (récapitulatif) vers l'étape 12 (pack premium)
-        setCurrentStep(12);
+      if (currentStep === 15) {
+        // Rediriger l'étape 15 (récapitulatif) vers l'étape 14 (pack premium)
+        setCurrentStep(14);
         return null;
       }
     }
@@ -2747,23 +3057,77 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 5:
-        // Ancienne étape 4 déplacée en étape 5 : Titre
+        // Immatriculation + Titre (sans description)
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Titre de votre{" "}
-                {formData.listingType === "sale" ? "annonce" : "recherche"}
+                Informations principales
               </h2>
               <p className="text-gray-600">
-                Rédigez un titre accrocheur et descriptif
+                {formData.condition === "occasion" &&
+                (formData.category === "voiture-utilitaire" ||
+                  formData.category === "motos-quad-marine")
+                  ? "Recherchez par plaque ou saisissez le titre manuellement"
+                  : `Donnez un titre à votre ${formData.listingType === "sale" ? "annonce" : "recherche"}`}
               </p>
             </div>
 
             <div className="space-y-6">
+              {/* Recherche par plaque EN PREMIER - Uniquement pour véhicules/motos d'occasion */}
+              {formData.condition === "occasion" &&
+                (formData.category === "voiture-utilitaire" ||
+                  formData.category === "motos-quad-marine") && (
+                  <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                        Recherche par plaque d'immatriculation
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Gagnez du temps ! Le titre et les détails seront
+                        automatiquement remplis
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={formData.registrationNumber || ""}
+                        onChange={(e) =>
+                          updateFormData(
+                            "registrationNumber",
+                            e.target.value.toUpperCase(),
+                          )
+                        }
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ex: AB-123-CD"
+                        maxLength={20}
+                        data-testid="input-registration-number"
+                      />
+                      <button
+                        onClick={handlePlateSearch}
+                        disabled={
+                          isLoadingPlateData || !formData.registrationNumber
+                        }
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                        data-testid="button-search-plate"
+                      >
+                        {isLoadingPlateData ? "Recherche..." : "Rechercher"}
+                      </button>
+                    </div>
+
+                    {plateApiError && (
+                      <p className="mt-3 text-sm text-red-600">
+                        {plateApiError}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+              {/* Titre - Auto-généré si recherche plaque réussie */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Titre *
+                  Titre de l'annonce *
                 </label>
                 <input
                   type="text"
@@ -2776,13 +3140,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                       : "Ex: Recherche BMW 320d"
                   }
                   maxLength={50}
+                  data-testid="input-title"
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">
-                    Un bon titre augmente vos chances de{" "}
-                    {formData.listingType === "sale"
-                      ? "vente"
-                      : "trouver ce que vous cherchez"}
+                    {formData.condition === "occasion" &&
+                    (formData.category === "voiture-utilitaire" ||
+                      formData.category === "motos-quad-marine")
+                      ? "Le titre sera généré automatiquement si vous utilisez la recherche par plaque"
+                      : `Un bon titre augmente vos chances de ${formData.listingType === "sale" ? "vente" : "trouver ce que vous cherchez"}`}
                   </p>
                   <span
                     className={`text-sm ${formData.title.length > 40 ? "text-orange-500" : "text-gray-400"}`}
@@ -2791,107 +3157,12 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   </span>
                 </div>
               </div>
-
-              {/* Champ d'immatriculation conditionnel */}
-              {needsRegistrationNumber() && formData.listingType === "sale" && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Numéro d'immatriculation (optionnel)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.registrationNumber || ""}
-                    onChange={(e) => {
-                      const formatted = formatRegistrationNumber(
-                        e.target.value,
-                      );
-                      updateFormData("registrationNumber", formatted);
-                    }}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                      formData.registrationNumber &&
-                      !validateRegistrationNumber(formData.registrationNumber)
-                        .isValid
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="Ex: AB-123-CD ou 1234 AB 56"
-                    maxLength={20}
-                  />
-                  <div className="mt-2 space-y-2">
-                    {formData.registrationNumber && (
-                      <p
-                        className={`text-sm ${
-                          validateRegistrationNumber(
-                            formData.registrationNumber,
-                          ).isValid
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {
-                          validateRegistrationNumber(
-                            formData.registrationNumber,
-                          ).message
-                        }
-                      </p>
-                    )}
-
-                    {/* Bouton pour récupérer les données automatiquement */}
-                    {formData.registrationNumber &&
-                      validateRegistrationNumber(formData.registrationNumber)
-                        .isValid && (
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              fetchVehicleData(formData.registrationNumber!)
-                            }
-                            disabled={vehicleDataLoading}
-                            className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {vehicleDataLoading ? (
-                              <>
-                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                Récupération...
-                              </>
-                            ) : (
-                              <>
-                                <Search className="h-4 w-4 mr-2" />
-                                Pré-remplir automatiquement
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-
-                    {/* Message de retour */}
-                    {vehicleDataMessage && (
-                      <div
-                        className={`text-sm p-3 rounded-lg ${
-                          vehicleDataMessage.startsWith("✅")
-                            ? "bg-green-50 text-green-700 border border-green-200"
-                            : vehicleDataMessage.startsWith("⚠️")
-                              ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
-                              : "bg-red-50 text-red-700 border border-red-200"
-                        }`}
-                      >
-                        {vehicleDataMessage}
-                      </div>
-                    )}
-
-                    <p className="text-sm text-gray-500">
-                      Formats acceptés : SIV (AA-123-AA) depuis 2009 ou FNI
-                      (1234 AB 56) avant 2009
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         );
 
       case 6:
-        // Étape 6 : Détails spécifiques (ancienne étape 5)
+        // Détails spécifiques
         // Ignorer cette étape pour les services - ne pas afficher
         if (isServiceCategory()) {
           return null;
@@ -2913,244 +3184,35 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 7:
-        // Étape 7 : Description (ancienne étape 7 reste la même)
+        // Description (nouvelle étape après Détails spécifiques)
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Description détaillée
+                Description de l'annonce
               </h2>
               <p className="text-gray-600">
-                Décrivez votre {getSelectedSubcategory()?.name.toLowerCase()} en
-                détail
+                Décrivez en détail votre{" "}
+                {formData.listingType === "sale" ? "annonce" : "recherche"} pour
+                attirer plus d'acheteurs
               </p>
             </div>
 
-            {/* Champs spécifiques pour véhicules accidentés */}
-            {formData.condition === "damaged" && (
-              <div className="space-y-6 mb-6">
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <span className="text-2xl mr-2">⚠️</span>
-                    Informations sur les dommages
-                  </h3>
-
-                  {/* Types de dommages (sélection multiple) */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Types de dommages *{" "}
-                      <span className="text-gray-500 font-normal">
-                        (sélection multiple)
-                      </span>
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {[
-                        { value: "carrosserie", label: "Carrosserie" },
-                        { value: "moteur", label: "Moteur" },
-                        { value: "train_avant", label: "Train avant" },
-                        { value: "train_arriere", label: "Train arrière" },
-                        { value: "chassis", label: "Châssis" },
-                        { value: "interieur", label: "Intérieur" },
-                        { value: "vitres", label: "Vitres" },
-                        { value: "suspension", label: "Suspension" },
-                        { value: "electrique", label: "Électrique" },
-                      ].map((damage) => (
-                        <label
-                          key={damage.value}
-                          className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              formData.specificDetails.damageTypes?.includes(
-                                damage.value,
-                              ) || false
-                            }
-                            onChange={(e) => {
-                              const current =
-                                formData.specificDetails.damageTypes || [];
-                              const updated = e.target.checked
-                                ? [...current, damage.value]
-                                : current.filter(
-                                    (d: string) => d !== damage.value,
-                                  );
-                              updateSpecificDetails("damageTypes", updated);
-                            }}
-                            className="h-4 w-4 text-primary-bolt-500 focus:ring-primary-bolt-500 border-gray-300 rounded"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {damage.label}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* État mécanique */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      État mécanique *
-                    </label>
-                    <select
-                      value={formData.specificDetails.mechanicalState || ""}
-                      onChange={(e) =>
-                        updateSpecificDetails("mechanicalState", e.target.value)
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                    >
-                      <option value="">Sélectionnez l'état mécanique</option>
-                      <option value="fonctionne">Fonctionne normalement</option>
-                      <option value="demarre">Démarre mais problèmes</option>
-                      <option value="ne_demarre_pas">Ne démarre pas</option>
-                      <option value="moteur_hs">Moteur hors service</option>
-                      <option value="inconnu">État inconnu</option>
-                    </select>
-                  </div>
-
-                  {/* Gravité des dommages */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Gravité des dommages *
-                    </label>
-                    <select
-                      value={formData.specificDetails.damageSeverity || ""}
-                      onChange={(e) =>
-                        updateSpecificDetails("damageSeverity", e.target.value)
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                    >
-                      <option value="">Sélectionnez la gravité</option>
-                      <option value="leger">Légers (réparation simple)</option>
-                      <option value="moyen">
-                        Moyens (réparation importante)
-                      </option>
-                      <option value="grave">Graves (VEI / épave)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Section compatibilités pour pièces détachées */}
-            {isPiecePart() && (
-              <div className="space-y-6 mb-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <span className="text-2xl mr-2">🔧</span>
-                    Compatibilités de la pièce
-                  </h3>
-
-                  <p className="text-sm text-gray-600 mb-4">
-                    Indiquez avec quels véhicules cette pièce est compatible
-                    (marques, modèles, motorisations...)
-                  </p>
-
-                  {/* Input de recherche avec suggestions */}
-                  <div className="mb-4 relative">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Ajouter une compatibilité
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={compatibilitySearch}
-                        onChange={(e) => {
-                          setCompatibilitySearch(e.target.value);
-                          setShowCompatibilitySuggestions(
-                            e.target.value.length > 0
-                          );
-                        }}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === "Enter" &&
-                            compatibilitySearch.trim()
-                          ) {
-                            e.preventDefault();
-                            addCompatibilityTag(compatibilitySearch.trim());
-                          }
-                        }}
-                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
-                        placeholder="Ex: Renault Clio, BMW Série 3, Moteur 1.6 HDI..."
-                      />
-                      <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    </div>
-
-                    {/* Suggestions */}
-                    {showCompatibilitySuggestions &&
-                      getCompatibilitySuggestions().length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                          {getCompatibilitySuggestions().map(
-                            (suggestion, index) => (
-                              <button
-                                key={index}
-                                type="button"
-                                onClick={() => addCompatibilityTag(suggestion)}
-                                className="w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
-                              >
-                                {suggestion}
-                              </button>
-                            )
-                          )}
-                        </div>
-                      )}
-                  </div>
-
-                  {/* Tags de compatibilités sélectionnées */}
-                  {formData.specificDetails.compatibilityTags &&
-                    formData.specificDetails.compatibilityTags.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Compatibilités ajoutées
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {formData.specificDetails.compatibilityTags.map(
-                            (tag: string, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                              >
-                                {tag}
-                                <button
-                                  type="button"
-                                  onClick={() => removeCompatibilityTag(tag)}
-                                  className="ml-1 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </span>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Description *{" "}
-                <span className="text-gray-500 font-normal">
-                  (30-300 caractères)
-                </span>
+                Description *
               </label>
               <textarea
-                value={formData.description}
+                value={formData.description || ""}
                 onChange={(e) => updateFormData("description", e.target.value)}
-                rows={8}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all ${
-                  formData.description.length > 0 &&
-                  formData.description.length < 30
-                    ? "border-red-300 bg-red-50"
-                    : "border-gray-300"
-                }`}
+                rows={10}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all resize-y"
                 placeholder={
                   formData.condition === "damaged"
                     ? "Détaillez précisément l'accident, les circonstances, les réparations déjà effectuées, les pièces à remplacer, etc. Plus vous êtes transparent, plus vous inspirerez confiance."
                     : "Décrivez l'état, l'historique, les équipements, les points forts, etc. Soyez précis et détaillé pour attirer les acheteurs."
                 }
-                minLength={50}
-                maxLength={300}
+                data-testid="input-description"
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-sm text-gray-500">
@@ -3158,30 +3220,18 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                     ? "Pour un véhicule accidenté, la transparence est essentielle pour établir la confiance."
                     : "Plus votre description est détaillée, plus vous avez de chances d'attirer des acheteurs sérieux."}
                 </p>
-                <div className="flex flex-col text-right">
-                  <span
-                    className={`text-sm font-medium ${
-                      formData.description.length < 50
-                        ? "text-red-500"
-                        : formData.description.length > 280
-                          ? "text-orange-500"
-                          : "text-green-600"
-                    }`}
-                  >
-                    {formData.description.length}/300 caractères
+                {formData.description && (
+                  <span className="text-sm text-gray-400">
+                    {formData.description.length} caractères
                   </span>
-                  {formData.description.length < 30 && (
-                    <span className="text-xs text-red-500">
-                      (minimum 30 caractères)
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
         );
 
       case 8:
+        // Photos (anciennement Step 7)
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3291,10 +3341,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 9:
-        // Masquer cette étape pour les annonces de recherche
-        if (isSearchListing()) {
-          return null;
-        }
+        // Step Prix - Visible pour TOUS les types d'annonces (vente ET recherche)
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3325,6 +3372,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all text-lg"
                   placeholder="0"
                   min="0"
+                  data-testid="input-price"
                 />
                 <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
                   €
@@ -3340,60 +3388,132 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
         );
 
       case 10:
+        // Localisation et Contacts fusionnés
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Localisation
+                Localisation et contacts
               </h2>
               <p className="text-gray-600">
-                Où se trouve votre{" "}
-                {getSelectedSubcategory()?.name.toLowerCase()} ?
+                Où se trouve votre annonce et comment vous contacter ?
               </p>
+            </div>
+
+            {/* Section Localisation */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <span className="text-2xl mr-2">📍</span>
+                Localisation
+              </h3>
               {(formData.location.city || formData.location.postalCode) && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="p-3 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700">
                     ℹ️ Informations pré-remplies depuis votre profil. Vous
                     pouvez les modifier si nécessaire.
                   </p>
                 </div>
               )}
+              <AddressInput
+                postalCode={formData.location.postalCode}
+                city={formData.location.city}
+                onPostalCodeChange={(postalCode) => {
+                  console.log("Form updating postal code:", postalCode);
+                  setFormData((prev) => {
+                    const newLocation = { ...prev.location, postalCode };
+                    const newData = { ...prev, location: newLocation };
+                    console.log(
+                      "Direct form update - new location:",
+                      newLocation,
+                    );
+                    console.log("Direct form update - complete data:", newData);
+                    return newData;
+                  });
+                }}
+                onCityChange={(city) => {
+                  console.log("Form updating city:", city);
+                  setFormData((prev) => {
+                    const newLocation = { ...prev.location, city };
+                    const newData = { ...prev, location: newLocation };
+                    console.log(
+                      "Direct form update - new location:",
+                      newLocation,
+                    );
+                    console.log("Direct form update - complete data:", newData);
+                    return newData;
+                  });
+                }}
+              />
             </div>
 
-            <AddressInput
-              postalCode={formData.location.postalCode}
-              city={formData.location.city}
-              onPostalCodeChange={(postalCode) => {
-                console.log("Form updating postal code:", postalCode);
-                setFormData((prev) => {
-                  const newLocation = { ...prev.location, postalCode };
-                  const newData = { ...prev, location: newLocation };
-                  console.log(
-                    "Direct form update - new location:",
-                    newLocation,
-                  );
-                  console.log("Direct form update - complete data:", newData);
-                  return newData;
-                });
-              }}
-              onCityChange={(city) => {
-                console.log("Form updating city:", city);
-                setFormData((prev) => {
-                  const newLocation = { ...prev.location, city };
-                  const newData = { ...prev, location: newLocation };
-                  console.log(
-                    "Direct form update - new location:",
-                    newLocation,
-                  );
-                  console.log("Direct form update - complete data:", newData);
-                  return newData;
-                });
-              }}
-            />
+            {/* Section Préférences de contact */}
+            <div className="space-y-6 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <span className="text-2xl mr-2">💬</span>
+                Préférences de contact
+              </h3>
+              <p className="text-sm text-gray-600">
+                Comment les{" "}
+                {formData.listingType === "sale" ? "acheteurs" : "vendeurs"}{" "}
+                peuvent-ils vous contacter ?
+              </p>
+
+              <div className="space-y-4">
+                {/* Téléphone */}
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <span className="font-semibold">Téléphone :</span>{" "}
+                    {profile?.phone || "Non renseigné"}
+                  </p>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.contact.showPhone}
+                      onChange={(e) =>
+                        updateFormData("contact", {
+                          ...formData.contact,
+                          showPhone: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                      data-testid="checkbox-show-phone"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Afficher mon numéro sur l'annonce
+                    </span>
+                  </label>
+                </div>
+
+                {/* WhatsApp */}
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <span className="font-semibold">WhatsApp :</span>{" "}
+                    {profile?.whatsapp || profile?.phone || "Non renseigné"}
+                  </p>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.contact.showWhatsapp}
+                      onChange={(e) =>
+                        updateFormData("contact", {
+                          ...formData.contact,
+                          showWhatsapp: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
+                      data-testid="checkbox-show-whatsapp"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Afficher mon WhatsApp sur l'annonce
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         );
 
-      case 11:
+      case 9999999: // case obsolète supprimé
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -3461,35 +3581,11 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   </span>
                 </label>
               </div>
-
-              {/* Messagerie interne */}
-              <div className="bg-gray-50 p-4 rounded-xl">
-                <p className="text-sm text-gray-700 mb-2">
-                  <span className="font-semibold">Messagerie interne :</span>{" "}
-                  Toujours disponible
-                </p>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.contact.showInternal}
-                    onChange={(e) =>
-                      updateFormData("contact", {
-                        ...formData.contact,
-                        showInternal: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 text-primary-bolt-600 border-gray-300 rounded focus:ring-primary-bolt-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Autoriser les messages via la plateforme
-                  </span>
-                </label>
-              </div>
             </div>
           </div>
         );
 
-      case 12:
+      case 11:
         return (
           <div className="space-y-8">
             <div className="text-center mb-8">
@@ -3526,14 +3622,38 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         Catégorie
                       </dt>
                       <dd className="text-sm text-gray-900">
-                        {formData.category}
+                        {getSelectedCategory()?.name}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-sm font-medium text-gray-500">
-                        Titre
+                        Sous-catégorie
                       </dt>
                       <dd className="text-sm text-gray-900">
+                        {getSelectedSubcategory()?.name}
+                      </dd>
+                    </div>
+                    {formData.condition && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">
+                          État
+                        </dt>
+                        <dd className="text-sm text-gray-900">
+                          {formData.condition === "neuf"
+                            ? "Neuf"
+                            : formData.condition === "occasion"
+                              ? "Occasion"
+                              : formData.condition === "damaged"
+                                ? "Accidenté"
+                                : formData.condition}
+                        </dd>
+                      </div>
+                    )}
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">
+                        Titre
+                      </dt>
+                      <dd className="text-sm text-gray-900 font-medium">
                         {formData.title}
                       </dd>
                     </div>
@@ -3542,13 +3662,156 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                         <dt className="text-sm font-medium text-gray-500">
                           Prix
                         </dt>
-                        <dd className="text-sm text-gray-900">
-                          {formData.price}€
+                        <dd className="text-lg font-bold text-primary-bolt-600">
+                          {formData.price.toLocaleString()}€
                         </dd>
                       </div>
                     )}
                   </dl>
                 </div>
+
+                {/* Détails du véhicule */}
+                {formData.specificDetails &&
+                  Object.keys(formData.specificDetails).length > 0 && (
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Détails du véhicule
+                      </h3>
+                      <dl className="space-y-3">
+                        {formData.specificDetails.brand && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Marque
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.brand}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.model && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Modèle
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.model}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.firstRegistration && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Première mise en circulation
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {new Date(
+                                formData.specificDetails.firstRegistration,
+                              ).toLocaleDateString("fr-FR")}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.mileage && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Kilométrage
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {parseInt(
+                                formData.specificDetails.mileage,
+                              ).toLocaleString()}{" "}
+                              km
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.fuel && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Carburant
+                            </dt>
+                            <dd className="text-sm text-gray-900 capitalize">
+                              {formData.specificDetails.fuel}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.transmission && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Transmission
+                            </dt>
+                            <dd className="text-sm text-gray-900 capitalize">
+                              {formData.specificDetails.transmission ===
+                              "manual"
+                                ? "Manuelle"
+                                : formData.specificDetails.transmission ===
+                                    "automatic"
+                                  ? "Automatique"
+                                  : "Semi-automatique"}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.bodyType && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Type de véhicule
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.bodyType}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.color && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Couleur
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.color}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.doors && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Nombre de portes
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.doors}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.fiscalHorsepower && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Puissance fiscale
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.fiscalHorsepower} CV
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.power && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Puissance
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.power}
+                            </dd>
+                          </div>
+                        )}
+                        {formData.specificDetails.engineSize && (
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              Cylindrée
+                            </dt>
+                            <dd className="text-sm text-gray-900">
+                              {formData.specificDetails.engineSize}
+                            </dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+                  )}
 
                 <div className="bg-gray-50 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -3673,7 +3936,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           </div>
         );
 
-      case 13:
+      case 15:
         return (
           <div className="space-y-8">
             <div className="text-center mb-8">
@@ -3785,6 +4048,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                                 return "Cylindrée (cm³)";
                               case "motorcycleType":
                                 return "Type de moto";
+                              case "version":
+                                return "Version";
                               case "licenseType":
                                 return "Permis requis";
                               case "length":
@@ -4059,6 +4324,35 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
           setPlateBlurModal({ isOpen: false, photoIndex: -1, imageUrl: "" })
         }
         onConfirm={handleApplyMask}
+      />
+
+      <VehicleDataPreviewModal
+        isOpen={showVehiclePreview}
+        onClose={cancelVehicleDataPreview}
+        onConfirm={confirmAndFillVehicleData}
+        vehicleData={
+          pendingVehicleData
+            ? {
+                brand: pendingVehicleData.specificDetails.brand,
+                model: pendingVehicleData.specificDetails.model,
+                year: pendingVehicleData.specificDetails.firstRegistration
+                  ? pendingVehicleData.specificDetails.firstRegistration.split(
+                      "-",
+                    )[0]
+                  : pendingVehicleData.vehicleInfo.year,
+                fuelType: pendingVehicleData.specificDetails.fuel,
+                transmission: pendingVehicleData.specificDetails.transmission,
+                color: pendingVehicleData.specificDetails.color,
+                bodyType: pendingVehicleData.specificDetails.bodyType,
+                engineSize: pendingVehicleData.specificDetails.engineSize,
+                doors: pendingVehicleData.specificDetails.doors,
+                co2: pendingVehicleData.specificDetails.co2,
+                fiscalPower:
+                  pendingVehicleData.specificDetails.fiscalHorsepower,
+              }
+            : {}
+        }
+        registrationNumber={pendingRegistrationNumber}
       />
     </div>
   );
