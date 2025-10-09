@@ -39,6 +39,7 @@ import StripeSuccessBoost from "@/pages/StripeSuccessBoost";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
 import { BottomNav } from "@/components/BottomNav";
+import { hasDraft } from "@/utils/formPersistence";
 
 // Composant de protection pour la route Dashboard
 function DashboardRoute({
@@ -423,6 +424,16 @@ function AppContent() {
         isOpen={showCreateListingModal}
         onClose={() => setShowCreateListingModal(false)}
         title="Déposer une annonce"
+        onBeforeClose={() => {
+          // Vérifier si des données sont présentes
+          if (hasDraft()) {
+            const confirmClose = window.confirm(
+              "Vous avez des données non publiées. Si vous fermez maintenant, elles seront sauvegardées et vous pourrez les retrouver plus tard. Voulez-vous vraiment fermer ?"
+            );
+            return confirmClose;
+          }
+          return true; // Pas de données, fermer sans confirmation
+        }}
       >
         <CreateListingForm
           onSuccess={() => {
