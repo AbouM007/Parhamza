@@ -304,6 +304,24 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     loadUserContactData();
   }, [user, profile, hasPrefilledData]);
 
+  // Fermer les suggestions de compatibilité au clic extérieur
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.compatibility-search-container')) {
+        setShowCompatibilitySuggestions(false);
+      }
+    };
+
+    if (showCompatibilitySuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCompatibilitySuggestions]);
+
   const updateFormData = (field: string, value: any) => {
     // Validation spéciale pour le titre
     if (field === "title") {
@@ -2903,7 +2921,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
               </p>
 
               {/* Champ de recherche avec suggestions */}
-              <div className="relative mb-4">
+              <div className="relative mb-4 compatibility-search-container">
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
                     <input
