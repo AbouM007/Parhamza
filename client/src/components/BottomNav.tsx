@@ -2,11 +2,13 @@ import { Home, Search, PlusCircle, MessageCircle, User } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApp } from "@/contexts/AppContext";
+import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 
 export function BottomNav() {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { openAuthModal } = useApp();
+  const handleCreateListingWithQuota = useCreateListingGuard();
 
   const handleProfileClick = () => {
     if (user) {
@@ -16,6 +18,12 @@ export function BottomNav() {
       // Si non connecté, ouvrir le modal de connexion
       openAuthModal("login");
     }
+  };
+
+  const handleCreateListing = () => {
+    handleCreateListingWithQuota(() => {
+      setLocation("/create-listing");
+    }, "bottom-nav-button");
   };
 
   const navItems = [
@@ -39,7 +47,7 @@ export function BottomNav() {
       path: "/create-listing",
       active: location === "/create-listing",
       primary: true,
-      onClick: () => setLocation("/create-listing"),
+      onClick: handleCreateListing,
     },
     {
       icon: MessageCircle,
