@@ -15,6 +15,11 @@ Preferred communication style: Simple, everyday language.
 - **Routing**: Wouter.
 - **Form Handling**: React Hook Form with Zod validation.
 - **UI/UX Decisions**: Consistent design language, intuitive user flows for listing creation, messaging, and subscription management, unified tab colors and designs, international phone input formatting.
+  - **Dashboard Activity Section (Oct 2025)**:
+    - Recent activity cards display actual listing thumbnails instead of generic icons
+    - Clickable cards open full listing detail for approved/active listings
+    - Visual feedback: cursor-pointer for active listings, cursor-not-allowed + reduced opacity for inactive
+    - Status verification before opening (only approved, non-deleted listings are clickable)
   - **VehicleDetail Display Optimization (Oct 2025)**:
     - Spare parts (categories starting with "piece-") display only essential info: Location, Brand, Year (if exists)
     - Mileage hidden for spare parts listings to reduce clutter
