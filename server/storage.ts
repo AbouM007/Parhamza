@@ -196,6 +196,7 @@ function transformVehicleFromSupabase(vehicleRow: any): any {
     compatibilityTags: validateCompatibilityTags(vehicleRow.compatibility_tags),
     priorityScore: vehicleRow.priority_score ?? 0,
     professionalAccountId: vehicleRow.professional_account_id ?? null,
+    isDemo: vehicleRow.is_demo ?? false,
   };
 }
 
@@ -1577,6 +1578,7 @@ export class SupabaseStorage implements IStorage {
           compatibilityTags: validateCompatibilityTags(vehicle.compatibility_tags),
           priorityScore: vehicle.priority_score ?? 0,
           professionalAccountId: vehicle.professional_account_id ?? null,
+          isDemo: vehicle.is_demo ?? false,
         }));
 
         return transformedData as Vehicle[];

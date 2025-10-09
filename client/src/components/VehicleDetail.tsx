@@ -418,23 +418,21 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     </div>
                   )}
 
-                  {/* Demo Badge */}
-                  {vehicle.isDemo && (
-                    <div className="absolute top-4 left-4 bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                      DEMO
-                    </div>
-                  )}
-                  
                   {/* Premium Badge */}
                   {vehicle.isPremium && (
-                    <div className={`absolute top-4 ${vehicle.isDemo ? 'left-20' : 'left-4'} bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1`}>
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
                       <Crown className="h-4 w-4" />
                       <span>Premium</span>
                     </div>
                   )}
 
-                  {/* Favoris et Partage Icons */}
-                  <div className="absolute top-4 right-4 flex space-x-2">
+                  {/* Demo Badge, Favoris et Partage Icons */}
+                  <div className="absolute top-4 right-4 flex items-center space-x-2">
+                    {vehicle.isDemo && (
+                      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1 shadow-lg">
+                        <span>Démo</span>
+                      </div>
+                    )}
                     <FavoriteButton
                       vehicleId={vehicle.id}
                       className="bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow-lg transition-all"

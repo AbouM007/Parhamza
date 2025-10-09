@@ -76,16 +76,9 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
       onClick={onClick}
       className="relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] cursor-pointer overflow-hidden border border-gray-100"
     >
-      {/* Demo Badge */}
-      {vehicle.isDemo && (
-        <div className="absolute top-3 left-3 z-10 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-          DEMO
-        </div>
-      )}
-      
       {/* Boost Badge */}
       {vehicle.isBoosted && (
-        <div className={`absolute top-3 ${vehicle.isDemo ? 'left-14' : 'left-3'} z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg`}>
+        <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
           <Crown className="h-3 w-3" />
           <span>Boosté</span>
         </div>
@@ -141,8 +134,13 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
             {getCategoryIcon(vehicle.category)}
           </div>
         )}
-        {/* Favorite Button */}
-        <div className="absolute top-3 right-3 z-10">
+        {/* Demo Badge et Favorite Button */}
+        <div className="absolute top-3 right-3 z-10 flex items-center space-x-2">
+          {vehicle.isDemo && (
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
+              <span>Démo</span>
+            </div>
+          )}
           <FavoriteButton
             vehicleId={vehicle.id}
             className="bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow-md backdrop-blur-sm"
