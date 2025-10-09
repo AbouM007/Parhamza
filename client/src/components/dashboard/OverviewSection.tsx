@@ -14,6 +14,7 @@ import {
   Plus,
 } from "lucide-react";
 import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanner";
+import { CATEGORIES } from "@/data/categories";
 
 interface OverviewSectionProps {
   profile: any;
@@ -40,6 +41,30 @@ export default function OverviewSection({
   onCreateListing,
   formatPrice,
 }: OverviewSectionProps) {
+  // Helper function to get subcategory icon and colors
+  const getSubcategoryInfo = (subcategoryId: string) => {
+    for (const category of CATEGORIES) {
+      const subcategory = category.subcategories.find(
+        (sub) => sub.id === subcategoryId
+      );
+      if (subcategory) {
+        return {
+          image: subcategory.image,
+          color: subcategory.color,
+          bgColor: subcategory.bgColor || "bg-gray-100",
+          name: subcategory.name,
+        };
+      }
+    }
+    // Fallback to default
+    return {
+      image: null,
+      color: "text-primary-bolt-500",
+      bgColor: "bg-primary-bolt-100",
+      name: "Annonce",
+    };
+  };
+
   return (
 
   <div className="space-y-8">
@@ -320,48 +345,59 @@ export default function OverviewSection({
       <div className="p-6">
         {userVehicles.length > 0 ? (
           <div className="space-y-4">
-            {userVehicles.slice(0, 5).map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl hover:from-primary-bolt-50 hover:to-primary-bolt-100/50 transition-all duration-200"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Car className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {vehicle.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Créée le{" "}
-                      {new Date(vehicle.createdAt).toLocaleDateString(
-                        "fr-FR",
+            {userVehicles.slice(0, 5).map((vehicle) => {
+              const subcategoryInfo = getSubcategoryInfo(vehicle.subcategory);
+              return (
+                <div
+                  key={vehicle.id}
+                  className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl hover:from-primary-bolt-50 hover:to-primary-bolt-100/50 transition-all duration-200"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-14 h-14 ${subcategoryInfo.bgColor} rounded-xl flex items-center justify-center shadow-lg`}>
+                      {subcategoryInfo.image ? (
+                        <img 
+                          src={subcategoryInfo.image} 
+                          alt={subcategoryInfo.name}
+                          className="h-8 w-8 object-contain"
+                        />
+                      ) : (
+                        <Car className={`h-7 w-7 ${subcategoryInfo.color}`} />
                       )}
-                    </p>
-                    <div className="flex items-center space-x-3 mt-1">
-                      <span className="text-xs bg-primary-bolt-100 text-primary-bolt-500 px-2 py-1 rounded-full font-medium">
-                        {vehicle.views} vues
-                      </span>
-                      <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full font-medium">
-                        {vehicle.favorites} ❤️
-                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">
+                        {vehicle.title}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Créée le{" "}
+                        {new Date(vehicle.createdAt).toLocaleDateString(
+                          "fr-FR",
+                        )}
+                      </p>
+                      <div className="flex items-center space-x-3 mt-1">
+                        <span className="text-xs bg-primary-bolt-100 text-primary-bolt-500 px-2 py-1 rounded-full font-medium">
+                          {vehicle.views} vues
+                        </span>
+                        <span className="text-xs bg-pink-100 text-pink-800 px-2 py-1 rounded-full font-medium">
+                          {vehicle.favorites} ❤️
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-primary-bolt-500">
+                      {formatPrice(vehicle.price)}
+                    </p>
+                    {vehicle.isPremium && (
+                      <span className="inline-flex items-center space-x-1 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
+                        <Crown className="h-3 w-3" />
+                        <span>Premium</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-primary-bolt-500">
-                    {formatPrice(vehicle.price)}
-                  </p>
-                  {vehicle.isPremium && (
-                    <span className="inline-flex items-center space-x-1 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full font-medium">
-                      <Crown className="h-3 w-3" />
-                      <span>Premium</span>
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
