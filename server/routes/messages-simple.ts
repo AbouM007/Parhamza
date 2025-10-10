@@ -218,8 +218,8 @@ router.get("/user/:userId", async (req, res) => {
         content,
         read,
         created_at,
-        from_user:users!messages_from_user_id_fkey(id, name, email, type, avatar, company_logo),
-        to_user:users!messages_to_user_id_fkey(id, name, email, type, avatar, company_logo),
+        from_user:users!messages_from_user_id_fkey(id, name, display_name, company_name, email, type, avatar, company_logo),
+        to_user:users!messages_to_user_id_fkey(id, name, display_name, company_name, email, type, avatar, company_logo),
         annonce:annonces!messages_annonce_id_fkey(id, title)
       `,
       )
@@ -238,6 +238,13 @@ router.get("/user/:userId", async (req, res) => {
 
     // Empêcher la mise en cache des messages pour avoir des données fraîches
     res.setHeader("Cache-Control", "no-store");
+
+    // 🏷️ Helper: Déterminer le nom à afficher (display_name > company_name si pro > name)
+    const getDisplayName = (user: any): string => {
+      if (user?.display_name) return user.display_name;
+      if (user?.type === "professional" && user?.company_name) return user.company_name;
+      return user?.name || "Utilisateur inconnu";
+    };
 
     // ⚡ Grouper par conversation en mémoire (toutes les données sont déjà chargées via JOINs)
     const conversationsMap = new Map();
@@ -262,7 +269,7 @@ router.get("/user/:userId", async (req, res) => {
           vehicle_title: message.annonce?.title || "Véhicule non spécifié",
           other_user: {
             id: otherUserId,
-            name: otherUser?.name || "Utilisateur inconnu",
+            name: getDisplayName(otherUser),
             email: otherUser?.email || "",
             type: otherUser?.type || "individual",
             avatar: otherUser?.avatar || null,
@@ -350,12 +357,19 @@ router.post("/conversation", async (req, res) => {
     const userIds = [user1Id, user2Id];
     const { data: users, error: usersError } = await supabaseServer
       .from("users")
-      .select("id, name, avatar, type, company_logo")
+      .select("id, name, display_name, company_name, avatar, type, company_logo")
       .in("id", userIds);
 
     if (usersError) {
       console.error("❌ Erreur récupération utilisateurs:", usersError);
     }
+
+    // 🏷️ Helper: Déterminer le nom à afficher
+    const getDisplayName = (user: any): string => {
+      if (user?.display_name) return user.display_name;
+      if (user?.type === "professional" && user?.company_name) return user.company_name;
+      return user?.name || "Utilisateur inconnu";
+    };
 
     // Créer un map des utilisateurs pour un accès rapide
     const usersMap = (users || []).reduce((acc: any, user: any) => {
@@ -373,7 +387,7 @@ router.post("/conversation", async (req, res) => {
           content: msg.content,
           read: msg.read,
           created_at: msg.created_at,
-          sender_name: fromUser?.name || "Utilisateur inconnu",
+          sender_name: getDisplayName(fromUser),
           sender_avatar:
             fromUser?.avatar ||
             (fromUser?.type === "professional" ? fromUser?.company_logo : null),
