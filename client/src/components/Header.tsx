@@ -616,6 +616,13 @@ export const Header: React.FC<HeaderProps> = ({
                       3
                     </span>
                   </button>
+
+                  <button
+                    onClick={() => handleNavigate("notifications")}
+                    className="w-full text-left py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                  >
+                    Notifications
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-2">
