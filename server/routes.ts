@@ -13,6 +13,7 @@ import profileRoutes from "./routes/profile";
 import favoritesRoutes from "./routes/favorites";
 import imagesRoutes from "./routes/images";
 import authSyncRoutes from "./routes/auth-sync";
+import notificationsRoutes from "./routes/notifications";
 import { professionalShopRouter } from "./routes/professional-shop";
 import { subscriptionsRouter } from "./routes/subscriptions";
 import { setupWishlistMigration } from "./routes/wishlist-migration.js";
@@ -2130,6 +2131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/auth", authSyncRoutes);
   app.use("/api/professional-accounts", professionalShopRouter);
   app.use("/api/subscriptions", subscriptionsRouter);
+  app.use("/api/notifications", notificationsRoutes);
 
   // Routes pour la personnalisation des comptes professionnels
 
