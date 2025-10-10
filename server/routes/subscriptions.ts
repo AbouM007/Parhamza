@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { supabaseServer } from "../supabase";
 import { requireAuth } from "../middleware/auth";
 import express from "express";
+import { notifyPaymentSuccess, notifyPaymentFailed } from "../services/notificationCenter";
 
 const router = Router();
 
@@ -763,12 +764,55 @@ router.post(
             "✅ Payment succeeded for subscription:",
             inv.subscription,
           );
+
+          // 🔔 Envoyer une notification de paiement réussi
+          try {
+            const { data: subscription } = await supabaseServer
+              .from("subscriptions")
+              .select("user_id, plan_id, subscription_plans(name)")
+              .eq("stripe_subscription_id", inv.subscription)
+              .single();
+
+            if (subscription?.user_id) {
+              const amount = inv.amount_paid
+                ? `${(inv.amount_paid / 100).toFixed(2)} €`
+                : "N/A";
+              const planName = (subscription as any).subscription_plans?.name || "Abonnement";
+
+              await notifyPaymentSuccess({
+                userId: subscription.user_id,
+                amount,
+                type: planName,
+                transactionId: inv.id,
+              });
+            }
+          } catch (notifError) {
+            console.error("Erreur envoi notification paiement réussi:", notifError);
+          }
           break;
         }
 
         case "invoice.payment_failed": {
           const inv = event.data.object as any;
           console.log("❌ Payment failed for subscription:", inv.subscription);
+
+          // 🔔 Envoyer une notification de paiement échoué
+          try {
+            const { data: subscription } = await supabaseServer
+              .from("subscriptions")
+              .select("user_id")
+              .eq("stripe_subscription_id", inv.subscription)
+              .single();
+
+            if (subscription?.user_id) {
+              await notifyPaymentFailed({
+                userId: subscription.user_id,
+                reason: inv.last_payment_error?.message || "Paiement refusé",
+              });
+            }
+          } catch (notifError) {
+            console.error("Erreur envoi notification paiement échoué:", notifError);
+          }
           break;
         }
       }
