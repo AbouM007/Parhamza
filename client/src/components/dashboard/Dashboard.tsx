@@ -45,6 +45,8 @@ import {
   UserPlus,
   ShieldCheck,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -578,6 +580,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return () => container.removeEventListener('scroll', handleScroll);
     }
   }, [profile?.type, professionalAccount]); // Re-calculer quand les onglets changent
+
+  // Fonctions pour scroller le menu horizontal
+  const scrollMenuLeft = () => {
+    const container = menuScrollRef.current;
+    if (!container) return;
+    container.scrollBy({ left: -200, behavior: 'smooth' });
+  };
+
+  const scrollMenuRight = () => {
+    const container = menuScrollRef.current;
+    if (!container) return;
+    container.scrollBy({ left: 200, behavior: 'smooth' });
+  };
 
   // Pré-remplir le formulaire avec les données existantes quand on entre en mode édition
   useEffect(() => {
@@ -2894,9 +2909,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
               }`}
             />
             
+            {/* Bouton flèche gauche */}
+            {showLeftFade && (
+              <button
+                onClick={scrollMenuLeft}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200 hover:scale-110 animate-pulse"
+                aria-label="Défiler vers la gauche"
+              >
+                <ChevronLeft className="h-4 w-4 text-primary-bolt-600" />
+              </button>
+            )}
+            
+            {/* Bouton flèche droite */}
+            {showRightFade && (
+              <button
+                onClick={scrollMenuRight}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200 hover:scale-110 animate-pulse"
+                aria-label="Défiler vers la droite"
+              >
+                <ChevronRight className="h-4 w-4 text-primary-bolt-600" />
+              </button>
+            )}
+            
+            {/* Conteneur avec peek effect - padding spécial pour montrer la moitié du dernier élément */}
             <div 
               ref={menuScrollRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+              className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory pr-12"
             >
               {getDashboardTabs(profile?.type, professionalAccount)
                 .filter((tab) => {
