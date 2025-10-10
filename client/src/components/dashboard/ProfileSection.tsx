@@ -82,7 +82,8 @@ export default function ProfileSection({
         </div>
         <button
           onClick={() => setEditingProfile(!editingProfile)}
-          className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-primary-bolt-300 text-primary-bolt-600 hover:bg-primary-bolt-50 hover:border-primary-bolt-400 transition-all duration-200 font-medium text-sm"
+          data-testid="button-edit-profile"
         >
           <Edit className="h-4 w-4" />
           <span>{editingProfile ? "Annuler" : "Modifier"}</span>
