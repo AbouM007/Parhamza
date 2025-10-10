@@ -55,6 +55,32 @@ router.get("/following/:userId", async (req, res) => {
     // Create a map of users by ID
     const usersMap = new Map(usersData?.map((u: any) => [u.id, u]) || []);
 
+    // Get active listings count for each followed user
+    const { data: listingsCount, error: listingsError } = await supabase
+      .from("annonces")
+      .select("user_id")
+      .in("user_id", userIds)
+      .eq("status", "approved")
+      .is("deleted_at", null);
+
+    // Count listings per user
+    const listingsCountMap = new Map<string, number>();
+    listingsCount?.forEach((listing: any) => {
+      const count = listingsCountMap.get(listing.user_id) || 0;
+      listingsCountMap.set(listing.user_id, count + 1);
+    });
+
+    // Get verification status for professional users
+    const { data: verificationData, error: verificationError } = await supabase
+      .from("professional_accounts")
+      .select("user_id, status")
+      .in("user_id", userIds);
+
+    // Create verification status map
+    const verificationMap = new Map(
+      verificationData?.map((v: any) => [v.user_id, v.status === "approved"]) || []
+    );
+
     // Transform data to include user info
     const following = followersData.map((f: any) => {
       const user = usersMap.get(f.followed_user_id);
@@ -70,6 +96,8 @@ router.get("/following/:userId", async (req, res) => {
           type: user.type,
           companyName: user.company_name,
           followersCount: user.followers_count || 0,
+          activeListingsCount: listingsCountMap.get(user.id) || 0,
+          isVerified: verificationMap.get(user.id) || false,
         } : null,
       };
     });
