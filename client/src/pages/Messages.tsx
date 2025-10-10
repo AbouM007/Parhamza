@@ -114,10 +114,8 @@ export function Messages() {
     try {
       console.log("💬 Chargement messages pour conversation:", conversationId);
 
-      // Trouver la conversation pour obtenir les IDs
-      const conversation = conversations.find((c) => c.id === conversationId);
-      if (!conversation) {
-        console.log("❌ Conversation introuvable:", conversationId);
+      if (!currentUserId) {
+        console.error("❌ Pas d'utilisateur connecté");
         setMessages([]);
         return;
       }
@@ -144,6 +142,22 @@ export function Messages() {
         const messagesData = await response.json();
         console.log("✅ Messages reçus de l'API:", messagesData.length);
 
+        // Récupérer les conversations fraîches pour obtenir le nom
+        const conversationsResponse = await fetch(
+          `/api/messages-simple/user/${currentUserId}`,
+        );
+        let otherUserName = "Autre utilisateur";
+        
+        if (conversationsResponse.ok) {
+          const conversationsData = await conversationsResponse.json();
+          const currentConv = conversationsData.conversations?.find(
+            (c: Conversation) => c.id === conversationId
+          );
+          if (currentConv) {
+            otherUserName = getUserDisplayName(currentConv.other_user as any);
+          }
+        }
+
         // Convertir les messages au bon format
         const formattedMessages = messagesData.map((msg: any) => ({
           id: msg.id,
@@ -151,7 +165,7 @@ export function Messages() {
           sender_id: msg.from_user_id,
           sender_name: msg.from_user_id === currentUserId
             ? "Vous"
-            : getUserDisplayName(conversation.other_user as any),
+            : otherUserName,
           created_at: msg.created_at || new Date().toISOString(),
         }));
 
@@ -172,6 +186,8 @@ export function Messages() {
               userId: currentUserId,
             }),
           });
+          // Recharger la liste des conversations après avoir marqué comme lu
+          loadConversations();
         }
       } else {
         console.error("❌ Erreur chargement messages:", response.status);
@@ -266,12 +282,12 @@ export function Messages() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto py-8 px-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <div className="flex h-[600px]">
+      <div className="max-w-6xl mx-auto md:py-8 md:px-4">
+        <div className="bg-white dark:bg-gray-800 md:rounded-lg md:shadow-lg overflow-hidden">
+          <div className="flex h-screen md:h-[600px]">
             {/* Liste des conversations */}
             <div
-              className={`w-1/3 border-r border-gray-200 dark:border-gray-700 ${selectedConversation ? "hidden md:block" : ""}`}
+              className={`w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 ${selectedConversation ? "hidden md:block" : ""}`}
             >
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
