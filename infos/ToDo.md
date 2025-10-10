@@ -1,83 +1,232 @@
-# Todo
+# 🧩 Todo
 
-**A faire**  
-📊 Situation actuelle  
-Vous avez déjà tout en place :  
+## **À faire**
+### Notification Center  
 
-✅ Ce qui existe :  
-Icône favoris dans le header → renvoie au dashboard section "favorites"
-Section favoris avec 2 onglets :  
-📄 "Annonces favorites" (favoritesSubTab === "listings")  
-🔍 "Recherches enregistrées" (favoritesSubTab === "searches")  
+---
 
-Backend complet :  
-Table wishlist ✅  
-Routes API favorites ✅  
-Hook useFavorites ✅  
-Hook useSavedSearches ✅  
-💡 Ma recommandation : RÉUTILISER (ne pas réorganiser)
-Pourquoi ?  
+## 🔔 Pourquoi un centre de notifications centralisé est brillant
 
-✅ Structure déjà pensée et cohérente  
-✅ Navigation déjà en place (icône header)  
-✅ Deux onglets logiques (annonces + recherches)  
-✅ Code existant fonctionnel  
-Ce qu'on va faire :  
+### ✅ Avantages architecturaux
+- **Single Source of Truth**
+  - Un seul endroit pour créer une notification  
+  - Distribution automatique vers tous les canaux  
+- **Traçabilité complète**
+  - Historique de toutes les notifications  
+  - Statut : `envoyé`, `lu`, `cliqué`  
+  - Analytics intégrées  
+- **Préférences utilisateur**
+  - “Je veux recevoir par email”  
+  - “Notifications push seulement”  
+  - Granularité par type d’événement  
+- **Évolutivité**
+  - Ajout facile de nouveaux canaux (SMS, Slack, etc.)  
+  - A/B testing sur les messages  
+  - Internationalisation centralisée  
 
-Améliorer l'existant (1-2h max) 🚀  
-Onglet "Annonces favorites" :  
-✅ Utiliser VehicleCard existant (comme sur la page d'accueil)  
-✅ Afficher grille responsive (1 col mobile, 3 cols desktop)  
-✅ Message si vide : "Aucun favori - Explorez nos annonces !"  
-✅ Bouton coeur rouge qui retire des favoris  
-✅ Loader skeleton pendant chargement  
-Onglet "Recherches enregistrées" :  
-✅ Liste des recherches sauvegardées  
-✅ Pour chaque recherche :  
-Nom personnalisé  
-Filtres résumés (ex: "Voiture - Paris - 5000-10000€")  
-Toggle alertes email (🔔 actif/inactif)  
-Bouton "Lancer la recherche" → redirige vers /search avec filtres  
-Bouton "Supprimer"  
-✅ Message si vide : "Aucune recherche sauvegardée"  
-🎯 Plan d'action (1-2h)  
-Améliorer renderFavoriteListings() (30 min)  
+---
 
-Remplacer le code actuel par grille de VehicleCard  
-Ajouter skeleton loader  
-Gérer état vide  
-Améliorer renderSavedSearches() (45 min)  
+## 🏗️ Architecture recommandée
 
-Design des cartes de recherche  
-Bouton "Lancer recherche" avec redirection  
-Toggle alertes  
-Suppression  
-Tester (15 min)  
+```
+┌─────────────────────────────────────────┐
+│  EVENT (ex: nouveau message reçu)       │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
+│  NOTIFICATION CENTER (Service)          │
+│  - Crée notification en DB              │
+│  - Vérifie préférences user             │
+│  - Dispatch vers canaux activés         │
+└──────┬──────┬──────┬───────────────────┘
+       ↓      ↓      ↓
+   ┌────┐  ┌────┐  ┌─────┐
+   │ DB │  │Email│  │Push │
+   └────┘  └────┘  └─────┘
+     ↓
+ Dashboard (badge + liste)
+```
+
+---
+
+## 📊 Structure de données
+
+### Table `notifications`
+
+```js
+{
+  id: string,
+  userId: string,                   // Destinataire
+  type: 'message' | 'listing_validated' | 'new_follower' | ...,
+  title: string,                    // "Nouveau message de Jean"
+  message: string,                  // "Vous avez reçu un message concernant..."
+  data: json,                       // { listingId: 123, messageId: 456 }
+  read: boolean,
+  readAt: timestamp,
+  channels: ['in-app', 'email', 'push'],  // Où envoyer
+  sentChannels: ['in-app'],               // Où effectivement envoyé
+  createdAt: timestamp
+}
+```
+
+### Table `notification_preferences`
+
+```js
+{
+  userId: string,
+  notificationType: 'message' | 'listing' | 'follower',
+  enableInApp: boolean,
+  enableEmail: boolean,
+  enablePush: boolean
+}
+```
+
+---
+
+## 🎯 Cas d’usage concrets
+
+### Exemple 1 : Nouveau message reçu
+
+```js
+await notificationCenter.create({
+  userId: recipientId,
+  type: 'new_message',
+  title: 'Nouveau message de {senderName}',
+  message: 'Concernant: {listingTitle}',
+  data: { messageId, listingId, senderId },
+  channels: ['in-app', 'email', 'push']
+});
+```
+
+**Le centre gère automatiquement :**
+- ✅ Sauvegarde en DB  
+- ✅ Envoi email si activé  
+- ✅ Push notification si activé  
+- ✅ Badge dans dashboard  
+
+---
+
+### Exemple 2 : Annonce validée
+
+```js
+await notificationCenter.create({
+  userId: sellerId,
+  type: 'listing_validated',
+  title: 'Votre annonce est en ligne !',
+  message: '{listingTitle} est maintenant visible',
+  data: { listingId },
+  channels: ['in-app', 'email']  // Pas de push ici
+});
+```
+
+---
+
+## 📋 Types de notifications pour **PassionAuto2Roues**
+
+### **Messages 🔥 (Priorité haute)**
+- `new_message` — Nouveau message reçu  
+- `message_reply` — Réponse à votre message  
+
+### **Annonces 📝 (Important)**
+- `listing_validated` — Annonce approuvée  
+- `listing_rejected` — Annonce rejetée  
+- `listing_favorited` — Quelqu’un a mis en favori  
+- `listing_expiring` — Annonce expire bientôt  
+
+### **Social 👥 (Engagement)**
+- `new_follower` — Nouveau follower (pros)  
+- `followed_new_listing` — Vendeur suivi publie une annonce  
+
+### **Paiements 💰 (Critique)**
+- `payment_success` — Paiement réussi  
+- `payment_failed` — Paiement échoué  
+- `subscription_ending` — Abonnement expirant  
+
+---
+
+## 🚀 Plan d’implémentation
+
+### **Phase 1 : Infrastructure (MVP) ✅**
+1. Tables DB (`notifications` + `preferences`)  
+2. Service `NotificationCenter`  
+3. Affichage in-app (badge + dropdown dashboard)  
+4. Emails via templates existants  
+
+### **Phase 2 : Préférences**
+1. Page paramètres utilisateur  
+2. Toggle par type de notification  
+3. “Recevoir par email” / “In-app seulement”  
+
+### **Phase 3 : Push (futur mobile)**
+1. Web Push API (PWA)  
+2. Service Worker  
+3. OneSignal / FCM pour mobile natif  
+
+---
+
+## 💡 Avantages immédiats
+
+### ✅ Pour les utilisateurs
+- Historique complet des notifications  
+- Contrôle sur le mode de réception  
+- Badge “3 nouvelles notifications”  
+
+### ✅ Pour les développeurs
+- Code centralisé = maintenance facile  
+- Analytics natives (“qui lit quoi ?”)  
+- A/B testing possible  
+
+### ✅ Pour l’évolution
+- Ajout de SMS en 10 lignes  
+- Notifications groupées (“5 nouveaux messages”)  
+- Digest quotidien / hebdomadaire  
+
+---
+
+## ✨ Recommandation finale
+
+> Créez **le centre de notifications avant les templates emails** :  
+> - C’est la **fondation** du système.  
+> - Les emails deviennent un simple “canal”.  
+> - La migration est ensuite **simple et scalable** :  
+>   `existants → centre → multi-canal`.
+
+============================================
+
+📋 Plan d'implémentation - Todo List  
+Voici les étapes que je vais suivre pour implémenter le centre de notifications complet :  
+
+Phase 1 : Infrastructure (Base)  
+Créer le schéma DB - Tables notifications et notification_preferences dans shared/schema.ts  
+Créer les types - Fichier shared/notificationTypes.ts avec tous les types de notifications  
+Migration DB - Exécuter npm run db:push pour créer les tables  
+Service central - Créer server/services/notificationCenter.ts avec logique de création et dispatch  
+
+Phase 2 : API Routes  
+Routes notifications - GET/POST/PATCH dans server/routes.ts pour gérer les notifications  
+Routes préférences - GET/PUT pour les préférences utilisateur par type  
+
+Phase 3 : UI Dashboard  
+Composant NotificationCenter - Badge + dropdown avec liste des notifications
+Hook useNotifications - React Query pour fetch et mutations  
+Marquer comme lu - Clic sur notification → readAt + navigation  
+Badge compteur - Afficher nombre de non-lus dans header  
+
+Phase 4 : Intégration Email  
+Connecter emailService - Le centre appelle emailService selon template du type  
+Mapper types → templates - new_message → messaging/new_message.html  
 
 
-🎯 Mon approche :
-Je vais créer un système simple et efficace en 5 étapes :
+Phase 5 : Événements déclencheurs  
+Messages - Créer notification lors d'un nouveau message  
+Annonces - Notification lors validation/rejet d'annonce  
+Followers - Notification nouveau follower pour pros  
+Paiements - Notifications succès/échec paiement  
 
-1. Backend (schéma + API)
-Ajouter la table followers dans Drizzle (shared/schema.ts)
-Créer les routes API pour :
-➕ Suivre un vendeur (POST /api/followers)
-➖ Ne plus suivre (DELETE /api/followers/:id)
-📊 Voir mes vendeurs suivis (GET /api/followers/following)
-👥 Voir les followers d'un vendeur (GET /api/followers/:userId)
-✅ Vérifier si je suis un vendeur (GET /api/followers/is-following/:userId)
-2. Frontend (hook réutilisable)
-Hook useFollowers pour gérer toute la logique (comme useFavorites)
-Gestion optimiste + invalidation cache
-Compteurs en temps réel
-3. Bouton "Suivre"
-Sur les pages boutique professionnelles uniquement
-Design cohérent avec le reste de l'app
-États : "Suivre" / "Suivi" avec animation
-4. Dashboard - Nouvelle section
-Onglet "Vendeurs suivis" dans Dashboard
-Liste des pros suivis avec compteur d'annonces actives
-Bouton "Voir la boutique" + "Ne plus suivre"
-5. Affichage compteur
-Badge "X followers" sur pages boutique
-Badge "X abonnés" sur profils pros
+Phase 6 : Page Préférences  
+UI Préférences - Toggle par type de notification dans paramètres compte  
+Sauvegarde préférences - Mutation pour update en DB  
+
+Phase 7 : Optimisations  
+Polling/WebSocket - Notifications temps réel (optionnel)  
+Nettoyage auto - Supprimer notifications > 30 jours (optionnel)  
