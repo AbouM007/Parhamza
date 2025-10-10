@@ -20,6 +20,7 @@ import { setupWishlistMigration } from "./routes/wishlist-migration.js";
 import { setupWishlistDirect } from "./routes/wishlist-direct.js";
 import { ensureUserExists, createUserFromAuth } from "./auth-hooks";
 import { supabaseServer } from "./supabase";
+import { requireAuth } from "./middleware/auth";
 import multer from "multer";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
@@ -2131,7 +2132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/auth", authSyncRoutes);
   app.use("/api/professional-accounts", professionalShopRouter);
   app.use("/api/subscriptions", subscriptionsRouter);
-  app.use("/api/notifications", notificationsRoutes);
+  app.use("/api/notifications", requireAuth, notificationsRoutes);
 
   // Routes pour la personnalisation des comptes professionnels
 
