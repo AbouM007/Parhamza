@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRoute, Link } from 'wouter';
 import { useApp } from "@/contexts/AppContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFollowers } from "@/hooks/useFollowers";
 import { 
   Building2, Globe, Phone, Mail, MapPin, Star, 
   Eye, Heart, Filter, Grid, List,
   ChevronDown, Award, Shield, Verified,
-  Image as ImageIcon, PaintBucket, Settings
+  Image as ImageIcon, PaintBucket, Settings, UserPlus, UserCheck
 } from 'lucide-react';
 import { getUserDisplayName } from "@/lib/utils";
 
@@ -26,6 +28,7 @@ interface ProAccount {
   type: string;
   verified?: boolean;
   created_at: string;
+  followers_count?: number;
 }
 
 interface Vehicle {
@@ -49,12 +52,19 @@ interface Vehicle {
 export default function ProShop() {
   const [match, params] = useRoute('/pro/:shopId');
   const { setSelectedVehicle } = useApp();
+  const { profile } = useAuth();
+  const { toggleFollow, useIsFollowing, isFollowPending, isUnfollowPending } = useFollowers();
   const [proAccount, setProAccount] = useState<ProAccount | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('date_desc');
   const [filterCategory, setFilterCategory] = useState('all');
+
+  // Check if current user is following this shop
+  const { data: followStatus } = useIsFollowing(proAccount?.id);
+  const isFollowing = followStatus?.isFollowing || false;
+  const isOwnShop = profile?.id === proAccount?.id;
 
   // Charger les données de la boutique
   useEffect(() => {
@@ -187,13 +197,44 @@ export default function ProShop() {
               
               {/* Informations */}
               <div className="flex-1 pb-4">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h1 className="text-4xl font-bold text-white">{getUserDisplayName(proAccount)}</h1>
-                  {proAccount.verified && (
-                    <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
-                      <Verified className="h-4 w-4" />
-                      <span>Vérifié</span>
-                    </div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-3">
+                    <h1 className="text-4xl font-bold text-white">{getUserDisplayName(proAccount)}</h1>
+                    {proAccount.verified && (
+                      <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
+                        <Verified className="h-4 w-4" />
+                        <span>Vérifié</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Follow button - only show if not own shop */}
+                  {!isOwnShop && proAccount && (
+                    <button
+                      onClick={() => toggleFollow(proAccount.id, isFollowing)}
+                      disabled={isFollowPending || isUnfollowPending}
+                      className={`
+                        px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2
+                        ${isFollowing 
+                          ? 'bg-white text-primary-bolt-600 border-2 border-white hover:bg-gray-100' 
+                          : 'bg-white text-primary-bolt-600 hover:bg-gray-100'
+                        }
+                        ${(isFollowPending || isUnfollowPending) ? 'opacity-50 cursor-not-allowed' : ''}
+                      `}
+                      data-testid={isFollowing ? "button-unfollow-shop" : "button-follow-shop"}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserCheck className="h-5 w-5" />
+                          <span>Suivi</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-5 w-5" />
+                          <span>Suivre</span>
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
                 
@@ -205,6 +246,10 @@ export default function ProShop() {
                   <div className="flex items-center space-x-2">
                     <Eye className="h-5 w-5" />
                     <span>{vehicles.length} annonce{vehicles.length > 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="flex items-center space-x-2" data-testid="followers-count">
+                    <UserPlus className="h-5 w-5" />
+                    <span>{proAccount.followers_count || 0} abonné{(proAccount.followers_count || 0) > 1 ? 's' : ''}</span>
                   </div>
                 </div>
               </div>

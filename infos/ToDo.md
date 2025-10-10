@@ -53,3 +53,31 @@ Bouton "Lancer recherche" avec redirection
 Toggle alertes  
 Suppression  
 Tester (15 min)  
+
+
+🎯 Mon approche :
+Je vais créer un système simple et efficace en 5 étapes :
+
+1. Backend (schéma + API)
+Ajouter la table followers dans Drizzle (shared/schema.ts)
+Créer les routes API pour :
+➕ Suivre un vendeur (POST /api/followers)
+➖ Ne plus suivre (DELETE /api/followers/:id)
+📊 Voir mes vendeurs suivis (GET /api/followers/following)
+👥 Voir les followers d'un vendeur (GET /api/followers/:userId)
+✅ Vérifier si je suis un vendeur (GET /api/followers/is-following/:userId)
+2. Frontend (hook réutilisable)
+Hook useFollowers pour gérer toute la logique (comme useFavorites)
+Gestion optimiste + invalidation cache
+Compteurs en temps réel
+3. Bouton "Suivre"
+Sur les pages boutique professionnelles uniquement
+Design cohérent avec le reste de l'app
+États : "Suivre" / "Suivi" avec animation
+4. Dashboard - Nouvelle section
+Onglet "Vendeurs suivis" dans Dashboard
+Liste des pros suivis avec compteur d'annonces actives
+Bouton "Voir la boutique" + "Ne plus suivre"
+5. Affichage compteur
+Badge "X followers" sur pages boutique
+Badge "X abonnés" sur profils pros

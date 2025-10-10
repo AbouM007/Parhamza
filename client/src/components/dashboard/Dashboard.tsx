@@ -42,6 +42,7 @@ import {
   Upload,
   AlertTriangle,
   ArrowRight,
+  UserPlus,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +50,7 @@ import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { ArrowLeft } from "lucide-react";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useSavedSearches } from "@/hooks/useSavedSearches";
+import { useFollowers } from "@/hooks/useFollowers";
 import { Vehicle } from "@/types";
 import brandIcon from "@/assets/Brand_1752260033631.png";
 import { DeletionQuestionnaireModal } from "../DeletionQuestionnaireModal";
@@ -178,6 +180,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     deleteSearch,
     toggleAlerts,
   } = useSavedSearches();
+  const {
+    following,
+    followingLoading,
+    unfollow,
+  } = useFollowers();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [editingProfile, setEditingProfile] = useState(false);
   const [favoritesSubTab, setFavoritesSubTab] = useState("listings");
@@ -2196,6 +2203,104 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   };
 
+  const renderFollowedSellers = () => {
+    if (followingLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 animate-pulse"
+            >
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                </div>
+              </div>
+              <div className="h-10 bg-gray-200 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (following.length === 0) {
+      return (
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-16 text-center">
+          <div className="w-24 h-24 bg-gradient-to-r from-primary-bolt-100 to-primary-bolt-200 rounded-full flex items-center justify-center mx-auto mb-8">
+            <UserPlus className="h-12 w-12 text-primary-bolt-500" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            Aucun vendeur suivi
+          </h3>
+          <p className="text-gray-600 mb-8 text-lg">
+            Suivez des vendeurs professionnels pour être informé de leurs nouvelles annonces.
+          </p>
+          <button
+            onClick={onRedirectHome}
+            className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-10 py-4 rounded-xl font-semibold flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+          >
+            <Store className="h-6 w-6" />
+            <span>Découvrir les boutiques</span>
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {following.map((item) => (
+          <div
+            key={item.id}
+            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300"
+          >
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+                {item.followedUser?.avatar ? (
+                  <img
+                    src={item.followedUser.avatar}
+                    alt={item.followedUser.displayName || item.followedUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Store className="h-8 w-8 text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg text-gray-900 line-clamp-1">
+                  {item.followedUser?.displayName || item.followedUser?.companyName || item.followedUser?.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {item.followedUser?.followersCount || 0} abonné{(item.followedUser?.followersCount || 0) > 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <a
+                href={`/pro/${item.followedUserId}`}
+                className="flex-1 px-4 py-2 bg-primary-bolt-500 hover:bg-primary-bolt-600 text-white rounded-lg font-medium transition-all duration-200 text-center"
+                data-testid={`button-view-shop-${item.followedUserId}`}
+              >
+                Voir la boutique
+              </a>
+              <button
+                onClick={() => unfollow(item.followedUserId)}
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                title="Ne plus suivre"
+                data-testid={`button-unfollow-${item.followedUserId}`}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderFavoriteSearches = () => (
     <div className="space-y-6">
       {savedSearches.length === 0 ? (
@@ -2670,12 +2775,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <Search className="h-4 w-4" />
               <span>Recherches sauvegardées</span>
             </button>
+            <button
+              onClick={() => setFavoritesSubTab("sellers")}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+                favoritesSubTab === "sellers"
+                  ? "bg-white text-primary-bolt-600 shadow-md"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+              data-testid="tab-followed-sellers"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span>Vendeurs suivis</span>
+            </button>
           </div>
         </div>
 
         {/* Content based on active sub-tab */}
         {favoritesSubTab === "listings" && renderFavoriteListings()}
         {favoritesSubTab === "searches" && renderSavedSearches()}
+        {favoritesSubTab === "sellers" && renderFollowedSellers()}
       </div>
     );
   };

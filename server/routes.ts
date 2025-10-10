@@ -6,6 +6,7 @@ import wishlistRoutes from "./routes/wishlist";
 import savedSearchRoutes from "./routes/saved-searches";
 import adminRoutes from "./routes/admin";
 import messagingRoutes from "./routes/messaging";
+import followersRoutes from "./routes/followers";
 import messagingSimpleRoutes from "./routes/messages-simple";
 import conversationsRoutes from "./routes/conversations";
 import profileRoutes from "./routes/profile";
@@ -2117,6 +2118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount new route handlers
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/saved-searches", savedSearchRoutes);
+  app.use("/api/followers", followersRoutes);
   app.use("/api/admin", adminRoutes);
   app.use("/api", messagingRoutes);
   app.use("/api/messages-simple", messagingSimpleRoutes);
