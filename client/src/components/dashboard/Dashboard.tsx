@@ -43,6 +43,8 @@ import {
   AlertTriangle,
   ArrowRight,
   UserPlus,
+  ShieldCheck,
+  Package,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +65,17 @@ import { useQuota } from "@/hooks/useQuota";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { VehicleCard } from "../VehicleCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Helper function to translate deletion reasons from English to French
 const translateDeletionReason = (reason: string): string => {
@@ -2256,8 +2269,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             key={item.id}
             className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300"
           >
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="flex items-start space-x-4 mb-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                 {item.followedUser?.avatar ? (
                   <img
                     src={item.followedUser.avatar}
@@ -2268,32 +2281,68 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <Store className="h-8 w-8 text-gray-400" />
                 )}
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg text-gray-900 line-clamp-1">
-                  {item.followedUser?.displayName || item.followedUser?.companyName || item.followedUser?.name}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {item.followedUser?.followersCount || 0} abonné{(item.followedUser?.followersCount || 0) > 1 ? 's' : ''}
-                </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-lg text-gray-900 line-clamp-1">
+                    {item.followedUser?.displayName || item.followedUser?.companyName || item.followedUser?.name}
+                  </h3>
+                  {item.followedUser?.isVerified && (
+                    <div className="flex-shrink-0" title="Professionnel vérifié">
+                      <ShieldCheck className="h-5 w-5 text-blue-500" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <UserPlus className="h-4 w-4" />
+                    <span>{item.followedUser?.followersCount || 0} abonné{(item.followedUser?.followersCount || 0) > 1 ? 's' : ''}</span>
+                  </div>
+                  <span className="text-gray-300">•</span>
+                  <div className="flex items-center gap-1">
+                    <Package className="h-4 w-4" />
+                    <span>{item.followedUser?.activeListingsCount || 0} annonce{(item.followedUser?.activeListingsCount || 0) > 1 ? 's' : ''}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <a
                 href={`/pro/${item.followedUserId}`}
-                className="flex-1 px-4 py-2 bg-primary-bolt-500 hover:bg-primary-bolt-600 text-white rounded-lg font-medium transition-all duration-200 text-center"
+                className="flex-1 px-4 py-2.5 bg-primary-bolt-500 hover:bg-primary-bolt-600 text-white rounded-lg font-medium transition-all duration-200 text-center"
                 data-testid={`button-view-shop-${item.followedUserId}`}
               >
                 Voir la boutique
               </a>
-              <button
-                onClick={() => unfollow(item.followedUserId)}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-                title="Ne plus suivre"
-                data-testid={`button-unfollow-${item.followedUserId}`}
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                    title="Ne plus suivre"
+                    data-testid={`button-unfollow-${item.followedUserId}`}
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmer le désabonnement</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Êtes-vous sûr de vouloir ne plus suivre <strong>{item.followedUser?.displayName || item.followedUser?.companyName || item.followedUser?.name}</strong> ? 
+                      Vous ne recevrez plus de notifications sur leurs nouvelles annonces.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => unfollow(item.followedUserId)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Ne plus suivre
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         ))}
