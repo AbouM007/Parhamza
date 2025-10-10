@@ -59,6 +59,18 @@ export function Messages() {
     }
   }, [selectedConversation]);
 
+  // Fonction pour gérer le clic sur une conversation
+  const handleConversationClick = (conversationId: string) => {
+    // Si on clique sur la conversation déjà sélectionnée, forcer le rechargement
+    if (selectedConversation === conversationId) {
+      console.log("♻️ Rechargement de la conversation déjà ouverte");
+      loadMessages(conversationId);
+    } else {
+      // Sinon, simplement changer la sélection (le useEffect se déclenchera)
+      setSelectedConversation(conversationId);
+    }
+  };
+
   // Scroll automatique vers le bas à chaque mise à jour des messages
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -283,7 +295,7 @@ export function Messages() {
                   conversations.map((conversation) => (
                     <div
                       key={conversation.id}
-                      onClick={() => setSelectedConversation(conversation.id)}
+                      onClick={() => handleConversationClick(conversation.id)}
                       className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 ${
                         selectedConversation === conversation.id
                           ? "bg-teal-50 dark:bg-teal-900/20"
