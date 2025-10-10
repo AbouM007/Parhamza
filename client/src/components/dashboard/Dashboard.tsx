@@ -60,6 +60,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useQuota } from "@/hooks/useQuota";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { VehicleCard } from "../VehicleCard";
 
 // Helper function to translate deletion reasons from English to French
 const translateDeletionReason = (reason: string): string => {
@@ -1872,117 +1873,112 @@ export const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 
-  const renderFavoriteListings = () => (
-    <div className="space-y-6">
-      {favorites.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Heart className="h-10 w-10 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Aucune annonce favorite
-          </h3>
-          <p className="text-gray-600">
-            Ajoutez des annonces à vos favoris pour les retrouver facilement
-            ici.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {favorites.map((listing) => (
+  const renderFavoriteListings = () => {
+    // Skeleton loader pendant chargement
+    if (favoritesLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
-              key={listing.id}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              key={i}
+              className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden animate-pulse"
             >
-              <div className="relative">
-                {listing.images && listing.images.length > 0 ? (
-                  <img
-                    src={listing.images[0]}
-                    alt={listing.title}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <img
-                      src={brandIcon}
-                      alt="Brand icon"
-                      className="w-20 h-20 opacity-60"
-                    />
-                  </div>
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(listing.id);
-                  }}
-                  className="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors"
-                >
-                  <Heart className="h-4 w-4 fill-current" />
-                </button>
-              </div>
-              <div className="p-6">
-                <h3 className="font-bold text-lg text-gray-900 mb-2">
-                  {listing.title}
-                </h3>
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-primary-bolt-600">
-                      {formatPrice(listing.price)}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {listing.year}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>
-                      {listing.mileage
-                        ? `${listing.mileage.toLocaleString()} km`
-                        : "N/A"}
-                    </span>
-                    <span className="flex items-center">
-                      <MapPin className="h-3 w-3 mr-1" />
-                      {listing.location}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    Ajouté le{" "}
-                    {new Date(listing.createdAt).toLocaleDateString("fr-FR")}
-                  </span>
-                  <button
-                    onClick={() => {
-                      // Trouver le véhicule complet dans la liste
-                      const fullVehicle = vehicles.find(
-                        (v) => v.id === listing.id,
-                      );
-                      if (fullVehicle) {
-                        setSelectedVehicle(fullVehicle);
-                      }
-                    }}
-                    className="bg-primary-bolt-500 hover:bg-primary-bolt-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    Voir l'annonce
-                  </button>
+              <div className="h-48 bg-gray-200" />
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-6 bg-gray-200 rounded w-1/2" />
+                <div className="flex justify-between">
+                  <div className="h-3 bg-gray-200 rounded w-1/4" />
+                  <div className="h-3 bg-gray-200 rounded w-1/4" />
                 </div>
               </div>
             </div>
           ))}
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {favorites.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Heart className="h-12 w-12 text-red-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              Aucune annonce favorite
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Ajoutez des annonces à vos favoris pour les retrouver facilement
+              ici.
+            </p>
+            <button
+              onClick={() => {
+                if (onRedirectHome) onRedirectHome();
+              }}
+              className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              data-testid="button-explore-listings"
+            >
+              Explorer les annonces
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <p className="text-gray-600 text-lg">
+                {favorites.length} annonce{favorites.length !== 1 ? "s" : ""} favorite{favorites.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {favorites.map((listing) => (
+                <VehicleCard
+                  key={listing.id}
+                  vehicle={listing as Vehicle}
+                  onClick={() => {
+                    const fullVehicle = vehicles.find((v) => v.id === listing.id);
+                    if (fullVehicle) {
+                      setSelectedVehicle(fullVehicle);
+                    } else {
+                      // Si le véhicule n'est pas dans la liste, utiliser le favori
+                      setSelectedVehicle(listing as Vehicle);
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const renderSavedSearches = () => {
     if (savedSearchesLoading) {
       return (
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <Search className="h-12 w-12 text-primary-bolt-600 mx-auto mb-4 animate-pulse" />
-            <p className="text-gray-600">
-              Chargement des recherches sauvegardées...
-            </p>
-          </div>
+        <div className="space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 animate-pulse"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1 space-y-3">
+                  <div className="h-6 bg-gray-200 rounded w-1/3" />
+                  <div className="flex gap-2">
+                    <div className="h-8 bg-gray-200 rounded-full w-24" />
+                    <div className="h-8 bg-gray-200 rounded-full w-32" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="h-8 bg-gray-200 rounded-full w-32" />
+                <div className="flex gap-2">
+                  <div className="h-10 bg-gray-200 rounded-lg w-28" />
+                  <div className="h-10 w-10 bg-gray-200 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       );
     }
