@@ -2,6 +2,7 @@ import { Router } from "express";
 import { supabaseServer as supabase } from "../supabase";
 import { insertFollowerSchema } from "../../shared/schema.js";
 import { z } from "zod";
+import { notifyNewFollower } from "../services/notificationCenter";
 
 const router = Router();
 
@@ -201,6 +202,26 @@ router.post("/", verifyAuth, async (req: any, res) => {
 
     if (rpcError) {
       console.error("Error incrementing followers count:", rpcError);
+    }
+
+    // 🔔 Envoyer une notification au vendeur suivi
+    try {
+      const { data: followerUser } = await supabase
+        .from("users")
+        .select("name, email")
+        .eq("id", authenticatedUserId)
+        .single();
+
+      if (followerUser) {
+        await notifyNewFollower({
+          followedUserId: followedUserId,
+          followerName: followerUser.name || followerUser.email,
+          followerId: authenticatedUserId,
+        });
+      }
+    } catch (notifError) {
+      console.error('Erreur envoi notification follow:', notifError);
+      // Ne pas bloquer le follow si la notification échoue
     }
 
     res.json(followerData);
