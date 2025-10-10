@@ -413,7 +413,10 @@ function AppContent() {
                   <div className="hidden md:block">
                     <Footer setCurrentView={setCurrentView} />
                   </div>
-                  <BottomNav setDashboardTab={setDashboardTab} />
+                  {/* Bottom menu caché dans les conversations détaillées */}
+                  {!location.match(/^\/messages\/.+/) && (
+                    <BottomNav setDashboardTab={setDashboardTab} />
+                  )}
                 </>
               )}
             </>
