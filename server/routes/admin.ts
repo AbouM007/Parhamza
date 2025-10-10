@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { supabase } from '../lib/supabase';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
+import { notifyListingValidated, notifyListingRejected } from '../services/notificationCenter';
 
 const router = Router();
 
@@ -169,12 +170,42 @@ router.patch('/annonces/:id', requireAdmin, async (req, res) => {
         return res.status(400).json({ error: 'Action non reconnue' });
     }
 
+    // Récupérer les informations de l'annonce avant la mise à jour
+    const { data: annonce } = await supabase
+      .from('annonces')
+      .select('id, title, user_id')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase
       .from('annonces')
       .update(updateData)
       .eq('id', id);
 
     if (error) throw error;
+
+    // 🔔 Envoyer une notification au propriétaire de l'annonce
+    if (annonce) {
+      try {
+        if (action === 'approve') {
+          await notifyListingValidated({
+            userId: annonce.user_id,
+            listingId: parseInt(annonce.id),
+            listingTitle: annonce.title,
+          });
+        } else if (action === 'reject') {
+          await notifyListingRejected({
+            userId: annonce.user_id,
+            listingId: parseInt(annonce.id),
+            listingTitle: annonce.title,
+            reason: req.body.reason || 'Non conforme aux conditions',
+          });
+        }
+      } catch (notifError) {
+        console.error('Erreur envoi notification annonce:', notifError);
+        // Ne pas bloquer l'action admin si la notification échoue
+      }
+    }
 
     // Log de l'action admin
     await supabase

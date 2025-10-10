@@ -330,3 +330,19 @@ export async function notifyPaymentFailed({
     data: { reason },
   });
 }
+
+export async function notifyListingFavorited({
+  userId,
+  listingTitle,
+  listingId,
+}: {
+  userId: string;
+  listingTitle: string;
+  listingId: number;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.LISTING_FAVORITED,
+    data: { listingTitle, listingId },
+  });
+}
