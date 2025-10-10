@@ -179,7 +179,33 @@ export function Messages() {
   }
 
   // Vue Conversation détaillée
-  if (conversationId && currentConversation) {
+  if (conversationId) {
+    // Attendre que les conversations soient chargées
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600">Chargement de la conversation...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!currentConversation) {
+      return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600">Conversation introuvable</p>
+            <button
+              onClick={() => navigate("/messages")}
+              className="mt-4 text-primary-bolt-600 hover:underline"
+            >
+              Retour aux messages
+            </button>
+          </div>
+        </div>
+      );
+    }
     const displayName = getUserDisplayName(currentConversation.other_user as any);
     const initial = displayName.charAt(0).toUpperCase();
 
