@@ -3,9 +3,7 @@
  * Service central pour gérer l'envoi de notifications sur tous les canaux (in-app, email, push)
  */
 
-import { db } from "../db";
-import { notifications, notificationPreferences } from "../../shared/schema";
-import { eq, and } from "drizzle-orm";
+import { supabaseServer } from "../supabase";
 import {
   NOTIFICATION_TYPES,
   NOTIFICATION_DEFAULTS,
@@ -33,18 +31,15 @@ async function getUserPreferences(
   notificationType: NotificationType
 ): Promise<NotificationChannels> {
   try {
-    const preferences = await db
-      .select()
-      .from(notificationPreferences)
-      .where(
-        and(
-          eq(notificationPreferences.userId, userId),
-          eq(notificationPreferences.notificationType, notificationType)
-        )
-      )
-      .limit(1);
+    const { data: preferences, error } = await supabaseServer
+      .from("notification_preferences")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("notification_type", notificationType)
+      .limit(1)
+      .maybeSingle();
 
-    if (preferences.length === 0) {
+    if (error || !preferences) {
       // Retourner les valeurs par défaut
       const defaults = NOTIFICATION_DEFAULTS[notificationType];
       return {
@@ -55,9 +50,9 @@ async function getUserPreferences(
     }
 
     return {
-      inApp: preferences[0].enableInApp,
-      email: preferences[0].enableEmail,
-      push: preferences[0].enablePush,
+      inApp: preferences.enable_in_app,
+      email: preferences.enable_email,
+      push: preferences.enable_push,
     };
   } catch (error) {
     console.error("Erreur lors de la récupération des préférences:", error);
@@ -172,16 +167,23 @@ export async function sendNotification({
 
     // 4. Créer la notification en base de données (toujours créée si in-app est activé)
     if (preferences.inApp) {
-      await db.insert(notifications).values({
-        userId,
-        type,
-        title,
-        message,
-        data,
-        channels: enabledChannels,
-        sentChannels: ["in-app"],
-        read: false,
-      });
+      const { error } = await supabaseServer
+        .from("notifications")
+        .insert({
+          user_id: userId,
+          type,
+          title,
+          message,
+          data,
+          channels: enabledChannels,
+          sent_channels: ["in-app"],
+          read: false,
+        });
+      
+      if (error) {
+        console.error(`❌ Erreur création notification:`, error);
+        throw error;
+      }
       console.log(`✅ Notification in-app créée: ${title}`);
     }
 

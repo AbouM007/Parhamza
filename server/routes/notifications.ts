@@ -1,7 +1,5 @@
 import { Router } from "express";
-import { db } from "../db";
-import { notifications, notificationPreferences } from "../../shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { supabaseServer } from "../supabase";
 import { NOTIFICATION_TYPES, NOTIFICATION_DEFAULTS } from "../../shared/notificationTypes";
 
 const router = Router();
@@ -13,14 +11,19 @@ router.get("/", async (req, res) => {
       return res.status(401).json({ error: "Non authentifié" });
     }
 
-    const userNotifications = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userId, req.user.id))
-      .orderBy(desc(notifications.createdAt))
-      .limit(50); // Limiter à 50 notifications récentes
+    const { data: userNotifications, error } = await supabaseServer
+      .from("notifications")
+      .select("*")
+      .eq("user_id", req.user.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    res.json(userNotifications);
+    if (error) {
+      console.error("Erreur lors de la récupération des notifications:", error);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
+
+    res.json(userNotifications || []);
   } catch (error) {
     console.error("Erreur lors de la récupération des notifications:", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -34,17 +37,18 @@ router.get("/unread-count", async (req, res) => {
       return res.status(401).json({ error: "Non authentifié" });
     }
 
-    const unreadNotifications = await db
-      .select()
-      .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, req.user.id),
-          eq(notifications.read, false)
-        )
-      );
+    const { count, error } = await supabaseServer
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", req.user.id)
+      .eq("read", false);
 
-    res.json({ count: unreadNotifications.length });
+    if (error) {
+      console.error("Erreur lors du comptage des notifications:", error);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
+
+    res.json({ count: count || 0 });
   } catch (error) {
     console.error("Erreur lors du comptage des notifications:", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -61,27 +65,32 @@ router.patch("/:id/read", async (req, res) => {
     const notificationId = parseInt(req.params.id);
 
     // Vérifier que la notification appartient à l'utilisateur
-    const notification = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.id, notificationId))
-      .limit(1);
+    const { data: notification, error: fetchError } = await supabaseServer
+      .from("notifications")
+      .select("user_id")
+      .eq("id", notificationId)
+      .single();
 
-    if (notification.length === 0) {
+    if (fetchError || !notification) {
       return res.status(404).json({ error: "Notification non trouvée" });
     }
 
-    if (notification[0].userId !== req.user.id) {
+    if (notification.user_id !== req.user.id) {
       return res.status(403).json({ error: "Non autorisé" });
     }
 
-    await db
-      .update(notifications)
-      .set({
+    const { error: updateError } = await supabaseServer
+      .from("notifications")
+      .update({
         read: true,
-        readAt: new Date(),
+        read_at: new Date().toISOString(),
       })
-      .where(eq(notifications.id, notificationId));
+      .eq("id", notificationId);
+
+    if (updateError) {
+      console.error("Erreur lors de la mise à jour de la notification:", updateError);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
 
     res.json({ success: true });
   } catch (error) {
@@ -97,18 +106,19 @@ router.patch("/read-all", async (req, res) => {
       return res.status(401).json({ error: "Non authentifié" });
     }
 
-    await db
-      .update(notifications)
-      .set({
+    const { error } = await supabaseServer
+      .from("notifications")
+      .update({
         read: true,
-        readAt: new Date(),
+        read_at: new Date().toISOString(),
       })
-      .where(
-        and(
-          eq(notifications.userId, req.user.id),
-          eq(notifications.read, false)
-        )
-      );
+      .eq("user_id", req.user.id)
+      .eq("read", false);
+
+    if (error) {
+      console.error("Erreur lors de la mise à jour des notifications:", error);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
 
     res.json({ success: true });
   } catch (error) {
@@ -127,21 +137,29 @@ router.delete("/:id", async (req, res) => {
     const notificationId = parseInt(req.params.id);
 
     // Vérifier que la notification appartient à l'utilisateur
-    const notification = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.id, notificationId))
-      .limit(1);
+    const { data: notification, error: fetchError } = await supabaseServer
+      .from("notifications")
+      .select("user_id")
+      .eq("id", notificationId)
+      .single();
 
-    if (notification.length === 0) {
+    if (fetchError || !notification) {
       return res.status(404).json({ error: "Notification non trouvée" });
     }
 
-    if (notification[0].userId !== req.user.id) {
+    if (notification.user_id !== req.user.id) {
       return res.status(403).json({ error: "Non autorisé" });
     }
 
-    await db.delete(notifications).where(eq(notifications.id, notificationId));
+    const { error: deleteError } = await supabaseServer
+      .from("notifications")
+      .delete()
+      .eq("id", notificationId);
+
+    if (deleteError) {
+      console.error("Erreur lors de la suppression de la notification:", deleteError);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
 
     res.json({ success: true });
   } catch (error) {
@@ -150,24 +168,35 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// GET /api/notification-preferences - Récupérer les préférences utilisateur
+// GET /api/notifications/preferences - Récupérer les préférences utilisateur
 router.get("/preferences", async (req, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifié" });
     }
 
-    const userPreferences = await db
-      .select()
-      .from(notificationPreferences)
-      .where(eq(notificationPreferences.userId, req.user.id));
+    const { data: userPreferences, error } = await supabaseServer
+      .from("notification_preferences")
+      .select("*")
+      .eq("user_id", req.user.id);
+
+    if (error) {
+      console.error("Erreur lors de la récupération des préférences:", error);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
 
     // Créer un objet avec toutes les préférences (par défaut si non définies)
     const allPreferences = Object.values(NOTIFICATION_TYPES).map((type) => {
-      const existing = userPreferences.find((p) => p.notificationType === type);
+      const existing = userPreferences?.find((p: any) => p.notification_type === type);
       
       if (existing) {
-        return existing;
+        return {
+          userId: existing.user_id,
+          notificationType: existing.notification_type,
+          enableInApp: existing.enable_in_app,
+          enableEmail: existing.enable_email,
+          enablePush: existing.enable_push,
+        };
       }
 
       // Retourner les valeurs par défaut
@@ -188,52 +217,55 @@ router.get("/preferences", async (req, res) => {
   }
 });
 
-// PUT /api/notification-preferences/:type - Mettre à jour les préférences pour un type
-router.put("/preferences/:type", async (req, res) => {
+// PUT /api/notifications/preferences - Mettre à jour les préférences utilisateur
+router.put("/preferences", async (req, res) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifié" });
     }
 
-    const { type } = req.params;
-    const { enableInApp, enableEmail, enablePush } = req.body;
+    const preferences = req.body.preferences;
 
-    // Vérifier que le type est valide
-    if (!Object.values(NOTIFICATION_TYPES).includes(type as any)) {
-      return res.status(400).json({ error: "Type de notification invalide" });
+    if (!Array.isArray(preferences)) {
+      return res.status(400).json({ error: "Format de préférences invalide" });
     }
 
-    // Vérifier si une préférence existe déjà
-    const existing = await db
-      .select()
-      .from(notificationPreferences)
-      .where(
-        and(
-          eq(notificationPreferences.userId, req.user.id),
-          eq(notificationPreferences.notificationType, type)
-        )
-      )
-      .limit(1);
+    // Vérifier et insérer/mettre à jour chaque préférence
+    for (const pref of preferences) {
+      const { notificationType, enableInApp, enableEmail, enablePush } = pref;
 
-    if (existing.length > 0) {
-      // Mettre à jour
-      await db
-        .update(notificationPreferences)
-        .set({
-          enableInApp: enableInApp ?? existing[0].enableInApp,
-          enableEmail: enableEmail ?? existing[0].enableEmail,
-          enablePush: enablePush ?? existing[0].enablePush,
-        })
-        .where(eq(notificationPreferences.id, existing[0].id));
-    } else {
-      // Créer
-      await db.insert(notificationPreferences).values({
-        userId: req.user.id,
-        notificationType: type,
-        enableInApp: enableInApp ?? NOTIFICATION_DEFAULTS[type as keyof typeof NOTIFICATION_DEFAULTS].inApp,
-        enableEmail: enableEmail ?? NOTIFICATION_DEFAULTS[type as keyof typeof NOTIFICATION_DEFAULTS].email,
-        enablePush: enablePush ?? NOTIFICATION_DEFAULTS[type as keyof typeof NOTIFICATION_DEFAULTS].push,
-      });
+      // Vérifier si la préférence existe déjà
+      const { data: existing } = await supabaseServer
+        .from("notification_preferences")
+        .select("id")
+        .eq("user_id", req.user.id)
+        .eq("notification_type", notificationType)
+        .maybeSingle();
+
+      if (existing) {
+        // Mise à jour
+        await supabaseServer
+          .from("notification_preferences")
+          .update({
+            enable_in_app: enableInApp,
+            enable_email: enableEmail,
+            enable_push: enablePush,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", req.user.id)
+          .eq("notification_type", notificationType);
+      } else {
+        // Insertion
+        await supabaseServer
+          .from("notification_preferences")
+          .insert({
+            user_id: req.user.id,
+            notification_type: notificationType,
+            enable_in_app: enableInApp,
+            enable_email: enableEmail,
+            enable_push: enablePush,
+          });
+      }
     }
 
     res.json({ success: true });
