@@ -12,6 +12,9 @@ import {
   numeric,
   uniqueIndex,
   check,
+  varchar,
+  unique,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -436,6 +439,8 @@ export const annonceBoosts = pgTable("annonce_boosts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+
+
 // Table followers - Suivi des vendeurs professionnels
 export const followers = pgTable("followers", {
   id: serial("id").primaryKey(),
@@ -447,6 +452,33 @@ export const followers = pgTable("followers", {
     .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Tables pour le système de notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  data: jsonb("data"),
+  read: boolean("read").default(false).notNull(),
+  readAt: timestamp("read_at"),
+  channels: jsonb("channels").default(['in-app']).notNull(),
+  sentChannels: jsonb("sent_channels").default(['in-app']).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notificationType: varchar("notification_type", { length: 50 }).notNull(),
+  enableInApp: boolean("enable_in_app").default(true).notNull(),
+  enableEmail: boolean("enable_email").default(true).notNull(),
+  enablePush: boolean("enable_push").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserType: unique().on(table.userId, table.notificationType)
+}));
 
 // Schémas d'insertion
 export const insertUserSchema = createInsertSchema(users);
@@ -478,6 +510,12 @@ export const insertAnnonceBoostSchema = createInsertSchema(annonceBoosts).omit({
 export const insertFollowerSchema = createInsertSchema(followers).omit({
   id: true,
 });
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+});
+export const insertNotificationPreferenceSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+});
 
 // Types d'insertion
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -499,6 +537,8 @@ export type InsertProfessionalProfile = z.infer<
 export type InsertBoostPlan = z.infer<typeof insertBoostPlanSchema>;
 export type InsertAnnonceBoost = z.infer<typeof insertAnnonceBoostSchema>;
 export type InsertFollower = z.infer<typeof insertFollowerSchema>;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type InsertNotificationPreference = z.infer<typeof insertNotificationPreferenceSchema>;
 
 // Types de sélection
 export type User = typeof users.$inferSelect;
@@ -515,3 +555,5 @@ export type ProfessionalProfile = typeof professionalProfiles.$inferSelect;
 export type BoostPlan = typeof boostPlans.$inferSelect;
 export type AnnonceBoost = typeof annonceBoosts.$inferSelect;
 export type Follower = typeof followers.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
