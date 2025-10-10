@@ -16,7 +16,10 @@ export function BottomNav({ setDashboardTab }: BottomNavProps) {
 
   const handleProfileClick = () => {
     if (user) {
-      // Si connecté, aller au dashboard
+      // Si connecté, aller au dashboard avec l'onglet overview
+      if (setDashboardTab) {
+        setDashboardTab("overview");
+      }
       setLocation("/dashboard");
     } else {
       // Si non connecté, ouvrir le modal de connexion
