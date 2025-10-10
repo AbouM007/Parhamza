@@ -229,6 +229,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
   const [loadingPurchaseHistory, setLoadingPurchaseHistory] = useState(false);
 
+  // État et ref pour le menu horizontal scrollable
+  const menuScrollRef = React.useRef<HTMLDivElement>(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(true);
+
   const { toast } = useToast();
 
   // État pour le filtre des annonces
@@ -545,6 +550,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [profile?.type, professionalAccount]); // Se déclenche quand les données utilisateur sont chargées
+
+  // Gérer les indicateurs de fade pour le menu horizontal scrollable
+  useEffect(() => {
+    const handleScroll = () => {
+      const container = menuScrollRef.current;
+      if (!container) return;
+
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      
+      // Fade gauche visible si on n'est pas tout à gauche
+      setShowLeftFade(scrollLeft > 0);
+      
+      // Fade droite visible si on n'est pas tout à droite
+      setShowRightFade(scrollLeft < scrollWidth - clientWidth - 1);
+    };
+
+    const container = menuScrollRef.current;
+    if (container) {
+      // Vérifier immédiatement au montage
+      handleScroll();
+      
+      // Écouter les événements de scroll
+      container.addEventListener('scroll', handleScroll);
+      
+      // Cleanup
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [profile?.type, professionalAccount]); // Re-calculer quand les onglets changent
 
   // Pré-remplir le formulaire avec les données existantes quand on entre en mode édition
   useEffect(() => {
@@ -2846,8 +2879,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Menu horizontal scrollable pour mobile */}
         <div className="lg:hidden mb-6 -mx-4 px-4">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2 relative">
+            {/* Fade overlay gauche */}
+            <div 
+              className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent pointer-events-none z-10 transition-opacity duration-300 rounded-l-2xl ${
+                showLeftFade ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+            
+            {/* Fade overlay droite */}
+            <div 
+              className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none z-10 transition-opacity duration-300 rounded-r-2xl ${
+                showRightFade ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+            
+            <div 
+              ref={menuScrollRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+            >
               {getDashboardTabs(profile?.type, professionalAccount)
                 .filter((tab) => {
                   // Masquer les onglets pros pour les utilisateurs individuels
