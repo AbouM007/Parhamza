@@ -102,20 +102,42 @@ export function Messages() {
     try {
       console.log("💬 Chargement messages pour conversation:", conversationId);
 
-      // Utiliser les messages déjà chargés dans les conversations
+      // Trouver la conversation pour obtenir les IDs
       const conversation = conversations.find((c) => c.id === conversationId);
-      if (conversation && conversation.messages) {
-        console.log(
-          "✅ Messages trouvés dans conversation:",
-          conversation.messages.length,
-        );
+      if (!conversation) {
+        console.log("❌ Conversation introuvable:", conversationId);
+        setMessages([]);
+        return;
+      }
+
+      // Parser l'ID de conversation pour obtenir vehicleId et otherUserId
+      // Format: "vehicleId-userId1-userId2"
+      const [vehicleId, userId1, userId2] = conversationId.split("-");
+      const otherUserId = userId1 === currentUserId ? userId2 : userId1;
+
+      console.log("📡 Chargement depuis API:", { vehicleId, currentUserId, otherUserId });
+
+      // Charger les messages via l'API pour toujours avoir les données fraîches
+      const response = await fetch("/api/messages-simple/conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicleId: parseInt(vehicleId),
+          user1Id: currentUserId,
+          user2Id: otherUserId,
+        }),
+      });
+
+      if (response.ok) {
+        const messagesData = await response.json();
+        console.log("✅ Messages reçus de l'API:", messagesData.length);
 
         // Convertir les messages au bon format
-        const formattedMessages = conversation.messages.map((msg) => ({
+        const formattedMessages = messagesData.map((msg: any) => ({
           id: msg.id,
           content: msg.content,
-          sender_id: msg.sender_id,
-          sender_name: msg.is_from_current_user
+          sender_id: msg.from_user_id,
+          sender_name: msg.from_user_id === currentUserId
             ? "Vous"
             : getUserDisplayName(conversation.other_user as any),
           created_at: msg.created_at || new Date().toISOString(),
@@ -123,15 +145,29 @@ export function Messages() {
 
         setMessages(formattedMessages);
         console.log("✅ Messages formatés chargés:", formattedMessages.length);
+
+        // Marquer les messages comme lus
+        const unreadMessageIds = messagesData
+          .filter((msg: any) => msg.to_user_id === currentUserId && !msg.read)
+          .map((msg: any) => msg.id);
+
+        if (unreadMessageIds.length > 0) {
+          fetch("/api/messages-simple/mark-read", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messageIds: unreadMessageIds,
+              userId: currentUserId,
+            }),
+          });
+        }
       } else {
-        console.log(
-          "❌ Aucun message trouvé pour la conversation:",
-          conversationId,
-        );
+        console.error("❌ Erreur chargement messages:", response.status);
         setMessages([]);
       }
     } catch (error) {
       console.error("Erreur chargement messages:", error);
+      setMessages([]);
     }
   };
 

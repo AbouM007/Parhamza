@@ -241,21 +241,12 @@ router.get("/user/:userId", async (req, res) => {
 
     // 🏷️ Helper: Déterminer le nom à afficher selon le type d'utilisateur
     const getDisplayName = (user: any): string => {
-      console.log("🔍 DEBUG getDisplayName:", {
-        type: user?.type,
-        display_name: user?.display_name,
-        company_name: user?.company_name,
-        name: user?.name
-      });
-      
       if (user?.type === "professional") {
         // Professionnels : toujours afficher le nom de la société
         return user?.company_name || "Société inconnue";
       } else {
         // Particuliers : pseudo public (display_name) ou nom complet (name)
-        const result = user?.display_name || user?.name || "Utilisateur inconnu";
-        console.log("🔍 Nom affiché pour particulier:", result);
-        return result;
+        return user?.display_name || user?.name || "Utilisateur inconnu";
       }
     };
 
@@ -379,21 +370,12 @@ router.post("/conversation", async (req, res) => {
 
     // 🏷️ Helper: Déterminer le nom à afficher selon le type d'utilisateur
     const getDisplayName = (user: any): string => {
-      console.log("🔍 DEBUG getDisplayName:", {
-        type: user?.type,
-        display_name: user?.display_name,
-        company_name: user?.company_name,
-        name: user?.name
-      });
-      
       if (user?.type === "professional") {
         // Professionnels : toujours afficher le nom de la société
         return user?.company_name || "Société inconnue";
       } else {
         // Particuliers : pseudo public (display_name) ou nom complet (name)
-        const result = user?.display_name || user?.name || "Utilisateur inconnu";
-        console.log("🔍 Nom affiché pour particulier:", result);
-        return result;
+        return user?.display_name || user?.name || "Utilisateur inconnu";
       }
     };
 
