@@ -13,11 +13,11 @@ The platform features a consistent design language with intuitive user flows, ut
 
 ### Technical Implementations
 **Frontend**: Built with React 18 and TypeScript, using Vite for tooling, TanStack Query for state management, Wouter for routing, and React Hook Form with Zod for form handling.
-**Backend**: Developed with Node.js and Express in TypeScript, utilizing Drizzle ORM for database interactions and Supabase Auth for authentication. Key features include:
+**Backend**: Developed with Node.js and Express in TypeScript, utilizing Supabase client for database interactions and Supabase Auth for authentication. Key features include:
 - **Listing Management**: Comprehensive tools for vehicle and spare parts listings, including an optional plate search for auto-filling vehicle data from an external API.
 - **Compatibility Tags**: An intelligent system for spare parts listings that allows for dynamic filtering and searching by vehicle brands and models.
 - **Subscription & Professional Features**: Management of user subscriptions, professional account verification, and premium listing options.
-- **Messaging & Notifications**: An integrated messaging system complemented by a centralized, event-driven multi-channel notification system with user-configurable preferences.
+- **Messaging & Notifications**: An integrated messaging system complemented by a centralized, event-driven multi-channel notification system with user-configurable preferences. The notification system uses Supabase for data storage and supports in-app notifications, email notifications (Phase 6), and push notifications (Phase 7). All 11 notification types are integrated with automatic triggers across the platform (messages, follows, favorites, listings, payments, subscriptions).
 - **Followers System**: Allows users to follow professional sellers, with dashboard integration showing seller details and active listings.
 - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
 - **Data Persistence**: A hybrid storage system (localStorage and IndexedDB) for create listing forms to prevent data loss, especially for large image uploads.
