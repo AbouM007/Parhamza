@@ -41,6 +41,12 @@ Preferred communication style: Simple, everyday language.
       - Full professional space section with complete benefits list and detailed information
       - Inline "Voir plus" links at section titles
     - Dual layouts ensure optimal UX for each device type while maintaining consistency and reducing mobile screen clutter
+  - **Contact Information Protection (Oct 2025)**:
+    - **Owner Listings**: When authenticated user views their own listing, contact section shows "C'est votre annonce" message with explanation that they cannot contact themselves
+    - **Unauthenticated Users**: Non-logged users see "Connexion requise" message with call-to-action button to login/register before viewing seller contact info
+    - **Authenticated Non-Owners**: Only authenticated users viewing others' listings can access phone, WhatsApp, and messaging features
+    - Applies to all contact methods: phone button, WhatsApp (mobile & desktop), and messaging
+    - Prevents contact information exposure to non-registered users while encouraging account creation
 
 ### Backend
 - **Framework**: Node.js + Express with TypeScript.
