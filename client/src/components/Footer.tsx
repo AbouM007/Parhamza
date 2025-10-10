@@ -169,14 +169,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
                   Confidentialité
                 </button>
               </li>
-              <li>
-                <button
-                  onClick={() => setCurrentView("admin-login")}
-                  className="text-gray-500 hover:text-gray-300 transition-colors text-xs"
-                >
-                  Administration
-                </button>
-              </li>
+              
             </ul>
           </div>
         </div>
@@ -185,7 +178,7 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 mb-4 md:mb-0">
               © 2025 PassionAuto2Roues.com. Tous droits réservés. Design By
-              Happy Agency
+              <a href="https://happyagency.ma" target="_blank">Happy Agency</a>
             </p>
           </div>
         </div>
