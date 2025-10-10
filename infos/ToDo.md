@@ -915,3 +915,61 @@ Voulez-vous que je continue avec la Phase 3 (UI Dashboard) pour afficher les not
 - Notifications en temps réel (WebSocket optionnel)
 - Nettoyage automatique des anciennes notifications
 - Push notifications pour mobile (Capacitor)
+
+---
+
+## ✅ Phase 5 - Événements déclencheurs complétée avec succès !
+
+### 🎉 Récapitulatif de la Phase 5
+
+**Créé le :** 10 octobre 2025
+
+#### 🔌 Intégrations réalisées :
+
+**1. Messagerie** (`server/routes/messaging-simple.ts`)
+- ✅ Notification automatique `notifyNewMessage()` lors de l'envoi d'un message
+- Inclut : nom de l'expéditeur, titre de l'annonce concernée
+- Envoyée au destinataire du message
+
+**2. Followers** (`server/routes/followers.ts`)
+- ✅ Notification automatique `notifyNewFollower()` quand quelqu'un suit un vendeur
+- Inclut : nom du nouveau follower
+- Envoyée au vendeur suivi
+
+**3. Validation d'annonces** (`server/routes/admin.ts`)
+- ✅ Notification `notifyListingValidated()` quand l'admin approuve une annonce
+- ✅ Notification `notifyListingRejected()` quand l'admin rejette une annonce
+- Inclut : titre de l'annonce, raison du rejet (si applicable)
+- Envoyée au propriétaire de l'annonce
+
+**4. Favoris** (`server/routes/favorites.ts`)
+- ✅ Notification `notifyListingFavorited()` quand quelqu'un ajoute une annonce aux favoris
+- Inclut : titre de l'annonce
+- Envoyée au propriétaire de l'annonce
+- Fonction créée : `notifyListingFavorited()` dans `notificationCenter.ts`
+
+**5. Paiements Stripe** (`server/routes/subscriptions.ts`)
+- ✅ Notification `notifyPaymentSuccess()` sur webhook `invoice.payment_succeeded`
+- ✅ Notification `notifyPaymentFailed()` sur webhook `invoice.payment_failed`
+- Inclut : montant, type d'abonnement, raison de l'échec
+- Envoyée à l'utilisateur concerné
+
+#### 🎯 Fonctionnement automatique :
+
+- ✅ Toutes les actions déclenchent désormais des notifications en temps réel
+- ✅ Notifications créées en base de données pour affichage in-app
+- ✅ Préférences utilisateur respectées (in-app, email, push)
+- ✅ Système robuste avec gestion d'erreurs (ne bloque pas l'action principale)
+
+#### 📋 Prochaines phases disponibles :
+
+**Phase 6 : Page Préférences**
+- Interface utilisateur pour gérer les préférences de notifications
+- Toggle par type (messages, annonces, followers, etc.)
+- Toggle par canal (in-app, email, push)
+- Sauvegarde en temps réel des préférences
+
+**Phase 7 : Optimisations**
+- Notifications en temps réel (WebSocket pour mise à jour instantanée)
+- Nettoyage automatique des anciennes notifications (cron job)
+- Push notifications pour mobile (Capacitor + service worker)
