@@ -402,7 +402,7 @@ export function Messages() {
             )}
           </button>
           <button
-            onClick={() => setActiveTab("notifications")}
+            onClick={() => navigate("/dashboard?tab=notifications")}
             className={`pb-3 px-1 relative flex items-center gap-2 ${
               activeTab === "notifications"
                 ? "text-primary-bolt-600 font-semibold"
