@@ -11,6 +11,13 @@ Preferred communication style: Simple, everyday language.
 ### UI/UX Decisions
 The platform features a consistent design language with intuitive user flows, utilizing Radix UI, TailwindCSS, and shadcn/ui for a responsive and modern interface. Specific UI/UX enhancements include dynamic dashboard activity displays, optimized vehicle detail views for different listing types (e.g., spare parts vs. damaged vehicles), and a responsive home page with tailored layouts for mobile and desktop. Contact information is protected based on user authentication status and listing ownership, preventing unauthorized access.
 
+**Mobile Navigation Architecture (October 2025)**: The mobile hamburger menu uses a hierarchical 2-level accordion system inspired by leading marketplaces (Leboncoin, eBay). The structure includes:
+- **Top Level**: Home link followed by "Toutes les catégories" main accordion
+- **Second Level**: 6 category groups (Voitures-Utilitaires, Motos-Scooters-Quads, Nautisme, Accidentés, Pièces détachées, Services), each expandable to show subcategories
+- **User Section**: Quick access to "Mes annonces", "Messages" (with unread count badge), "Notifications", separated by a divider from "Mon profil" and "Aide"
+- **UX Features**: Smooth animations (200ms transitions), chevron icons that rotate on expansion (► → ▼), visual indentation for hierarchy, minimum 48px touch targets, responsive scrolling with max-height constraints, and emoji icons for visual categorization
+- **Behavior**: Only one sub-accordion can be open at a time to prevent menu overflow, and the entire menu closes automatically after navigation selection.
+
 ### Technical Implementations
 **Frontend**: Built with React 18 and TypeScript, using Vite for tooling, TanStack Query for state management, Wouter for routing, and React Hook Form with Zod for form handling.
 **Backend**: Developed with Node.js and Express in TypeScript, utilizing Supabase client for database interactions and Supabase Auth for authentication. Key features include:
