@@ -28,11 +28,8 @@ export function BottomNav({ setDashboardTab }: BottomNavProps) {
   };
 
   const handleMessagesClick = () => {
-    // Définir l'onglet messages et rediriger vers le dashboard
-    if (setDashboardTab) {
-      setDashboardTab("messages");
-    }
-    setLocation("/dashboard");
+    // Rediriger vers la page messages standalone
+    setLocation("/messages");
   };
 
   const handleCreateListing = () => {
@@ -67,8 +64,8 @@ export function BottomNav({ setDashboardTab }: BottomNavProps) {
     {
       icon: MessageCircle,
       label: "Messages",
-      path: "/dashboard",
-      active: location === "/dashboard",
+      path: "/messages",
+      active: location === "/messages" || location.startsWith("/messages/"),
       onClick: handleMessagesClick,
     },
     {
