@@ -436,6 +436,18 @@ export const annonceBoosts = pgTable("annonce_boosts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Table followers - Suivi des vendeurs professionnels
+export const followers = pgTable("followers", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  followedUserId: text("followed_user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Schémas d'insertion
 export const insertUserSchema = createInsertSchema(users);
 export const insertVehicleSchema = createInsertSchema(annonces).omit({
@@ -463,6 +475,9 @@ export const insertBoostPlanSchema = createInsertSchema(boostPlans).omit({
 export const insertAnnonceBoostSchema = createInsertSchema(annonceBoosts).omit({
   id: true,
 });
+export const insertFollowerSchema = createInsertSchema(followers).omit({
+  id: true,
+});
 
 // Types d'insertion
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -483,6 +498,7 @@ export type InsertProfessionalProfile = z.infer<
 >;
 export type InsertBoostPlan = z.infer<typeof insertBoostPlanSchema>;
 export type InsertAnnonceBoost = z.infer<typeof insertAnnonceBoostSchema>;
+export type InsertFollower = z.infer<typeof insertFollowerSchema>;
 
 // Types de sélection
 export type User = typeof users.$inferSelect;
@@ -498,3 +514,4 @@ export type VerificationDocument = typeof verificationDocuments.$inferSelect;
 export type ProfessionalProfile = typeof professionalProfiles.$inferSelect;
 export type BoostPlan = typeof boostPlans.$inferSelect;
 export type AnnonceBoost = typeof annonceBoosts.$inferSelect;
+export type Follower = typeof followers.$inferSelect;
