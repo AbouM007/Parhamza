@@ -28,6 +28,7 @@ import { AdminLogin } from "@/components/AdminLogin";
 import { AdminTest } from "@/components/AdminTest";
 import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import ProShop from "./pages/ProShop";
 import SubscriptionPurchase from "./pages/SubscriptionPurchase";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
@@ -349,6 +350,9 @@ function AppContent() {
                 </Route>
                 <Route path="/messages">
                   <Messages />
+                </Route>
+                <Route path="/notifications">
+                  <NotificationsPage />
                 </Route>
                 <Route path="/professional-verification">
                   <ProfessionalVerification />
