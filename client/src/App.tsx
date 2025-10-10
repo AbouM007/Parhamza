@@ -214,6 +214,7 @@ function AppContent() {
   const isAdminRoute = location.startsWith("/admin");
   const isPaymentRoute =
     location.startsWith("/success") || location.startsWith("/auth/callback");
+  const isMessagesRoute = location.startsWith("/messages");
 
   const shouldMaskHomepage =
     !isAdminRoute &&
@@ -226,7 +227,7 @@ function AppContent() {
         <div className="min-h-screen bg-gray-50" />
       ) : (
         <>
-          {!isAdminRoute && (
+          {!isAdminRoute && !isMessagesRoute && (
             <Header
               currentView={getCurrentView()}
               setCurrentView={setCurrentView}
