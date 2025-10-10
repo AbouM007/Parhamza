@@ -83,6 +83,12 @@ Preferred communication style: Simple, everyday language.
         - Dedicated "Informations sur la pièce" section in VehicleDetail for part-specific data
     - **Subscription Management**: User subscriptions, professional account verification, and premium features (listing boosts).
     - **Messaging**: Integrated messaging system.
+    - **Followers System (Oct 2025)**: Professional seller follow system
+      - Users can follow professional sellers to track their listings
+      - Dashboard "Vendeurs suivis" tab displays followed sellers with their info
+      - API routes use separate queries instead of Supabase JOINs for reliability
+      - Routes: `/api/followers/following/:userId` and `/api/followers/:userId`
+      - Data fetched separately then combined to avoid foreign key dependency issues
     - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
     - **Data Transformation**: Reusable helper functions for Supabase data.
     - **Category Restructuring**: Specific categories for spare parts.
