@@ -409,7 +409,10 @@ function AppContent() {
               </Switch>
               {!isAdminRoute && (
                 <>
-                  <Footer setCurrentView={setCurrentView} />
+                  {/* Footer masqué sur mobile, visible uniquement sur desktop */}
+                  <div className="hidden md:block">
+                    <Footer setCurrentView={setCurrentView} />
+                  </div>
                   <BottomNav />
                 </>
               )}

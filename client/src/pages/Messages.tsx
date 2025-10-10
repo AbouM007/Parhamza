@@ -281,10 +281,10 @@ export function Messages() {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 pb-8">
+    <div className="bg-gray-50 dark:bg-gray-900 md:pb-8">
       <div className="max-w-6xl mx-auto md:py-8 md:px-4">
         <div className="bg-white dark:bg-gray-800 md:rounded-lg md:shadow-lg overflow-hidden">
-          <div className="flex h-[calc(100vh-200px)] md:h-[600px]">
+          <div className="flex h-[calc(100vh-64px)] md:h-[600px]">
             {/* Liste des conversations */}
             <div
               className={`w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 ${selectedConversation ? "hidden md:block" : ""}`}
