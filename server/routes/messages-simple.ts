@@ -203,7 +203,10 @@ router.get("/user/:userId", async (req, res) => {
     // Plus besoin de mapping - utilisation directe de l'ID string
     console.log("📝 ID utilisé directement:", userId);
 
-    // Récupérer tous les messages où l'utilisateur est expéditeur ou destinataire
+    // ⚡ OPTIMISATION: Récupérer tous les messages avec JOINs pour éviter N+1
+    // Une seule requête au lieu de 1 + N*2 requêtes (utilisateurs + véhicules)
+    const startTime = Date.now();
+    
     const { data: messages, error } = await supabaseServer
       .from("messages")
       .select(
@@ -214,11 +217,17 @@ router.get("/user/:userId", async (req, res) => {
         annonce_id,
         content,
         read,
-        created_at
+        created_at,
+        from_user:users!from_user_id(id, name, email, type, avatar, company_logo),
+        to_user:users!to_user_id(id, name, email, type, avatar, company_logo),
+        annonce:annonces!annonce_id(id, title)
       `,
       )
       .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`)
       .order("created_at", { ascending: false });
+
+    const queryTime = Date.now() - startTime;
+    console.log(`⚡ Requête optimisée terminée en ${queryTime}ms`);
 
     if (error) {
       console.error("❌ Erreur récupération messages:", error.message);
@@ -230,7 +239,7 @@ router.get("/user/:userId", async (req, res) => {
     // Empêcher la mise en cache des messages pour avoir des données fraîches
     res.setHeader("Cache-Control", "no-store");
 
-    // Grouper par conversation avec ID canonique et enrichir avec les infos utilisateurs/véhicules
+    // ⚡ Grouper par conversation en mémoire (toutes les données sont déjà chargées)
     const conversationsMap = new Map();
 
     for (const message of messages) {
@@ -238,37 +247,20 @@ router.get("/user/:userId", async (req, res) => {
       const otherUserId = isFromCurrentUser
         ? message.to_user_id
         : message.from_user_id;
+      
+      // Récupérer l'autre utilisateur depuis les données déjà chargées
+      const otherUser = isFromCurrentUser ? message.to_user : message.from_user;
 
-      // ✅ Créer un ID canonique selon la recommandation ChatGPT-5
+      // Créer un ID canonique pour la conversation
       const sortedUserIds = [message.from_user_id, message.to_user_id].sort();
       const conversationId = `${message.annonce_id}|${sortedUserIds[0]}|${sortedUserIds[1]}`;
 
       if (!conversationsMap.has(conversationId)) {
-        // Récupérer les infos de l'autre utilisateur avec type, avatar et company_logo
-        const { data: otherUser } = await supabaseServer
-          .from("users")
-          .select("id, name, email, type, avatar, company_logo")
-          .eq("id", otherUserId)
-          .single();
-
-        // Récupérer les infos du véhicule si disponible
-        let vehicleInfo = null;
-        if (message.annonce_id) {
-          const { data: vehicle } = await supabaseServer
-            .from("annonces")
-            .select("id, title")
-            .eq("id", message.annonce_id)
-            .single();
-          vehicleInfo = vehicle;
-        }
-
         conversationsMap.set(conversationId, {
-          id: conversationId, // ✅ ID canonique
+          id: conversationId,
           vehicle_id: message.annonce_id,
-          vehicle_title: vehicleInfo?.title || "Véhicule non spécifié",
+          vehicle_title: message.annonce?.title || "Véhicule non spécifié",
           other_user: {
-            ...otherUser,
-            // ✅ S'assurer que tous les champs nécessaires sont présents
             id: otherUserId,
             name: otherUser?.name || "Utilisateur inconnu",
             email: otherUser?.email || "",
@@ -276,7 +268,7 @@ router.get("/user/:userId", async (req, res) => {
             avatar: otherUser?.avatar || null,
             company_logo: otherUser?.company_logo || null,
           },
-          other_user_id: otherUserId, // ✅ Ajouter pour compatibilité
+          other_user_id: otherUserId,
           last_message_at: message.created_at,
           last_message: message.content,
           unread_count: 0,
