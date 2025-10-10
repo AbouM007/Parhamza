@@ -239,11 +239,15 @@ router.get("/user/:userId", async (req, res) => {
     // Empêcher la mise en cache des messages pour avoir des données fraîches
     res.setHeader("Cache-Control", "no-store");
 
-    // 🏷️ Helper: Déterminer le nom à afficher (display_name > company_name si pro > name)
+    // 🏷️ Helper: Déterminer le nom à afficher selon le type d'utilisateur
     const getDisplayName = (user: any): string => {
-      if (user?.display_name) return user.display_name;
-      if (user?.type === "professional" && user?.company_name) return user.company_name;
-      return user?.name || "Utilisateur inconnu";
+      if (user?.type === "professional") {
+        // Professionnels : toujours afficher le nom de la société
+        return user?.company_name || "Société inconnue";
+      } else {
+        // Particuliers : pseudo public (display_name) ou nom complet (name)
+        return user?.display_name || user?.name || "Utilisateur inconnu";
+      }
     };
 
     // ⚡ Grouper par conversation en mémoire (toutes les données sont déjà chargées via JOINs)
@@ -364,11 +368,15 @@ router.post("/conversation", async (req, res) => {
       console.error("❌ Erreur récupération utilisateurs:", usersError);
     }
 
-    // 🏷️ Helper: Déterminer le nom à afficher
+    // 🏷️ Helper: Déterminer le nom à afficher selon le type d'utilisateur
     const getDisplayName = (user: any): string => {
-      if (user?.display_name) return user.display_name;
-      if (user?.type === "professional" && user?.company_name) return user.company_name;
-      return user?.name || "Utilisateur inconnu";
+      if (user?.type === "professional") {
+        // Professionnels : toujours afficher le nom de la société
+        return user?.company_name || "Société inconnue";
+      } else {
+        // Particuliers : pseudo public (display_name) ou nom complet (name)
+        return user?.display_name || user?.name || "Utilisateur inconnu";
+      }
     };
 
     // Créer un map des utilisateurs pour un accès rapide
