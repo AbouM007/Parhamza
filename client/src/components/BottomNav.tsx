@@ -1,4 +1,4 @@
-import { Home, Search, PlusCircle, MessageCircle, User } from "lucide-react";
+import { Home, Search, PlusCircle, MessageCircle, User, Bell } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApp } from "@/contexts/AppContext";
@@ -55,6 +55,13 @@ export function BottomNav() {
       path: "/messages",
       active: location === "/messages",
       onClick: () => setLocation("/messages"),
+    },
+    {
+      icon: Bell,
+      label: "Notifs",
+      path: "/notifications",
+      active: location === "/notifications",
+      onClick: () => setLocation("/notifications"),
     },
     {
       icon: User,
