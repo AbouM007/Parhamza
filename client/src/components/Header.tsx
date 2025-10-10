@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { UserMenu } from "./auth/UserMenu";
+import { NotificationCenter } from "./NotificationCenter";
 import logoPath from "@/assets/logo-transparent_1753108744744.png";
 //import accidentIcon from "@/assets/accident_1753354197012.png";
 
@@ -332,6 +333,12 @@ export const Header: React.FC<HeaderProps> = ({
                     </span>
                   )}
                 </button>
+
+                {/* Notifications */}
+                <div className="flex flex-col items-center">
+                  <NotificationCenter />
+                  <span className="text-xs text-gray-600 mt-1">Notifications</span>
+                </div>
 
                 {/* User Menu */}
                 <UserMenu
