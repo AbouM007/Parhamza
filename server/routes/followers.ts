@@ -28,42 +28,51 @@ router.get("/following/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const { data: followersData, error } = await supabase
+    // Get all followers records
+    const { data: followersData, error: followersError } = await supabase
       .from("followers")
-      .select(`
-        id,
-        followed_user_id,
-        created_at,
-        followed:users!followers_followed_user_id_fkey(
-          id,
-          name,
-          display_name,
-          avatar,
-          type,
-          company_name,
-          followers_count
-        )
-      `)
+      .select("id, followed_user_id, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (followersError) throw followersError;
+
+    if (!followersData || followersData.length === 0) {
+      return res.json([]);
+    }
+
+    // Get user IDs
+    const userIds = followersData.map((f: any) => f.followed_user_id);
+
+    // Fetch user details separately
+    const { data: usersData, error: usersError } = await supabase
+      .from("users")
+      .select("id, name, display_name, avatar, type, company_name, followers_count")
+      .in("id", userIds);
+
+    if (usersError) throw usersError;
+
+    // Create a map of users by ID
+    const usersMap = new Map(usersData?.map((u: any) => [u.id, u]) || []);
 
     // Transform data to include user info
-    const following = followersData?.map((f: any) => ({
-      id: f.id,
-      followedUserId: f.followed_user_id,
-      createdAt: f.created_at,
-      followedUser: f.followed ? {
-        id: f.followed.id,
-        name: f.followed.name,
-        displayName: f.followed.display_name,
-        avatar: f.followed.avatar,
-        type: f.followed.type,
-        companyName: f.followed.company_name,
-        followersCount: f.followed.followers_count || 0,
-      } : null,
-    })) || [];
+    const following = followersData.map((f: any) => {
+      const user = usersMap.get(f.followed_user_id);
+      return {
+        id: f.id,
+        followedUserId: f.followed_user_id,
+        createdAt: f.created_at,
+        followedUser: user ? {
+          id: user.id,
+          name: user.name,
+          displayName: user.display_name,
+          avatar: user.avatar,
+          type: user.type,
+          companyName: user.company_name,
+          followersCount: user.followers_count || 0,
+        } : null,
+      };
+    });
 
     res.json(following);
   } catch (error) {
@@ -77,35 +86,48 @@ router.get("/followers/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const { data: followersData, error } = await supabase
+    // Get all followers records
+    const { data: followersData, error: followersError } = await supabase
       .from("followers")
-      .select(`
-        id,
-        user_id,
-        created_at,
-        follower:users!followers_user_id_fkey(
-          id,
-          name,
-          display_name,
-          avatar
-        )
-      `)
+      .select("id, user_id, created_at")
       .eq("followed_user_id", userId)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (followersError) throw followersError;
 
-    const followers = followersData?.map((f: any) => ({
-      id: f.id,
-      userId: f.user_id,
-      createdAt: f.created_at,
-      follower: f.follower ? {
-        id: f.follower.id,
-        name: f.follower.name,
-        displayName: f.follower.display_name,
-        avatar: f.follower.avatar,
-      } : null,
-    })) || [];
+    if (!followersData || followersData.length === 0) {
+      return res.json([]);
+    }
+
+    // Get user IDs
+    const userIds = followersData.map((f: any) => f.user_id);
+
+    // Fetch user details separately
+    const { data: usersData, error: usersError } = await supabase
+      .from("users")
+      .select("id, name, display_name, avatar")
+      .in("id", userIds);
+
+    if (usersError) throw usersError;
+
+    // Create a map of users by ID
+    const usersMap = new Map(usersData?.map((u: any) => [u.id, u]) || []);
+
+    // Transform data to include user info
+    const followers = followersData.map((f: any) => {
+      const user = usersMap.get(f.user_id);
+      return {
+        id: f.id,
+        userId: f.user_id,
+        createdAt: f.created_at,
+        follower: user ? {
+          id: user.id,
+          name: user.name,
+          displayName: user.display_name,
+          avatar: user.avatar,
+        } : null,
+      };
+    });
 
     res.json(followers);
   } catch (error) {
