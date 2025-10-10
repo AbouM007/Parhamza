@@ -215,7 +215,7 @@ export function NotificationCenter() {
             <div className="border-t border-gray-200 p-2 text-center">
               <button
                 onClick={() => {
-                  setLocation('/dashboard');
+                  setLocation('/notifications');
                   setIsOpen(false);
                 }}
                 className="text-sm text-primary-bolt-500 hover:text-primary-bolt-600 py-2 px-4 rounded hover:bg-gray-50 transition-colors"
