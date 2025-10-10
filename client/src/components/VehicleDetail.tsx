@@ -1175,7 +1175,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       Vous devez créer un compte et vous connecter pour voir les informations de contact du vendeur.
                     </p>
                     <button
-                      onClick={openAuthModal}
+                      onClick={() => openAuthModal("login")}
                       className="w-full bg-primary-bolt-500 text-white py-2.5 px-4 rounded-xl hover:bg-primary-bolt-600 transition-colors font-semibold"
                       data-testid="button-login-to-contact"
                     >
