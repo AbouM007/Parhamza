@@ -203,10 +203,11 @@ router.get("/user/:userId", async (req, res) => {
     // Plus besoin de mapping - utilisation directe de l'ID string
     console.log("📝 ID utilisé directement:", userId);
 
-    // ⚡ OPTIMISATION: Récupérer tous les messages avec JOINs pour éviter N+1
-    // Une seule requête au lieu de 1 + N*2 requêtes (utilisateurs + véhicules)
+    // ⚡ OPTIMISATION: Utiliser des requêtes groupées au lieu de N+1
+    // 3 requêtes totales au lieu de 1 + N*2 requêtes
     const startTime = Date.now();
     
+    // 1. Récupérer tous les messages
     const { data: messages, error } = await supabaseServer
       .from("messages")
       .select(
@@ -217,17 +218,11 @@ router.get("/user/:userId", async (req, res) => {
         annonce_id,
         content,
         read,
-        created_at,
-        from_user:users!from_user_id(id, name, email, type, avatar, company_logo),
-        to_user:users!to_user_id(id, name, email, type, avatar, company_logo),
-        annonce:annonces!annonce_id(id, title)
+        created_at
       `,
       )
       .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`)
       .order("created_at", { ascending: false });
-
-    const queryTime = Date.now() - startTime;
-    console.log(`⚡ Requête optimisée terminée en ${queryTime}ms`);
 
     if (error) {
       console.error("❌ Erreur récupération messages:", error.message);
