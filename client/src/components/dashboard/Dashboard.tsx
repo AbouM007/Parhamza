@@ -2844,10 +2844,58 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Menu horizontal scrollable pour mobile */}
+        <div className="lg:hidden mb-6 -mx-4 px-4">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+              {getDashboardTabs(profile?.type, professionalAccount)
+                .filter((tab) => {
+                  // Masquer les onglets pros pour les utilisateurs individuels
+                  if (
+                    (tab.id === "subscription" ||
+                      tab.id === "manage-subscription") &&
+                    profile?.type !== "professional"
+                  ) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((tab) => {
+                  const badgeCount =
+                    tab.id === "messages" ? unreadCount : tab.badge || 0;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-shrink-0 flex flex-col items-center justify-center px-4 py-3 rounded-xl transition-all duration-200 min-w-[90px] snap-start ${
+                        activeTab === tab.id
+                          ? "bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 text-white shadow-lg scale-105"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-primary-bolt-500"
+                      }`}
+                    >
+                      <div className="relative">
+                        {tab.icon}
+                        {badgeCount > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                            {badgeCount > 9 ? "9+" : badgeCount}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold mt-1.5 text-center leading-tight">
+                        {tab.label}
+                      </span>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Navigation - masquée si onglet messages */}
+          {/* Sidebar Navigation - masquée si onglet messages OU sur mobile */}
           {activeTab !== "messages" && (
-            <div className="lg:w-80 flex-shrink-0">
+            <div className="hidden lg:block lg:w-80 flex-shrink-0">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24">
                 <div className="p-8 border-b border-gray-200 bg-gradient-to-r from-primary-bolt-50 to-primary-bolt-100">
                   <div className="flex items-center space-x-4">
@@ -2955,7 +3003,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 deletedVehicles={deletedVehicles}
                 listingFilter={listingFilter}
                 setListingFilter={setListingFilter}
-                //profile={profile}
+                profile={profile}
                 quotaInfo={quotaInfo}
                 brandIcon={brandIcon}
                 boostStatuses={boostStatuses}
