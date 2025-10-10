@@ -85,9 +85,15 @@ Preferred communication style: Simple, everyday language.
     - **Messaging**: Integrated messaging system.
     - **Followers System (Oct 2025)**: Professional seller follow system
       - Users can follow professional sellers to track their listings
-      - Dashboard "Vendeurs suivis" tab displays followed sellers with their info
+      - Dashboard "Vendeurs suivis" tab displays followed sellers with enriched information:
+        - Professional verification badge (ShieldCheck icon in blue) for verified sellers
+        - Active listings count with Package icon
+        - Follower count with UserPlus icon
+        - Enhanced visual hierarchy with improved layout
+        - Trash2 icon for unfollow button with red hover state
+        - AlertDialog confirmation before unfollowing to prevent accidental actions
       - API routes use separate queries instead of Supabase JOINs for reliability
-      - Routes: `/api/followers/following/:userId` and `/api/followers/:userId`
+      - Routes: `/api/followers/following/:userId` (includes isVerified and activeListingsCount) and `/api/followers/:userId`
       - Data fetched separately then combined to avoid foreign key dependency issues
     - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
     - **Data Transformation**: Reusable helper functions for Supabase data.
