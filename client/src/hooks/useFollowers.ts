@@ -11,6 +11,8 @@ interface FollowedUser {
   type: string;
   companyName: string | null;
   followersCount: number;
+  activeListingsCount: number;
+  isVerified: boolean;
 }
 
 interface FollowingItem {
