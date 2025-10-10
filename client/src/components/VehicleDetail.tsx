@@ -1153,88 +1153,130 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
               {/* Contact Actions */}
               <div className="space-y-3">
-                {/* Bouton téléphone - Masqué si hidePhone = true */}
-                {!vehicle.hidePhone && (
-                  <>
+                {/* Message si c'est l'annonce de l'utilisateur connecté */}
+                {authUser?.id === vehicle.userId ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-center space-x-2 text-blue-700">
+                      <CheckCircle className="h-5 w-5" />
+                      <p className="font-medium">C'est votre annonce</p>
+                    </div>
+                    <p className="text-sm text-blue-600 mt-2">
+                      Vous ne pouvez pas contacter votre propre annonce. Les acheteurs intéressés pourront vous contacter.
+                    </p>
+                  </div>
+                ) : !authUser ? (
+                  /* Message si l'utilisateur n'est pas connecté */
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                    <div className="flex items-center space-x-2 text-orange-700 mb-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      <p className="font-medium">Connexion requise</p>
+                    </div>
+                    <p className="text-sm text-orange-600 mb-3">
+                      Vous devez créer un compte et vous connecter pour voir les informations de contact du vendeur.
+                    </p>
                     <button
-                      onClick={() => setShowContactInfo(!showContactInfo)}
-                      className="w-full bg-primary-bolt-500 text-white py-3 px-4 rounded-xl hover:bg-primary-bolt-600 transition-colors font-semibold flex items-center justify-center space-x-2"
+                      onClick={openAuthModal}
+                      className="w-full bg-primary-bolt-500 text-white py-2.5 px-4 rounded-xl hover:bg-primary-bolt-600 transition-colors font-semibold"
+                      data-testid="button-login-to-contact"
                     >
-                      <Phone className="h-5 w-5" />
-                      <span>Voir le téléphone</span>
+                      Se connecter / S'inscrire
                     </button>
+                  </div>
+                ) : (
+                  /* Boutons de contact normaux pour les utilisateurs connectés */
+                  <>
+                    {/* Bouton téléphone - Masqué si hidePhone = true */}
+                    {!vehicle.hidePhone && (
+                      <>
+                        <button
+                          onClick={() => setShowContactInfo(!showContactInfo)}
+                          className="w-full bg-primary-bolt-500 text-white py-3 px-4 rounded-xl hover:bg-primary-bolt-600 transition-colors font-semibold flex items-center justify-center space-x-2"
+                          data-testid="button-show-phone"
+                        >
+                          <Phone className="h-5 w-5" />
+                          <span>Voir le téléphone</span>
+                        </button>
 
-                    {showContactInfo &&
-                      (vehicle.contactPhone || vehicle.user?.phone) && (
-                        <div className="p-3 bg-primary-bolt-50 rounded-xl text-center">
-                          <a
-                            href={`tel:${vehicle.contactPhone || vehicle.user?.phone}`}
-                            className="text-lg font-semibold text-primary-bolt-500 hover:text-primary-bolt-600"
-                          >
-                            {vehicle.contactPhone || vehicle.user?.phone}
-                          </a>
-                        </div>
+                        {showContactInfo &&
+                          (vehicle.contactPhone || vehicle.user?.phone) && (
+                            <div className="p-3 bg-primary-bolt-50 rounded-xl text-center">
+                              <a
+                                href={`tel:${vehicle.contactPhone || vehicle.user?.phone}`}
+                                className="text-lg font-semibold text-primary-bolt-500 hover:text-primary-bolt-600"
+                                data-testid="link-phone-number"
+                              >
+                                {vehicle.contactPhone || vehicle.user?.phone}
+                              </a>
+                            </div>
+                          )}
+                      </>
+                    )}
+
+                    {/* WhatsApp Button - Mobile Only - Masqué si hideWhatsapp = true */}
+                    {!vehicle.hideWhatsapp && (vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
+                      <button
+                        onClick={() => {
+                          const whatsappNumber =
+                            vehicle.contactWhatsapp || vehicle.user?.whatsapp;
+                          const cleanNumber = whatsappNumber!
+                            .replace(/[\s\-\(\)]/g, "")
+                            .replace(/^\+/, "");
+                          const message = `Bonjour, je suis intéressé par votre annonce ${vehicle.title}.`;
+                          const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
+                          window.open(whatsappUrl, "_blank");
+                        }}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl transition-colors font-semibold flex items-center justify-center space-x-2 md:hidden"
+                        data-testid="button-whatsapp-mobile"
+                      >
+                        <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
+                        </svg>
+                        <span>Contacter sur WhatsApp</span>
+                      </button>
+                    )}
+
+                    {/* Bouton message - Masqué si hideMessages = true */}
+                    {!vehicle.hideMessages && (
+                      <button
+                        onClick={handleMessageClick}
+                        className="w-full bg-gray-600 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition-colors font-semibold flex items-center justify-center space-x-2"
+                        data-testid="button-send-message"
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                        <span>Envoyer un message</span>
+                      </button>
+                    )}
+
+                    {/* Lien vers boutique professionnelle */}
+                    {vehicle.user?.type === "professional" &&
+                      vehicle.user?.companyName && (
+                        <button
+                          onClick={() => {
+                            // Naviguer vers la boutique professionnelle
+                            const userId = vehicle.user?.id;
+                            if (userId) {
+                              window.open(`/pro/${userId}`, "_blank");
+                            }
+                          }}
+                          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-lg"
+                          data-testid="button-view-shop"
+                        >
+                          <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                            <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h2v10z" />
+                          </svg>
+                          <span>Voir la boutique</span>
+                        </button>
                       )}
                   </>
                 )}
-
-                {/* WhatsApp Button - Mobile Only - Masqué si hideWhatsapp = true */}
-                {!vehicle.hideWhatsapp && (vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
-                  <button
-                    onClick={() => {
-                      const whatsappNumber =
-                        vehicle.contactWhatsapp || vehicle.user?.whatsapp;
-                      const cleanNumber = whatsappNumber!
-                        .replace(/[\s\-\(\)]/g, "")
-                        .replace(/^\+/, "");
-                      const message = `Bonjour, je suis intéressé par votre annonce ${vehicle.title}.`;
-                      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
-                      window.open(whatsappUrl, "_blank");
-                    }}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl transition-colors font-semibold flex items-center justify-center space-x-2 md:hidden"
-                  >
-                    <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" />
-                    </svg>
-                    <span>Contacter sur WhatsApp</span>
-                  </button>
-                )}
-
-                {/* Bouton message - Masqué si hideMessages = true */}
-                {!vehicle.hideMessages && (
-                  <button
-                    onClick={handleMessageClick}
-                    className="w-full bg-gray-600 text-white py-3 px-4 rounded-xl hover:bg-gray-700 transition-colors font-semibold flex items-center justify-center space-x-2"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                    <span>Envoyer un message</span>
-                  </button>
-                )}
-
-                {/* Lien vers boutique professionnelle */}
-                {vehicle.user?.type === "professional" &&
-                  vehicle.user?.companyName && (
-                    <button
-                      onClick={() => {
-                        // Naviguer vers la boutique professionnelle
-                        const userId = vehicle.user?.id;
-                        if (userId) {
-                          window.open(`/pro/${userId}`, "_blank");
-                        }
-                      }}
-                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-lg"
-                    >
-                      <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h2v10z" />
-                      </svg>
-                      <span>Voir la boutique</span>
-                    </button>
-                  )}
               </div>
             </div>
 
-            {/* WhatsApp Contact Component - Desktop/Tablet Only - Masqué si hideWhatsapp = true */}
-            {!vehicle.hideWhatsapp && (vehicle.contactWhatsapp || vehicle.user?.whatsapp) && (
+            {/* WhatsApp Contact Component - Desktop/Tablet Only - Masqué si hideWhatsapp = true, utilisateur non connecté ou propriétaire */}
+            {!vehicle.hideWhatsapp && 
+             (vehicle.contactWhatsapp || vehicle.user?.whatsapp) && 
+             authUser && 
+             authUser.id !== vehicle.userId && (
               <div className="hidden md:block">
                 <WhatsAppContact
                   whatsappNumber={
