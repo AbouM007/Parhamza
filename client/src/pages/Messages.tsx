@@ -92,7 +92,8 @@ export function Messages() {
         return;
       }
 
-      const [vehicleId, userId1, userId2] = convId.split("-");
+      // L'ID peut contenir des | (encodés en %7C dans l'URL, mais décodés par wouter)
+      const [vehicleId, userId1, userId2] = convId.split("|");
       const otherUserId = userId1 === currentUserId ? userId2 : userId1;
 
       const response = await fetch(
