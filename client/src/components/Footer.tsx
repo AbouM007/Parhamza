@@ -177,8 +177,8 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 mb-4 md:mb-0">
-              © 2025 PassionAuto2Roues.com. Tous droits réservés. Design By
-              <a href="https://happyagency.ma" target="_blank">Happy Agency</a>
+              © 2025 PassionAuto2Roues.com. Tous droits réservés. By 
+              <a href="https://happyagency.ma" target="_blank"> Happy Agency</a>
             </p>
           </div>
         </div>
