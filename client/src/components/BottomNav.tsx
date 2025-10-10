@@ -4,7 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApp } from "@/contexts/AppContext";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 
-export function BottomNav() {
+interface BottomNavProps {
+  setDashboardTab?: (tab: string) => void;
+}
+
+export function BottomNav({ setDashboardTab }: BottomNavProps) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { openAuthModal } = useApp();
@@ -18,6 +22,14 @@ export function BottomNav() {
       // Si non connecté, ouvrir le modal de connexion
       openAuthModal("login");
     }
+  };
+
+  const handleMessagesClick = () => {
+    // Définir l'onglet messages et rediriger vers le dashboard
+    if (setDashboardTab) {
+      setDashboardTab("messages");
+    }
+    setLocation("/dashboard");
   };
 
   const handleCreateListing = () => {
@@ -52,9 +64,9 @@ export function BottomNav() {
     {
       icon: MessageCircle,
       label: "Messages",
-      path: "/messages",
-      active: location === "/messages",
-      onClick: () => setLocation("/messages"),
+      path: "/dashboard",
+      active: location === "/dashboard",
+      onClick: handleMessagesClick,
     },
     {
       icon: User,

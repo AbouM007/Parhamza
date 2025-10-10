@@ -413,7 +413,7 @@ function AppContent() {
                   <div className="hidden md:block">
                     <Footer setCurrentView={setCurrentView} />
                   </div>
-                  <BottomNav />
+                  <BottomNav setDashboardTab={setDashboardTab} />
                 </>
               )}
             </>
