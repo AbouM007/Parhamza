@@ -216,6 +216,12 @@ function AppContent() {
   const isPaymentRoute =
     location.startsWith("/success") || location.startsWith("/auth/callback");
   const isMessagesRoute = location.startsWith("/messages");
+  
+  // Pages utilisateur qui n'ont pas besoin du header classique en mobile
+  const isUserPage = location.startsWith("/account") || 
+                     location.startsWith("/dashboard") || 
+                     location.startsWith("/messages") || 
+                     location.startsWith("/notifications");
 
   const shouldMaskHomepage =
     !isAdminRoute &&
@@ -228,15 +234,17 @@ function AppContent() {
         <div className="min-h-screen bg-gray-50" />
       ) : (
         <>
-          {!isAdminRoute && !isMessagesRoute && (
-            <Header
-              currentView={getCurrentView()}
-              setCurrentView={setCurrentView}
-              mobileMenuOpen={mobileMenuOpen}
-              setMobileMenuOpen={setMobileMenuOpen}
-              setDashboardTab={setDashboardTab}
-              onSearch={handleSearch}
-            />
+          {!isAdminRoute && (
+            <div className={isUserPage ? "hidden lg:block" : ""}>
+              <Header
+                currentView={getCurrentView()}
+                setCurrentView={setCurrentView}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+                setDashboardTab={setDashboardTab}
+                onSearch={handleSearch}
+              />
+            </div>
           )}
 
           {selectedVehicle ? (
