@@ -74,7 +74,7 @@ export default function ProfileSection({
     <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
-        <div>
+        <div className="hidden lg:block">
           <h1 className="text-3xl font-bold text-gray-900">Mon profil</h1>
           <p className="text-gray-600 mt-2 text-lg">
             Gérez vos informations personnelles
@@ -82,7 +82,7 @@ export default function ProfileSection({
         </div>
         <button
           onClick={() => setEditingProfile(!editingProfile)}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-primary-bolt-300 text-primary-bolt-600 hover:bg-primary-bolt-50 hover:border-primary-bolt-400 transition-all duration-200 font-medium text-sm"
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg border-2 border-primary-bolt-300 text-primary-bolt-600 hover:bg-primary-bolt-50 hover:border-primary-bolt-400 transition-all duration-200 font-medium text-sm lg:ml-auto"
           data-testid="button-edit-profile"
         >
           <Edit className="h-4 w-4" />
