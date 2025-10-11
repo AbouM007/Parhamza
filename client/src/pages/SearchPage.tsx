@@ -326,9 +326,9 @@ export const SearchPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header de recherche */}
-      <div className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header de recherche - masqué sur mobile */}
+      <div className="bg-white border-b border-gray-200 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="space-y-6">
             {/* Barre de recherche principale */}
@@ -397,6 +397,27 @@ export const SearchPage: React.FC = () => {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filtres rapides mobile - scroll horizontal */}
+      <div className="bg-white border-b border-gray-200 lg:hidden sticky top-0 z-10">
+        <div className="px-4 py-3">
+          <div className="flex overflow-x-auto gap-2 scrollbar-hide -mx-4 px-4">
+            {Object.entries(categoryMapping).map(([key, cat]) => (
+              <button
+                key={key}
+                onClick={() => updateFilter('category', searchFilters.category === key ? '' : key)}
+                className={`flex-shrink-0 px-4 py-2 rounded-full border transition-colors whitespace-nowrap text-sm ${
+                  searchFilters.category === key
+                    ? 'bg-primary-bolt-500 text-white border-primary-bolt-500'
+                    : 'bg-white text-gray-700 border-gray-300'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
