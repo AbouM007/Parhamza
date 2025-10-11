@@ -27,6 +27,19 @@ type CurrentSubscription = {
 
 type ModifyAction = 'upgrade' | 'cancel';
 
+// Mapping des features pour l'affichage
+const FEATURE_LABELS: Record<string, string> = {
+  basic_stats: "Statistiques de base",
+  advanced_stats: "Statistiques avancées",
+  pro_dashboard: "Tableau de bord professionnel",
+  badge_verified: "Badge de confiance",
+  priority_search: "Remontée dans les recherches",
+  push_notifications: "Notifications push",
+  api_access: "Accès API",
+  unlimited_listings: "Annonces illimitées",
+  popular: "Plan recommandé",
+};
+
 export default function SubscriptionManager() {
   const { toast } = useToast();
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -152,14 +165,15 @@ export default function SubscriptionManager() {
 
   return (
     <div className="space-y-6">
-      <div>
+      {/* Titre et description - masqués sur mobile */}
+      <div className="hidden lg:block">
         <h2 className="text-2xl font-bold tracking-tight">Gérer mon abonnement</h2>
         <p className="text-gray-600 dark:text-gray-400">
           Choisissez le plan qui correspond à vos besoins
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {activePlans.map((plan) => {
           const isCurrentPlan = plan.id === currentPlanId;
           const features = plan.features || {};
@@ -167,7 +181,7 @@ export default function SubscriptionManager() {
           return (
             <div
               key={plan.id}
-              className={`rounded-lg border p-6 flex flex-col ${
+              className={`rounded-lg border p-4 sm:p-6 flex flex-col ${
                 isCurrentPlan
                   ? 'border-primary bg-gray-50 dark:bg-gray-800/50'
                   : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
@@ -176,7 +190,7 @@ export default function SubscriptionManager() {
             >
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-semibold">{plan.name}</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold">{plan.name}</h3>
                   {isCurrentPlan && (
                     <span className="px-2 py-1 text-xs rounded-md bg-gray-200 dark:bg-gray-700" data-testid={`badge-current-${plan.id}`}>
                       Plan actuel
@@ -184,12 +198,12 @@ export default function SubscriptionManager() {
                   )}
                 </div>
                 <div>
-                  <span className="text-3xl font-bold">{plan.price_monthly}€</span>
-                  <span className="text-gray-500 dark:text-gray-400">/mois</span>
+                  <span className="text-2xl sm:text-3xl font-bold">{plan.price_monthly}€</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">/mois</span>
                 </div>
               </div>
 
-              <ul className="space-y-2 flex-1 mb-4">
+              <ul className="space-y-2 flex-1 mb-4 text-sm sm:text-base">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-primary flex-shrink-0" />
                   <span>
@@ -206,7 +220,7 @@ export default function SubscriptionManager() {
                       <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
                     )}
                     <span className={enabled ? "" : "text-gray-500 dark:text-gray-400"}>
-                      {feature}
+                      {FEATURE_LABELS[feature] || feature}
                     </span>
                   </li>
                 ))}
