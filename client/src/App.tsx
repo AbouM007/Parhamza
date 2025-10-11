@@ -221,7 +221,8 @@ function AppContent() {
   const isUserPage = location.startsWith("/account") || 
                      location.startsWith("/dashboard") || 
                      location.startsWith("/messages") || 
-                     location.startsWith("/notifications");
+                     location.startsWith("/notifications") ||
+                     location.startsWith("/subscription-settings");
 
   const shouldMaskHomepage =
     !isAdminRoute &&
