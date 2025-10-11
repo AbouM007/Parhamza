@@ -1419,7 +1419,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const renderPurchaseHistory = () => (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+      <div className="hidden lg:flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Historique des achats
