@@ -5,11 +5,22 @@ import {
   Send, 
   MoreVertical, 
   Image as ImageIcon,
-  MessageSquare
+  MessageSquare,
+  Bell,
+  Check,
+  X,
+  Heart,
+  AlertCircle,
+  CheckCircle,
+  MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessaging } from "@/hooks/useMessaging";
+import { useNotifications } from "@/hooks/useNotifications";
 import { getUserDisplayName } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import type { Notification } from "@shared/schema";
 
 interface Conversation {
   id: string;
@@ -50,6 +61,14 @@ export function Messages() {
   const [loading, setLoading] = useState(true);
   const { profile, loading: authLoading } = useAuth();
   const { sendMessage } = useMessaging();
+  const { 
+    notifications, 
+    unreadCount: notificationUnreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification, 
+    isLoading: notificationsLoading 
+  } = useNotifications();
 
   const currentUserId = profile?.id?.toString();
   const currentConversation = selectedConversationId 
@@ -184,6 +203,91 @@ export function Messages() {
 
   const handleBackToList = () => {
     setSelectedConversationId(null);
+  };
+
+  // Fonctions pour les notifications
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.read) {
+      await markAsRead.mutateAsync(notification.id);
+    }
+
+    if (notification.data) {
+      const data = notification.data as any;
+      
+      switch (notification.type) {
+        case 'new_message':
+        case 'message_reply':
+          // Rester dans l'onglet messages
+          setActiveTab('messages');
+          if (data.conversationId) {
+            setSelectedConversationId(data.conversationId);
+          }
+          break;
+        
+        case 'listing_validated':
+        case 'listing_rejected':
+        case 'listing_favorited':
+        case 'listing_expiring':
+          if (data.listingId) {
+            navigate(`/vehicle/${data.listingId}`);
+          }
+          break;
+        
+        case 'new_follower':
+          if (data.followerId) {
+            navigate(`/professional/${data.followerId}`);
+          }
+          break;
+        
+        case 'followed_new_listing':
+          if (data.listingId) {
+            navigate(`/vehicle/${data.listingId}`);
+          }
+          break;
+        
+        case 'payment_success':
+        case 'payment_failed':
+        case 'subscription_ending':
+          navigate('/subscription-settings');
+          break;
+        
+        default:
+          break;
+      }
+    }
+  };
+
+  const handleDeleteNotification = async (e: React.MouseEvent<HTMLButtonElement>, notificationId: number) => {
+    e.stopPropagation();
+    await deleteNotification.mutateAsync(notificationId);
+  };
+
+  const handleMarkAllNotificationsAsRead = async () => {
+    await markAllAsRead.mutateAsync();
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'new_message':
+      case 'message_reply':
+        return <MessageCircle className="h-5 w-5 text-primary-bolt-500" />;
+      
+      case 'listing_validated':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      
+      case 'listing_rejected':
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
+      
+      case 'listing_favorited':
+        return <Heart className="h-5 w-5 text-pink-500" />;
+      
+      case 'new_follower':
+      case 'followed_new_listing':
+        return <Bell className="h-5 w-5 text-blue-500" />;
+      
+      default:
+        return <Bell className="h-5 w-5 text-gray-500" />;
+    }
   };
 
   if (authLoading || !profile) {
@@ -352,10 +456,10 @@ export function Messages() {
     );
   }
 
-  // Sinon, afficher la liste des conversations
+  // Afficher l'onglet notifications
   if (activeTab === "notifications") {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white pb-20">
         {/* Header avec onglets */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
           <div className="flex">
@@ -372,24 +476,102 @@ export function Messages() {
               data-testid="tab-notifications"
             >
               Notifications
+              {notificationUnreadCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                  {notificationUnreadCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Redirection vers dashboard notifications */}
-        <div className="p-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-800 mb-3">
-              Les notifications sont disponibles dans votre espace personnel
-            </p>
+        {/* Action marquer tout comme lu */}
+        {notificationUnreadCount > 0 && (
+          <div className="p-3 bg-gray-50 border-b border-gray-200">
             <button
-              onClick={() => navigate("/dashboard?tab=notifications")}
-              className="w-full bg-primary-bolt-600 text-white py-2 px-4 rounded-lg hover:bg-primary-bolt-700 transition-colors"
-              data-testid="button-go-to-notifications"
+              onClick={handleMarkAllNotificationsAsRead}
+              className="text-sm text-primary-bolt-600 hover:text-primary-bolt-700 flex items-center gap-1 transition-colors"
+              data-testid="button-mark-all-read"
             >
-              Voir les notifications
+              <Check className="h-4 w-4" />
+              Tout marquer comme lu
             </button>
           </div>
+        )}
+
+        {/* Liste des notifications */}
+        <div>
+          {notificationsLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-bolt-500 mx-auto mb-4"></div>
+                <p className="text-gray-500">Chargement des notifications...</p>
+              </div>
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-gray-500 px-4">
+              <Bell className="h-16 w-16 mb-4 opacity-30" />
+              <p className="text-lg font-medium mb-2">Aucune notification</p>
+              <p className="text-sm text-gray-400 text-center">
+                Vous recevrez vos notifications ici
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`
+                    p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50
+                    ${!notification.read ? 'bg-blue-50 border-l-4 border-primary-bolt-500' : ''}
+                  `}
+                  data-testid={`notification-${notification.id}`}
+                >
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className={`text-sm ${!notification.read ? 'font-semibold' : 'font-medium'} text-gray-900`}>
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                            {notification.message}
+                          </p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <p className="text-xs text-gray-400">
+                              {notification.createdAt && formatDistanceToNow(new Date(notification.createdAt), {
+                                addSuffix: true,
+                                locale: fr
+                              })}
+                            </p>
+                            {!notification.read && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                Non lue
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <button
+                          onClick={(e) => handleDeleteNotification(e, notification.id)}
+                          className="flex-shrink-0 p-1.5 hover:bg-gray-200 rounded-lg transition-colors"
+                          title="Supprimer la notification"
+                          data-testid={`button-delete-${notification.id}`}
+                        >
+                          <X className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
