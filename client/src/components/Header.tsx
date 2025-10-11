@@ -8,6 +8,7 @@ import {
   Menu,
   X,
   LogIn,
+  LogOut,
   Settings,
   Car,
   Plus,
@@ -43,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { setSearchFilters, setSelectedVehicle, openAuthModal } =
     useApp();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const isAuthenticated = !!user;
   const isLoading = loading;
   const { unreadCount } = useUnreadMessages();
@@ -743,6 +744,19 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     <User className="h-5 w-5" />
                     <span>Mon profil</span>
+                  </button>
+
+                  {/* Se déconnecter */}
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                      setCurrentView("home");
+                    }}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>Se déconnecter</span>
                   </button>
 
                   {/* Aide */}
