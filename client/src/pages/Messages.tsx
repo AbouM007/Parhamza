@@ -4,7 +4,8 @@ import {
   ArrowLeft, 
   Send, 
   MoreVertical, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  MessageSquare
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessaging } from "@/hooks/useMessaging";
@@ -440,16 +441,18 @@ export function Messages() {
                 className="flex items-start gap-3 p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
                 data-testid={`conversation-${conv.id}`}
               >
-                {/* Avatar */}
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-bolt-400 to-primary-bolt-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  {conv.other_user.avatar ? (
+                {/* Photo de l'annonce */}
+                <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  {conv.vehicle_image ? (
                     <img
-                      src={conv.other_user.avatar}
-                      alt={displayName}
-                      className="w-full h-full object-cover rounded-full"
+                      src={conv.vehicle_image}
+                      alt={conv.vehicle_title}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-white font-bold">{initial}</span>
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
+                      <MessageSquare className="h-6 w-6 text-gray-400" />
+                    </div>
                   )}
                 </div>
 
