@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useQuery } from "@tanstack/react-query";
+import { MobilePageHeader } from "@/components/MobilePageHeader";
 
 interface AccountSection {
   id: string;
@@ -88,9 +89,14 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
+      <MobilePageHeader 
+        title="Mon Compte" 
+        onBack={() => setLocation("/")} 
+      />
+      
       {/* Grille de sections */}
       <div className="p-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6" data-testid="title-account">
+        <h1 className="hidden lg:block text-2xl font-bold text-gray-900 mb-6" data-testid="title-account">
           Mon Compte
         </h1>
 
