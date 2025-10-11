@@ -49,14 +49,18 @@ export default function SubscriptionManager() {
     planName?: string;
   }>({ open: false, action: 'upgrade' });
 
-  // Récupérer tous les plans disponibles
+  // Récupérer tous les plans disponibles (cache 5 min)
   const { data: plans = [], isLoading: loadingPlans } = useQuery<SubscriptionPlan[]>({
     queryKey: ['/api/subscriptions/plans'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Récupérer l'abonnement actuel
+  // Récupérer l'abonnement actuel (cache 1 min)
   const { data: currentSub, isLoading: loadingSub } = useQuery<CurrentSubscription>({
     queryKey: ['/api/subscriptions/current'],
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Mutation pour modifier l'abonnement
