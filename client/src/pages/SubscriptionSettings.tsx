@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useEffect } from "react";
 import SubscriptionManager from "@/components/SubscriptionManager";
 import { ArrowLeft } from "lucide-react";
+import { MobilePageHeader } from "@/components/MobilePageHeader";
 
 export default function SubscriptionSettings() {
   const { user, loading } = useAuth();
@@ -31,9 +32,17 @@ export default function SubscriptionSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+      {/* Mobile Header */}
+      <div className="lg:hidden">
+        <MobilePageHeader 
+          title="Mon Abonnement" 
+          onBack={() => setLocation("/account")}
+        />
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden lg:block bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button
             onClick={() => setLocation("/dashboard")}
