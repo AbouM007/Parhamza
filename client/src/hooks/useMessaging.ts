@@ -123,7 +123,6 @@ export function useMessaging() {
 
       // Récupérer le token d'authentification
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('🔑 Session récupérée:', session ? 'OK' : 'NOK', session?.access_token ? 'Token OK' : 'Pas de token');
       if (!session?.access_token) {
         throw new Error('Session expirée - veuillez vous reconnecter');
       }
