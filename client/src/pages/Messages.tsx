@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { 
   ArrowLeft, 
   Send, 
@@ -41,9 +41,9 @@ interface Message {
 
 export function Messages() {
   const [, navigate] = useLocation();
-  const [match, params] = useRoute("/messages/:conversationId");
   const [activeTab, setActiveTab] = useState<"messages" | "notifications">("messages");
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -51,9 +51,9 @@ export function Messages() {
   const { sendMessage } = useMessaging();
 
   const currentUserId = profile?.id?.toString();
-  // Décoder l'URL pour gérer les caractères spéciaux comme | (%7C)
-  const conversationId = params?.conversationId ? decodeURIComponent(params.conversationId) : undefined;
-  const currentConversation = conversations.find((c) => c.id === conversationId);
+  const currentConversation = selectedConversationId 
+    ? conversations.find((c) => c.id === selectedConversationId)
+    : null;
 
   useEffect(() => {
     if (currentUserId) {
@@ -62,10 +62,12 @@ export function Messages() {
   }, [currentUserId]);
 
   useEffect(() => {
-    if (conversationId && currentUserId) {
-      loadMessages(conversationId);
+    if (selectedConversationId && currentUserId) {
+      loadMessages(selectedConversationId);
+    } else {
+      setMessages([]);
     }
-  }, [conversationId, currentUserId]);
+  }, [selectedConversationId, currentUserId]);
 
   const loadConversations = async () => {
     if (!currentUserId) {
@@ -93,7 +95,6 @@ export function Messages() {
         return;
       }
 
-      // L'ID peut contenir des | (encodés en %7C dans l'URL, mais décodés par wouter)
       const [vehicleId, userId1, userId2] = convId.split("|");
       const otherUserId = userId1 === currentUserId ? userId2 : userId1;
 
@@ -141,13 +142,13 @@ export function Messages() {
   };
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !conversationId || !currentUserId) return;
+    if (!newMessage.trim() || !selectedConversationId || !currentUserId) return;
 
-    const messageId = await sendMessage(conversationId, newMessage);
+    const messageId = await sendMessage(selectedConversationId, newMessage);
 
     if (messageId) {
       setNewMessage("");
-      loadMessages(conversationId);
+      loadMessages(selectedConversationId);
       loadConversations();
     }
   };
@@ -170,44 +171,24 @@ export function Messages() {
     }
   };
 
+  const handleConversationClick = (conversationId: string) => {
+    setSelectedConversationId(conversationId);
+  };
+
+  const handleBackToList = () => {
+    setSelectedConversationId(null);
+  };
+
   if (authLoading || !profile) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Chargement...</p>
-        </div>
+        <p className="text-gray-600">Chargement...</p>
       </div>
     );
   }
 
-  // Vue Conversation détaillée
-  if (conversationId) {
-    // Attendre que les conversations soient chargées
-    if (loading) {
-      return (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-gray-600">Chargement de la conversation...</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (!currentConversation) {
-      return (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-gray-600">Conversation introuvable</p>
-            <button
-              onClick={() => navigate("/messages")}
-              className="mt-4 text-primary-bolt-600 hover:underline"
-            >
-              Retour aux messages
-            </button>
-          </div>
-        </div>
-      );
-    }
+  // Si une conversation est sélectionnée, afficher la vue conversation
+  if (selectedConversationId && currentConversation) {
     const displayName = getUserDisplayName(currentConversation.other_user as any);
     const initial = displayName.charAt(0).toUpperCase();
 
@@ -216,7 +197,7 @@ export function Messages() {
         {/* Header conversation */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
           <button
-            onClick={() => navigate("/messages")}
+            onClick={handleBackToList}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             data-testid="button-back"
           >
@@ -324,9 +305,6 @@ export function Messages() {
                         <p className="text-xs text-gray-500">
                           {formatDate(message.created_at)}
                         </p>
-                        {message.is_from_current_user && (
-                          <span className="text-pink-500">✓✓</span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -336,42 +314,27 @@ export function Messages() {
           )}
         </div>
 
-        {/* Barre de saisie */}
-        <div className="bg-white border-t border-gray-200 p-3">
-          <div className="flex gap-2 items-center">
-            <button className="p-2.5 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
-              <svg
-                className="h-6 w-6 text-gray-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
+        {/* Input */}
+        <div className="bg-white border-t border-gray-200 p-4">
+          <div className="flex items-center gap-3">
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }
               }}
-              placeholder="Écrire un message..."
-              className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-bolt-500 text-sm"
+              placeholder="Votre message..."
+              className="flex-1 border border-gray-300 rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-bolt-500 focus:border-transparent"
               data-testid="input-message"
             />
             <button
               onClick={handleSendMessage}
               disabled={!newMessage.trim()}
-              className="p-2.5 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full transition-colors flex-shrink-0"
+              className="bg-primary-bolt-600 text-white p-3 rounded-full hover:bg-primary-bolt-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-send"
             >
               <Send className="h-5 w-5" />
@@ -382,114 +345,137 @@ export function Messages() {
     );
   }
 
-  // Vue Liste des conversations
-  return (
-    <div className="min-h-screen bg-white pb-16">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 pt-4 pb-2">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Mes messages</h1>
+  // Sinon, afficher la liste des conversations
+  if (activeTab === "notifications") {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Header avec onglets */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab("messages")}
+              className="flex-1 py-4 text-center text-gray-600 border-b-2 border-transparent"
+              data-testid="tab-messages"
+            >
+              Messages
+            </button>
+            <button
+              onClick={() => setActiveTab("notifications")}
+              className="flex-1 py-4 text-center text-gray-900 font-semibold border-b-2 border-primary-bolt-600"
+              data-testid="tab-notifications"
+            >
+              Notifications
+            </button>
+          </div>
+        </div>
 
-        {/* Onglets */}
-        <div className="flex gap-8 border-b border-gray-200">
+        {/* Redirection vers dashboard notifications */}
+        <div className="p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800 mb-3">
+              Les notifications sont disponibles dans votre espace personnel
+            </p>
+            <button
+              onClick={() => navigate("/dashboard?tab=notifications")}
+              className="w-full bg-primary-bolt-600 text-white py-2 px-4 rounded-lg hover:bg-primary-bolt-700 transition-colors"
+              data-testid="button-go-to-notifications"
+            >
+              Voir les notifications
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Liste des conversations (par défaut)
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header avec onglets */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="flex">
           <button
             onClick={() => setActiveTab("messages")}
-            className={`pb-3 px-1 relative ${
-              activeTab === "messages"
-                ? "text-primary-bolt-600 font-semibold"
-                : "text-gray-600"
-            }`}
+            className="flex-1 py-4 text-center text-gray-900 font-semibold border-b-2 border-primary-bolt-600"
             data-testid="tab-messages"
           >
             Messages
-            {activeTab === "messages" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-bolt-600" />
-            )}
           </button>
           <button
-            onClick={() => navigate("/dashboard?tab=notifications")}
-            className={`pb-3 px-1 relative flex items-center gap-2 ${
-              activeTab === "notifications"
-                ? "text-primary-bolt-600 font-semibold"
-                : "text-gray-600"
-            }`}
+            onClick={() => setActiveTab("notifications")}
+            className="flex-1 py-4 text-center text-gray-600 border-b-2 border-transparent"
             data-testid="tab-notifications"
           >
             Notifications
-            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-              20
-            </span>
-            {activeTab === "notifications" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-bolt-600" />
-            )}
           </button>
         </div>
       </div>
 
-      {/* Liste des conversations */}
-      {loading ? (
-        <div className="flex items-center justify-center p-8">
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      ) : conversations.length === 0 ? (
-        <div className="flex items-center justify-center p-12">
-          <div className="text-center">
-            <p className="text-gray-600 mb-2">Aucune conversation</p>
+      {/* Liste conversations */}
+      <div className="divide-y divide-gray-200">
+        {loading ? (
+          <div className="p-4 text-center text-gray-600">Chargement...</div>
+        ) : conversations.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-gray-500 mb-2">Aucun message</p>
             <p className="text-sm text-gray-400">
-              Vos messages apparaîtront ici
+              Vos conversations apparaîtront ici
             </p>
           </div>
-        </div>
-      ) : (
-        <div className="divide-y divide-gray-200">
-          {conversations.map((conversation) => {
-            const displayName = getUserDisplayName(conversation.other_user as any);
-            
+        ) : (
+          conversations.map((conv) => {
+            const displayName = getUserDisplayName(conv.other_user as any);
+            const initial = displayName.charAt(0).toUpperCase();
+
             return (
               <div
-                key={conversation.id}
-                onClick={() => navigate(`/messages/${conversation.id}`)}
-                className="flex items-center gap-3 p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
-                data-testid={`conversation-${conversation.id}`}
+                key={conv.id}
+                onClick={() => handleConversationClick(conv.id)}
+                className="flex items-start gap-3 p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+                data-testid={`conversation-${conv.id}`}
               >
-                {/* Image annonce */}
-                <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                  {conversation.vehicle_image ? (
+                {/* Avatar */}
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-bolt-400 to-primary-bolt-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  {conv.other_user.avatar ? (
                     <img
-                      src={conversation.vehicle_image}
-                      alt={conversation.vehicle_title}
-                      className="w-full h-full object-cover"
+                      src={conv.other_user.avatar}
+                      alt={displayName}
+                      className="w-full h-full object-cover rounded-full"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="h-8 w-8 text-gray-400" />
-                    </div>
+                    <span className="text-white font-bold">{initial}</span>
                   )}
                 </div>
 
-                {/* Infos */}
+                {/* Contenu */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate mb-0.5">
-                    {conversation.vehicle_title}
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="font-semibold text-gray-900 truncate">
+                      {displayName}
+                    </p>
+                    <span className="text-xs text-gray-500 flex-shrink-0">
+                      {formatDate(conv.last_message_at)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 truncate mb-1">
+                    {conv.vehicle_title}
                   </p>
-                  <p className="text-sm text-gray-600 truncate mb-0.5">
-                    {conversation.last_message}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>{displayName}</span>
-                    <span>•</span>
-                    <span>{formatDate(conversation.last_message_at)}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-gray-500 truncate flex-1">
+                      {conv.last_message}
+                    </p>
+                    {conv.unread_count > 0 && (
+                      <span className="bg-primary-bolt-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
+                        {conv.unread_count > 9 ? "9+" : conv.unread_count}
+                      </span>
+                    )}
                   </div>
                 </div>
-
-                {/* Badge non lu */}
-                {conversation.unread_count > 0 && (
-                  <div className="w-2 h-2 bg-primary-bolt-500 rounded-full flex-shrink-0" />
-                )}
               </div>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </div>
   );
 }
