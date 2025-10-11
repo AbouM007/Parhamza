@@ -21,6 +21,7 @@ import { getUserDisplayName } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { Notification } from "@shared/schema";
+import { MobilePageHeader } from "@/components/MobilePageHeader";
 
 interface Conversation {
   id: string;
@@ -580,6 +581,11 @@ export function Messages() {
   // Liste des conversations (par défaut)
   return (
     <div className="min-h-screen bg-white">
+      <MobilePageHeader 
+        title="Messages" 
+        onBack={() => navigate("/dashboard")} 
+      />
+      
       {/* Header avec onglets */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="flex">
