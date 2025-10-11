@@ -150,7 +150,7 @@ export function Messages() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversationId || !currentUserId) return;
 
-    const messageId = await sendMessage(selectedConversationId, newMessage);
+    const messageId = await sendMessage(selectedConversationId, newMessage, currentUserId);
 
     if (messageId) {
       setNewMessage("");
@@ -199,7 +199,7 @@ export function Messages() {
     const initial = displayName.charAt(0).toUpperCase();
 
     return (
-      <div className="fixed inset-0 bg-white flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col pb-20">
         {/* Header conversation */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
           <button
@@ -236,7 +236,7 @@ export function Messages() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 pb-24">
           {/* Carte annonce au début de la discussion */}
           <div className="flex justify-center mb-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 max-w-sm w-full">
@@ -320,8 +320,8 @@ export function Messages() {
           )}
         </div>
 
-        {/* Input */}
-        <div className="bg-white border-t border-gray-200 p-4">
+        {/* Input - fixé en bas, au-dessus du bottom nav */}
+        <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-4">
           <div className="flex items-center gap-3">
             <input
               type="text"
