@@ -14,13 +14,10 @@ export function BottomNav({ setDashboardTab }: BottomNavProps) {
   const { openAuthModal } = useApp();
   const handleCreateListingWithQuota = useCreateListingGuard();
 
-  const handleProfileClick = () => {
+  const handleAccountClick = () => {
     if (user) {
-      // Si connecté, aller au dashboard avec l'onglet overview
-      if (setDashboardTab) {
-        setDashboardTab("overview");
-      }
-      setLocation("/dashboard");
+      // Si connecté, aller à la page Mon Compte
+      setLocation("/account");
     } else {
       // Si non connecté, ouvrir le modal de connexion
       openAuthModal("login");
@@ -70,10 +67,10 @@ export function BottomNav({ setDashboardTab }: BottomNavProps) {
     },
     {
       icon: User,
-      label: "Profil",
-      path: user ? "/dashboard" : "#",
-      active: location === "/dashboard",
-      onClick: handleProfileClick,
+      label: "Compte",
+      path: user ? "/account" : "#",
+      active: location === "/account",
+      onClick: handleAccountClick,
     },
   ];
 

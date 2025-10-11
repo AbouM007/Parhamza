@@ -29,6 +29,7 @@ import { AdminTest } from "@/components/AdminTest";
 import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import AccountPage from "./pages/AccountPage";
 import ProShop from "./pages/ProShop";
 import SubscriptionPurchase from "./pages/SubscriptionPurchase";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
@@ -354,6 +355,9 @@ function AppContent() {
                 </Route>
                 <Route path="/notifications">
                   <NotificationsPage />
+                </Route>
+                <Route path="/account">
+                  <AccountPage />
                 </Route>
                 <Route path="/professional-verification">
                   <ProfessionalVerification />
