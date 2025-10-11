@@ -121,6 +121,13 @@ export function useMessaging() {
       setLoading(true);
       setError(null);
 
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔑 Session récupérée:', session ? 'OK' : 'NOK', session?.access_token ? 'Token OK' : 'Pas de token');
+      if (!session?.access_token) {
+        throw new Error('Session expirée - veuillez vous reconnecter');
+      }
+
       // Extraire les IDs du conversationId (format: vehicleId|user1Id|user2Id)
       const [vehicleId, user1Id, user2Id] = conversationId.split('|');
       
@@ -129,7 +136,10 @@ export function useMessaging() {
       
       const response = await fetch('/api/messages-simple/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
           vehicleId: Number(vehicleId),
           recipientId,
