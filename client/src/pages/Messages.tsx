@@ -98,9 +98,15 @@ export function Messages() {
       const [vehicleId, userId1, userId2] = convId.split("|");
       const otherUserId = userId1 === currentUserId ? userId2 : userId1;
 
-      const response = await fetch(
-        `/api/messages-simple/conversation?vehicleId=${vehicleId}&user1Id=${currentUserId}&user2Id=${otherUserId}`,
-      );
+      const response = await fetch(`/api/messages-simple/conversation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicleId: Number(vehicleId),
+          user1Id: currentUserId,
+          user2Id: otherUserId,
+        }),
+      });
 
       if (response.ok) {
         const messagesData = await response.json();
