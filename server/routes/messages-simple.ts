@@ -222,7 +222,7 @@ router.get("/user/:userId", async (req, res) => {
         created_at,
         from_user:users!messages_from_user_id_fkey(id, name, display_name, company_name, email, type, avatar, company_logo),
         to_user:users!messages_to_user_id_fkey(id, name, display_name, company_name, email, type, avatar, company_logo),
-        annonce:annonces!messages_annonce_id_fkey(id, title)
+        annonce:annonces!messages_annonce_id_fkey(id, title, images)
       `,
       )
       .or(`from_user_id.eq.${userId},to_user_id.eq.${userId}`)
@@ -273,6 +273,7 @@ router.get("/user/:userId", async (req, res) => {
           id: conversationId,
           vehicle_id: message.annonce_id,
           vehicle_title: message.annonce?.title || "Véhicule non spécifié",
+          vehicle_image: message.annonce?.images?.[0] || null,
           other_user: {
             id: otherUserId,
             name: getDisplayName(otherUser),
