@@ -29,6 +29,19 @@ The platform features a consistent design language with intuitive user flows, ut
 - **Mobile View (< lg breakpoint)**: Uses the bottom navigation bar for primary actions. Dashboard content is accessed through the mobile page header with back navigation.
 - **Visual Design**: Gradient primary colors for active states, badges positioned on the right for desktop, smooth transitions (200ms), and touch-friendly minimum sizes for mobile interaction.
 
+**Subscription & Account Page Enhancements (October 2025)**:
+- **Account Page**: Added "Historique des achats" section with direct link to purchase history (accessible via Dashboard tab). Mobile-optimized card layout with consistent styling.
+- **Subscription Settings** (/subscription-settings): Complete mobile redesign matching desktop aesthetics with:
+  - **Active Subscription Alert**: Orange/beige banner (#FEF3C7 background, #D97706 border) displaying current plan status
+  - **Plan Cards**: Color-coded with thick left borders (border-l-4):
+    - Starter: Blue (#3b82f6)
+    - Standard: Violet (#a855f7) with orange "⭐ Populaire" badge
+    - Business: Orange (#f97316)
+  - **Visual Badges**: "Plan actuel" (gray) for active plan, "Populaire" (orange) for recommended plans
+  - **Checkmarks**: Color-matched to plan theme for feature lists
+  - **Performance**: React Query caching with 5min staleTime for plans, 1min for current subscription
+- **Mobile Header**: /subscription-settings added to `isUserPage` pattern for consistent mobile navigation with MobilePageHeader
+
 ### Technical Implementations
 **Frontend**: Built with React 18 and TypeScript, using Vite for tooling, TanStack Query for state management, Wouter for routing, and React Hook Form with Zod for form handling.
 **Backend**: Developed with Node.js and Express in TypeScript, utilizing Supabase client for database interactions and Supabase Auth for authentication. Key features include:
