@@ -161,11 +161,11 @@ export default function ListingsSection({
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Filtrer par statut
           </h3>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
             {/* Toutes */}
             <button
               onClick={() => setListingFilter("all")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "all"
                   ? "bg-gray-900 text-white shadow-lg"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -180,7 +180,7 @@ export default function ListingsSection({
             {/* Approuvées (Actives) */}
             <button
               onClick={() => setListingFilter("approved")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "approved"
                   ? "bg-green-600 text-white shadow-lg"
                   : "bg-green-100 text-green-700 hover:bg-green-200"
@@ -195,7 +195,7 @@ export default function ListingsSection({
             {/* En attente */}
             <button
               onClick={() => setListingFilter("pending")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "pending"
                   ? "bg-blue-600 text-white shadow-lg"
                   : "bg-blue-100 text-blue-700 hover:bg-blue-200"
@@ -210,7 +210,7 @@ export default function ListingsSection({
             {/* Rejetées */}
             <button
               onClick={() => setListingFilter("rejected")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "rejected"
                   ? "bg-red-600 text-white shadow-lg"
                   : "bg-red-100 text-red-700 hover:bg-red-200"
