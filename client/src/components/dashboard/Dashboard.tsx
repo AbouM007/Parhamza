@@ -2789,9 +2789,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Mes favoris</h1>
-              <p className="text-gray-600 text-lg">
-                Retrouvez tous vos contenus favoris
-              </p>
             </div>
           </div>
 
