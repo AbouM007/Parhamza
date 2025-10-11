@@ -79,14 +79,14 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
     >
       {/* Boost Badge */}
       {vehicle.isBoosted && (
-        <div className="absolute top-2 left-2 lg:top-3 lg:left-3 z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-0.5 lg:px-3 lg:py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
-          <Crown className="h-3 w-3" />
-          <span className="hidden sm:inline">Boosté</span>
+        <div className="absolute top-1 left-1 lg:top-3 lg:left-3 z-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-1.5 py-0.5 lg:px-3 lg:py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
+          <Crown className="h-2.5 w-2.5 lg:h-3 lg:w-3" />
+          <span className="hidden sm:inline text-[10px] lg:text-xs">Boosté</span>
         </div>
       )}
 
-      {/* Image + Carrousel - Horizontal sur mobile, vertical sur desktop */}
-      <div className="relative w-32 h-32 lg:w-full lg:h-48 bg-gray-200 overflow-hidden flex-shrink-0">
+      {/* Image + Carrousel - Ultra compact sur mobile (80px), vertical sur desktop */}
+      <div className="relative w-20 h-20 lg:w-full lg:h-48 bg-gray-200 overflow-hidden flex-shrink-0">
         {vehicle.images.length > 0 ? (
           <>
             <AnimatePresence mode="wait">
@@ -105,7 +105,7 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
             {/* Filigrane DEMO */}
             {vehicle.isDemo && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-3xl lg:text-7xl font-bold text-white/30 transform rotate-[-20deg] select-none tracking-wider">
+                <span className="text-lg lg:text-7xl font-bold text-white/30 transform rotate-[-20deg] select-none tracking-wider">
                   DEMO
                 </span>
               </div>
@@ -136,34 +136,34 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
           </div>
         )}
         {/* Demo Badge et Favorite Button */}
-        <div className="absolute top-2 right-2 lg:top-3 lg:right-3 z-10 flex items-center space-x-1 lg:space-x-2">
+        <div className="absolute top-1 right-1 lg:top-3 lg:right-3 z-10 flex items-center space-x-1 lg:space-x-2">
           {vehicle.isDemo && (
-            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-0.5 lg:px-3 lg:py-1 rounded-full text-xs font-semibold flex items-center space-x-1 shadow-lg">
+            <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-1.5 py-0.5 lg:px-3 lg:py-1 rounded-full text-[10px] lg:text-xs font-semibold flex items-center space-x-1 shadow-lg">
               <span>Démo</span>
             </div>
           )}
           <FavoriteButton
             vehicleId={vehicle.id}
-            className="bg-white bg-opacity-90 hover:bg-opacity-100 p-1.5 lg:p-2 rounded-full shadow-md backdrop-blur-sm"
+            className="bg-white bg-opacity-90 hover:bg-opacity-100 p-1 lg:p-2 rounded-full shadow-md backdrop-blur-sm"
             size="sm"
           />
         </div>
       </div>
 
-      {/* Contenu - Adapté pour horizontal sur mobile */}
-      <div className="p-3 lg:p-6 flex-1 min-w-0">
+      {/* Contenu - Ultra compact sur mobile */}
+      <div className="p-2 lg:p-6 flex-1 min-w-0">
         {/* Title and Price */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2 lg:mb-3">
-          <h3 className="text-sm lg:text-lg font-semibold text-gray-900 line-clamp-2 mb-1 lg:mb-0 lg:flex-1 lg:mr-4">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-1 lg:mb-3">
+          <h3 className="text-xs lg:text-lg font-semibold text-gray-900 line-clamp-1 lg:line-clamp-2 mb-1 lg:mb-0 lg:flex-1 lg:mr-4">
             {vehicle.title}
           </h3>
           <div className="flex items-center justify-between lg:block lg:text-right">
-            <div className="text-lg lg:text-xl font-bold text-primary-bolt-500">
+            <div className="text-sm lg:text-xl font-bold text-primary-bolt-500">
               {formatPrice(vehicle.price)}
             </div>
             {vehicle.user?.type === "professional" && (
               <div className="flex lg:flex-col items-center lg:items-end space-x-1 lg:space-x-0 lg:space-y-1">
-                <div className="text-xs text-orange-600 font-medium">PRO</div>
+                <div className="text-[10px] lg:text-xs text-orange-600 font-medium">PRO</div>
                 <VerifiedBadge
                   userId={vehicle.userId}
                   userType={vehicle.user?.type}
@@ -183,34 +183,35 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
           </div>
         </div>
 
-        {/* Vehicle Details - Plus compact sur mobile */}
-        <div className="flex flex-wrap gap-2 lg:gap-3 mb-2 lg:mb-4 text-xs lg:text-sm text-gray-600">
+        {/* Vehicle Details - Seulement année sur mobile, complet sur desktop */}
+        <div className="flex flex-wrap gap-1.5 lg:gap-3 mb-1 lg:mb-4 text-[10px] lg:text-sm text-gray-600">
           {vehicle.year && vehicle.year > 0 && (
             <div className="flex items-center space-x-1 lg:space-x-2">
-              <Calendar className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
+              <Calendar className="h-2.5 w-2.5 lg:h-4 lg:w-4 text-gray-400" />
               <span>{vehicle.year}</span>
             </div>
           )}
 
+          {/* Kilométrage - masqué sur mobile */}
           {vehicle.mileage && vehicle.mileage > 0 && (
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <Gauge className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
-              <span className="hidden sm:inline">{formatMileage(vehicle.mileage)}</span>
-              <span className="sm:hidden">{new Intl.NumberFormat("fr-FR").format(vehicle.mileage)} km</span>
+            <div className="hidden lg:flex items-center space-x-2">
+              <Gauge className="h-4 w-4 text-gray-400" />
+              <span>{formatMileage(vehicle.mileage)}</span>
             </div>
           )}
 
+          {/* Carburant - masqué sur mobile */}
           {vehicle.fuelType && (
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <Fuel className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
+            <div className="hidden lg:flex items-center space-x-2">
+              <Fuel className="h-4 w-4 text-gray-400" />
               <span className="truncate">{translateFuelType(vehicle.fuelType)}</span>
             </div>
           )}
         </div>
 
-        {/* Location */}
-        <div className="flex items-center space-x-1 lg:space-x-2 pt-2 lg:pt-4 border-t border-gray-100 text-xs lg:text-sm text-gray-600">
-          <MapPin className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
+        {/* Location - Simplifié sur mobile */}
+        <div className="flex items-center space-x-1 lg:space-x-2 lg:pt-4 lg:border-t lg:border-gray-100 text-[10px] lg:text-sm text-gray-600">
+          <MapPin className="h-2.5 w-2.5 lg:h-4 lg:w-4 text-gray-400" />
           <span className="truncate">{vehicle.location}</span>
         </div>
       </div>
