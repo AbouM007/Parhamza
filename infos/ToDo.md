@@ -1,9 +1,57 @@
 # 🧩 Todo
 
-## **À faire**
-### Notification Center  
+## **Update du 11/10/2025 a 17h45 **
 
----
+✅ CE QUI EST IMPLÉMENTÉ
+Phase 1 : Infrastructure ✅ COMPLET
+✅ Tables DB créées (notifications + notification_preferences)
+✅ Types définis (shared/notificationTypes.ts)
+✅ Service notificationCenter.ts complet avec toutes les fonctions
+Phase 2 : API Routes ✅ COMPLET
+✅ GET /api/notifications - Liste des notifications
+✅ GET /api/notifications/unread-count - Compteur non lus
+✅ PATCH /api/notifications/:id/read - Marquer comme lu
+✅ PATCH /api/notifications/read-all - Tout marquer comme lu
+✅ DELETE /api/notifications/:id - Supprimer
+✅ GET /api/notifications/preferences - Récupérer préférences
+✅ PUT /api/notifications/preferences - Mettre à jour préférences
+Phase 3 : UI Dashboard ✅ COMPLET
+✅ Composant NotificationCenter.tsx (badge + dropdown)
+✅ Hook useNotifications pour fetch et mutations
+✅ Fonction "Marquer comme lu" avec navigation automatique
+✅ Badge compteur dans Header (affiché quand utilisateur connecté)
+Phase 5 : Événements déclencheurs ✅ PARTIELLEMENT
+✅ Messages : notifyNewMessage appelé dans messaging-simple.ts
+✅ Annonces : notifyListingValidated/Rejected appelés dans admin.ts
+✅ Followers : notifyNewFollower appelé dans followers.ts
+❓ Paiements : Fonctions créées mais pas encore intégrées (à vérifier dans Stripe webhooks)
+❓ Favoris : notifyListingFavorited créé mais pas encore utilisé
+❌ CE QUI MANQUE
+Phase 4 : Intégration Email ❌
+❌ Connexion avec emailService (fonction sendEmailNotification vide)
+❌ Mapping types → templates email
+Phase 6 : Page Préférences ❌
+❌ UI Préférences : Aucun composant frontend pour gérer les préférences
+❌ Page dans Dashboard/Paramètres pour les toggles
+❌ Sauvegarde des préférences (backend existe, frontend manquant)
+Phase 7 : Optimisations ❌
+❌ Polling/WebSocket temps réel
+❌ Nettoyage automatique (> 30 jours)
+❌ Push notifications
+📊 RÉSUMÉ
+Phase	Statut	Complétude
+Phase 1 - Infrastructure	✅	100%
+Phase 2 - API Routes	✅	100%
+Phase 3 - UI Dashboard	✅	100%
+Phase 4 - Email	❌	0%
+Phase 5 - Événements	🟡	70%
+Phase 6 - Préférences UI	❌	0%
+Phase 7 - Optimisations	❌	0%
+Le système de notifications fonctionne (in-app uniquement), mais il manque l'intégration email et l'interface utilisateur pour gérer les préférences.
+
+
+===============================================================
+
 
 ## 🔔 Pourquoi un centre de notifications centralisé est brillant
 
@@ -574,98 +622,6 @@ Ajout de SMS en quelques lignes
 Web Push API future
 Digest email quotidien/hebdo
 Analytics natives
-
-Voici ce qu'il faut faire :
-
-📝 Code à ajouter dans shared/schema.ts
-// Tables pour le système de notifications
-export const notifications = pgTable("notifications", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar("type", { length: 50 }).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  message: text("message").notNull(),
-  data: jsonb("data"),
-  read: boolean("read").default(false).notNull(),
-  readAt: timestamp("read_at"),
-  channels: jsonb("channels").default(['in-app']).notNull(),
-  sentChannels: jsonb("sent_channels").default(['in-app']).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-export const notificationPreferences = pgTable("notification_preferences", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  notificationType: varchar("notification_type", { length: 50 }).notNull(),
-  enableInApp: boolean("enable_in_app").default(true).notNull(),
-  enableEmail: boolean("enable_email").default(true).notNull(),
-  enablePush: boolean("enable_push").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-  uniqueUserType: unique().on(table.userId, table.notificationType)
-}));
-// Types TypeScript
-export type Notification = typeof notifications.$inferSelect;
-export type NotificationInsert = typeof notifications.$inferInsert;
-export type NotificationPreference = typeof notificationPreferences.$inferSelect;
-export type NotificationPreferenceInsert = typeof notificationPreferences.$inferInsert;
-🚀 Ensuite, pour créer les tables en DB :
-npm run db:push
-Si ça demande confirmation (data loss warning), utilisez :
-
-npm run db:push --force
-📊 Structure créée :
-Table notifications :
-id - Identifiant auto-incrémenté
-user_id - Référence vers l'utilisateur
-type - Type de notification (new_message, listing_validated, etc.)
-title - Titre court "Nouveau message de Jean"
-message - Message détaillé
-data - JSON avec infos contextuelles (listingId, messageId, etc.)
-read - Boolean, false par défaut
-read_at - Timestamp de lecture
-channels - Array JSON des canaux ciblés ['in-app', 'email', 'push']
-sent_channels - Array JSON des canaux effectivement envoyés
-created_at - Date de création
-Table notification_preferences :
-id - Identifiant
-user_id - Référence utilisateur
-notification_type - Type (new_message, listing_validated, etc.)
-enable_in_app - Boolean (true par défaut)
-enable_email - Boolean (true par défaut)
-enable_push - Boolean (false par défaut)
-Contrainte unique sur (user_id, notification_type)
-
-
-**! Je vais mettre à jour schema.ts avec les définitions Drizzle des tables de notifications. 🚀
-
-
-Planned schema modifications
-Parfait ! Je vais ajouter les tables de notifications dans schema.ts :
-
-
-Added notification tables schema
-Parfait ! Maintenant je vais ajouter les tables de notifications après la table followers :
-
-
-Edited shared/schema.ts
-
-Chose schema insertion logic
-Maintenant j'ajoute les schémas d'insertion et les types TypeScript :
-
-
-Planned notification type constants
-Parfait ! Maintenant je vais créer le fichier notificationTypes.ts avec les constantes :
-
-
-Created shared/notificationTypes.ts
-
-Checked schema for LSP errors
-Parfait ! Maintenant je vérifie qu'il n'y a pas d'erreurs :
-
-Checked code issues
-
-Planned documentation and task list
-Excellent ! ✅ Phase 1 terminée avec succès !
 
 Voici ce qui a été fait :
 

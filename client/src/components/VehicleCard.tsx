@@ -75,7 +75,7 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
     <div
       onClick={onClick}
       className="relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] cursor-pointer overflow-hidden border border-gray-100 
-        flex flex-row lg:flex-col"
+        flex flex-col"
     >
       {/* Boost Badge */}
       {vehicle.isBoosted && (
@@ -85,8 +85,8 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
         </div>
       )}
 
-      {/* Image + Carrousel - Horizontal sur mobile, vertical sur desktop */}
-      <div className="relative w-32 h-32 lg:w-full lg:h-48 bg-gray-200 overflow-hidden flex-shrink-0">
+      {/* Image + Carrousel - Vertical sur tous les écrans */}
+      <div className="relative w-full h-48 lg:h-56 bg-gray-200 overflow-hidden flex-shrink-0">
         {vehicle.images.length > 0 ? (
           <>
             <AnimatePresence mode="wait">
@@ -111,21 +111,21 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
               </div>
             )}
 
-            {/* Flèches - Cachées sur mobile, visibles sur desktop */}
+            {/* Flèches - Visibles sur tous les écrans */}
             {vehicle.images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
-                  className="hidden lg:block absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 rounded-full shadow-md p-2 transition"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 rounded-full shadow-md p-1.5 lg:p-2 transition"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} className="lg:w-5 lg:h-5" />
                 </button>
 
                 <button
                   onClick={nextImage}
-                  className="hidden lg:block absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 rounded-full shadow-md p-2 transition"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 rounded-full shadow-md p-1.5 lg:p-2 transition"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={18} className="lg:w-5 lg:h-5" />
                 </button>
               </>
             )}
@@ -150,15 +150,15 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
         </div>
       </div>
 
-      {/* Contenu - Adapté pour horizontal sur mobile */}
-      <div className="p-3 lg:p-6 flex-1 min-w-0">
+      {/* Contenu - Layout vertical optimisé */}
+      <div className="p-4 lg:p-6 flex-1 min-w-0">
         {/* Title and Price */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-2 lg:mb-3">
-          <h3 className="text-sm lg:text-lg font-semibold text-gray-900 line-clamp-2 mb-1 lg:mb-0 lg:flex-1 lg:mr-4">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-3 lg:mb-3">
+          <h3 className="text-base lg:text-lg font-semibold text-gray-900 line-clamp-2 mb-2 lg:mb-0 lg:flex-1 lg:mr-4">
             {vehicle.title}
           </h3>
           <div className="flex items-center justify-between lg:block lg:text-right">
-            <div className="text-lg lg:text-xl font-bold text-primary-bolt-500">
+            <div className="text-xl lg:text-xl font-bold text-primary-bolt-500">
               {formatPrice(vehicle.price)}
             </div>
             {vehicle.user?.type === "professional" && (
@@ -183,34 +183,33 @@ const VehicleCardComponent: React.FC<VehicleCardProps> = ({
           </div>
         </div>
 
-        {/* Vehicle Details - Plus compact sur mobile */}
-        <div className="flex flex-wrap gap-2 lg:gap-3 mb-2 lg:mb-4 text-xs lg:text-sm text-gray-600">
+        {/* Vehicle Details - Optimisé pour mobile */}
+        <div className="flex flex-wrap gap-3 lg:gap-3 mb-3 lg:mb-4 text-sm lg:text-sm text-gray-600">
           {vehicle.year && vehicle.year > 0 && (
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <Calendar className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
+            <div className="flex items-center space-x-1.5 lg:space-x-2">
+              <Calendar className="h-4 w-4 lg:h-4 lg:w-4 text-gray-400" />
               <span>{vehicle.year}</span>
             </div>
           )}
 
           {vehicle.mileage && vehicle.mileage > 0 && (
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <Gauge className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
-              <span className="hidden sm:inline">{formatMileage(vehicle.mileage)}</span>
-              <span className="sm:hidden">{new Intl.NumberFormat("fr-FR").format(vehicle.mileage)} km</span>
+            <div className="flex items-center space-x-1.5 lg:space-x-2">
+              <Gauge className="h-4 w-4 lg:h-4 lg:w-4 text-gray-400" />
+              <span>{formatMileage(vehicle.mileage)}</span>
             </div>
           )}
 
           {vehicle.fuelType && (
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <Fuel className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
+            <div className="flex items-center space-x-1.5 lg:space-x-2">
+              <Fuel className="h-4 w-4 lg:h-4 lg:w-4 text-gray-400" />
               <span className="truncate">{translateFuelType(vehicle.fuelType)}</span>
             </div>
           )}
         </div>
 
         {/* Location */}
-        <div className="flex items-center space-x-1 lg:space-x-2 pt-2 lg:pt-4 border-t border-gray-100 text-xs lg:text-sm text-gray-600">
-          <MapPin className="h-3 w-3 lg:h-4 lg:w-4 text-gray-400" />
+        <div className="flex items-center space-x-1.5 lg:space-x-2 pt-3 lg:pt-4 border-t border-gray-100 text-sm lg:text-sm text-gray-600">
+          <MapPin className="h-4 w-4 lg:h-4 lg:w-4 text-gray-400" />
           <span className="truncate">{vehicle.location}</span>
         </div>
       </div>
