@@ -2,6 +2,32 @@
 
 ## **Update du 11/10/2025 a 17h45 **
 
+Je dois compléter le centre de notifications. D'après mon analyse, il manque principalement :
+
+L'intégration email - Pour envoyer des emails de notification
+La page de préférences - Pour que les utilisateurs puissent gérer leurs notifications
+Quelques événements déclencheurs - Paiements et favoris
+J'ai trouvé des intégrations email disponibles (SendGrid, Resend). Pour les emails transactionnels de notifications, Resend est excellent car il est moderne, simple et fiable.
+
+Voici mon plan d'action pour compléter le système :
+
+Phase 4 - Intégration Email :
+
+Configurer l'intégration Resend pour l'envoi d'emails
+Créer les templates HTML pour chaque type de notification
+Connecter le service notificationCenter avec Resend
+Phase 6 - Interface Préférences :
+
+Créer le composant NotificationPreferences avec toggles pour chaque type
+Créer le hook useNotificationPreferences pour gérer l'état
+Intégrer la page dans les paramètres utilisateur du Dashboard
+Phase 5 - Compléter les événements :
+
+Ajouter les notifications de paiement dans les webhooks Stripe
+Ajouter la notification de favoris dans la route wishlist
+
+
+
 ✅ CE QUI EST IMPLÉMENTÉ
 Phase 1 : Infrastructure ✅ COMPLET
 ✅ Tables DB créées (notifications + notification_preferences)
