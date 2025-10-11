@@ -45,8 +45,6 @@ import {
   UserPlus,
   ShieldCheck,
   Package,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -231,11 +229,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   >({});
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
   const [loadingPurchaseHistory, setLoadingPurchaseHistory] = useState(false);
-
-  // État et ref pour le menu horizontal scrollable
-  const menuScrollRef = React.useRef<HTMLDivElement>(null);
-  const [showLeftFade, setShowLeftFade] = useState(false);
-  const [showRightFade, setShowRightFade] = useState(true);
 
   const { toast } = useToast();
 
@@ -553,47 +546,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [profile?.type, professionalAccount]); // Se déclenche quand les données utilisateur sont chargées
-
-  // Gérer les indicateurs de fade pour le menu horizontal scrollable
-  useEffect(() => {
-    const handleScroll = () => {
-      const container = menuScrollRef.current;
-      if (!container) return;
-
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      
-      // Fade gauche visible si on n'est pas tout à gauche
-      setShowLeftFade(scrollLeft > 0);
-      
-      // Fade droite visible si on n'est pas tout à droite
-      setShowRightFade(scrollLeft < scrollWidth - clientWidth - 1);
-    };
-
-    const container = menuScrollRef.current;
-    if (container) {
-      // Vérifier immédiatement au montage
-      handleScroll();
-      
-      // Écouter les événements de scroll
-      container.addEventListener('scroll', handleScroll);
-      
-      // Cleanup
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [profile?.type, professionalAccount]); // Re-calculer quand les onglets changent
-
-  // Fonctions pour scroller le menu horizontal
-  const scrollMenuLeft = () => {
-    const container = menuScrollRef.current;
-    if (!container) return;
-    container.scrollBy({ left: -200, behavior: 'smooth' });
-  };
-
-  const scrollMenuRight = () => {
-    const container = menuScrollRef.current;
-    if (!container) return;
-    container.scrollBy({ left: 200, behavior: 'smooth' });
-  };
 
   // Pré-remplir le formulaire avec les données existantes quand on entre en mode édition
   useEffect(() => {
@@ -2898,94 +2850,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Menu horizontal scrollable pour mobile */}
-        <div className="lg:hidden mb-6 -mx-4 px-4">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-2 relative">
-            {/* Fade overlay gauche */}
-            <div 
-              className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent pointer-events-none z-10 transition-opacity duration-300 rounded-l-2xl ${
-                showLeftFade ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-            
-            {/* Fade overlay droite */}
-            <div 
-              className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none z-10 transition-opacity duration-300 rounded-r-2xl ${
-                showRightFade ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-            
-            {/* Bouton flèche gauche */}
-            {showLeftFade && (
-              <button
-                onClick={scrollMenuLeft}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200 hover:scale-110 animate-pulse"
-                aria-label="Défiler vers la gauche"
-              >
-                <ChevronLeft className="h-4 w-4 text-primary-bolt-600" />
-              </button>
-            )}
-            
-            {/* Bouton flèche droite */}
-            {showRightFade && (
-              <button
-                onClick={scrollMenuRight}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200 hover:scale-110 animate-pulse"
-                aria-label="Défiler vers la droite"
-              >
-                <ChevronRight className="h-4 w-4 text-primary-bolt-600" />
-              </button>
-            )}
-            
-            {/* Conteneur avec peek effect - padding spécial pour montrer la moitié du dernier élément */}
-            <div 
-              ref={menuScrollRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory pr-12"
-            >
-              {getDashboardTabs(profile?.type, professionalAccount)
-                .filter((tab) => {
-                  // Masquer les onglets pros pour les utilisateurs individuels
-                  if (
-                    (tab.id === "subscription" ||
-                      tab.id === "manage-subscription") &&
-                    profile?.type !== "professional"
-                  ) {
-                    return false;
-                  }
-                  return true;
-                })
-                .map((tab) => {
-                  const badgeCount =
-                    tab.id === "messages" ? unreadCount : tab.badge || 0;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex-shrink-0 flex flex-col items-center justify-center px-4 py-3 rounded-xl transition-all duration-200 min-w-[90px] snap-start ${
-                        activeTab === tab.id
-                          ? "bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 text-white shadow-lg scale-105"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-primary-bolt-500"
-                      }`}
-                    >
-                      <div className="relative">
-                        {tab.icon}
-                        {badgeCount > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                            {badgeCount > 9 ? "9+" : badgeCount}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs font-semibold mt-1.5 text-center leading-tight">
-                        {tab.label}
-                      </span>
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-        </div>
-
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation - masquée si onglet messages OU sur mobile */}
           {activeTab !== "messages" && (
