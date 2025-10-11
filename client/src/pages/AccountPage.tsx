@@ -6,8 +6,7 @@ import {
   Heart, 
   MessageCircle, 
   User, 
-  Crown,
-  ChevronRight
+  Crown
 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useQuery } from "@tanstack/react-query";
@@ -116,17 +115,14 @@ export default function AccountPage() {
               )}
 
               {/* Icône avec gradient */}
-              <div className={`bg-gradient-to-br ${section.gradient} text-white rounded-xl p-3 mb-4 inline-flex`}>
+              <div className={`bg-gradient-to-br ${section.gradient} text-white rounded-xl p-3 mb-4 w-fit mx-auto`}>
                 {section.icon}
               </div>
 
               {/* Titre */}
-              <h3 className="text-sm font-semibold text-gray-900 text-left mb-1">
+              <h3 className="text-sm font-semibold text-gray-900 text-center">
                 {section.title}
               </h3>
-
-              {/* Flèche */}
-              <ChevronRight className="absolute bottom-4 right-4 h-5 w-5 text-gray-400" />
             </button>
           ))}
         </div>
