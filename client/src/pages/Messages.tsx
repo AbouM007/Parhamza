@@ -583,7 +583,7 @@ export function Messages() {
     <div className="min-h-screen bg-white">
       <MobilePageHeader 
         title="Messages" 
-        onBack={() => navigate("/dashboard")} 
+        onBack={() => navigate("/account")} 
       />
       
       {/* Header avec onglets */}
