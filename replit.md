@@ -18,6 +18,12 @@ The platform features a consistent design language with intuitive user flows, ut
 - **UX Features**: Smooth animations (200ms transitions), chevron icons that rotate on expansion (► → ▼), visual indentation for hierarchy, minimum 48px touch targets, responsive scrolling with max-height constraints, and emoji icons for visual categorization
 - **Behavior**: Only one sub-accordion can be open at a time to prevent menu overflow, and the entire menu closes automatically after navigation selection.
 
+**Mobile Page Header Architecture (October 2025)**: The mobile experience uses a dual-header pattern optimized for user pages:
+- **User Pages** (/account, /dashboard, /notifications, etc.): Display a minimal `MobilePageHeader` component with back arrow and page title. The classic header is hidden on mobile (< lg breakpoint) to maximize screen space and provide clean navigation.
+- **Public Pages** (home, search, listings): Retain the full classic header with logo, search, and navigation for optimal discovery.
+- **Component Structure**: The `MobilePageHeader` is a reusable component located at `client/src/components/MobilePageHeader.tsx` with sticky positioning, back navigation via `onBack` callback, and responsive display (visible on mobile, hidden on desktop with `lg:hidden`).
+- **Visual Design**: White background with shadow, 56px height, centered title, and back arrow on the left for intuitive navigation.
+
 **Dashboard Menu Architecture (October 2025)**: The dashboard navigation adapts to screen size with distinct patterns optimized for each device type:
 - **Mobile View (< lg breakpoint)**: Horizontal scrollable carousel at the top of the dashboard with snap-scroll behavior. Each tab is displayed as a compact card (min-width 90px) with icon, label, and notification badge. The menu uses `scrollbar-hide` CSS utility for a clean appearance while maintaining native scroll functionality. Active tabs are highlighted with gradient background and scale transformation.
 - **Desktop View (≥ lg breakpoint)**: Traditional vertical sidebar navigation on the left side with full-width buttons showing icons, labels, and badges. The sidebar is sticky-positioned and features the user profile card at the top. Active tabs have gradient backgrounds with shadow and scale effects.
