@@ -6,7 +6,8 @@ import {
   Heart, 
   MessageCircle, 
   User, 
-  Crown
+  Crown,
+  Receipt
 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useQuery } from "@tanstack/react-query";
@@ -85,6 +86,14 @@ export default function AccountPage() {
       gradient: "from-pink-500 to-rose-500",
       action: () => setLocation("/dashboard?tab=favorites"),
       badge: favorites.length,
+    },
+    // Ligne 3
+    {
+      id: "purchase-history",
+      title: "Historique",
+      icon: <Receipt className="h-8 w-8" />,
+      gradient: "from-teal-500 to-cyan-500",
+      action: () => setLocation("/dashboard?tab=purchase-history"),
     },
   ];
 
