@@ -39,36 +39,13 @@ export default function AccountPage() {
   });
 
   const sections: AccountSection[] = [
+    // Ligne 1
     {
       id: "dashboard",
       title: "Vue d'ensemble",
       icon: <LayoutDashboard className="h-8 w-8" />,
       gradient: "from-blue-500 to-cyan-500",
       action: () => setLocation("/dashboard"),
-    },
-    {
-      id: "listings",
-      title: "Mes annonces",
-      icon: <Car className="h-8 w-8" />,
-      gradient: "from-orange-500 to-red-500",
-      action: () => setLocation("/dashboard?tab=listings"),
-      badge: userVehicles.length,
-    },
-    {
-      id: "favorites",
-      title: "Mes Favoris",
-      icon: <Heart className="h-8 w-8" />,
-      gradient: "from-pink-500 to-rose-500",
-      action: () => setLocation("/dashboard?tab=favorites"),
-      badge: favorites.length,
-    },
-    {
-      id: "messages",
-      title: "Messages",
-      icon: <MessageCircle className="h-8 w-8" />,
-      gradient: "from-green-500 to-emerald-500",
-      action: () => setLocation("/messages"),
-      badge: unreadCount > 0 ? unreadCount : undefined,
     },
     {
       id: "profile",
@@ -83,6 +60,31 @@ export default function AccountPage() {
       icon: <Crown className="h-8 w-8" />,
       gradient: "from-yellow-500 to-amber-500",
       action: () => setLocation("/subscription-settings"),
+    },
+    // Ligne 2
+    {
+      id: "listings",
+      title: "Mes annonces",
+      icon: <Car className="h-8 w-8" />,
+      gradient: "from-orange-500 to-red-500",
+      action: () => setLocation("/dashboard?tab=listings"),
+      badge: userVehicles.length,
+    },
+    {
+      id: "messages",
+      title: "Messages",
+      icon: <MessageCircle className="h-8 w-8" />,
+      gradient: "from-green-500 to-emerald-500",
+      action: () => setLocation("/messages"),
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
+    {
+      id: "favorites",
+      title: "Mes Favoris",
+      icon: <Heart className="h-8 w-8" />,
+      gradient: "from-pink-500 to-rose-500",
+      action: () => setLocation("/dashboard?tab=favorites"),
+      badge: favorites.length,
     },
   ];
 
@@ -99,28 +101,28 @@ export default function AccountPage() {
           Mon Compte
         </h1>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={section.action}
-              className="relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95"
+              className="relative bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95"
               data-testid={`card-${section.id}`}
             >
               {/* Badge */}
               {section.badge !== undefined && section.badge > 0 && (
-                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg">
+                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
                   {section.badge > 99 ? '99+' : section.badge}
                 </div>
               )}
 
               {/* Icône avec gradient */}
-              <div className={`bg-gradient-to-br ${section.gradient} text-white rounded-xl p-3 mb-4 w-fit mx-auto`}>
+              <div className={`bg-gradient-to-br ${section.gradient} text-white rounded-xl p-2 mb-3 w-fit mx-auto`}>
                 {section.icon}
               </div>
 
               {/* Titre */}
-              <h3 className="text-sm font-semibold text-gray-900 text-center">
+              <h3 className="text-xs font-semibold text-gray-900 text-center leading-tight">
                 {section.title}
               </h3>
             </button>
