@@ -62,6 +62,7 @@ import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanne
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { BoostModal } from "../BoostModal";
+import { MobilePageHeader } from "../MobilePageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useQuota } from "@/hooks/useQuota";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -2890,7 +2891,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-20">
+      <MobilePageHeader 
+        title="Tableau de bord" 
+        onBack={() => window.history.back()} 
+      />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Menu horizontal scrollable pour mobile */}
         <div className="lg:hidden mb-6 -mx-4 px-4">

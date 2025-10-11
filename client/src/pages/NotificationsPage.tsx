@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { Notification } from "@shared/schema";
+import { MobilePageHeader } from "@/components/MobilePageHeader";
 
 type FilterType = 'all' | 'unread' | 'read';
 
@@ -104,10 +105,15 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      <MobilePageHeader 
+        title="Notifications" 
+        onBack={() => setLocation("/")} 
+      />
+      
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* En-tête */}
-        <div className="mb-8">
+        <div className="mb-8 hidden lg:block">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3" data-testid="title-notifications">
             <Bell className="h-8 w-8 text-primary-bolt-500" />
             Notifications
