@@ -2796,37 +2796,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex space-x-1 bg-gray-100 rounded-xl p-1">
             <button
               onClick={() => setFavoritesSubTab("listings")}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
                 favoritesSubTab === "listings"
                   ? "bg-white text-primary-bolt-600 shadow-md"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <Heart className="h-4 w-4" />
-              <span>Annonces favorites</span>
+              <Heart className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-base truncate">Annonces</span>
             </button>
             <button
               onClick={() => setFavoritesSubTab("searches")}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
                 favoritesSubTab === "searches"
                   ? "bg-white text-primary-bolt-600 shadow-md"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <Search className="h-4 w-4" />
-              <span>Recherches sauvegardées</span>
+              <Search className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-base truncate">Recherches</span>
             </button>
             <button
               onClick={() => setFavoritesSubTab("sellers")}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
                 favoritesSubTab === "sellers"
                   ? "bg-white text-primary-bolt-600 shadow-md"
                   : "text-gray-600 hover:text-gray-900"
               }`}
               data-testid="tab-followed-sellers"
             >
-              <UserPlus className="h-4 w-4" />
-              <span>Vendeurs suivis</span>
+              <UserPlus className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-base truncate">Vendeurs</span>
             </button>
           </div>
         </div>
