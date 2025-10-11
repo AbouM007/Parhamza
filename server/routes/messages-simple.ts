@@ -1,29 +1,31 @@
 import { Router } from "express";
 import { supabaseServer } from "../supabase";
 import { randomUUID } from "crypto";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
 console.log("🔧 Route messages-simple chargée");
 
 // Créer un message simple avec mapping IDs numériques
-router.post("/send", async (req, res) => {
+router.post("/send", requireAuth, async (req, res) => {
   try {
-    const { fromUserId, toUserId, content, vehicleId } = req.body;
+    const { recipientId, content, vehicleId } = req.body;
+    
+    // Récupérer l'utilisateur connecté depuis le middleware auth
+    const fromUserId = req.user?.id;
+    
+    if (!fromUserId) {
+      return res.status(401).json({ error: "Non authentifié" });
+    }
 
-    console.log("📬 Envoi message avec IDs:", {
-      fromUserId,
-      toUserId,
+    console.log("📬 Envoi message:", {
+      from: fromUserId,
+      to: recipientId,
       vehicleId,
     });
 
-    // Plus besoin de mapping - utilisation directe des IDs string
-    console.log("📝 IDs utilisés directement:", {
-      from: fromUserId,
-      to: toUserId,
-    });
-
-    // Vérifier les utilisateurs originaux
+    // Vérifier les utilisateurs
     const { data: fromUser } = await supabaseServer
       .from("users")
       .select("id, name")
@@ -33,7 +35,7 @@ router.post("/send", async (req, res) => {
     const { data: toUser } = await supabaseServer
       .from("users")
       .select("id, name")
-      .eq("id", toUserId)
+      .eq("id", recipientId)
       .single();
 
     if (!fromUser || !toUser) {
@@ -61,7 +63,7 @@ router.post("/send", async (req, res) => {
           {
             id: uniqueId,
             from_user_id: fromUserId,
-            to_user_id: toUserId,
+            to_user_id: recipientId,
             annonce_id: vehicleId ? parseInt(vehicleId) : null,
             content: messageContent,
             read: false,
