@@ -24,11 +24,10 @@ The platform features a consistent design language with intuitive user flows, ut
 - **Component Structure**: The `MobilePageHeader` is a reusable component located at `client/src/components/MobilePageHeader.tsx` with sticky positioning, back navigation via `onBack` callback, and responsive display (visible on mobile, hidden on desktop with `lg:hidden`).
 - **Visual Design**: White background with shadow, 56px height, centered title, and back arrow on the left for intuitive navigation.
 
-**Dashboard Menu Architecture (October 2025)**: The dashboard navigation adapts to screen size with distinct patterns optimized for each device type:
-- **Mobile View (< lg breakpoint)**: Horizontal scrollable carousel at the top of the dashboard with snap-scroll behavior. Each tab is displayed as a compact card (min-width 90px) with icon, label, and notification badge. The menu uses `scrollbar-hide` CSS utility for a clean appearance while maintaining native scroll functionality. Active tabs are highlighted with gradient background and scale transformation.
+**Dashboard Menu Architecture (October 2025)**: The dashboard navigation uses a single-pattern approach optimized for all device sizes:
 - **Desktop View (≥ lg breakpoint)**: Traditional vertical sidebar navigation on the left side with full-width buttons showing icons, labels, and badges. The sidebar is sticky-positioned and features the user profile card at the top. Active tabs have gradient backgrounds with shadow and scale effects.
-- **Responsive Behavior**: The mobile horizontal menu appears only below the lg breakpoint (lg:hidden), while the desktop sidebar is hidden on mobile and visible on larger screens (hidden lg:block). Both menus use the same tab data source, ensuring consistency across device types.
-- **Visual Design**: Gradient primary colors for active states, badges positioned absolutely on icons (mobile) or aligned right (desktop), smooth transitions (200ms), and touch-friendly minimum sizes for mobile interaction.
+- **Mobile View (< lg breakpoint)**: Uses the bottom navigation bar for primary actions. Dashboard content is accessed through the mobile page header with back navigation.
+- **Visual Design**: Gradient primary colors for active states, badges positioned on the right for desktop, smooth transitions (200ms), and touch-friendly minimum sizes for mobile interaction.
 
 ### Technical Implementations
 **Frontend**: Built with React 18 and TypeScript, using Vite for tooling, TanStack Query for state management, Wouter for routing, and React Hook Form with Zod for form handling.
