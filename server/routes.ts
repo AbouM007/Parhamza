@@ -354,6 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/annonces/:id/approve", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`🟢 APPROBATION - Début pour annonce ${id}`);
       
       // Récupérer les infos de l'annonce avant approbation
       const { data: vehicleData, error: fetchError } = await supabaseServer
@@ -367,15 +368,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Annonce non trouvée" });
       }
 
+      console.log(`🟢 Annonce trouvée - userId: ${vehicleData.user_id}, title: ${vehicleData.title}`);
+
       await storage.approveVehicle(id);
+      console.log(`🟢 Annonce approuvée dans storage`);
       
       // 📧 Envoyer notification de validation
       try {
+        console.log(`🟢 Début envoi notification validation...`);
         await notifyListingValidated({
           userId: vehicleData.user_id,
           listingId: parseInt(id),
           listingTitle: vehicleData.title,
         });
+        console.log(`✅ Notification validation envoyée`);
       } catch (emailError) {
         console.error("❌ Erreur envoi notification validation:", emailError);
         // Ne pas bloquer l'approbation si l'email échoue
