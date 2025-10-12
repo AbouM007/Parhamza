@@ -10,6 +10,7 @@ import {
   NOTIFICATION_TEMPLATES,
   type NotificationType,
 } from "../../shared/notificationTypes";
+import { sendEmail } from "./emailService";
 
 interface NotificationData {
   userId: string;
@@ -97,7 +98,7 @@ function generateNotificationContent(
 }
 
 /**
- * Envoie une notification par email (à implémenter dans Phase 4)
+ * Envoie une notification par email
  */
 async function sendEmailNotification(
   userId: string,
@@ -107,11 +108,31 @@ async function sendEmailNotification(
   data: Record<string, any>
 ): Promise<boolean> {
   try {
-    console.log(`📧 Email notification (à implémenter): ${type} pour ${userId}`);
-    // TODO Phase 4: Implémenter l'envoi d'email via emailService
-    return true;
+    // Récupérer l'email de l'utilisateur
+    const { data: user, error } = await supabaseServer
+      .from("users")
+      .select("email")
+      .eq("id", userId)
+      .single();
+
+    if (error || !user?.email) {
+      console.error(`❌ Email introuvable pour l'utilisateur ${userId}`);
+      return false;
+    }
+
+    // Envoyer l'email via emailService
+    const emailSent = await sendEmail(type, title, {
+      to: user.email,
+      ...data,
+    });
+
+    if (emailSent) {
+      console.log(`✅ Email envoyé avec succès à ${user.email}`);
+    }
+
+    return emailSent;
   } catch (error) {
-    console.error("Erreur lors de l'envoi d'email:", error);
+    console.error("❌ Erreur lors de l'envoi d'email:", error);
     return false;
   }
 }
@@ -346,5 +367,33 @@ export async function notifyListingFavorited({
     userId,
     type: NOTIFICATION_TYPES.LISTING_FAVORITED,
     data: { listingTitle, listingId },
+  });
+}
+
+export async function notifyWelcome({
+  userId,
+  userName,
+}: {
+  userId: string;
+  userName: string;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.WELCOME,
+    data: { userName },
+  });
+}
+
+export async function notifyProAccountActivated({
+  userId,
+  companyName,
+}: {
+  userId: string;
+  companyName: string;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.PRO_ACCOUNT_ACTIVATED,
+    data: { companyName },
   });
 }
