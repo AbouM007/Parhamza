@@ -480,23 +480,30 @@ export const notificationPreferences = pgTable("notification_preferences", {
   uniqueUserType: unique().on(table.userId, table.notificationType)
 }));
 
-// Table de signalement des annonces
+// Table de signalement des annonces (avec support anonyme)
 export const listingReports = pgTable("listing_reports", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   listingId: integer("listing_id")
     .references(() => annonces.id, { onDelete: "cascade" })
     .notNull(),
   reporterId: text("reporter_id")
-    .references(() => users.id, { onDelete: "cascade" })
-    .notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),
+  ipAddress: varchar("ip_address", { length: 50 }),
   reason: varchar("reason", { length: 50 }).notNull(),
   description: text("description"),
   status: varchar("status", { length: 20 }).default("pending").notNull(),
   adminComment: text("admin_comment"),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+// Table de limitation de taux pour signalements anonymes
+export const reportRateLimits = pgTable("report_rate_limits", {
+  id: serial("id").primaryKey(),
+  ipAddress: varchar("ip_address", { length: 50 }).notNull().unique(),
+  lastReportAt: timestamp("last_report_at").notNull(),
+  reportCount: integer("report_count").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-  uniqueUserReportPerListing: unique().on(table.listingId, table.reporterId)
-}));
+});
 
 // Schémas d'insertion
 export const insertUserSchema = createInsertSchema(users);
@@ -532,7 +539,13 @@ export const insertListingReportSchema = createInsertSchema(listingReports)
   })
   .extend({
     description: z.string().max(200, "La description ne doit pas dépasser 200 caractères").optional().nullable(),
+    reporterId: z.string().optional().nullable(),
+    ipAddress: z.string().max(50).optional().nullable(),
   });
+export const insertReportRateLimitSchema = createInsertSchema(reportRateLimits).omit({
+  id: true,
+  createdAt: true,
+});
 export const insertFollowerSchema = createInsertSchema(followers).omit({
   id: true,
 });

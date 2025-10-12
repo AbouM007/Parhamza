@@ -3528,19 +3528,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /api/reports - Créer un signalement
+  // POST /api/reports - Créer un signalement (avec ou sans authentification)
   app.post("/api/reports", async (req, res) => {
     const user = (req as any).user;
-
-    if (!user) {
-      return res.status(401).json({ error: "Authentification requise" });
-    }
+    const ipAddress = req.headers['x-forwarded-for'] as string || req.ip;
 
     try {
+      // Rate limiting pour signalements anonymes (1/heure par IP)
+      if (!user) {
+        const { data: rateLimit } = await supabaseServer
+          .from("report_rate_limits")
+          .select("last_report_at")
+          .eq("ip_address", ipAddress)
+          .maybeSingle();
+
+        if (rateLimit) {
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const lastReport = new Date(rateLimit.last_report_at);
+
+          if (lastReport > oneHourAgo) {
+            const minutesLeft = Math.ceil((lastReport.getTime() + 60 * 60 * 1000 - Date.now()) / 60000);
+            return res.status(429).json({ 
+              error: `Vous avez déjà signalé une annonce récemment. Veuillez patienter ${minutesLeft} minute(s) avant de signaler à nouveau.`,
+              rateLimitExceeded: true
+            });
+          }
+        }
+      }
+
       // Validation Zod
       const reportData = insertListingReportSchema.parse({
         listingId: req.body.listingId,
-        reporterId: user.id,
+        reporterId: user?.id || null,
+        ipAddress: !user ? ipAddress : null,
         reason: req.body.reason,
         description: req.body.description || null,
         status: "pending",
@@ -3557,16 +3577,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Annonce non trouvée" });
       }
 
-      // Vérifier si l'utilisateur a déjà signalé cette annonce
-      const { data: existing } = await supabaseServer
-        .from("listing_reports")
-        .select("id")
-        .eq("listing_id", reportData.listingId)
-        .eq("reporter_id", user.id)
-        .maybeSingle();
+      // Vérifier si l'utilisateur/IP a déjà signalé cette annonce
+      let existing;
+      if (user) {
+        const { data } = await supabaseServer
+          .from("listing_reports")
+          .select("id")
+          .eq("listing_id", reportData.listingId)
+          .eq("reporter_id", user.id)
+          .maybeSingle();
+        existing = data;
+      } else {
+        const { data } = await supabaseServer
+          .from("listing_reports")
+          .select("id")
+          .eq("listing_id", reportData.listingId)
+          .eq("ip_address", ipAddress)
+          .maybeSingle();
+        existing = data;
+      }
 
       if (existing) {
-        return res.status(409).json({ error: "Vous avez déjà signalé cette annonce", alreadyReported: true });
+        return res.status(409).json({ 
+          error: "Vous avez déjà signalé cette annonce",
+          alreadyReported: true 
+        });
       }
 
       // Créer le signalement avec Drizzle schema
@@ -3575,6 +3610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert({
           listing_id: reportData.listingId,
           reporter_id: reportData.reporterId,
+          ip_address: reportData.ipAddress,
           reason: reportData.reason,
           description: reportData.description,
           status: reportData.status,
@@ -3587,12 +3623,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Erreur lors du signalement" });
       }
 
+      // Mettre à jour le rate limit pour signalements anonymes
+      if (!user) {
+        await supabaseServer
+          .from("report_rate_limits")
+          .upsert({
+            ip_address: ipAddress,
+            last_report_at: new Date().toISOString(),
+            report_count: 1,
+          });
+      }
+
       // Notification admin pour nouveau signalement
       try {
         await notifyNewReport({
           listingId: reportData.listingId,
           listingTitle: listing.title,
-          reporterId: user.id,
+          reporterId: user?.id || 'Anonyme',
           reason: reportData.reason,
         });
       } catch (notifError) {
@@ -3600,7 +3647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Ne pas bloquer la création du signalement si la notification échoue
       }
 
-      console.log(`✅ Signalement créé: ${report.id} pour l'annonce ${reportData.listingId}`);
+      console.log(`✅ Signalement créé: ${report.id} pour l'annonce ${reportData.listingId} ${user ? `par ${user.id}` : `par IP ${ipAddress}`}`);
       res.json({ success: true, message: "Signalement enregistré" });
 
     } catch (error) {
