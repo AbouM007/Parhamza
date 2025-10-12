@@ -407,3 +407,89 @@ export async function notifyProAccountActivated({
     data: { companyName },
   });
 }
+
+export async function notifySubscriptionEnding({
+  userId,
+  planName,
+  daysLeft,
+}: {
+  userId: string;
+  planName: string;
+  daysLeft: number;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.SUBSCRIPTION_ENDING,
+    data: { 
+      planName, 
+      daysLeft,
+      link: `https://passionauto2roues.com/subscription-settings`,
+    },
+  });
+}
+
+export async function notifySubscriptionRenewed({
+  userId,
+  planName,
+  amount,
+  nextBillingDate,
+}: {
+  userId: string;
+  planName: string;
+  amount: string;
+  nextBillingDate: string;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.SUBSCRIPTION_RENEWED,
+    data: { 
+      planName, 
+      amount,
+      nextBillingDate,
+      link: `https://passionauto2roues.com/subscription-settings`,
+    },
+  });
+}
+
+export async function notifySubscriptionCancelled({
+  userId,
+  planName,
+  endDate,
+}: {
+  userId: string;
+  planName: string;
+  endDate: string;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.SUBSCRIPTION_CANCELLED,
+    data: { 
+      planName, 
+      endDate,
+      link: `https://passionauto2roues.com/subscription-settings`,
+    },
+  });
+}
+
+export async function notifySubscriptionDowngraded({
+  userId,
+  oldPlan,
+  newPlan,
+  effectiveDate,
+}: {
+  userId: string;
+  oldPlan: string;
+  newPlan: string;
+  effectiveDate: string;
+}) {
+  await sendNotification({
+    userId,
+    type: NOTIFICATION_TYPES.SUBSCRIPTION_DOWNGRADED,
+    data: { 
+      oldPlan, 
+      newPlan, 
+      effectiveDate,
+      link: `https://passionauto2roues.com/subscription-settings`,
+    },
+  });
+}
