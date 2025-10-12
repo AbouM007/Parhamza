@@ -54,8 +54,15 @@ export function ReportListingDialog({
       onClose();
     },
     onError: (error: any) => {
-      const message = error.message || "Une erreur est survenue";
-      showToast(message, true);
+      // Gérer spécifiquement l'erreur d'authentification
+      if (error.status === 401 || error.message?.includes("Authentification requise")) {
+        showToast("🔒 Vous devez être connecté pour signaler une annonce", true);
+      } else if (error.alreadyReported) {
+        showToast("ℹ️ Vous avez déjà signalé cette annonce", true);
+      } else {
+        const message = error.message || "Une erreur est survenue";
+        showToast(message, true);
+      }
     },
   });
 

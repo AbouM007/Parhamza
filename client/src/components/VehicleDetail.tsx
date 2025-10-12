@@ -85,7 +85,7 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
   const [loadingProfessional, setLoadingProfessional] = useState(false);
 
   // Vérifier si l'utilisateur a déjà signalé cette annonce
-  const { data: reportStatus } = useQuery({
+  const { data: reportStatus } = useQuery<{ alreadyReported: boolean }>({
     queryKey: [`/api/reports/check/${vehicle.id}`],
     enabled: !!authUser,
   });
@@ -504,11 +504,17 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       <Share2 className="h-5 w-5 text-gray-600 hover:text-blue-500" />
                     </button>
                     <button
-                      onClick={() => setShowReportModal(true)}
+                      onClick={() => {
+                        if (!authUser) {
+                          alert("🔒 Vous devez être connecté pour signaler une annonce");
+                          return;
+                        }
+                        setShowReportModal(true);
+                      }}
                       disabled={hasReported}
                       className={`bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow-lg transition-all ${hasReported ? 'opacity-50 cursor-not-allowed' : ''}`}
                       data-testid="button-report-listing"
-                      title={hasReported ? "Vous avez déjà signalé cette annonce" : "Signaler cette annonce"}
+                      title={!authUser ? "Connectez-vous pour signaler" : hasReported ? "Vous avez déjà signalé cette annonce" : "Signaler cette annonce"}
                     >
                       <Flag className={`h-5 w-5 ${hasReported ? 'text-gray-400' : 'text-gray-600 hover:text-orange-600'}`} />
                     </button>
