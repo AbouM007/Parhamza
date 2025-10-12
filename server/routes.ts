@@ -33,7 +33,7 @@ import {
   notifyPaymentSuccess,
   notifyNewReport
 } from "./services/notificationCenter";
-import { insertListingReportSchema } from "@shared/schema";
+import { insertListingReportSchema } from "../shared/schema";
 import { z } from "zod";
 
 // Configuration multer pour upload en mémoire
