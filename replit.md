@@ -65,6 +65,14 @@ The platform features a consistent design language with intuitive user flows, ut
     - `notifySubscriptionDowngraded`: Fires when user downgrades subscription plan (subscriptions.ts line ~665)
     - `notifySubscriptionEnding`: Template ready for expiration reminders (requires cron/scheduled job implementation)
   - **Architecture**: The emailService.ts handles template loading, variable substitution, and graceful error handling. Email failures don't block in-app notification creation or business operations. Templates are organized in server/templates/ by category.
+  - **Notification Preferences UI (October 2025)**: Comprehensive user interface for managing notification preferences across all 16 notification types and 3 channels (in-app, email, push):
+    - **Page**: `/notification-settings` with responsive design (NotificationSettingsPage.tsx)
+    - **Layout**: Category-based accordion system (Account, Listings, Messages, Payments, Followers, Subscriptions) with collapsible mobile view and always-visible desktop view
+    - **State Management**: Local state with optimistic updates to prevent race conditions during rapid toggle changes. Uses `localPreferences` synchronized with server data via `useEffect`
+    - **Toggle Protection**: Toggles disabled during mutations (`isPending`) to prevent concurrent save conflicts. Automatic rollback to server state on error
+    - **Access Points**: Integrated in mobile hamburger menu (after "Mon profil"), AccountPage card grid (3x3 layout), and notifications page
+    - **UX Features**: Real-time visual feedback, channel-specific icons (Bell for in-app, Mail for email, Smartphone for push), responsive 3-column toggle layout, smooth transitions
+    - **API Integration**: GET/PUT `/api/notifications/preferences` with optimistic cache updates via `queryClient.setQueryData`
 - **Followers System**: Allows users to follow professional sellers, with dashboard integration showing seller details and active listings.
 - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
 - **Data Persistence**: A hybrid storage system (localStorage and IndexedDB) for create listing forms to prevent data loss, especially for large image uploads.
