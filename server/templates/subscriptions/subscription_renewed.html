@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <style>
+    body {margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#f5f5f5;color:#333}
+    .container {max-width:600px;margin:0 auto;background-color:#ffffff}
+    .header {background-color:#067D92;padding:30px 20px;text-align:center}
+    .content {padding:40px 30px}
+    .content h2 {color:#10b981;font-size:22px;margin-top:0;margin-bottom:20px}
+    .content p {line-height:1.6;margin-bottom:16px;color:#555}
+    .button {display:inline-block;padding:14px 32px;background-color:#067D92;color:#ffffff!important;text-decoration:none;border-radius:6px;font-weight:500;margin:20px 0}
+    .button:hover {background-color:#055968}
+    .footer {background-color:#f8f8f8;padding:30px 20px;text-align:center;border-top:1px solid #e0e0e0}
+    .footer p {margin:5px 0;font-size:14px;color:#777}
+    .footer a {color:#067D92;text-decoration:none}
+    .highlight {background-color:#ecfdf5;padding:20px;border-left:4px solid #10b981;margin:20px 0}
+    .info-table {width:100%;margin:20px 0}
+    .info-table td {padding:8px 0;border-bottom:1px solid #e0e0e0}
+    .info-table td:first-child {font-weight:600;color:#333;width:40%}
+    .info-table td:last-child {color:#555}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img
+        src="https://passionauto2roues.com/assets/logo-transparent_1753108744744-ByFmE3G5.png"
+        alt="PassionAuto2Roues"
+        style="max-height: 50px; width: auto;" />
+    </div>
+    <div class="content">
+      <h2>🎉 Abonnement renouvelé avec succès</h2>
+      <p>Votre abonnement <strong>{{planName}}</strong> a été renouvelé automatiquement.</p>
+      
+      <div class="highlight">
+        <p><strong>Détails du renouvellement :</strong></p>
+        <table class="info-table">
+          <tr>
+            <td>Plan :</td>
+            <td>{{planName}}</td>
+          </tr>
+          <tr>
+            <td>Montant :</td>
+            <td>{{amount}}</td>
+          </tr>
+          <tr>
+            <td>Prochaine échéance :</td>
+            <td>{{nextBillingDate}}</td>
+          </tr>
+        </table>
+      </div>
+
+      <a href="{{link}}" class="button">Voir mes abonnements</a>
+      
+      <p>Vous pouvez gérer votre abonnement à tout moment depuis votre espace client.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; {{year}} PassionAuto2Roues - Tous droits réservés</p>
+      <p><a href="https://passionauto2roues.com">Site web</a> | <a href="https://passionauto2roues.com/contact">Contact</a> | <a href="https://passionauto2roues.com/preferences">Préférences</a></p>
+    </div>
+  </div>
+</body>
+</html>
