@@ -18,6 +18,7 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
 
   // Si on a un token rafraîchi, l'utiliser directement
   if (refreshedToken) {
+    console.log('🔐 [API] Using refreshed token for:', url);
     headers["Authorization"] = `Bearer ${refreshedToken}`;
   } else {
     // Sinon, récupérer le token Supabase actuel
@@ -26,7 +27,10 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
     } = await supabase.auth.getSession();
 
     if (session?.access_token) {
+      console.log('🔐 [API] Using session token for:', url);
       headers["Authorization"] = `Bearer ${session.access_token}`;
+    } else {
+      console.warn('⚠️ [API] No session found for:', url);
     }
   }
 
