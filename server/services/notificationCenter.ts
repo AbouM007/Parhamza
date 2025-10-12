@@ -298,7 +298,11 @@ export async function notifyNewFollower({
   await sendNotification({
     userId: followedUserId,
     type: NOTIFICATION_TYPES.NEW_FOLLOWER,
-    data: { followerName, followerId },
+    data: { 
+      followerName, 
+      followerId,
+      link: `https://passionauto2roues.com/professional/${followerId}`,
+    },
   });
 }
 
@@ -318,7 +322,13 @@ export async function notifyFollowedNewListing({
   await sendNotification({
     userId: followerId,
     type: NOTIFICATION_TYPES.FOLLOWED_NEW_LISTING,
-    data: { sellerName, sellerId, listingId, listingTitle },
+    data: { 
+      sellerName, 
+      sellerId, 
+      listingId, 
+      listingTitle,
+      link: `https://passionauto2roues.com/vehicle/${listingId}`,
+    },
   });
 }
 
