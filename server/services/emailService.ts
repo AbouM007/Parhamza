@@ -28,7 +28,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const EMAIL_TEMPLATE_MAP: Record<NotificationType, string> = {
+const EMAIL_TEMPLATE_MAP: Partial<Record<NotificationType, string>> = {
   'welcome': 'account/welcome.html',
   'pro_account_activated': 'account/pro_account_activated.html',
   'new_message': 'messaging/new_message.html',
@@ -36,12 +36,8 @@ const EMAIL_TEMPLATE_MAP: Record<NotificationType, string> = {
   'listing_validated': 'listings/listing_validated.html',
   'listing_rejected': 'listings/listing_rejected.html',
   'listing_favorited': 'listings/listing_favorited.html',
-  'listing_expiring': 'listings/listing_expiring.html',
-  'new_follower': 'social/new_follower.html',
-  'followed_new_listing': 'social/followed_new_listing.html',
   'payment_success': 'payments/payment_success.html',
   'payment_failed': 'payments/payment_failed.html',
-  'subscription_ending': 'subscriptions/subscription_ending.html',
 };
 
 async function loadTemplate(templatePath: string): Promise<string> {
@@ -77,7 +73,7 @@ export async function sendEmail(
     const templatePath = EMAIL_TEMPLATE_MAP[notificationType];
     
     if (!templatePath) {
-      console.error(`Aucun template trouvé pour le type: ${notificationType}`);
+      console.log(`⏭️  Aucun template email pour ${notificationType}, envoi ignoré (notification in-app créée)`);
       return false;
     }
 
