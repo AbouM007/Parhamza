@@ -480,6 +480,24 @@ export const notificationPreferences = pgTable("notification_preferences", {
   uniqueUserType: unique().on(table.userId, table.notificationType)
 }));
 
+// Table de signalement des annonces
+export const listingReports = pgTable("listing_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: integer("listing_id")
+    .references(() => annonces.id, { onDelete: "cascade" })
+    .notNull(),
+  reporterId: text("reporter_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  reason: varchar("reason", { length: 50 }).notNull(),
+  description: text("description"),
+  status: varchar("status", { length: 20 }).default("pending").notNull(),
+  adminComment: text("admin_comment"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserReportPerListing: unique().on(table.listingId, table.reporterId)
+}));
+
 // Schémas d'insertion
 export const insertUserSchema = createInsertSchema(users);
 export const insertVehicleSchema = createInsertSchema(annonces).omit({
@@ -507,6 +525,14 @@ export const insertBoostPlanSchema = createInsertSchema(boostPlans).omit({
 export const insertAnnonceBoostSchema = createInsertSchema(annonceBoosts).omit({
   id: true,
 });
+export const insertListingReportSchema = createInsertSchema(listingReports)
+  .omit({
+    id: true,
+    createdAt: true,
+  })
+  .extend({
+    description: z.string().max(200, "La description ne doit pas dépasser 200 caractères").optional().nullable(),
+  });
 export const insertFollowerSchema = createInsertSchema(followers).omit({
   id: true,
 });
@@ -539,6 +565,7 @@ export type InsertAnnonceBoost = z.infer<typeof insertAnnonceBoostSchema>;
 export type InsertFollower = z.infer<typeof insertFollowerSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertNotificationPreference = z.infer<typeof insertNotificationPreferenceSchema>;
+export type InsertListingReport = z.infer<typeof insertListingReportSchema>;
 
 // Types de sélection
 export type User = typeof users.$inferSelect;
@@ -557,3 +584,4 @@ export type AnnonceBoost = typeof annonceBoosts.$inferSelect;
 export type Follower = typeof followers.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type ListingReport = typeof listingReports.$inferSelect;

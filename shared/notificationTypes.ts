@@ -14,6 +14,7 @@ export const NOTIFICATION_TYPES = {
   LISTING_REJECTED: 'listing_rejected',
   LISTING_FAVORITED: 'listing_favorited',
   LISTING_EXPIRING: 'listing_expiring',
+  NEW_REPORT: 'new_report',
   
   // Social
   NEW_FOLLOWER: 'new_follower',
@@ -77,6 +78,11 @@ export const NOTIFICATION_DEFAULTS: Record<NotificationType, {
     inApp: true,
     email: true,
     push: false,
+  },
+  [NOTIFICATION_TYPES.NEW_REPORT]: {
+    inApp: true,
+    email: true,
+    push: true,
   },
   [NOTIFICATION_TYPES.NEW_FOLLOWER]: {
     inApp: true,
@@ -160,6 +166,11 @@ export const NOTIFICATION_TEMPLATES = {
     title: () => 'Votre annonce expire bientôt',
     message: (data: { listingTitle: string; daysLeft: number }) => 
       `${data.listingTitle} expire dans ${data.daysLeft} jour(s)`,
+  },
+  [NOTIFICATION_TYPES.NEW_REPORT]: {
+    title: () => '🚨 Nouveau signalement',
+    message: (data: { listingTitle: string; reason: string }) => 
+      `Annonce "${data.listingTitle}" signalée pour: ${data.reason}`,
   },
   [NOTIFICATION_TYPES.NEW_FOLLOWER]: {
     title: (data: { followerName: string }) => `${data.followerName} vous suit !`,

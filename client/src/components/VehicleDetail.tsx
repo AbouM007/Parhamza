@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Calendar,
@@ -22,6 +23,7 @@ import {
   Car,
   Settings,
   Users,
+  Flag,
 } from "lucide-react";
 import { FavoriteButton } from "./FavoriteButton";
 import { Vehicle } from "@/types";
@@ -32,6 +34,7 @@ import { useApp } from "@/contexts/AppContext";
 import { Footer } from "./Footer";
 import { ContactSellerModal } from "./ContactSellerModal";
 import { ShareModal } from "./ShareModal";
+import { ReportListingDialog } from "./ReportListingDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { PassionateLabel } from "./PassionateLabel";
 import brandIcon from "@/assets/Brand_1752260033631.png";
@@ -76,8 +79,23 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
   const [messageText, setMessageText] = useState("");
   const [showContactModal, setShowContactModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
   const [professionalAccount, setProfessionalAccount] = useState<any>(null);
   const [loadingProfessional, setLoadingProfessional] = useState(false);
+
+  // Vérifier si l'utilisateur a déjà signalé cette annonce
+  const { data: reportStatus } = useQuery({
+    queryKey: [`/api/reports/check/${vehicle.id}`],
+    enabled: !!authUser,
+  });
+
+  // Mettre à jour hasReported si l'utilisateur a déjà signalé
+  useEffect(() => {
+    if (reportStatus?.alreadyReported) {
+      setHasReported(true);
+    }
+  }, [reportStatus]);
 
   // Function to handle navigation from footer links
   const handleFooterNavigation = (view: string) => {
@@ -484,6 +502,15 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       className="bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow-lg transition-all"
                     >
                       <Share2 className="h-5 w-5 text-gray-600 hover:text-blue-500" />
+                    </button>
+                    <button
+                      onClick={() => setShowReportModal(true)}
+                      disabled={hasReported}
+                      className={`bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow-lg transition-all ${hasReported ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      data-testid="button-report-listing"
+                      title={hasReported ? "Vous avez déjà signalé cette annonce" : "Signaler cette annonce"}
+                    >
+                      <Flag className={`h-5 w-5 ${hasReported ? 'text-gray-400' : 'text-gray-600 hover:text-orange-600'}`} />
                     </button>
                   </div>
 
@@ -1467,6 +1494,15 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
         onClose={() => setShowShareModal(false)}
         title={`${vehicle.brand} ${vehicle.model} - ${vehicle.price}€`}
         url={window.location.href}
+      />
+
+      {/* Report Listing Dialog */}
+      <ReportListingDialog
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        listingId={Number(vehicle.id)}
+        listingTitle={vehicle.title}
+        onSuccess={() => setHasReported(true)}
       />
 
       {/* Footer with custom navigation handler */}

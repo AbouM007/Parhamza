@@ -380,6 +380,46 @@ export async function notifyListingFavorited({
   });
 }
 
+export async function notifyNewReport({
+  listingId,
+  listingTitle,
+  reporterId,
+  reason,
+}: {
+  listingId: number;
+  listingTitle: string;
+  reporterId: string;
+  reason: string;
+}) {
+  try {
+    // Récupérer tous les administrateurs
+    const { data: admins, error } = await supabaseServer
+      .from("users")
+      .select("id")
+      .eq("type", "admin");
+
+    if (error || !admins || admins.length === 0) {
+      console.error("Aucun administrateur trouvé pour notifier le signalement");
+      return;
+    }
+
+    // Envoyer une notification à chaque administrateur
+    const notificationPromises = admins.map((admin) =>
+      sendNotification({
+        userId: admin.id,
+        type: NOTIFICATION_TYPES.NEW_REPORT,
+        data: { listingId, listingTitle, reporterId, reason },
+      })
+    );
+
+    await Promise.all(notificationPromises);
+    console.log(`✅ Notification envoyée à ${admins.length} administrateur(s) pour le signalement`);
+  } catch (error) {
+    console.error("Erreur lors de l'envoi des notifications admin:", error);
+    throw error;
+  }
+}
+
 export async function notifyWelcome({
   userId,
   userName,

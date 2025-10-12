@@ -26,6 +26,7 @@ import { SafetyTipsPage } from "./pages/SafetyTipsPage";
 import { AdminDashboardClean } from "@/components/AdminDashboardClean";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminTest } from "@/components/AdminTest";
+import AdminReportsPage from "./pages/AdminReportsPage";
 import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -375,6 +376,9 @@ function AppContent() {
                 </Route>
                 <Route path="/professional-verification">
                   <ProfessionalVerification />
+                </Route>
+                <Route path="/admin/reports">
+                  <AdminReportsPage />
                 </Route>
                 <Route path="/admin">
                   {() => {
