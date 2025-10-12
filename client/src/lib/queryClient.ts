@@ -47,7 +47,12 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
     
     if (refreshError || !refreshData.session?.access_token) {
       console.error('❌ Échec du refresh token:', refreshError?.message || 'Session invalide');
-      throw new Error(`Refresh token failed: ${refreshError?.message || 'Invalid session'}`);
+      
+      // Erreur personnalisée pour session expirée
+      const error = new Error('Authentification requise');
+      (error as any).status = 401;
+      (error as any).requiresReauth = true;
+      throw error;
     }
 
     console.log('✅ Token rafraîchi avec succès - Retry de la requête');
@@ -57,7 +62,9 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
   }
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const error = new Error(`HTTP error! status: ${response.status}`);
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();

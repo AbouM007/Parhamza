@@ -55,8 +55,12 @@ export function ReportListingDialog({
     },
     onError: (error: any) => {
       // Gérer spécifiquement l'erreur d'authentification
-      if (error.status === 401 || error.message?.includes("Authentification requise")) {
-        showToast("🔒 Vous devez être connecté pour signaler une annonce", true);
+      if (error.status === 401 || error.requiresReauth || error.message?.includes("Authentification requise")) {
+        showToast("🔒 Votre session a expiré. Veuillez vous reconnecter.", true);
+        // Rediriger vers la page de connexion après 2 secondes
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
       } else if (error.alreadyReported) {
         showToast("ℹ️ Vous avez déjà signalé cette annonce", true);
       } else {

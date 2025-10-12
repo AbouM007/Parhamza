@@ -506,7 +506,9 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                     <button
                       onClick={() => {
                         if (!authUser) {
-                          alert("🔒 Vous devez être connecté pour signaler une annonce");
+                          if (window.confirm("🔒 Vous devez être connecté pour signaler une annonce.\n\nSouhaitez-vous vous connecter maintenant ?")) {
+                            window.location.href = "/login";
+                          }
                           return;
                         }
                         setShowReportModal(true);
