@@ -1,6 +1,10 @@
 // Types de notifications pour PassionAuto2Roues
 
 export const NOTIFICATION_TYPES = {
+  // Compte / Utilisateur
+  WELCOME: 'welcome',
+  PRO_ACCOUNT_ACTIVATED: 'pro_account_activated',
+  
   // Messages
   NEW_MESSAGE: 'new_message',
   MESSAGE_REPLY: 'message_reply',
@@ -29,6 +33,16 @@ export const NOTIFICATION_DEFAULTS: Record<NotificationType, {
   email: boolean;
   push: boolean;
 }> = {
+  [NOTIFICATION_TYPES.WELCOME]: {
+    inApp: true,
+    email: true,
+    push: false,
+  },
+  [NOTIFICATION_TYPES.PRO_ACCOUNT_ACTIVATED]: {
+    inApp: true,
+    email: true,
+    push: false,
+  },
   [NOTIFICATION_TYPES.NEW_MESSAGE]: {
     inApp: true,
     email: true,
@@ -88,6 +102,15 @@ export const NOTIFICATION_DEFAULTS: Record<NotificationType, {
 
 // Messages templates pour chaque type (utilisés pour générer title/message)
 export const NOTIFICATION_TEMPLATES = {
+  [NOTIFICATION_TYPES.WELCOME]: {
+    title: (data: { userName: string }) => `Bienvenue ${data.userName} !`,
+    message: () => 'Votre compte PassionAuto2Roues a été créé avec succès',
+  },
+  [NOTIFICATION_TYPES.PRO_ACCOUNT_ACTIVATED]: {
+    title: () => 'Compte professionnel activé !',
+    message: (data: { companyName: string }) => 
+      `Votre compte professionnel ${data.companyName} est maintenant actif`,
+  },
   [NOTIFICATION_TYPES.NEW_MESSAGE]: {
     title: (data: { senderName: string }) => `Nouveau message de ${data.senderName}`,
     message: (data: { listingTitle?: string }) => 
