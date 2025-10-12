@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { sessionStore } from "@/lib/sessionStore";
 import { User } from "@/types";
 import { log } from "@/lib/logger";
 
@@ -55,8 +56,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         console.error("Error getting session:", error);
       } else {
+        sessionStore.setSession(session);
         setSession(session);
         setUser(session?.user ?? null);
+
+        if (session) {
+          sessionStore.scheduleProactiveRefresh(async () => {
+            await supabase.auth.refreshSession();
+          });
+        }
 
         if (session?.user) {
           await fetchProfile(session.user.id);
@@ -74,8 +82,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       log("Auth state changed:", event, session?.user?.id);
 
+      sessionStore.setSession(session);
       setSession(session);
       setUser(session?.user ?? null);
+
+      if (session) {
+        sessionStore.scheduleProactiveRefresh(async () => {
+          await supabase.auth.refreshSession();
+        });
+      }
 
       if (session?.user) {
         await fetchProfile(session.user.id);
@@ -227,6 +242,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    sessionStore.clear();
     setProfile(null);
   };
 

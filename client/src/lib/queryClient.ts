@@ -1,23 +1,15 @@
 import { QueryClient } from "@tanstack/react-query";
-import { supabase } from "./supabase";
+import { sessionStore } from "./sessionStore";
 
 const apiRequest = async (url: string, options: RequestInit = {}) => {
-  // Récupérer le token d'authentification Supabase
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  //console.log('🔐 apiRequest - Session présente:', !!session);
-  //console.log('🔐 apiRequest - Token présent:', !!session?.access_token);
-
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
 
-  // Ajouter le token d'authentification si disponible
-  if (session?.access_token) {
-    headers["Authorization"] = `Bearer ${session.access_token}`;
+  const accessToken = sessionStore.getAccessToken();
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
   // Exclure headers de options pour éviter qu'il écrase nos headers
   const { headers: _, ...optionsWithoutHeaders } = options;
