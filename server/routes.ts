@@ -2573,17 +2573,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!proAccount) {
         // Aucun compte professionnel trouvé
-        console.log(
-          "ℹ️ Aucun compte professionnel trouvé pour cet utilisateur",
-        );
+        
         return res
           .status(404)
           .json({ error: "Aucun compte professionnel trouvé" });
       }
 
-      console.log(
-        `✅ Statut professionnel récupéré: ${proAccount.verification_status}`,
-      );
+      
       res.setHeader("Cache-Control", "no-store");
       res.json(proAccount);
     } catch (error) {
