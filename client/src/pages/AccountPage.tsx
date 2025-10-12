@@ -7,7 +7,8 @@ import {
   MessageCircle, 
   User, 
   Crown,
-  Receipt
+  Receipt,
+  Bell
 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useQuery } from "@tanstack/react-query";
@@ -94,6 +95,13 @@ export default function AccountPage() {
       icon: <Receipt className="h-8 w-8" />,
       gradient: "from-teal-500 to-cyan-500",
       action: () => setLocation("/dashboard?tab=purchase-history"),
+    },
+    {
+      id: "notifications-settings",
+      title: "Notifications",
+      icon: <Bell className="h-8 w-8" />,
+      gradient: "from-indigo-500 to-purple-500",
+      action: () => setLocation("/notification-settings"),
     },
   ];
 

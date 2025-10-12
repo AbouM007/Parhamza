@@ -29,6 +29,7 @@ import { AdminTest } from "@/components/AdminTest";
 import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
 import AccountPage from "./pages/AccountPage";
 import ProShop from "./pages/ProShop";
 import SubscriptionPurchase from "./pages/SubscriptionPurchase";
@@ -364,6 +365,9 @@ function AppContent() {
                 </Route>
                 <Route path="/notifications">
                   <NotificationsPage />
+                </Route>
+                <Route path="/notification-settings">
+                  <NotificationSettingsPage />
                 </Route>
                 <Route path="/account">
                   <AccountPage />

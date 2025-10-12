@@ -746,6 +746,16 @@ export const Header: React.FC<HeaderProps> = ({
                     <span>Mon profil</span>
                   </button>
 
+                  {/* Paramètres de notifications */}
+                  <button
+                    onClick={() => handleNavigate("/notification-settings")}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                    data-testid="mobile-menu-notification-settings"
+                  >
+                    <Settings className="h-5 w-5" />
+                    <span>Paramètres de notifications</span>
+                  </button>
+
                   {/* Se déconnecter */}
                   <button
                     onClick={() => {
