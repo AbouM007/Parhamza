@@ -22,7 +22,12 @@ export const NOTIFICATION_TYPES = {
   // Paiements
   PAYMENT_SUCCESS: 'payment_success',
   PAYMENT_FAILED: 'payment_failed',
+  
+  // Abonnements
   SUBSCRIPTION_ENDING: 'subscription_ending',
+  SUBSCRIPTION_RENEWED: 'subscription_renewed',
+  SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
+  SUBSCRIPTION_DOWNGRADED: 'subscription_downgraded',
 } as const;
 
 export type NotificationType = typeof NOTIFICATION_TYPES[keyof typeof NOTIFICATION_TYPES];
@@ -98,6 +103,21 @@ export const NOTIFICATION_DEFAULTS: Record<NotificationType, {
     email: true,
     push: false,
   },
+  [NOTIFICATION_TYPES.SUBSCRIPTION_RENEWED]: {
+    inApp: true,
+    email: true,
+    push: false,
+  },
+  [NOTIFICATION_TYPES.SUBSCRIPTION_CANCELLED]: {
+    inApp: true,
+    email: true,
+    push: false,
+  },
+  [NOTIFICATION_TYPES.SUBSCRIPTION_DOWNGRADED]: {
+    inApp: true,
+    email: true,
+    push: false,
+  },
 };
 
 // Messages templates pour chaque type (utilisés pour générer title/message)
@@ -164,5 +184,20 @@ export const NOTIFICATION_TEMPLATES = {
     title: () => 'Votre abonnement expire bientôt',
     message: (data: { planName: string; daysLeft: number }) => 
       `${data.planName} expire dans ${data.daysLeft} jour(s)`,
+  },
+  [NOTIFICATION_TYPES.SUBSCRIPTION_RENEWED]: {
+    title: () => 'Abonnement renouvelé',
+    message: (data: { planName: string; nextBillingDate: string }) => 
+      `Votre ${data.planName} a été renouvelé. Prochaine échéance : ${data.nextBillingDate}`,
+  },
+  [NOTIFICATION_TYPES.SUBSCRIPTION_CANCELLED]: {
+    title: () => 'Abonnement annulé',
+    message: (data: { planName: string; endDate: string }) => 
+      `Votre ${data.planName} a été annulé. Accès jusqu'au ${data.endDate}`,
+  },
+  [NOTIFICATION_TYPES.SUBSCRIPTION_DOWNGRADED]: {
+    title: () => 'Abonnement modifié',
+    message: (data: { oldPlan: string; newPlan: string; effectiveDate: string }) => 
+      `Changement de ${data.oldPlan} vers ${data.newPlan}. Effectif le ${data.effectiveDate}`,
   },
 };
