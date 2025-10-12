@@ -67,6 +67,13 @@ The platform features a consistent design language with intuitive user flows, ut
 - **Database**: PostgreSQL hosted on Supabase, managed with Drizzle migrations, featuring Row Level Security (RLS) and robust entity relationships.
 - **Image Handling**: Supabase Storage for media, with Sharp for server-side optimization and client-side canvas-based compression for efficient image uploads.
 - **Authentication**: Supabase Auth handles user registration, login, session management, and social logins (Google OAuth). The system supports different user roles (Individual, Professional, Admin) and manual verification for professional accounts.
+  - **JWT Token Management (October 2025)**: Implemented a robust interceptor-based solution for handling expired JWT tokens:
+    - **Automatic Retry with Refresh**: When a 401 (Unauthorized) error is detected, the system automatically calls `supabase.auth.refreshSession()` to obtain a new access token
+    - **Race Condition Prevention**: The refreshed token is injected directly into the retry request headers, bypassing the potential delay of `getSession()` to avoid using stale tokens
+    - **Single Retry Policy**: The system retries failed requests exactly once after refreshing the token, preventing infinite loops while maintaining reliability
+    - **Diagnostic Logging**: Clear console logs track token refresh events without exposing sensitive token values
+    - **Native Supabase Integration**: Leverages Supabase's built-in `autoRefreshToken: true` and `persistSession: true` configuration for seamless session management
+    - **Implementation**: Centralized in `client/src/lib/queryClient.ts` as part of the TanStack Query configuration, ensuring all API requests benefit from this protection
 - **Monetization**: Implements subscription plans and premium listing features.
 - **Security**: Ensures data integrity and user privacy through RLS, unique constraints, and controlled access to contact information.
 - **Counters**: Atomic RPC functions in PostgreSQL manage vehicle views and favorites for thread-safe updates.
