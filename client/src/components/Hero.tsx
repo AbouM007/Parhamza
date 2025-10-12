@@ -882,7 +882,82 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
               {/* Sliding banner */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-white to-yellow-400 animate-pulse"></div>
 
-              <div className="relative z-10 p-8 lg:p-12">
+              {/* Mobile: Compact version */}
+              <div className="lg:hidden relative z-10 p-4">
+                <div className="space-y-3">
+                  {/* Logo and Brand - Compact */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                        <currentBanner.icon
+                          className={`h-5 w-5 ${currentBanner.iconColor}`}
+                        />
+                      </div>
+                      <div className="text-white">
+                        <h3 className="text-base font-bold">
+                          {currentBanner.title}
+                        </h3>
+                        <p className="text-xs text-slate-200">
+                          {currentBanner.subtitle}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-0.5 text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-3 w-3 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Main Offer - Compact */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                    <div className="text-yellow-400 text-xs font-bold mb-1 uppercase tracking-wide text-center">
+                      🔥 Offre Spéciale 🔥
+                    </div>
+                    {currentBanner.type === "garage" ? (
+                      <div className="text-center">
+                        <h2 className="text-2xl font-black text-white">
+                          {currentBanner.mainOffer}
+                          <span className="text-sm">/mois</span>
+                        </h2>
+                        <div className="text-sm font-bold text-yellow-300">
+                          {currentBanner.offerTitle}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <h2 className="text-2xl font-black text-white">
+                          {currentBanner.mainOffer}
+                        </h2>
+                        <div className="text-sm font-bold text-yellow-300">
+                          {currentBanner.offerTitle}
+                        </div>
+                        <div className="text-xs font-semibold text-white">
+                          {currentBanner.offerSubtitle}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CTA - Compact */}
+                  <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-800 font-black py-2.5 px-4 rounded-lg text-sm shadow-lg transition-all duration-200">
+                    {currentBanner.ctaText}
+                  </button>
+
+                  {/* Phone - Compact */}
+                  <div className="text-center text-white">
+                    <div className="text-lg font-bold">{currentBanner.phone}</div>
+                    <div className="text-xs text-slate-200">
+                      {currentBanner.type === "garage"
+                        ? "Ouvert 7j/7 • 8h-19h"
+                        : "Service client 24h/7j"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: Full version */}
+              <div className="hidden lg:block relative z-10 p-8 lg:p-12">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                   {/* Logo and Brand */}
                   <div className="text-center lg:text-left">
@@ -989,7 +1064,7 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
                   </div>
                 </div>
 
-                {/* Bottom ticker */}
+                {/* Bottom ticker - Desktop only */}
                 <div className="mt-8 pt-6 border-t border-white/20">
                   <div className="overflow-hidden">
                     <div className="animate-marquee whitespace-nowrap text-white text-sm">
@@ -1013,25 +1088,25 @@ export const Hero: React.FC<HeroProps> = ({ setCurrentView }) => {
             {/* Carousel Navigation */}
             <button
               onClick={prevAd}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-all duration-200 z-20"
+              className="absolute left-2 lg:left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-2 lg:p-3 rounded-full transition-all duration-200 z-20"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-4 w-4 lg:h-6 lg:w-6" />
             </button>
 
             <button
               onClick={nextAd}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-all duration-200 z-20"
+              className="absolute right-2 lg:right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-2 lg:p-3 rounded-full transition-all duration-200 z-20"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-4 w-4 lg:h-6 lg:w-6" />
             </button>
 
             {/* Carousel Indicators */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+            <div className="absolute bottom-2 lg:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
               {advertisingBanners.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentAdIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  className={`w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-all duration-200 ${
                     index === currentAdIndex
                       ? "bg-white"
                       : "bg-white/50 hover:bg-white/70"
