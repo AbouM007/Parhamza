@@ -40,6 +40,10 @@ const EMAIL_TEMPLATE_MAP: Partial<Record<NotificationType, string>> = {
   'payment_failed': 'payments/payment_failed.html',
   'new_follower': 'followers/new_follower.html',
   'followed_new_listing': 'followers/followed_new_listing.html',
+  'subscription_ending': 'subscriptions/subscription_ending.html',
+  'subscription_renewed': 'subscriptions/subscription_renewed.html',
+  'subscription_cancelled': 'subscriptions/subscription_cancelled.html',
+  'subscription_downgraded': 'subscriptions/subscription_downgraded.html',
 };
 
 async function loadTemplate(templatePath: string): Promise<string> {
