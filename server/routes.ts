@@ -25,7 +25,13 @@ import multer from "multer";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import avatarRoutes from "./routes/avatar";
-import { notifyWelcome, notifyProAccountActivated } from "./services/notificationCenter";
+import { 
+  notifyWelcome, 
+  notifyProAccountActivated,
+  notifyListingValidated,
+  notifyListingRejected,
+  notifyPaymentSuccess
+} from "./services/notificationCenter";
 
 // Configuration multer pour upload en mémoire
 const upload = multer({
@@ -348,7 +354,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/annonces/:id/approve", async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Récupérer les infos de l'annonce avant approbation
+      const { data: vehicleData, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("user_id, title")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !vehicleData) {
+        console.error("❌ Erreur récupération annonce:", fetchError);
+        return res.status(404).json({ error: "Annonce non trouvée" });
+      }
+
       await storage.approveVehicle(id);
+      
+      // 📧 Envoyer notification de validation
+      try {
+        await notifyListingValidated({
+          userId: vehicleData.user_id,
+          listingId: parseInt(id),
+          listingTitle: vehicleData.title,
+        });
+        console.log(`📧 Email validation envoyé pour annonce ${id}`);
+      } catch (emailError) {
+        console.error("❌ Erreur envoi email validation:", emailError);
+        // Ne pas bloquer l'approbation si l'email échoue
+      }
+
       res.json({ success: true, message: "Annonce approuvée" });
     } catch (error) {
       console.error("Error approving vehicle:", error);
@@ -360,7 +393,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { reason } = req.body;
+      
+      // Récupérer les infos de l'annonce avant rejet
+      const { data: vehicleData, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("user_id, title")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !vehicleData) {
+        console.error("❌ Erreur récupération annonce:", fetchError);
+        return res.status(404).json({ error: "Annonce non trouvée" });
+      }
+
       await storage.rejectVehicle(id, reason);
+      
+      // 📧 Envoyer notification de rejet
+      try {
+        await notifyListingRejected({
+          userId: vehicleData.user_id,
+          listingId: parseInt(id),
+          listingTitle: vehicleData.title,
+          reason: reason || "Non précisée",
+        });
+        console.log(`📧 Email rejet envoyé pour annonce ${id}`);
+      } catch (emailError) {
+        console.error("❌ Erreur envoi email rejet:", emailError);
+        // Ne pas bloquer le rejet si l'email échoue
+      }
+
       res.json({ success: true, message: "Annonce rejetée" });
     } catch (error) {
       console.error("Error rejecting vehicle:", error);
@@ -3109,8 +3170,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         session.payment_status === "paid" &&
         session.metadata?.type === "boost"
       ) {
-        // Optionnel : activer le boost ici si jamais le webhook n'a pas encore tourné
+        // Activer le boost
         await storage.activateBoostWithLog(session.id);
+        
+        // 📧 Envoyer notification de paiement réussi
+        try {
+          // Récupérer les infos du boost depuis les logs
+          const { data: logData } = await supabaseServer
+            .from("boost_logs")
+            .select("annonce_id, plan_id, user_id, amount")
+            .eq("stripe_session_id", session.id)
+            .eq("action", "purchased")
+            .single();
+
+          if (logData) {
+            // Récupérer le nom du plan
+            const { data: planData } = await supabaseServer
+              .from("boost_plans")
+              .select("name")
+              .eq("id", logData.plan_id)
+              .single();
+
+            await notifyPaymentSuccess({
+              userId: logData.user_id,
+              amount: (logData.amount / 100).toFixed(2) + "€",
+              type: `Boost ${planData?.name || ''}`,
+            });
+            console.log(`📧 Email paiement boost envoyé pour user ${logData.user_id}`);
+          }
+        } catch (emailError) {
+          console.error("❌ Erreur envoi email paiement boost:", emailError);
+          // Ne pas bloquer si l'email échoue
+        }
+
         return res.json({ success: true, message: "Boost activé" });
       }
 
