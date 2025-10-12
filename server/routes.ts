@@ -25,6 +25,7 @@ import multer from "multer";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import avatarRoutes from "./routes/avatar";
+import { notifyWelcome, notifyProAccountActivated } from "./services/notificationCenter";
 
 // Configuration multer pour upload en mémoire
 const upload = multer({
@@ -1466,6 +1467,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("✅ Compte particulier mis à jour:", personal.id);
+      
+      // 📧 Envoyer email de bienvenue au particulier
+      try {
+        await notifyWelcome({
+          userId: personal.id,
+          userName: personal.name,
+        });
+        console.log("📧 Email de bienvenue envoyé au particulier");
+      } catch (emailError) {
+        console.error("❌ Erreur envoi email bienvenue:", emailError);
+        // Ne pas bloquer la création du compte si l'email échoue
+      }
+      
       return res.json({
         success: true,
         type: "personal",
@@ -1879,6 +1893,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("professional_account_id", id);
 
         console.log("✅ Compte professionnel approuvé");
+        
+        // 📧 Envoyer emails de bienvenue + activation pro
+        try {
+          // Récupérer les infos utilisateur pour l'email
+          const { data: userData } = await supabaseServer
+            .from("users")
+            .select("id, name, email")
+            .eq("id", updatedAccount.user_id)
+            .single();
+
+          if (userData) {
+            // Email de bienvenue
+            await notifyWelcome({
+              userId: userData.id,
+              userName: userData.name,
+            });
+            console.log("📧 Email de bienvenue envoyé au professionnel");
+
+            // Email d'activation du compte pro
+            await notifyProAccountActivated({
+              userId: userData.id,
+              companyName: updatedAccount.company_name,
+            });
+            console.log("📧 Email d'activation compte pro envoyé");
+          }
+        } catch (emailError) {
+          console.error("❌ Erreur envoi emails activation pro:", emailError);
+          // Ne pas bloquer l'activation si les emails échouent
+        }
+        
         res.json({
           success: true,
           account: updatedAccount,
