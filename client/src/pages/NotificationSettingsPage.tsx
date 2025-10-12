@@ -208,7 +208,7 @@ export default function NotificationSettingsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <MobilePageHeader title="Notifications" onBack={() => navigate("/dashboard")} />
+        <MobilePageHeader title="Paramètres de notifications" onBack={() => navigate("/account")} />
         
         {/* Desktop header */}
         <div className="hidden lg:block bg-white dark:bg-gray-800 border-b">
@@ -236,7 +236,7 @@ export default function NotificationSettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile header */}
-      <MobilePageHeader title="Notifications" onBack={() => navigate("/dashboard")} />
+      <MobilePageHeader title="Paramètres de notifications" onBack={() => navigate("/account")} />
 
       {/* Desktop header */}
       <div className="hidden lg:block bg-white dark:bg-gray-800 border-b">

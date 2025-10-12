@@ -223,6 +223,7 @@ function AppContent() {
                      location.startsWith("/dashboard") || 
                      location.startsWith("/messages") || 
                      location.startsWith("/notifications") ||
+                     location.startsWith("/notification-settings") ||
                      location.startsWith("/subscription-settings");
 
   const shouldMaskHomepage =
