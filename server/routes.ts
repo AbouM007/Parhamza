@@ -393,6 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { reason } = req.body;
+      console.log(`🚀 ROUTE REJET APPELÉE - Annonce ${id}, raison: ${reason || 'aucune'}`);
       
       // Récupérer les infos de l'annonce avant rejet
       const { data: vehicleData, error: fetchError } = await supabaseServer
@@ -406,9 +407,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Annonce non trouvée" });
       }
 
+      console.log(`📋 Annonce récupérée - user_id: ${vehicleData.user_id}, title: ${vehicleData.title}`);
+
       await storage.rejectVehicle(id, reason);
+      console.log(`✅ storage.rejectVehicle() terminé`);
       
       // 📧 Envoyer notification de rejet
+      console.log(`🔔 Début envoi notification de rejet...`);
       try {
         await notifyListingRejected({
           userId: vehicleData.user_id,
@@ -416,6 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           listingTitle: vehicleData.title,
           reason: reason || "Non précisée",
         });
+        console.log(`✅ notifyListingRejected() terminé avec succès`);
         console.log(`📧 Email rejet envoyé pour annonce ${id}`);
       } catch (emailError) {
         console.error("❌ Erreur envoi email rejet:", emailError);
