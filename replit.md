@@ -54,7 +54,11 @@ The platform features a consistent design language with intuitive user flows, ut
     - Listings: listing_validated, listing_rejected, listing_favorited
     - Messaging: new_message, message_reply
     - Payments: payment_success, payment_failed
-  - **Architecture**: The emailService.ts handles template loading, variable substitution, and graceful error handling. Email failures don't block in-app notification creation. Templates are organized in server/templates/ by category.
+  - **Email Triggers (October 2025)**: All email notifications fire automatically at key business events with non-blocking error handling:
+    - `notifyListingValidated`: Fires when admin approves a listing (routes.ts line ~377)
+    - `notifyListingRejected`: Fires when admin rejects a listing with reason (routes.ts line ~416)
+    - `notifyPaymentSuccess`: Fires after successful boost payment activation (routes.ts line ~3197)
+  - **Architecture**: The emailService.ts handles template loading, variable substitution, and graceful error handling. Email failures don't block in-app notification creation or business operations. Templates are organized in server/templates/ by category.
 - **Followers System**: Allows users to follow professional sellers, with dashboard integration showing seller details and active listings.
 - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
 - **Data Persistence**: A hybrid storage system (localStorage and IndexedDB) for create listing forms to prevent data loss, especially for large image uploads.
