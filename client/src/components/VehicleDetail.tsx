@@ -504,19 +504,11 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
                       <Share2 className="h-5 w-5 text-gray-600 hover:text-blue-500" />
                     </button>
                     <button
-                      onClick={() => {
-                        if (!authUser) {
-                          if (window.confirm("🔒 Vous devez être connecté pour signaler une annonce.\n\nSouhaitez-vous vous connecter maintenant ?")) {
-                            window.location.href = "/login";
-                          }
-                          return;
-                        }
-                        setShowReportModal(true);
-                      }}
+                      onClick={() => setShowReportModal(true)}
                       disabled={hasReported}
                       className={`bg-white bg-opacity-90 hover:bg-opacity-100 p-2 rounded-full shadow-lg transition-all ${hasReported ? 'opacity-50 cursor-not-allowed' : ''}`}
                       data-testid="button-report-listing"
-                      title={!authUser ? "Connectez-vous pour signaler" : hasReported ? "Vous avez déjà signalé cette annonce" : "Signaler cette annonce"}
+                      title={hasReported ? "Vous avez déjà signalé cette annonce" : "Signaler cette annonce"}
                     >
                       <Flag className={`h-5 w-5 ${hasReported ? 'text-gray-400' : 'text-gray-600 hover:text-orange-600'}`} />
                     </button>

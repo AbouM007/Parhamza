@@ -54,13 +54,11 @@ export function ReportListingDialog({
       onClose();
     },
     onError: (error: any) => {
-      // Gérer spécifiquement l'erreur d'authentification
-      if (error.status === 401 || error.requiresReauth || error.message?.includes("Authentification requise")) {
-        showToast("🔒 Votre session a expiré. Veuillez vous reconnecter.", true);
-        // Rediriger vers la page de connexion après 2 secondes
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 2000);
+      // Gérer spécifiquement les différents types d'erreurs
+      if (error.rateLimitExceeded) {
+        // Erreur de rate limit (trop de signalements récents)
+        const message = error.message || "Vous avez déjà signalé une annonce récemment. Veuillez patienter avant de signaler à nouveau.";
+        showToast(message, true);
       } else if (error.alreadyReported) {
         showToast("ℹ️ Vous avez déjà signalé cette annonce", true);
       } else {
