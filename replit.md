@@ -48,7 +48,13 @@ The platform features a consistent design language with intuitive user flows, ut
 - **Listing Management**: Comprehensive tools for vehicle and spare parts listings, including an optional plate search for auto-filling vehicle data from an external API.
 - **Compatibility Tags**: An intelligent system for spare parts listings that allows for dynamic filtering and searching by vehicle brands and models.
 - **Subscription & Professional Features**: Management of user subscriptions, professional account verification, and premium listing options.
-- **Messaging & Notifications**: An integrated messaging system complemented by a centralized, event-driven multi-channel notification system with user-configurable preferences. The notification system uses Supabase for data storage and supports in-app notifications, email notifications (Phase 6), and push notifications (Phase 7). All 11 notification types are integrated with automatic triggers across the platform (messages, follows, favorites, listings, payments, subscriptions).
+- **Messaging & Notifications**: An integrated messaging system complemented by a centralized, event-driven multi-channel notification system with user-configurable preferences. The notification system uses Supabase for data storage and supports in-app notifications, email notifications (via Nodemailer with professional SMTP), and push notifications (Phase 7). All 11 notification types are integrated with automatic triggers across the platform (messages, follows, favorites, listings, payments, subscriptions).
+  - **Email System (October 2025)**: Implemented with Nodemailer and professional SMTP (configurable via environment variables). Features 9 responsive HTML templates with brand-consistent styling (#067D92 primary color):
+    - Account: welcome, pro_account_activated
+    - Listings: listing_validated, listing_rejected, listing_favorited
+    - Messaging: new_message, message_reply
+    - Payments: payment_success, payment_failed
+  - **Architecture**: The emailService.ts handles template loading, variable substitution, and graceful error handling. Email failures don't block in-app notification creation. Templates are organized in server/templates/ by category.
 - **Followers System**: Allows users to follow professional sellers, with dashboard integration showing seller details and active listings.
 - **Search & Filters**: Advanced, adaptive search capabilities with category-specific visibility.
 - **Data Persistence**: A hybrid storage system (localStorage and IndexedDB) for create listing forms to prevent data loss, especially for large image uploads.
