@@ -140,6 +140,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [previewAnnonce, setPreviewAnnonce] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [isApproving, setIsApproving] = useState<number | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -532,6 +533,14 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   };
 
   const handleVerifyProAccount = async (accountId: number, action: 'approve' | 'reject', reason?: string) => {
+    // Protection contre les clics multiples
+    if (isApproving === accountId) {
+      console.log('⚠️ Traitement déjà en cours pour ce compte');
+      return;
+    }
+
+    setIsApproving(accountId);
+    
     try {
       console.log(`🔍 ${action} compte pro ${accountId}...`);
       const response = await fetch(`/api/admin/professional-accounts/${accountId}/verify`, {
@@ -558,6 +567,9 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
     } catch (error) {
       console.error('Erreur vérification:', error);
       alert('❌ Erreur lors de la vérification');
+    } finally {
+      // Toujours débloquer, même en cas d'erreur
+      setIsApproving(null);
     }
   };
 
@@ -1314,14 +1326,24 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                               <div className="inline-flex space-x-1">
                                 <button
                                   onClick={() => handleVerifyProAccount(account.id, 'approve')}
-                                  className="inline-flex items-center px-3 py-1 border border-green-300 rounded-md text-sm text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
+                                  disabled={isApproving === account.id}
+                                  className={`inline-flex items-center px-3 py-1 border rounded-md text-sm transition-colors ${
+                                    isApproving === account.id
+                                      ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+                                      : 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
+                                  }`}
                                 >
                                   <Check className="h-4 w-4 mr-1" />
-                                  Approuver
+                                  {isApproving === account.id ? '⏳ En cours...' : 'Approuver'}
                                 </button>
                                 <button
                                   onClick={() => setVerificationAction({ accountId: account.id, action: 'reject' })}
-                                  className="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
+                                  disabled={isApproving === account.id}
+                                  className={`inline-flex items-center px-3 py-1 border rounded-md text-sm transition-colors ${
+                                    isApproving === account.id
+                                      ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+                                      : 'border-red-300 text-red-700 bg-red-50 hover:bg-red-100'
+                                  }`}
                                 >
                                   <X className="h-4 w-4 mr-1" />
                                   Rejeter
@@ -1460,13 +1482,23 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                       <div className="flex space-x-4 pt-4 border-t border-gray-200">
                         <button
                           onClick={() => handleVerifyProAccount(selectedProAccount.id, 'approve')}
-                          className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                          disabled={isApproving === selectedProAccount.id}
+                          className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                            isApproving === selectedProAccount.id
+                              ? 'bg-gray-400 text-white cursor-not-allowed'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
                         >
-                          ✅ Approuver le compte
+                          {isApproving === selectedProAccount.id ? '⏳ En cours...' : '✅ Approuver le compte'}
                         </button>
                         <button
                           onClick={() => setVerificationAction({ accountId: selectedProAccount.id, action: 'reject' })}
-                          className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                          disabled={isApproving === selectedProAccount.id}
+                          className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                            isApproving === selectedProAccount.id
+                              ? 'bg-gray-400 text-white cursor-not-allowed'
+                              : 'bg-red-600 text-white hover:bg-red-700'
+                          }`}
                         >
                           ❌ Rejeter le compte
                         </button>
@@ -1506,7 +1538,12 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                     <div className="flex space-x-4 mt-4">
                       <button
                         onClick={() => setVerificationAction(null)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        disabled={isApproving === verificationAction.accountId}
+                        className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
+                          isApproving === verificationAction.accountId
+                            ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
                       >
                         Annuler
                       </button>
@@ -1518,9 +1555,14 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                             alert('Veuillez indiquer une raison');
                           }
                         }}
-                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        disabled={isApproving === verificationAction.accountId}
+                        className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                          isApproving === verificationAction.accountId
+                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
                       >
-                        Confirmer le rejet
+                        {isApproving === verificationAction.accountId ? '⏳ En cours...' : 'Confirmer le rejet'}
                       </button>
                     </div>
                   </div>
