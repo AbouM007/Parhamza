@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Check, X, Loader2, ArrowUp, XCircle } from "lucide-react";
+import { Check, X, Loader2, ArrowUp, XCircle, Star, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
@@ -27,6 +27,19 @@ type CurrentSubscription = {
 
 type ModifyAction = 'upgrade' | 'cancel';
 
+// Mapping des features pour l'affichage
+const FEATURE_LABELS: Record<string, string> = {
+  basic_stats: "Statistiques de base",
+  advanced_stats: "Statistiques avancées",
+  pro_dashboard: "Tableau de bord professionnel",
+  badge_verified: "Badge de confiance",
+  priority_search: "Remontée dans les recherches",
+  push_notifications: "Notifications push",
+  api_access: "Accès API",
+  unlimited_listings: "Annonces illimitées",
+  popular: "Plan recommandé",
+};
+
 export default function SubscriptionManager() {
   const { toast } = useToast();
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -36,14 +49,18 @@ export default function SubscriptionManager() {
     planName?: string;
   }>({ open: false, action: 'upgrade' });
 
-  // Récupérer tous les plans disponibles
+  // Récupérer tous les plans disponibles (cache 5 min)
   const { data: plans = [], isLoading: loadingPlans } = useQuery<SubscriptionPlan[]>({
     queryKey: ['/api/subscriptions/plans'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Récupérer l'abonnement actuel
+  // Récupérer l'abonnement actuel (cache 1 min)
   const { data: currentSub, isLoading: loadingSub } = useQuery<CurrentSubscription>({
     queryKey: ['/api/subscriptions/current'],
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Mutation pour modifier l'abonnement
@@ -95,6 +112,45 @@ export default function SubscriptionManager() {
 
   const currentPlanId = currentSub?.plan_id;
   const activePlans = plans.filter(p => p.is_active);
+
+  // Couleurs par plan
+  const getPlanColors = (planName: string) => {
+    const lowerName = planName.toLowerCase();
+    if (lowerName.includes('starter')) {
+      return {
+        border: 'border-blue-500',
+        text: 'text-blue-600',
+        bg: 'bg-blue-50',
+        checkmark: 'text-blue-500',
+        price: 'text-blue-600',
+      };
+    }
+    if (lowerName.includes('standard')) {
+      return {
+        border: 'border-purple-500',
+        text: 'text-purple-600',
+        bg: 'bg-purple-50',
+        checkmark: 'text-purple-500',
+        price: 'text-purple-600',
+      };
+    }
+    if (lowerName.includes('business')) {
+      return {
+        border: 'border-orange-500',
+        text: 'text-orange-600',
+        bg: 'bg-orange-50',
+        checkmark: 'text-orange-500',
+        price: 'text-orange-600',
+      };
+    }
+    return {
+      border: 'border-gray-300',
+      text: 'text-gray-600',
+      bg: 'bg-gray-50',
+      checkmark: 'text-gray-500',
+      price: 'text-gray-600',
+    };
+  };
 
   // Fonction pour déterminer le type de bouton à afficher
   const getActionButton = (plan: SubscriptionPlan) => {
@@ -152,61 +208,80 @@ export default function SubscriptionManager() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Gérer mon abonnement</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Choisissez le plan qui correspond à vos besoins
-        </p>
+      {/* Titre - masqué sur mobile */}
+      <div className="hidden lg:block">
+        <h2 className="text-2xl font-bold tracking-tight">Plans d'abonnement</h2>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Alerte abonnement actif */}
+      {currentSub && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-orange-900">Vous avez déjà un abonnement actif</p>
+            <p className="text-sm text-orange-700 mt-1">
+              Vous êtes actuellement abonné au plan <strong>{currentSub.subscription_plans.name}</strong>. Vous pouvez gérer ou modifier votre plan à tout moment depuis l'onglet "Historique Achats" de votre tableau de bord.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {activePlans.map((plan) => {
           const isCurrentPlan = plan.id === currentPlanId;
+          const isPopular = plan.name.toLowerCase().includes('standard');
           const features = plan.features || {};
+          const colors = getPlanColors(plan.name);
 
           return (
             <div
               key={plan.id}
-              className={`rounded-lg border p-6 flex flex-col ${
-                isCurrentPlan
-                  ? 'border-primary bg-gray-50 dark:bg-gray-800/50'
-                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'
-              }`}
+              className={`relative rounded-lg border-2 ${colors.border} p-4 sm:p-6 flex flex-col bg-white dark:bg-gray-900`}
               data-testid={`card-plan-${plan.id}`}
             >
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-semibold">{plan.name}</h3>
-                  {isCurrentPlan && (
-                    <span className="px-2 py-1 text-xs rounded-md bg-gray-200 dark:bg-gray-700" data-testid={`badge-current-${plan.id}`}>
-                      Plan actuel
-                    </span>
-                  )}
+              {/* Badge Populaire */}
+              {isPopular && !isCurrentPlan && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <div className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+                    <Star className="h-3 w-3 fill-current" />
+                    Populaire
+                  </div>
                 </div>
+              )}
+
+              {/* Badge Plan actuel */}
+              {isCurrentPlan && (
+                <div className="absolute -top-3 right-4">
+                  <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+                    <Check className="h-3 w-3" />
+                    Plan actuel
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-4 mt-2">
+                <h3 className={`text-lg sm:text-xl font-semibold ${colors.text} mb-2`}>{plan.name}</h3>
                 <div>
-                  <span className="text-3xl font-bold">{plan.price_monthly}€</span>
-                  <span className="text-gray-500 dark:text-gray-400">/mois</span>
+                  <span className={`text-2xl sm:text-3xl font-bold ${colors.price}`}>{plan.price_monthly}€</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm"> par mois</span>
                 </div>
+                <p className={`text-xs ${colors.text} mt-1`}>
+                  {plan.max_listings === null
+                    ? "Annonces illimitées"
+                    : `${plan.max_listings} annonces max`}
+                </p>
               </div>
 
-              <ul className="space-y-2 flex-1 mb-4">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>
-                    {plan.max_listings === null
-                      ? "Annonces illimitées"
-                      : `${plan.max_listings} annonces/mois`}
-                  </span>
-                </li>
+              <ul className="space-y-2 flex-1 mb-4 text-sm sm:text-base">
                 {Object.entries(features).map(([feature, enabled]) => (
                   <li key={feature} className="flex items-center gap-2">
                     {enabled ? (
-                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                      <Check className={`h-4 w-4 ${colors.checkmark} flex-shrink-0`} />
                     ) : (
                       <X className="h-4 w-4 text-gray-400 flex-shrink-0" />
                     )}
                     <span className={enabled ? "" : "text-gray-500 dark:text-gray-400"}>
-                      {feature}
+                      {FEATURE_LABELS[feature] || feature}
                     </span>
                   </li>
                 ))}

@@ -116,26 +116,44 @@ export function useMessaging() {
   };
 
   // Envoyer un message dans une conversation existante
-  const sendMessage = async (conversationId: string, content: string) => {
+  const sendMessage = async (conversationId: string, content: string, currentUserId: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error: messageError } = await supabase
-        .from('messages')
-        .insert({
-          id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          from_user_id: 'demo', // TODO: Récupérer l'utilisateur connecté
-          to_user_id: 'demo', // TODO: Déterminer le destinataire
-          vehicle_id: '1', // TODO: Associer au véhicule
-          content,
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
+      // Récupérer le token d'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Session expirée - veuillez vous reconnecter');
+      }
 
-      if (messageError) throw messageError;
-      return data.id;
+      // Extraire les IDs du conversationId (format: vehicleId|user1Id|user2Id)
+      const [vehicleId, user1Id, user2Id] = conversationId.split('|');
+      
+      // Déterminer le destinataire (l'autre utilisateur dans la conversation)
+      const recipientId = user1Id === currentUserId ? user2Id : user1Id;
+      
+      const response = await fetch('/api/messages-simple/send', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          vehicleId: Number(vehicleId),
+          recipientId,
+          content: content.trim()
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur envoi message');
+      }
+
+      const result = await response.json();
+      console.log('✅ Message envoyé:', result.messageId);
+      return result.messageId;
     } catch (err) {
       console.error('Erreur envoi message:', err);
       setError(err instanceof Error ? err.message : 'Erreur envoi message');

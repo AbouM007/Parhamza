@@ -8,7 +8,7 @@ interface PremiumSectionProps {
 export const PremiumSection = ({ premiumListings }: PremiumSectionProps) => {
   return (
     <div className="space-y-8">
-      <div>
+      <div className="hidden lg:block">
         <h1 className="text-3xl font-bold text-gray-900">Options Premium</h1>
         <p className="text-gray-600 mt-2 text-lg">
           Gérez votre abonnement et boostez votre activité

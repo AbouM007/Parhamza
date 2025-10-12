@@ -28,6 +28,9 @@ import { AdminLogin } from "@/components/AdminLogin";
 import { AdminTest } from "@/components/AdminTest";
 import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
+import AccountPage from "./pages/AccountPage";
 import ProShop from "./pages/ProShop";
 import SubscriptionPurchase from "./pages/SubscriptionPurchase";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
@@ -213,6 +216,15 @@ function AppContent() {
   const isAdminRoute = location.startsWith("/admin");
   const isPaymentRoute =
     location.startsWith("/success") || location.startsWith("/auth/callback");
+  const isMessagesRoute = location.startsWith("/messages");
+  
+  // Pages utilisateur qui n'ont pas besoin du header classique en mobile
+  const isUserPage = location.startsWith("/account") || 
+                     location.startsWith("/dashboard") || 
+                     location.startsWith("/messages") || 
+                     location.startsWith("/notifications") ||
+                     location.startsWith("/notification-settings") ||
+                     location.startsWith("/subscription-settings");
 
   const shouldMaskHomepage =
     !isAdminRoute &&
@@ -226,14 +238,16 @@ function AppContent() {
       ) : (
         <>
           {!isAdminRoute && (
-            <Header
-              currentView={getCurrentView()}
-              setCurrentView={setCurrentView}
-              mobileMenuOpen={mobileMenuOpen}
-              setMobileMenuOpen={setMobileMenuOpen}
-              setDashboardTab={setDashboardTab}
-              onSearch={handleSearch}
-            />
+            <div className={isUserPage ? "hidden lg:block" : ""}>
+              <Header
+                currentView={getCurrentView()}
+                setCurrentView={setCurrentView}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+                setDashboardTab={setDashboardTab}
+                onSearch={handleSearch}
+              />
+            </div>
           )}
 
           {selectedVehicle ? (
@@ -350,6 +364,15 @@ function AppContent() {
                 <Route path="/messages">
                   <Messages />
                 </Route>
+                <Route path="/notifications">
+                  <NotificationsPage />
+                </Route>
+                <Route path="/notification-settings">
+                  <NotificationSettingsPage />
+                </Route>
+                <Route path="/account">
+                  <AccountPage />
+                </Route>
                 <Route path="/professional-verification">
                   <ProfessionalVerification />
                 </Route>
@@ -405,8 +428,12 @@ function AppContent() {
               </Switch>
               {!isAdminRoute && (
                 <>
-                  <Footer setCurrentView={setCurrentView} />
-                  <BottomNav />
+                  {/* Footer masqué sur mobile, visible uniquement sur desktop */}
+                  <div className="hidden md:block">
+                    <Footer setCurrentView={setCurrentView} />
+                  </div>
+                  {/* Bottom navigation mobile */}
+                  <BottomNav setDashboardTab={setDashboardTab} />
                 </>
               )}
             </>

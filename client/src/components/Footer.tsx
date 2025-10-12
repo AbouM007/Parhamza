@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 
@@ -7,6 +8,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     currentUser,
     openAuthModal,
@@ -31,9 +33,26 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
   };
 
   return (
-    <footer className="bg-gray-900 text-white py-16">
+    <footer className="bg-gray-900 text-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        {/* Bouton de collapse */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-between mb-6 text-left hover:bg-gray-800 p-4 rounded-lg transition-colors"
+          data-testid="button-toggle-footer"
+        >
+          <h3 className="text-xl font-bold">Liens et infos légales</h3>
+          {isExpanded ? (
+            <ChevronUp className="h-6 w-6" />
+          ) : (
+            <ChevronDown className="h-6 w-6" />
+          )}
+        </button>
+
+        {/* Contenu collapsible */}
+        {isExpanded && (
+          <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-3 mb-6">
@@ -173,7 +192,10 @@ export const Footer: React.FC<FooterProps> = ({ setCurrentView }) => {
             </ul>
           </div>
         </div>
+          </>
+        )}
 
+        {/* Copyright - toujours visible */}
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 mb-4 md:mb-0">

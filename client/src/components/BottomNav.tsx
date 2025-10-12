@@ -4,20 +4,29 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApp } from "@/contexts/AppContext";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 
-export function BottomNav() {
+interface BottomNavProps {
+  setDashboardTab?: (tab: string) => void;
+}
+
+export function BottomNav({ setDashboardTab }: BottomNavProps) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { openAuthModal } = useApp();
   const handleCreateListingWithQuota = useCreateListingGuard();
 
-  const handleProfileClick = () => {
+  const handleAccountClick = () => {
     if (user) {
-      // Si connecté, aller au dashboard
-      setLocation("/dashboard");
+      // Si connecté, aller à la page Mon Compte
+      setLocation("/account");
     } else {
       // Si non connecté, ouvrir le modal de connexion
       openAuthModal("login");
     }
+  };
+
+  const handleMessagesClick = () => {
+    // Rediriger vers la page messages standalone
+    setLocation("/messages");
   };
 
   const handleCreateListing = () => {
@@ -53,15 +62,15 @@ export function BottomNav() {
       icon: MessageCircle,
       label: "Messages",
       path: "/messages",
-      active: location === "/messages",
-      onClick: () => setLocation("/messages"),
+      active: location === "/messages" || location.startsWith("/messages/"),
+      onClick: handleMessagesClick,
     },
     {
       icon: User,
-      label: "Profil",
-      path: user ? "/dashboard" : "#",
-      active: location === "/dashboard",
-      onClick: handleProfileClick,
+      label: "Compte",
+      path: user ? "/account" : "#",
+      active: location === "/account",
+      onClick: handleAccountClick,
     },
   ];
 

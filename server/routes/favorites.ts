@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { storage } from '../storage';
 import crypto from 'crypto';
+import { notifyListingFavorited } from '../services/notificationCenter';
+import { supabase } from '../lib/supabase';
 
 const router = Router();
 
@@ -42,6 +44,27 @@ router.post('/add', async (req, res) => {
     
     // Incrémenter le compteur de favoris
     await storage.incrementFavoriteCount(vehicleId.toString());
+
+    // 🔔 Envoyer une notification au propriétaire de l'annonce
+    try {
+      const { data: annonce } = await supabase
+        .from('annonces')
+        .select('id, title, user_id')
+        .eq('id', vehicleId)
+        .single();
+
+      if (annonce && annonce.user_id !== userId) {
+        // Ne pas notifier si l'utilisateur ajoute sa propre annonce en favori
+        await notifyListingFavorited({
+          userId: annonce.user_id,
+          listingTitle: annonce.title,
+          listingId: parseInt(annonce.id),
+        });
+      }
+    } catch (notifError) {
+      console.error('Erreur envoi notification favori:', notifError);
+      // Ne pas bloquer l'ajout aux favoris si la notification échoue
+    }
 
     console.log('✅ Favori ajouté et compteur incrémenté');
     res.json({ success: true, id: result.id });
