@@ -49,11 +49,12 @@ The platform features a consistent design language with intuitive user flows, ut
 - **Compatibility Tags**: An intelligent system for spare parts listings that allows for dynamic filtering and searching by vehicle brands and models.
 - **Subscription & Professional Features**: Management of user subscriptions, professional account verification, and premium listing options.
 - **Messaging & Notifications**: An integrated messaging system complemented by a centralized, event-driven multi-channel notification system with user-configurable preferences. The notification system uses Supabase for data storage and supports in-app notifications, email notifications (via Nodemailer with professional SMTP), and push notifications (Phase 7). All 11 notification types are integrated with automatic triggers across the platform (messages, follows, favorites, listings, payments, subscriptions).
-  - **Email System (October 2025)**: Implemented with Nodemailer and professional SMTP (configurable via environment variables). Features 9 responsive HTML templates with brand-consistent styling (#067D92 primary color):
+  - **Email System (October 2025)**: Implemented with Nodemailer and professional SMTP (configurable via environment variables). Features 11 responsive HTML templates with brand-consistent styling (#067D92 primary color):
     - Account: welcome, pro_account_activated
     - Listings: listing_validated, listing_rejected, listing_favorited
     - Messaging: new_message, message_reply
     - Payments: payment_success, payment_failed
+    - Followers: new_follower, followed_new_listing
   - **Email Triggers (October 2025)**: All email notifications fire automatically at key business events with non-blocking error handling:
     - `notifyListingValidated`: Fires when admin approves a listing (routes.ts line ~377)
     - `notifyListingRejected`: Fires when admin rejects a listing with reason (routes.ts line ~416)
