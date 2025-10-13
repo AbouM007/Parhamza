@@ -158,6 +158,15 @@ function AppContent() {
     }
   }, [location, selectedVehicle, setSelectedVehicle]);
 
+  // Gérer l'onglet dashboard via query params
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get("tab");
+    if (tab && location === "/dashboard") {
+      setDashboardTab(tab);
+    }
+  }, [location]);
+
   // Modal création annonce
   React.useEffect(() => {
     if (location === "/create-listing") {
@@ -378,7 +387,10 @@ function AppContent() {
                   <ProfessionalVerification />
                 </Route>
                 <Route path="/admin/reports">
-                  <AdminReportsPage />
+                  {() => {
+                    setLocation("/dashboard?tab=reports");
+                    return null;
+                  }}
                 </Route>
                 <Route path="/admin">
                   {() => {
