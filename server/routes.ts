@@ -3660,8 +3660,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/admin/reports - Lister tous les signalements (admin)
-  app.get("/api/admin/reports", async (req, res) => {
-    const user = (req as any).user;
+  app.get("/api/admin/reports", requireAuth, async (req, res) => {
+    const user = req.user;
 
     if (!user) {
       return res.status(401).json({ error: "Authentification requise" });
@@ -3719,8 +3719,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PATCH /api/admin/reports/:id - Mettre à jour le statut d'un signalement (admin)
-  app.patch("/api/admin/reports/:id", async (req, res) => {
-    const user = (req as any).user;
+  app.patch("/api/admin/reports/:id", requireAuth, async (req, res) => {
+    const user = req.user;
     const reportId = req.params.id;
     const { status, admin_comment } = req.body;
 
