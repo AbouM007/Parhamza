@@ -6,3 +6,4 @@ export { default as OverviewSection } from "./OverviewSection";
 export { default as PurchaseHistorySection } from "./PurchaseHistorySection";
 export { default as FavoritesSection } from "./FavoritesSection";
 export { PremiumSection } from "./PremiumSection";
+export { default as ReportsSection } from "./ReportsSection";
