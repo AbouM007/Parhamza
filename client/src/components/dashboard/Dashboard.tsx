@@ -60,6 +60,7 @@ import { ProfessionalVerificationBanner } from "../ProfessionalVerificationBanne
 import { ProfessionalVerificationBadge } from "../ProfessionalVerificationBadge";
 import { CompanyNameDisplay } from "../CompanyNameDisplay";
 import { BoostModal } from "../BoostModal";
+import { MobilePageHeader } from "../MobilePageHeader";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useQuota } from "@/hooks/useQuota";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -193,11 +194,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     deleteSearch,
     toggleAlerts,
   } = useSavedSearches();
-  const {
-    following,
-    followingLoading,
-    unfollow,
-  } = useFollowers();
+  const { following, followingLoading, unfollow } = useFollowers();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [editingProfile, setEditingProfile] = useState(false);
   const [favoritesSubTab, setFavoritesSubTab] = useState("listings");
@@ -388,7 +385,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (profile) {
       setProfileForm({
         name: profile.name || "",
-        displayName: (profile as any)?.display_name || profile.displayName || "",
+        displayName:
+          (profile as any)?.display_name || profile.displayName || "",
         phone: (profile as any)?.phone || "",
         whatsapp: (profile as any)?.whatsapp || "",
         postalCode: (profile as any)?.postal_code || "",
@@ -551,7 +549,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (editingProfile && profile) {
       setProfileForm({
         name: profile.name || "",
-        displayName: (profile as any)?.display_name || profile.displayName || "",
+        displayName:
+          (profile as any)?.display_name || profile.displayName || "",
         phone: (profile as any)?.phone || "",
         whatsapp: (profile as any)?.whatsapp || "",
         postalCode: (profile as any)?.postal_code || "",
@@ -587,10 +586,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (response.ok) {
         const updatedData = await response.json();
         console.log("✅ Profil sauvegardé avec succès:", updatedData);
-        
+
         // Rafraîchir le profil depuis le backend
         await refreshProfile();
-        
+
         setEditingProfile(false);
         setProfileSuccess(true);
         // Masquer le message de succès après 3 secondes
@@ -598,7 +597,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         // Important: Mettre à jour le formulaire local avec les nouvelles données
         setProfileForm({
           name: updatedData.name || "",
-          displayName: updatedData.display_name || updatedData.displayName || "",
+          displayName:
+            updatedData.display_name || updatedData.displayName || "",
           phone: updatedData.phone || "",
           whatsapp: updatedData.whatsapp || "",
           postalCode: updatedData.postal_code || "",
@@ -1419,7 +1419,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const renderPurchaseHistory = () => (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+      <div className="hidden lg:flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Historique des achats
@@ -1946,7 +1946,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <>
             <div className="flex items-center justify-between">
               <p className="text-gray-600 text-lg">
-                {favorites.length} annonce{favorites.length !== 1 ? "s" : ""} favorite{favorites.length !== 1 ? "s" : ""}
+                {favorites.length} annonce{favorites.length !== 1 ? "s" : ""}{" "}
+                favorite{favorites.length !== 1 ? "s" : ""}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1955,7 +1956,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   key={listing.id}
                   vehicle={listing as Vehicle}
                   onClick={() => {
-                    const fullVehicle = vehicles.find((v) => v.id === listing.id);
+                    const fullVehicle = vehicles.find(
+                      (v) => v.id === listing.id,
+                    );
                     if (fullVehicle) {
                       setSelectedVehicle(fullVehicle);
                     } else {
@@ -2009,10 +2012,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         // Appliquer les filtres de recherche sauvegardée
         const searchFunction = setSearchFilters || contextSetSearchFilters;
         if (searchFunction) {
-          console.log(
-            "🔍 Application des filtres de recherche sauvegardée:",
-            search.filters,
-          );
           searchFunction(search.filters);
         }
         // Rediriger vers la page de recherche (pas la page d'accueil)
@@ -2249,15 +2248,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             Aucun vendeur suivi
           </h3>
           <p className="text-gray-600 mb-8 text-lg">
-            Suivez des vendeurs professionnels pour être informé de leurs nouvelles annonces.
+            Suivez des vendeurs professionnels pour être informé de leurs
+            nouvelles annonces.
           </p>
-          <button
-            onClick={onRedirectHome}
-            className="bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 hover:from-primary-bolt-600 hover:to-primary-bolt-700 text-white px-10 py-4 rounded-xl font-semibold flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
-          >
-            <Store className="h-6 w-6" />
-            <span>Découvrir les boutiques</span>
-          </button>
         </div>
       );
     }
@@ -2274,7 +2267,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {item.followedUser?.avatar ? (
                   <img
                     src={item.followedUser.avatar}
-                    alt={item.followedUser.displayName || item.followedUser.name}
+                    alt={
+                      item.followedUser.displayName || item.followedUser.name
+                    }
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -2284,10 +2279,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold text-lg text-gray-900 line-clamp-1">
-                    {item.followedUser?.displayName || item.followedUser?.companyName || item.followedUser?.name}
+                    {item.followedUser?.displayName ||
+                      item.followedUser?.companyName ||
+                      item.followedUser?.name}
                   </h3>
                   {item.followedUser?.isVerified && (
-                    <div className="flex-shrink-0" title="Professionnel vérifié">
+                    <div
+                      className="flex-shrink-0"
+                      title="Professionnel vérifié"
+                    >
                       <ShieldCheck className="h-5 w-5 text-blue-500" />
                     </div>
                   )}
@@ -2295,12 +2295,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     <UserPlus className="h-4 w-4" />
-                    <span>{item.followedUser?.followersCount || 0} abonné{(item.followedUser?.followersCount || 0) > 1 ? 's' : ''}</span>
+                    <span>
+                      {item.followedUser?.followersCount || 0} abonné
+                      {(item.followedUser?.followersCount || 0) > 1 ? "s" : ""}
+                    </span>
                   </div>
                   <span className="text-gray-300">•</span>
                   <div className="flex items-center gap-1">
                     <Package className="h-4 w-4" />
-                    <span>{item.followedUser?.activeListingsCount || 0} annonce{(item.followedUser?.activeListingsCount || 0) > 1 ? 's' : ''}</span>
+                    <span>
+                      {item.followedUser?.activeListingsCount || 0} annonce
+                      {(item.followedUser?.activeListingsCount || 0) > 1
+                        ? "s"
+                        : ""}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -2326,10 +2334,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Confirmer le désabonnement</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Confirmer le désabonnement
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                      Êtes-vous sûr de vouloir ne plus suivre <strong>{item.followedUser?.displayName || item.followedUser?.companyName || item.followedUser?.name}</strong> ? 
-                      Vous ne recevrez plus de notifications sur leurs nouvelles annonces.
+                      Êtes-vous sûr de vouloir ne plus suivre{" "}
+                      <strong>
+                        {item.followedUser?.displayName ||
+                          item.followedUser?.companyName ||
+                          item.followedUser?.name}
+                      </strong>{" "}
+                      ? Vous ne recevrez plus de notifications sur leurs
+                      nouvelles annonces.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -2794,9 +2810,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Mes favoris</h1>
-              <p className="text-gray-600 text-lg">
-                Retrouvez tous vos contenus favoris
-              </p>
             </div>
           </div>
 
@@ -2804,37 +2817,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex space-x-1 bg-gray-100 rounded-xl p-1">
             <button
               onClick={() => setFavoritesSubTab("listings")}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
                 favoritesSubTab === "listings"
                   ? "bg-white text-primary-bolt-600 shadow-md"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <Heart className="h-4 w-4" />
-              <span>Annonces favorites</span>
+              <Heart className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-base truncate">Annonces</span>
             </button>
             <button
               onClick={() => setFavoritesSubTab("searches")}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
                 favoritesSubTab === "searches"
                   ? "bg-white text-primary-bolt-600 shadow-md"
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              <Search className="h-4 w-4" />
-              <span>Recherches sauvegardées</span>
+              <Search className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-base truncate">Recherches</span>
             </button>
             <button
               onClick={() => setFavoritesSubTab("sellers")}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex-1 justify-center ${
                 favoritesSubTab === "sellers"
                   ? "bg-white text-primary-bolt-600 shadow-md"
                   : "text-gray-600 hover:text-gray-900"
               }`}
               data-testid="tab-followed-sellers"
             >
-              <UserPlus className="h-4 w-4" />
-              <span>Vendeurs suivis</span>
+              <UserPlus className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-base truncate">Vendeurs</span>
             </button>
           </div>
         </div>
@@ -2848,12 +2861,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-20">
+      <MobilePageHeader
+        title="Tableau de bord"
+        onBack={() => window.history.back()}
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Navigation - masquée si onglet messages */}
+          {/* Sidebar Navigation - masquée si onglet messages OU sur mobile */}
           {activeTab !== "messages" && (
-            <div className="lg:w-80 flex-shrink-0">
+            <div className="hidden lg:block lg:w-80 flex-shrink-0">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden sticky top-24">
                 <div className="p-8 border-b border-gray-200 bg-gradient-to-r from-primary-bolt-50 to-primary-bolt-100">
                   <div className="flex items-center space-x-4">
@@ -2961,7 +2979,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 deletedVehicles={deletedVehicles}
                 listingFilter={listingFilter}
                 setListingFilter={setListingFilter}
-                //profile={profile}
+                profile={profile}
                 quotaInfo={quotaInfo}
                 brandIcon={brandIcon}
                 boostStatuses={boostStatuses}

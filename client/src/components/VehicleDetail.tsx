@@ -383,8 +383,10 @@ export const VehicleDetail: React.FC<VehicleDetailProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 relative z-0">
-      {/* Breadcrumb */}
-      <Breadcrumb vehicle={vehicle} onNavigate={handleBreadcrumbNavigation} />
+      {/* Breadcrumb - Caché sur mobile */}
+      <div className="hidden lg:block">
+        <Breadcrumb vehicle={vehicle} onNavigate={handleBreadcrumbNavigation} />
+      </div>
 
       {/* Back Button */}
       <div className="bg-white border-b">

@@ -41,8 +41,12 @@ export const authenticateUser = async (
     } = await supabaseServer.auth.getUser(token);
 
     if (error || !user) {
+      console.error('❌ [AUTH] Erreur Supabase getUser:', error);
+      console.error('❌ [AUTH] User retourné:', user);
       return res.status(401).json({ error: "Token invalide" });
     }
+    
+    console.log('✅ [AUTH] Token valide pour user:', user.id);
 
     // ✅ Vérifier si l'utilisateur existe dans notre DB
     let { data: profile, error: userError } = await supabaseServer

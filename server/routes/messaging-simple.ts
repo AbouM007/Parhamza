@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { supabase } from '../lib/supabase.js';
+import { notifyNewMessage } from '../services/notificationCenter';
 
 const router = Router();
 
@@ -68,6 +69,18 @@ router.post('/messages/send', requireAuth, async (req: any, res) => {
     if (error) {
       console.error('Erreur insertion message:', error);
       return res.status(500).json({ error: 'Erreur lors de l\'envoi du message' });
+    }
+
+    // 🔔 Envoyer une notification au destinataire
+    try {
+      await notifyNewMessage({
+        recipientId: to_user_id,
+        senderName: fromUser.name || fromUser.email,
+        listingTitle: vehicle.title,
+      });
+    } catch (notifError) {
+      console.error('Erreur envoi notification:', notifError);
+      // Ne pas bloquer l'envoi du message si la notification échoue
     }
 
     res.status(201).json({

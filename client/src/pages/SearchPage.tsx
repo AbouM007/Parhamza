@@ -326,9 +326,9 @@ export const SearchPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header de recherche */}
-      <div className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header de recherche - masqué sur mobile */}
+      <div className="bg-white border-b border-gray-200 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="space-y-6">
             {/* Barre de recherche principale */}
@@ -397,6 +397,27 @@ export const SearchPage: React.FC = () => {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filtres rapides mobile - scroll horizontal */}
+      <div className="bg-white border-b border-gray-200 lg:hidden sticky top-0 z-10">
+        <div className="px-4 py-3">
+          <div className="flex overflow-x-auto gap-2 scrollbar-hide -mx-4 px-4">
+            {Object.entries(categoryMapping).map(([key, cat]) => (
+              <button
+                key={key}
+                onClick={() => updateFilter('category', searchFilters.category === key ? '' : key)}
+                className={`flex-shrink-0 px-4 py-2 rounded-full border transition-colors whitespace-nowrap text-sm ${
+                  searchFilters.category === key
+                    ? 'bg-primary-bolt-500 text-white border-primary-bolt-500'
+                    : 'bg-white text-gray-700 border-gray-300'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -762,15 +783,16 @@ export const SearchPage: React.FC = () => {
         {/* Header résultats */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8">
           <div className="mb-4 lg:mb-0">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
               {searchTerm ? `Résultats pour "${searchTerm}"` : 'Recherche de véhicules'}
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 mt-2 text-sm lg:text-base">
               {filteredVehicles.length} résultat{filteredVehicles.length !== 1 ? 's' : ''} trouvé{filteredVehicles.length !== 1 ? 's' : ''}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+          {/* Desktop: Afficher tri et mode d'affichage */}
+          <div className="hidden lg:flex lg:flex-row items-center space-x-4">
             {/* Tri */}
             <div className="flex items-center space-x-3">
               <span className="text-sm font-medium text-gray-700">Trier par:</span>
@@ -805,6 +827,23 @@ export const SearchPage: React.FC = () => {
                   <List className="h-4 w-4" />
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Mobile: Afficher uniquement le tri à gauche */}
+          <div className="lg:hidden">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-medium text-gray-700">Trier par:</span>
+              <select
+                value={searchFilters.sortBy || 'date'}
+                onChange={(e) => updateFilter('sortBy', e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 bg-white text-xs font-medium"
+              >
+                <option value="date">Plus récentes</option>
+                <option value="price_asc">Prix croissant</option>
+                <option value="price_desc">Prix décroissant</option>
+                <option value="mileage">Kilométrage</option>
+              </select>
             </div>
           </div>
         </div>

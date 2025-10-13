@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { supabase } from '../lib/supabase';
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
+import { notifyListingValidated, notifyListingRejected } from '../services/notificationCenter';
 
 const router = Router();
 
@@ -167,12 +170,42 @@ router.patch('/annonces/:id', requireAdmin, async (req, res) => {
         return res.status(400).json({ error: 'Action non reconnue' });
     }
 
+    // Récupérer les informations de l'annonce avant la mise à jour
+    const { data: annonce } = await supabase
+      .from('annonces')
+      .select('id, title, user_id')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase
       .from('annonces')
       .update(updateData)
       .eq('id', id);
 
     if (error) throw error;
+
+    // 🔔 Envoyer une notification au propriétaire de l'annonce
+    if (annonce) {
+      try {
+        if (action === 'approve') {
+          await notifyListingValidated({
+            userId: annonce.user_id,
+            listingId: parseInt(annonce.id),
+            listingTitle: annonce.title,
+          });
+        } else if (action === 'reject') {
+          await notifyListingRejected({
+            userId: annonce.user_id,
+            listingId: parseInt(annonce.id),
+            listingTitle: annonce.title,
+            reason: req.body.reason || 'Non conforme aux conditions',
+          });
+        }
+      } catch (notifError) {
+        console.error('Erreur envoi notification annonce:', notifError);
+        // Ne pas bloquer l'action admin si la notification échoue
+      }
+    }
 
     // Log de l'action admin
     await supabase
@@ -254,6 +287,65 @@ router.get('/stats', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Erreur récupération stats:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des statistiques' });
+  }
+});
+
+// GET /api/admin/run-notification-migration - Exécuter la migration des notifications (temporaire)
+router.get('/run-notification-migration', requireAdmin, async (req, res) => {
+  try {
+    console.log('🔄 Début migration tables notifications...');
+    
+    // Créer la table notifications
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        data JSONB,
+        read BOOLEAN NOT NULL DEFAULT false,
+        read_at TIMESTAMP,
+        channels JSONB NOT NULL DEFAULT '["in-app"]',
+        sent_channels JSONB NOT NULL DEFAULT '["in-app"]',
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Table notifications créée');
+
+    // Créer la table notification_preferences
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS notification_preferences (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        notification_type VARCHAR(50) NOT NULL,
+        enable_in_app BOOLEAN NOT NULL DEFAULT true,
+        enable_email BOOLEAN NOT NULL DEFAULT true,
+        enable_push BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        CONSTRAINT unique_user_type UNIQUE (user_id, notification_type)
+      )
+    `);
+    console.log('✅ Table notification_preferences créée');
+
+    // Créer les index
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`);
+    await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id)`);
+    console.log('✅ Index créés');
+
+    console.log('✅ Migration terminée avec succès');
+    res.json({ 
+      success: true, 
+      message: 'Tables notifications créées avec succès' 
+    });
+  } catch (error: any) {
+    console.error('❌ Erreur migration:', error);
+    res.status(500).json({ 
+      error: 'Erreur serveur', 
+      details: error?.message || 'Erreur inconnue'
+    });
   }
 });
 

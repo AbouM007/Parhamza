@@ -13,16 +13,25 @@ import profileRoutes from "./routes/profile";
 import favoritesRoutes from "./routes/favorites";
 import imagesRoutes from "./routes/images";
 import authSyncRoutes from "./routes/auth-sync";
+import notificationsRoutes from "./routes/notifications";
 import { professionalShopRouter } from "./routes/professional-shop";
 import { subscriptionsRouter } from "./routes/subscriptions";
 import { setupWishlistMigration } from "./routes/wishlist-migration.js";
 import { setupWishlistDirect } from "./routes/wishlist-direct.js";
 import { ensureUserExists, createUserFromAuth } from "./auth-hooks";
 import { supabaseServer } from "./supabase";
+import { requireAuth } from "./middleware/auth";
 import multer from "multer";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import avatarRoutes from "./routes/avatar";
+import { 
+  notifyWelcome, 
+  notifyProAccountActivated,
+  notifyListingValidated,
+  notifyListingRejected,
+  notifyPaymentSuccess
+} from "./services/notificationCenter";
 
 // Configuration multer pour upload en mémoire
 const upload = multer({
@@ -345,7 +354,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/admin/annonces/:id/approve", async (req, res) => {
     try {
       const { id } = req.params;
+      console.log(`🟢 APPROBATION - Début pour annonce ${id}`);
+      
+      // Récupérer les infos de l'annonce avant approbation
+      const { data: vehicleData, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("user_id, title")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !vehicleData) {
+        console.error("❌ Erreur récupération annonce:", fetchError);
+        return res.status(404).json({ error: "Annonce non trouvée" });
+      }
+
+      console.log(`🟢 Annonce trouvée - userId: ${vehicleData.user_id}, title: ${vehicleData.title}`);
+
       await storage.approveVehicle(id);
+      console.log(`🟢 Annonce approuvée dans storage`);
+      
+      // 📧 Envoyer notification de validation
+      try {
+        console.log(`🟢 Début envoi notification validation...`);
+        await notifyListingValidated({
+          userId: vehicleData.user_id,
+          listingId: parseInt(id),
+          listingTitle: vehicleData.title,
+        });
+        console.log(`✅ Notification validation envoyée`);
+      } catch (emailError) {
+        console.error("❌ Erreur envoi notification validation:", emailError);
+        // Ne pas bloquer l'approbation si l'email échoue
+      }
+
       res.json({ success: true, message: "Annonce approuvée" });
     } catch (error) {
       console.error("Error approving vehicle:", error);
@@ -357,7 +398,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { reason } = req.body;
+      
+      // Récupérer les infos de l'annonce avant rejet
+      const { data: vehicleData, error: fetchError } = await supabaseServer
+        .from("annonces")
+        .select("user_id, title")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !vehicleData) {
+        console.error("❌ Erreur récupération annonce:", fetchError);
+        return res.status(404).json({ error: "Annonce non trouvée" });
+      }
+
       await storage.rejectVehicle(id, reason);
+      
+      // 📧 Envoyer notification de rejet
+      try {
+        await notifyListingRejected({
+          userId: vehicleData.user_id,
+          listingId: parseInt(id),
+          listingTitle: vehicleData.title,
+          reason: reason || "Non précisée",
+        });
+      } catch (emailError) {
+        console.error("❌ Erreur envoi notification rejet:", emailError);
+        // Ne pas bloquer le rejet si l'email échoue
+      }
+
       res.json({ success: true, message: "Annonce rejetée" });
     } catch (error) {
       console.error("Error rejecting vehicle:", error);
@@ -1464,6 +1532,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("✅ Compte particulier mis à jour:", personal.id);
+      
+      // 📧 Envoyer email de bienvenue au particulier
+      try {
+        await notifyWelcome({
+          userId: personal.id,
+          userName: personal.name,
+        });
+        console.log("📧 Email de bienvenue envoyé au particulier");
+      } catch (emailError) {
+        console.error("❌ Erreur envoi email bienvenue:", emailError);
+        // Ne pas bloquer la création du compte si l'email échoue
+      }
+      
       return res.json({
         success: true,
         type: "personal",
@@ -1877,6 +1958,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .eq("professional_account_id", id);
 
         console.log("✅ Compte professionnel approuvé");
+        
+        // 📧 Envoyer emails de bienvenue + activation pro
+        try {
+          // Récupérer les infos utilisateur pour l'email
+          const { data: userData } = await supabaseServer
+            .from("users")
+            .select("id, name, email")
+            .eq("id", updatedAccount.user_id)
+            .single();
+
+          if (userData) {
+            // Email de bienvenue
+            await notifyWelcome({
+              userId: userData.id,
+              userName: userData.name,
+            });
+            console.log("📧 Email de bienvenue envoyé au professionnel");
+
+            // Email d'activation du compte pro
+            await notifyProAccountActivated({
+              userId: userData.id,
+              companyName: updatedAccount.company_name,
+            });
+            console.log("📧 Email d'activation compte pro envoyé");
+          }
+        } catch (emailError) {
+          console.error("❌ Erreur envoi emails activation pro:", emailError);
+          // Ne pas bloquer l'activation si les emails échouent
+        }
+        
         res.json({
           success: true,
           account: updatedAccount,
@@ -2130,6 +2241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/auth", authSyncRoutes);
   app.use("/api/professional-accounts", professionalShopRouter);
   app.use("/api/subscriptions", subscriptionsRouter);
+  app.use("/api/notifications", requireAuth, notificationsRoutes);
 
   // Routes pour la personnalisation des comptes professionnels
 
@@ -2573,17 +2685,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!proAccount) {
         // Aucun compte professionnel trouvé
-        console.log(
-          "ℹ️ Aucun compte professionnel trouvé pour cet utilisateur",
-        );
+        
         return res
           .status(404)
           .json({ error: "Aucun compte professionnel trouvé" });
       }
 
-      console.log(
-        `✅ Statut professionnel récupéré: ${proAccount.verification_status}`,
-      );
+      
       res.setHeader("Cache-Control", "no-store");
       res.json(proAccount);
     } catch (error) {
@@ -3062,8 +3170,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         session.payment_status === "paid" &&
         session.metadata?.type === "boost"
       ) {
-        // Optionnel : activer le boost ici si jamais le webhook n'a pas encore tourné
+        // Activer le boost
         await storage.activateBoostWithLog(session.id);
+        
+        // 📧 Envoyer notification de paiement réussi
+        try {
+          // Récupérer les infos du boost depuis les logs
+          const { data: logData } = await supabaseServer
+            .from("boost_logs")
+            .select("annonce_id, plan_id, user_id, amount")
+            .eq("stripe_session_id", session.id)
+            .eq("action", "purchased")
+            .single();
+
+          if (logData) {
+            // Récupérer le nom du plan
+            const { data: planData } = await supabaseServer
+              .from("boost_plans")
+              .select("name")
+              .eq("id", logData.plan_id)
+              .single();
+
+            await notifyPaymentSuccess({
+              userId: logData.user_id,
+              amount: (logData.amount / 100).toFixed(2) + "€",
+              type: `Boost ${planData?.name || ''}`,
+            });
+            console.log(`📧 Email paiement boost envoyé pour user ${logData.user_id}`);
+          }
+        } catch (emailError) {
+          console.error("❌ Erreur envoi email paiement boost:", emailError);
+          // Ne pas bloquer si l'email échoue
+        }
+
         return res.json({ success: true, message: "Boost activé" });
       }
 

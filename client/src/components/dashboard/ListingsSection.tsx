@@ -161,11 +161,11 @@ export default function ListingsSection({
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Filtrer par statut
           </h3>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
             {/* Toutes */}
             <button
               onClick={() => setListingFilter("all")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "all"
                   ? "bg-gray-900 text-white shadow-lg"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -180,7 +180,7 @@ export default function ListingsSection({
             {/* Approuvées (Actives) */}
             <button
               onClick={() => setListingFilter("approved")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "approved"
                   ? "bg-green-600 text-white shadow-lg"
                   : "bg-green-100 text-green-700 hover:bg-green-200"
@@ -195,7 +195,7 @@ export default function ListingsSection({
             {/* En attente */}
             <button
               onClick={() => setListingFilter("pending")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "pending"
                   ? "bg-blue-600 text-white shadow-lg"
                   : "bg-blue-100 text-blue-700 hover:bg-blue-200"
@@ -210,7 +210,7 @@ export default function ListingsSection({
             {/* Rejetées */}
             <button
               onClick={() => setListingFilter("rejected")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 flex-shrink-0 whitespace-nowrap ${
                 listingFilter === "rejected"
                   ? "bg-red-600 text-white shadow-lg"
                   : "bg-red-100 text-red-700 hover:bg-red-200"
@@ -346,69 +346,66 @@ export default function ListingsSection({
                         </div>
                       )}
 
-                    <div className="flex justify-between items-center">
-                      {/* Afficher les compteurs seulement pour les annonces approuvées ou en attente */}
-                      {vehicle.status === "approved" ||
-                      vehicle.status === "pending" ? (
-                        <div className="flex items-center space-x-8">
+                    <div className="space-y-4">
+                      {/* Compteurs - Mobile et Desktop */}
+                      {(vehicle.status === "approved" || vehicle.status === "pending") && (
+                        <div className="flex items-center space-x-6 md:space-x-8">
                           <div className="flex items-center space-x-2 text-gray-600">
                             <Eye className="h-5 w-5" />
                             <span className="font-semibold">
                               {vehicle.views}
                             </span>
-                            <span className="text-sm">vues</span>
+                            <span className="text-sm hidden sm:inline">vues</span>
                           </div>
                           <div className="flex items-center space-x-2 text-gray-600">
                             <Heart className="h-5 w-5" />
                             <span className="font-semibold">
                               {vehicle.favorites}
                             </span>
-                            <span className="text-sm">favoris</span>
+                            <span className="text-sm hidden sm:inline">favoris</span>
                           </div>
                           <div className="flex items-center space-x-2 text-gray-600">
                             <MessageCircle className="h-5 w-5" />
                             <span className="font-semibold">3</span>
-                            <span className="text-sm">messages</span>
+                            <span className="text-sm hidden sm:inline">messages</span>
                           </div>
                         </div>
-                      ) : (
-                        <div>{/* vide */}</div>
                       )}
 
-                      <div className="flex items-center space-x-3">
-                        {/* Afficher les boutons seulement pour les annonces approuvées ou en attente */}
-                        {!(vehicle as any).deletedAt &&
-                          (vehicle.status === "approved" ||
-                            vehicle.status === "draft") && (
-                            <>
-                              {boostStatuses[vehicle.id]?.isActive ? (
-                                <span className="px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold flex items-center space-x-2 shadow-lg">
-                                  <Zap className="h-4 w-4" />
-                                  <span>🚀 Annonce boostée</span>
-                                </span>
-                              ) : (
-                                <button
-                                  onClick={() =>
-                                    openBoostModal(vehicle.id, vehicle.title)
-                                  }
-                                  className="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
-                                  data-testid={`button-boost-${vehicle.id}`}
-                                >
-                                  <Zap className="h-4 w-4" />
-                                  <span>Booster</span>
-                                </button>
-                              )}
+                      {/* Boutons d'action */}
+                      {!(vehicle as any).deletedAt &&
+                        (vehicle.status === "approved" ||
+                          vehicle.status === "draft") && (
+                          <div className="flex items-center gap-3 flex-wrap">
+                            {boostStatuses[vehicle.id]?.isActive ? (
+                              <span className="px-4 md:px-6 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold flex items-center space-x-2 shadow-lg">
+                                <Zap className="h-4 w-4" />
+                                <span className="text-sm md:text-base">🚀 Annonce boostée</span>
+                              </span>
+                            ) : (
                               <button
                                 onClick={() =>
-                                  openDeletionModal(vehicle.id, vehicle.title)
+                                  openBoostModal(vehicle.id, vehicle.title)
                                 }
-                                className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
+                                className="px-4 md:px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                                data-testid={`button-boost-${vehicle.id}`}
                               >
-                                <Trash2 className="h-5 w-5" />
+                                <Zap className="h-4 w-4" />
+                                <span className="text-sm md:text-base">Booster</span>
                               </button>
-                            </>
-                          )}
-                      </div>
+                            )}
+                            <button
+                              onClick={() =>
+                                openDeletionModal(vehicle.id, vehicle.title)
+                              }
+                              className="px-4 md:px-6 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-2"
+                              data-testid={`button-delete-${vehicle.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="text-sm md:text-base">Supprimer</span>
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

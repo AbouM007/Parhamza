@@ -3,6 +3,14 @@ import Stripe from "stripe";
 import { supabaseServer } from "../supabase";
 import { requireAuth } from "../middleware/auth";
 import express from "express";
+import { 
+  notifyPaymentSuccess, 
+  notifyPaymentFailed,
+  notifySubscriptionRenewed,
+  notifySubscriptionCancelled,
+  notifySubscriptionDowngraded,
+  notifySubscriptionEnding,
+} from "../services/notificationCenter";
 
 const router = Router();
 
@@ -512,6 +520,26 @@ router.post("/modify", requireAuth, async (req, res) => {
         metadata: { cancelled_at_period_end: true }
       });
 
+      // 📧 Envoyer notification d'annulation
+      try {
+        const currentPlanInfo = Array.isArray(currentSub.subscription_plans) 
+          ? currentSub.subscription_plans[0] 
+          : currentSub.subscription_plans;
+        
+        const endDate = updatePayload.current_period_end || currentSub.current_period_end;
+        const formattedEndDate = endDate ? new Date(endDate).toLocaleDateString('fr-FR') : 'fin de période';
+        
+        await notifySubscriptionCancelled({
+          userId,
+          planName: currentPlanInfo?.name || 'Abonnement',
+          endDate: formattedEndDate,
+        });
+        console.log("📧 Email annulation abonnement envoyé");
+      } catch (emailError) {
+        console.error("❌ Erreur envoi email annulation:", emailError);
+        // Ne pas bloquer l'annulation si l'email échoue
+      }
+
       return res.json({
         success: true,
         message: "Abonnement annulé. Actif jusqu'à la fin de la période.",
@@ -626,6 +654,24 @@ router.post("/modify", requireAuth, async (req, res) => {
     });
 
     const nextBillingTimestamp = (updatedSubscription as any).current_period_end as number | undefined;
+    const effectiveDate = tsToIso(nextBillingTimestamp) || new Date().toISOString();
+
+    // 📧 Envoyer notification de modification
+    try {
+      if (action === 'downgrade') {
+        await notifySubscriptionDowngraded({
+          userId,
+          oldPlan: currentPlan?.name || 'Ancien plan',
+          newPlan: newPlan.name,
+          effectiveDate: new Date(effectiveDate).toLocaleDateString('fr-FR'),
+        });
+        console.log("📧 Email downgrade abonnement envoyé");
+      }
+      // Pour upgrade, on peut ajouter une notification similaire si nécessaire
+    } catch (emailError) {
+      console.error("❌ Erreur envoi email modification:", emailError);
+      // Ne pas bloquer la modification si l'email échoue
+    }
     
     return res.json({
       success: true,
@@ -763,12 +809,75 @@ router.post(
             "✅ Payment succeeded for subscription:",
             inv.subscription,
           );
+
+          // 🔔 Envoyer notifications selon le type de paiement
+          try {
+            const { data: subscription } = await supabaseServer
+              .from("subscriptions")
+              .select("user_id, plan_id, current_period_end, subscription_plans(name)")
+              .eq("stripe_subscription_id", inv.subscription)
+              .single();
+
+            if (subscription?.user_id) {
+              const amount = inv.amount_paid
+                ? `${(inv.amount_paid / 100).toFixed(2)} €`
+                : "N/A";
+              const planName = (subscription as any).subscription_plans?.name || "Abonnement";
+              
+              // Détecter si c'est un renouvellement automatique
+              const isRenewal = inv.billing_reason === 'subscription_cycle';
+              
+              if (isRenewal) {
+                // 📧 Notification de renouvellement
+                const nextBillingDate = subscription.current_period_end 
+                  ? new Date(subscription.current_period_end).toLocaleDateString('fr-FR')
+                  : 'prochaine période';
+                
+                await notifySubscriptionRenewed({
+                  userId: subscription.user_id,
+                  planName,
+                  amount,
+                  nextBillingDate,
+                });
+                console.log("📧 Email renouvellement abonnement envoyé");
+              } else {
+                // 📧 Notification de paiement initial
+                await notifyPaymentSuccess({
+                  userId: subscription.user_id,
+                  amount,
+                  type: planName,
+                  transactionId: inv.id,
+                });
+                console.log("📧 Email paiement initial envoyé");
+              }
+            }
+          } catch (notifError) {
+            console.error("Erreur envoi notification paiement:", notifError);
+          }
           break;
         }
 
         case "invoice.payment_failed": {
           const inv = event.data.object as any;
           console.log("❌ Payment failed for subscription:", inv.subscription);
+
+          // 🔔 Envoyer une notification de paiement échoué
+          try {
+            const { data: subscription } = await supabaseServer
+              .from("subscriptions")
+              .select("user_id")
+              .eq("stripe_subscription_id", inv.subscription)
+              .single();
+
+            if (subscription?.user_id) {
+              await notifyPaymentFailed({
+                userId: subscription.user_id,
+                reason: inv.last_payment_error?.message || "Paiement refusé",
+              });
+            }
+          } catch (notifError) {
+            console.error("Erreur envoi notification paiement échoué:", notifError);
+          }
           break;
         }
       }

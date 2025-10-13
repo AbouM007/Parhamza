@@ -8,15 +8,20 @@ import {
   Menu,
   X,
   LogIn,
+  LogOut,
   Settings,
   Car,
   Plus,
+  ChevronRight,
+  ChevronDown,
+  Home,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { UserMenu } from "./auth/UserMenu";
+import { NotificationCenter } from "./NotificationCenter";
 import logoPath from "@/assets/logo-transparent_1753108744744.png";
 //import accidentIcon from "@/assets/accident_1753354197012.png";
 
@@ -39,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { setSearchFilters, setSelectedVehicle, openAuthModal } =
     useApp();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const isAuthenticated = !!user;
   const isLoading = loading;
   const { unreadCount } = useUnreadMessages();
@@ -47,6 +52,9 @@ export const Header: React.FC<HeaderProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("vehicles");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  // États pour les accordéons du menu mobile
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [openSubCategory, setOpenSubCategory] = useState<string | null>(null);
   // Removed useAuthService - using openAuthModal from useApp() instead
 
   const handleAuthClick = (mode: "signin" | "signup") => {
@@ -333,6 +341,12 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
                 </button>
 
+                {/* Notifications */}
+                <div className="flex flex-col items-center">
+                  <NotificationCenter />
+                  <span className="text-xs text-gray-600 mt-1">Notifications</span>
+                </div>
+
                 {/* User Menu */}
                 <UserMenu
                   onNavigate={handleNavigate}
@@ -497,117 +511,271 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
-          <div className="px-4 py-4 space-y-3">
-            {/* Mobile Categories - Direct Links Only */}
-            <div className="space-y-2">
-              {/* Voitures - Utilitaires */}
-              {categoryStructure["voiture-utilitaire"]?.subcategories.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory.id)}
-                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                >
-                  {subcategory.label}
-                </button>
-              ))}
-              
-              {/* Motos, Scooters, Quads */}
-              {categoryStructure["moto-scooter-quad"]?.subcategories.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory.id)}
-                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                >
-                  {subcategory.label}
-                </button>
-              ))}
-              
-              {/* Nautisme, Sport et Plein air */}
-              {categoryStructure["nautisme-sport-aerien"]?.subcategories.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory.id)}
-                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                >
-                  {subcategory.label}
-                </button>
-              ))}
-              
-              {/* Services */}
-              {categoryStructure.services?.subcategories.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory.id)}
-                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                >
-                  {subcategory.label}
-                </button>
-              ))}
-              
-              {/* Pièces détachées */}
-              {categoryStructure.pieces?.subcategories.map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  onClick={() => handleSubcategoryClick(subcategory.id)}
-                  className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                >
-                  {subcategory.label}
-                </button>
-              ))}
-              
-              {/* Accidentés */}
+        <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="px-4 py-4 space-y-2">
+            {/* Lien Accueil */}
+            <button
+              onClick={() => handleNavClick("home")}
+              className="w-full flex items-center justify-between py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <Home className="h-5 w-5" />
+                <span className="font-medium">Accueil</span>
+              </div>
+            </button>
+
+            {/* Accordéon principal : Toutes les catégories */}
+            <div className="border-t border-gray-200 pt-2">
               <button
-                onClick={handleDamagedVehiclesClick}
-                className="block w-full text-left py-2.5 px-4 rounded-xl text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 transition-colors"
-                data-testid="button-damaged-vehicles-mobile"
+                onClick={() => setCategoriesOpen(!categoriesOpen)}
+                className="w-full flex items-center justify-between py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
               >
-                Accidentés
+                <div className="flex items-center space-x-3">
+                  <Car className="h-5 w-5" />
+                  <span className="font-medium">Toutes les catégories</span>
+                </div>
+                {categoriesOpen ? (
+                  <ChevronDown className="h-5 w-5 transition-transform duration-200" />
+                ) : (
+                  <ChevronRight className="h-5 w-5 transition-transform duration-200" />
+                )}
               </button>
+
+              {/* Contenu de l'accordéon principal */}
+              {categoriesOpen && (
+                <div className="mt-2 ml-4 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Voitures - Utilitaires */}
+                  <div>
+                    <button
+                      onClick={() => setOpenSubCategory(openSubCategory === "voiture-utilitaire" ? null : "voiture-utilitaire")}
+                      className="w-full flex items-center justify-between py-2.5 px-4 text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-xl transition-colors"
+                    >
+                      <span>🚗 Voitures - Utilitaires</span>
+                      {openSubCategory === "voiture-utilitaire" ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {openSubCategory === "voiture-utilitaire" && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {categoryStructure["voiture-utilitaire"]?.subcategories.map((subcategory) => (
+                          <button
+                            key={subcategory.id}
+                            onClick={() => handleSubcategoryClick(subcategory.id)}
+                            className="block w-full text-left py-2 px-4 text-sm text-gray-600 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-lg transition-colors"
+                          >
+                            {subcategory.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Motos, Scooters, Quads */}
+                  <div>
+                    <button
+                      onClick={() => setOpenSubCategory(openSubCategory === "moto-scooter-quad" ? null : "moto-scooter-quad")}
+                      className="w-full flex items-center justify-between py-2.5 px-4 text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-xl transition-colors"
+                    >
+                      <span>🏍️ Motos, Scooters, Quads</span>
+                      {openSubCategory === "moto-scooter-quad" ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {openSubCategory === "moto-scooter-quad" && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {categoryStructure["moto-scooter-quad"]?.subcategories.map((subcategory) => (
+                          <button
+                            key={subcategory.id}
+                            onClick={() => handleSubcategoryClick(subcategory.id)}
+                            className="block w-full text-left py-2 px-4 text-sm text-gray-600 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-lg transition-colors"
+                          >
+                            {subcategory.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Nautisme, Sport et Plein air */}
+                  <div>
+                    <button
+                      onClick={() => setOpenSubCategory(openSubCategory === "nautisme-sport-aerien" ? null : "nautisme-sport-aerien")}
+                      className="w-full flex items-center justify-between py-2.5 px-4 text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-xl transition-colors"
+                    >
+                      <span>⛵ Nautisme, Sport et Plein air</span>
+                      {openSubCategory === "nautisme-sport-aerien" ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {openSubCategory === "nautisme-sport-aerien" && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {categoryStructure["nautisme-sport-aerien"]?.subcategories.map((subcategory) => (
+                          <button
+                            key={subcategory.id}
+                            onClick={() => handleSubcategoryClick(subcategory.id)}
+                            className="block w-full text-left py-2 px-4 text-sm text-gray-600 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-lg transition-colors"
+                          >
+                            {subcategory.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Accidentés (lien direct) */}
+                  <button
+                    onClick={handleDamagedVehiclesClick}
+                    className="w-full flex items-center py-2.5 px-4 text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-xl transition-colors"
+                    data-testid="button-damaged-vehicles-mobile"
+                  >
+                    <span>💥 Accidentés</span>
+                  </button>
+
+                  {/* Pièces détachées */}
+                  <div>
+                    <button
+                      onClick={() => setOpenSubCategory(openSubCategory === "pieces" ? null : "pieces")}
+                      className="w-full flex items-center justify-between py-2.5 px-4 text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-xl transition-colors"
+                    >
+                      <span>🔧 Pièces détachées</span>
+                      {openSubCategory === "pieces" ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {openSubCategory === "pieces" && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {categoryStructure.pieces?.subcategories.map((subcategory) => (
+                          <button
+                            key={subcategory.id}
+                            onClick={() => handleSubcategoryClick(subcategory.id)}
+                            className="block w-full text-left py-2 px-4 text-sm text-gray-600 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-lg transition-colors"
+                          >
+                            {subcategory.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Services */}
+                  <div>
+                    <button
+                      onClick={() => setOpenSubCategory(openSubCategory === "services" ? null : "services")}
+                      className="w-full flex items-center justify-between py-2.5 px-4 text-sm text-gray-700 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-xl transition-colors"
+                    >
+                      <span>🛠️ Services</span>
+                      {openSubCategory === "services" ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {openSubCategory === "services" && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {categoryStructure.services?.subcategories.map((subcategory) => (
+                          <button
+                            key={subcategory.id}
+                            onClick={() => handleSubcategoryClick(subcategory.id)}
+                            className="block w-full text-left py-2 px-4 text-sm text-gray-600 hover:bg-primary-bolt-50 hover:text-primary-bolt-600 rounded-lg transition-colors"
+                          >
+                            {subcategory.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Mobile User Actions */}
+            {/* Section utilisateur */}
             <div className="border-t border-gray-200 pt-4 space-y-2">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                    <div className="w-8 h-8 bg-gradient-to-r from-primary-bolt-500 to-primary-bolt-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-semibold text-sm">
-                        {user?.user_metadata?.name?.charAt(0) ||
-                          user?.email?.charAt(0) ||
-                          "U"}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {user?.user_metadata?.name || "Utilisateur"}
-                      </p>
-                      <p className="text-sm text-gray-500">Utilisateur</p>
-                    </div>
-                  </div>
-
+                  {/* Mes annonces */}
                   <button
-                    onClick={() => handleNavigate("profile")}
-                    className="w-full text-left py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                    onClick={() => handleDashboardNavClick("listings")}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                   >
-                    Mon compte
+                    <Car className="h-5 w-5" />
+                    <span>Mes annonces</span>
                   </button>
 
-                  <button
-                    onClick={() => handleNavigate("my-listings")}
-                    className="w-full text-left py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                  >
-                    Mes annonces
-                  </button>
-
+                  {/* Messages */}
                   <button
                     onClick={() => handleDashboardNavClick("messages")}
-                    className="w-full text-left py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors flex items-center justify-between"
+                    className="w-full flex items-center justify-between py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                   >
-                    <span>Messages</span>
-                    <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      3
-                    </span>
+                    <div className="flex items-center space-x-3">
+                      <MessageCircle className="h-5 w-5" />
+                      <span>Messages</span>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Notifications */}
+                  <button
+                    onClick={() => handleNavigate("notifications")}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                  >
+                    <Bell className="h-5 w-5" />
+                    <span>Notifications</span>
+                  </button>
+
+                  {/* Séparateur */}
+                  <div className="border-t border-gray-200 pt-2"></div>
+
+                  {/* Mon profil */}
+                  <button
+                    onClick={() => handleDashboardNavClick("profile")}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                  >
+                    <User className="h-5 w-5" />
+                    <span>Mon profil</span>
+                  </button>
+
+                  {/* Paramètres de notifications */}
+                  <button
+                    onClick={() => handleNavigate("/notification-settings")}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                    data-testid="mobile-menu-notification-settings"
+                  >
+                    <Settings className="h-5 w-5" />
+                    <span>Paramètres de notifications</span>
+                  </button>
+
+                  {/* Se déconnecter */}
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                      setCurrentView("home");
+                    }}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>Se déconnecter</span>
+                  </button>
+
+                  {/* Aide */}
+                  <button
+                    onClick={() => handleNavigate("help")}
+                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                  >
+                    <span className="text-lg">❓</span>
+                    <span>Aide</span>
                   </button>
                 </div>
               ) : (

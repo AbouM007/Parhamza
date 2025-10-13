@@ -112,8 +112,7 @@ export function ContactSellerModal({
       
       // Utiliser le format attendu par /api/messages-simple/send
       const messagePayload = {
-        fromUserId: actualUserId,
-        toUserId: vehicle.user_id,
+        recipientId: vehicle.user_id,
         vehicleId: String(annonceId),
         content: message
       };
@@ -124,6 +123,7 @@ export function ContactSellerModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify(messagePayload),
       });
