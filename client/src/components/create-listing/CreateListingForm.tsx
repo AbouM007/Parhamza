@@ -385,9 +385,31 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const updateSpecificDetails = (field: string, value: any) => {
+    let validatedValue = value;
+    
+    // Validation spécifique par champ
+    if (field === "year") {
+      const yearNum = parseInt(value) || 0;
+      const currentYear = new Date().getFullYear();
+      if (yearNum < 1950) validatedValue = 1950;
+      if (yearNum > currentYear) validatedValue = currentYear;
+    } else if (field === "mileage") {
+      const mileageNum = parseInt(value) || 0;
+      if (mileageNum < 0) validatedValue = 0;
+      if (mileageNum > 500000) validatedValue = 500000;
+    } else if (field === "power") {
+      const powerNum = parseInt(value) || 0;
+      if (powerNum < 0) validatedValue = 0;
+      if (powerNum > 1000) validatedValue = 1000;
+    } else if (field === "fiscalPower") {
+      const fiscalNum = parseInt(value) || 0;
+      if (fiscalNum < 0) validatedValue = 0;
+      if (fiscalNum > 30) validatedValue = 30;
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      specificDetails: { ...prev.specificDetails, [field]: value },
+      specificDetails: { ...prev.specificDetails, [field]: validatedValue },
     }));
   };
 
