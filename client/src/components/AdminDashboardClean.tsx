@@ -20,8 +20,10 @@ import {
   CreditCard,
   Zap,
   Crown,
-  Euro
+  Euro,
+  Flag
 } from 'lucide-react';
+import ReportsSection from './dashboard/ReportsSection';
 
 interface AdminStats {
   totalUsers: number;
@@ -118,7 +120,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
     if (onBack) onBack();
     return null;
   }
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'annonces' | 'moderation' | 'performance' | 'pro-accounts' | 'payments'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'annonces' | 'moderation' | 'performance' | 'pro-accounts' | 'payments' | 'reports'>('dashboard');
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalAnnonces: 0,
@@ -652,6 +654,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                 { id: 'users', label: 'Utilisateurs', icon: Users },
                 { id: 'annonces', label: 'Annonces', icon: FileText },
                 { id: 'moderation', label: 'Modération', icon: Shield, badge: pendingAnnonces.length > 0 ? pendingAnnonces.length : undefined },
+                { id: 'reports', label: 'Signalements', icon: Flag },
                 { id: 'payments', label: 'Paiements', icon: CreditCard },
                 { id: 'performance', label: 'Performance', icon: TrendingUp },
                 { id: 'pro-accounts', label: 'Comptes Pro', icon: Building2 },
@@ -1073,6 +1076,11 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                 </div>
               )}
             </div>
+          )}
+
+          {/* Section Signalements */}
+          {activeTab === 'reports' && (
+            <ReportsSection />
           )}
 
           {activeTab === 'performance' && (
