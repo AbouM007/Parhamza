@@ -125,16 +125,17 @@ export const requireAdmin = async (
   const adminEmail = req.headers["x-user-email"] as string;
   const authHeader = req.headers["authorization"] as string;
   
+  // Vérifier d'abord les headers statiques (système temporaire)
   if (adminEmail === "admin@passionauto2roues.com" || 
       authHeader === "admin:admin@passionauto2roues.com") {
     next();
     return;
   }
   
-  // Essayer aussi l'authentification Supabase (pour migration future)
-  try {
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-    if (token) {
+  // Essayer l'authentification Supabase (pour migration future)
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.substring(7);
       const { data: { user }, error } = await supabaseServer.auth.getUser(token);
       
       if (!error && user) {
@@ -154,9 +155,9 @@ export const requireAdmin = async (
           return;
         }
       }
+    } catch (error) {
+      console.error("❌ Erreur vérification admin Supabase:", error);
     }
-  } catch (error) {
-    console.error("❌ Erreur vérification admin Supabase:", error);
   }
   
   return res.status(403).json({ error: "Accès réservé aux administrateurs" });
