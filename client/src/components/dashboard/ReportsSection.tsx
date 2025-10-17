@@ -252,7 +252,7 @@ export default function ReportsSection() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row lg:flex-col gap-2 lg:min-w-[180px]">
-                    <Link href={`/vehicle/${report.listing_id}`}>
+                    <Link href={`/?vehicle=${report.listing_id}`}>
                       <button
                         className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                         data-testid={`button-view-listing-${report.id}`}
