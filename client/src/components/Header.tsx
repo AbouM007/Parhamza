@@ -711,7 +711,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                   {/* Messages */}
                   <button
-                    onClick={() => handleDashboardNavClick("messages")}
+                    onClick={() => handleNavigate("/messages")}
                     className="w-full flex items-center justify-between py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                   >
                     <div className="flex items-center space-x-3">
@@ -737,23 +737,13 @@ export const Header: React.FC<HeaderProps> = ({
                   {/* Séparateur */}
                   <div className="border-t border-gray-200 pt-2"></div>
 
-                  {/* Mon profil */}
+                  {/* Mon Compte */}
                   <button
-                    onClick={() => handleDashboardNavClick("profile")}
+                    onClick={() => handleNavigate("/account")}
                     className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
                   >
                     <User className="h-5 w-5" />
-                    <span>Mon profil</span>
-                  </button>
-
-                  {/* Paramètres de notifications */}
-                  <button
-                    onClick={() => handleNavigate("/notification-settings")}
-                    className="w-full flex items-center space-x-3 py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                    data-testid="mobile-menu-notification-settings"
-                  >
-                    <Settings className="h-5 w-5" />
-                    <span>Paramètres de notifications</span>
+                    <span>Mon Compte</span>
                   </button>
 
                   {/* Se déconnecter */}
