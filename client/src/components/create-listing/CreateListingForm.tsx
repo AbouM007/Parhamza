@@ -1952,6 +1952,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="150"
                   min="0"
+                  max="1000"
                 />
               </div>
 
@@ -1995,8 +1996,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="7"
-                  min="1"
-                  max="50"
+                  min="0"
+                  max="30"
                 />
               </div>
 
@@ -2549,8 +2550,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="2020"
-                  min="1990"
-                  max={new Date().getFullYear() + 1}
+                  min="1950"
+                  max={new Date().getFullYear()}
                 />
               </div>
             </div>
@@ -2573,6 +2574,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="15000"
                   min="0"
+                  max="500000"
                 />
               </div>
 
@@ -2790,6 +2792,7 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="130"
                   min="0"
+                  max="1000"
                 />
               </div>
 
