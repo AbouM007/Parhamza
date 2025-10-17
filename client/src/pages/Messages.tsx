@@ -54,7 +54,14 @@ interface Message {
 
 export function Messages() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"messages" | "notifications">("messages");
+  
+  const getInitialTab = (): "messages" | "notifications" => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    return tab === 'notifications' ? 'notifications' : 'messages';
+  };
+  
+  const [activeTab, setActiveTab] = useState<"messages" | "notifications">(getInitialTab());
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
