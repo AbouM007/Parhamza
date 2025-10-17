@@ -120,6 +120,10 @@ export const requireAdmin = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log('🔐 [REQUIRE_ADMIN] Middleware appelé pour:', req.path);
+  console.log('🔐 [REQUIRE_ADMIN] x-user-email:', req.headers["x-user-email"]);
+  console.log('🔐 [REQUIRE_ADMIN] authorization:', req.headers["authorization"]);
+  
   // TEMPORAIRE: Vérification par headers pour compatibilité avec le système actuel
   // TODO: Migrer vers Supabase Auth pour une vraie sécurité
   const adminEmail = req.headers["x-user-email"] as string;
@@ -128,9 +132,12 @@ export const requireAdmin = async (
   // Vérifier d'abord les headers statiques (système temporaire)
   if (adminEmail === "admin@passionauto2roues.com" || 
       authHeader === "admin:admin@passionauto2roues.com") {
+    console.log('✅ [REQUIRE_ADMIN] Admin authentifié avec headers statiques');
     next();
     return;
   }
+  
+  console.log('❌ [REQUIRE_ADMIN] Headers statiques non valides, tentative Supabase...');
   
   // Essayer l'authentification Supabase (pour migration future)
   if (authHeader?.startsWith("Bearer ")) {
