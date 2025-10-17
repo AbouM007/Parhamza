@@ -146,26 +146,6 @@ export default function AccountPage() {
           ))}
         </div>
 
-        {/* Info utilisateur (optionnel) */}
-        {profile && (
-          <div className="mt-8 bg-white rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-bolt-400 to-primary-bolt-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">
-                  {(profile.name?.[0] || profile.email?.[0] || '?').toUpperCase()}
-                </span>
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-900">
-                  {profile.name || profile.email}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {profile.type === 'professional' ? 'Compte Professionnel' : 'Compte Particulier'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
