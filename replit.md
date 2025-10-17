@@ -30,7 +30,8 @@ The platform features a consistent design language with intuitive user flows, ut
 - **Messaging & Notifications**: Integrated messaging and an event-driven multi-channel notification system (in-app, email, push - Phase 7). Email notifications are implemented with Nodemailer and 15 responsive HTML templates triggered automatically at key business events.
   - **Notification Preferences UI**: A comprehensive user interface at `/notification-settings` for managing preferences across all 16 notification types and 3 channels, using an accordion system with optimistic updates and toggle protection.
 - **Followers System**: Allows users to follow professional sellers.
-- **Listing Report & Moderation System**: Comprehensive reporting for listing moderation with both authenticated and anonymous reporting capabilities, including IP-based rate limiting (1 report/hour per IP for anonymous users). Admin report management is integrated as a dedicated "Signalements" tab in the admin dashboard, visible only to users with type="admin".
+- **Listing Report & Moderation System**: Comprehensive reporting for listing moderation with both authenticated and anonymous reporting capabilities, including IP-based rate limiting (1 report/hour per IP for anonymous users). Admin report management is integrated as a dedicated "Signalements" tab in the admin dashboard at `/admin?tab=reports`.
+  - **⚠️ TODO - Admin Auth Migration**: L'authentification admin utilise actuellement un système temporaire par headers statiques (`x-user-email` et `authorization`). **Cette approche n'est pas sécurisée** et doit être migrée vers Supabase Auth avec un compte admin (type='admin') pour une authentification robuste avec token JWT.
 - **Search & Filters**: Advanced, adaptive search with category-specific visibility.
 - **Data Persistence**: Hybrid storage (localStorage and IndexedDB) for create listing forms.
 

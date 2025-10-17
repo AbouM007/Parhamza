@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Flag, Eye, MessageSquare, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Link } from "wouter";
@@ -57,10 +57,43 @@ export default function ReportsSection() {
   const [selectedReport, setSelectedReport] = useState<ListingReport | null>(null);
   const [newStatus, setNewStatus] = useState<string>("");
   const [adminComment, setAdminComment] = useState("");
+  const [reports, setReports] = useState<ListingReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data: reports = [], isLoading } = useQuery<ListingReport[]>({
-    queryKey: ["/api/admin/reports"],
-  });
+  // Headers admin pour l'authentification temporaire
+  const adminHeaders = {
+    'x-user-email': 'admin@passionauto2roues.com',
+    'authorization': 'admin:admin@passionauto2roues.com'
+  };
+
+  useEffect(() => {
+    const loadReports = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/admin/reports', {
+          headers: adminHeaders
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement des signalements');
+        }
+        
+        const data = await response.json();
+        setReports(data);
+      } catch (error) {
+        console.error('Erreur chargement signalements:', error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les signalements.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadReports();
+  }, [toast]);
 
   const updateReportMutation = useMutation({
     mutationFn: async ({
@@ -72,14 +105,34 @@ export default function ReportsSection() {
       status: string;
       comment?: string;
     }) => {
-      return apiRequest(`/api/admin/reports/${reportId}`, {
+      const response = await fetch(`/api/admin/reports/${reportId}`, {
         method: "PATCH",
         body: JSON.stringify({ status, admin_comment: comment }),
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...adminHeaders
+        },
       });
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la mise à jour du signalement');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/reports"] });
+      // Recharger les signalements
+      const loadReports = async () => {
+        const response = await fetch('/api/admin/reports', {
+          headers: adminHeaders
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setReports(data);
+        }
+      };
+      loadReports();
+      
       toast({
         title: "Signalement mis à jour",
         description: "Le statut du signalement a été mis à jour avec succès.",
