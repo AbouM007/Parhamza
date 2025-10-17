@@ -125,6 +125,9 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   const [compatibilitySearch, setCompatibilitySearch] = useState("");
   const [showCompatibilitySuggestions, setShowCompatibilitySuggestions] =
     useState(false);
+  
+  // État pour afficher le prix formaté
+  const [formattedPrice, setFormattedPrice] = useState("");
 
   // État pour tracker les champs auto-remplis depuis API
   const [autoFilledFields, setAutoFilledFields] = useState<string[]>([]);
@@ -345,6 +348,15 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCompatibilitySuggestions]);
+
+  // Synchroniser le prix formaté avec le prix réel
+  useEffect(() => {
+    if (formData.price > 0) {
+      setFormattedPrice(formData.price.toLocaleString('fr-FR'));
+    } else {
+      setFormattedPrice("");
+    }
+  }, [formData.price]);
 
   const updateFormData = (field: string, value: any) => {
     // Validation spéciale pour le titre
@@ -1788,8 +1800,8 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             }
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
             placeholder="2020"
-            min="1990"
-            max={new Date().getFullYear() + 1}
+            min="1950"
+            max={new Date().getFullYear()}
           />
         </div>
       </div>
@@ -3711,14 +3723,23 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
               </label>
               <div className="relative">
                 <input
-                  type="number"
-                  value={formData.price || ""}
-                  onChange={(e) =>
-                    updateFormData("price", parseInt(e.target.value) || 0)
-                  }
+                  type="text"
+                  value={formattedPrice}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d]/g, ""); // Garder seulement les chiffres
+                    const numValue = parseInt(value) || 0;
+                    
+                    // Valider entre 0 et 1,000,000
+                    const validatedValue = Math.min(Math.max(numValue, 0), 1000000);
+                    
+                    // Mettre à jour le prix réel
+                    updateFormData("price", validatedValue);
+                    
+                    // Formater l'affichage avec séparateur de milliers
+                    setFormattedPrice(validatedValue > 0 ? validatedValue.toLocaleString('fr-FR') : "");
+                  }}
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all text-lg"
                   placeholder="0"
-                  min="0"
                   data-testid="input-price"
                 />
                 <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
