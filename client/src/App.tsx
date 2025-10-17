@@ -388,7 +388,7 @@ function AppContent() {
                 </Route>
                 <Route path="/admin/reports">
                   {() => {
-                    setLocation("/dashboard?tab=reports");
+                    setLocation("/admin?tab=reports");
                     return null;
                   }}
                 </Route>

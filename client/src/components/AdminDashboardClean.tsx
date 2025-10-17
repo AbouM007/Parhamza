@@ -120,7 +120,16 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
     if (onBack) onBack();
     return null;
   }
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'annonces' | 'moderation' | 'performance' | 'pro-accounts' | 'payments' | 'reports'>('dashboard');
+  
+  // Lire le paramètre tab de l'URL pour initialiser activeTab
+  const getInitialTab = (): 'dashboard' | 'users' | 'annonces' | 'moderation' | 'performance' | 'pro-accounts' | 'payments' | 'reports' => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    const validTabs = ['dashboard', 'users', 'annonces', 'moderation', 'performance', 'pro-accounts', 'payments', 'reports'];
+    return validTabs.includes(tab || '') ? tab as any : 'dashboard';
+  };
+  
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'annonces' | 'moderation' | 'performance' | 'pro-accounts' | 'payments' | 'reports'>(getInitialTab());
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     totalAnnonces: 0,
