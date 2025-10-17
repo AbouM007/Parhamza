@@ -37,7 +37,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-[120] overflow-hidden">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -52,6 +52,7 @@ export const DraggableModal: React.FC<DraggableModalProps> = ({
           max-h-[90vh] 
           bg-white rounded-xl shadow-2xl 
           transform -translate-x-1/2 -translate-y-1/2
+          z-[130]
           ${className}
         `}
         style={{
