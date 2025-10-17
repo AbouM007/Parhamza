@@ -93,10 +93,12 @@ interface FormData {
 
 interface CreateListingFormProps {
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   onSuccess,
+  onCancel,
 }) => {
   const { user, profile } = useAuth();
   const { data: quotaInfo } = useQuota(profile?.id);
@@ -4570,20 +4572,37 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
       {/* Navigation sticky */}
       <div className="sticky bottom-0 bg-white border-t shadow-lg px-6 py-4">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <button
-            onClick={() => {
-              if (currentStep === 13 && showPayment) {
-                setShowPayment(false);
-              } else {
-                prevStepHandler();
-              }
-            }}
-            disabled={currentStep === 1}
-            className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Précédent</span>
-          </button>
+          {currentStep === 1 ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (onCancel) {
+                  onCancel();
+                }
+              }}
+              className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              data-testid="button-cancel-form"
+            >
+              <X className="h-4 w-4" />
+              <span>Annuler</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (currentStep === 13 && showPayment) {
+                  setShowPayment(false);
+                } else {
+                  prevStepHandler();
+                }
+              }}
+              className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              data-testid="button-previous-step"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Précédent</span>
+            </button>
+          )}
 
           {currentStep === 12 ? (
             <button
