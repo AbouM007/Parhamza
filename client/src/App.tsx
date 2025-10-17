@@ -485,6 +485,7 @@ function AppContent() {
             setDashboardTab("listings");
             setRefreshVehicles((prev) => !prev);
           }}
+          onCancel={() => setShowCreateListingModal(false)}
         />
       </DraggableModal>
     </div>
