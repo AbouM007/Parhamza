@@ -20,7 +20,7 @@ import { setupWishlistMigration } from "./routes/wishlist-migration.js";
 import { setupWishlistDirect } from "./routes/wishlist-direct.js";
 import { ensureUserExists, createUserFromAuth } from "./auth-hooks";
 import { supabaseServer } from "./supabase";
-import { requireAuth } from "./middleware/auth";
+import { requireAuth, requireAdmin } from "./middleware/auth";
 import multer from "multer";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
@@ -3660,24 +3660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/admin/reports - Lister tous les signalements (admin)
-  app.get("/api/admin/reports", requireAuth, async (req, res) => {
-    const user = req.user;
-
-    if (!user) {
-      return res.status(401).json({ error: "Authentification requise" });
-    }
-
-    // Vérifier si l'utilisateur est admin
-    const { data: adminUser } = await supabaseServer
-      .from("users")
-      .select("type")
-      .eq("id", user.id)
-      .single();
-
-    if (!adminUser || adminUser.type !== "admin") {
-      return res.status(403).json({ error: "Accès réservé aux administrateurs" });
-    }
-
+  app.get("/api/admin/reports", requireAdmin, async (req, res) => {
     try {
       const { data: reports, error } = await supabaseServer
         .from("listing_reports")
@@ -3719,25 +3702,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PATCH /api/admin/reports/:id - Mettre à jour le statut d'un signalement (admin)
-  app.patch("/api/admin/reports/:id", requireAuth, async (req, res) => {
-    const user = req.user;
+  app.patch("/api/admin/reports/:id", requireAdmin, async (req, res) => {
     const reportId = req.params.id;
     const { status, admin_comment } = req.body;
-
-    if (!user) {
-      return res.status(401).json({ error: "Authentification requise" });
-    }
-
-    // Vérifier si l'utilisateur est admin
-    const { data: adminUser } = await supabaseServer
-      .from("users")
-      .select("type")
-      .eq("id", user.id)
-      .single();
-
-    if (!adminUser || adminUser.type !== "admin") {
-      return res.status(403).json({ error: "Accès réservé aux administrateurs" });
-    }
 
     try {
       const updateData: any = {};

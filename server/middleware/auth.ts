@@ -114,3 +114,16 @@ export const requireProfessional = async (
     next();
   });
 };
+
+export const requireAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  await authenticateUser(req, res, () => {
+    if (req.user?.type !== "admin") {
+      return res.status(403).json({ error: "Accès réservé aux administrateurs" });
+    }
+    next();
+  });
+};
