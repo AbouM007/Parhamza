@@ -397,32 +397,51 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const updateSpecificDetails = (field: string, value: any) => {
-    let validatedValue = value;
-    
-    // Validation spécifique par champ
-    if (field === "year") {
-      const yearNum = parseInt(value) || 0;
-      const currentYear = new Date().getFullYear();
-      if (yearNum < 1950) validatedValue = 1950;
-      if (yearNum > currentYear) validatedValue = currentYear;
-    } else if (field === "mileage") {
-      const mileageNum = parseInt(value) || 0;
-      if (mileageNum < 0) validatedValue = 0;
-      if (mileageNum > 500000) validatedValue = 500000;
-    } else if (field === "power") {
-      const powerNum = parseInt(value) || 0;
-      if (powerNum < 0) validatedValue = 0;
-      if (powerNum > 1000) validatedValue = 1000;
-    } else if (field === "fiscalPower") {
-      const fiscalNum = parseInt(value) || 0;
-      if (fiscalNum < 0) validatedValue = 0;
-      if (fiscalNum > 30) validatedValue = 30;
-    }
-    
+    // Permettre la saisie libre sans validation immédiate
+    // La validation se fera via les attributs min/max du champ input
     setFormData((prev) => ({
       ...prev,
-      specificDetails: { ...prev.specificDetails, [field]: validatedValue },
+      specificDetails: { ...prev.specificDetails, [field]: value },
     }));
+  };
+  
+  // Fonction de validation pour corriger les valeurs hors limites (appelée onBlur)
+  const validateAndCorrectField = (field: string, value: any) => {
+    let correctedValue = value;
+    
+    if (field === "year") {
+      const yearNum = parseInt(value);
+      if (!isNaN(yearNum)) {
+        const currentYear = new Date().getFullYear();
+        if (yearNum < 1950) correctedValue = 1950;
+        if (yearNum > currentYear) correctedValue = currentYear;
+      }
+    } else if (field === "mileage") {
+      const mileageNum = parseInt(value);
+      if (!isNaN(mileageNum)) {
+        if (mileageNum < 0) correctedValue = 0;
+        if (mileageNum > 500000) correctedValue = 500000;
+      }
+    } else if (field === "power") {
+      const powerNum = parseInt(value);
+      if (!isNaN(powerNum)) {
+        if (powerNum < 0) correctedValue = 0;
+        if (powerNum > 1000) correctedValue = 1000;
+      }
+    } else if (field === "fiscalPower") {
+      const fiscalNum = parseInt(value);
+      if (!isNaN(fiscalNum)) {
+        if (fiscalNum < 0) correctedValue = 0;
+        if (fiscalNum > 30) correctedValue = 30;
+      }
+    }
+    
+    if (correctedValue !== value) {
+      setFormData((prev) => ({
+        ...prev,
+        specificDetails: { ...prev.specificDetails, [field]: correctedValue },
+      }));
+    }
   };
 
   // Fonctions pour gérer les tags de compatibilité
@@ -1796,7 +1815,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
             type="number"
             value={formData.specificDetails.year || ""}
             onChange={(e) =>
-              updateSpecificDetails("year", parseInt(e.target.value) || "")
+              updateSpecificDetails("year", e.target.value)
+            }
+            onBlur={(e) =>
+              validateAndCorrectField("year", e.target.value)
             }
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
             placeholder="2020"
@@ -1956,10 +1978,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   type="number"
                   value={formData.specificDetails.power || ""}
                   onChange={(e) =>
-                    updateSpecificDetails(
-                      "power",
-                      parseInt(e.target.value) || "",
-                    )
+                    updateSpecificDetails("power", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    validateAndCorrectField("power", e.target.value)
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="150"
@@ -2001,10 +2023,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   type="number"
                   value={formData.specificDetails.fiscalPower || ""}
                   onChange={(e) =>
-                    updateSpecificDetails(
-                      "fiscalPower",
-                      parseInt(e.target.value) || "",
-                    )
+                    updateSpecificDetails("fiscalPower", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    validateAndCorrectField("fiscalPower", e.target.value)
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="7"
@@ -2558,7 +2580,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   type="number"
                   value={formData.specificDetails.year || ""}
                   onChange={(e) =>
-                    updateSpecificDetails("year", parseInt(e.target.value) || "")
+                    updateSpecificDetails("year", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    validateAndCorrectField("year", e.target.value)
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="2020"
@@ -2578,10 +2603,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   type="number"
                   value={formData.specificDetails.mileage || ""}
                   onChange={(e) =>
-                    updateSpecificDetails(
-                      "mileage",
-                      parseInt(e.target.value) || "",
-                    )
+                    updateSpecificDetails("mileage", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    validateAndCorrectField("mileage", e.target.value)
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="15000"
@@ -2796,10 +2821,10 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
                   type="number"
                   value={formData.specificDetails.power || ""}
                   onChange={(e) =>
-                    updateSpecificDetails(
-                      "power",
-                      parseInt(e.target.value) || "",
-                    )
+                    updateSpecificDetails("power", e.target.value)
+                  }
+                  onBlur={(e) =>
+                    validateAndCorrectField("power", e.target.value)
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
                   placeholder="130"
