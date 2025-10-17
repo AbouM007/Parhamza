@@ -18,6 +18,7 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
 
   // Si on a un token rafraîchi, l'utiliser directement
   if (refreshedToken) {
+    console.log('🔐 [API] Using refreshed token for:', url);
     headers["Authorization"] = `Bearer ${refreshedToken}`;
   } else {
     // Sinon, récupérer le token Supabase actuel
@@ -26,7 +27,10 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
     } = await supabase.auth.getSession();
 
     if (session?.access_token) {
+      console.log('🔐 [API] Using session token for:', url);
       headers["Authorization"] = `Bearer ${session.access_token}`;
+    } else {
+      console.warn('⚠️ [API] No session found for:', url);
     }
   }
 
@@ -47,7 +51,12 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
     
     if (refreshError || !refreshData.session?.access_token) {
       console.error('❌ Échec du refresh token:', refreshError?.message || 'Session invalide');
-      throw new Error(`Refresh token failed: ${refreshError?.message || 'Invalid session'}`);
+      
+      // Erreur personnalisée pour session expirée
+      const error = new Error('Authentification requise');
+      (error as any).status = 401;
+      (error as any).requiresReauth = true;
+      throw error;
     }
 
     console.log('✅ Token rafraîchi avec succès - Retry de la requête');
@@ -57,7 +66,9 @@ const apiRequest = async (url: string, options: RequestInit = {}, refreshedToken
   }
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const error = new Error(`HTTP error! status: ${response.status}`);
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();

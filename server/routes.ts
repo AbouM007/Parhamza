@@ -20,7 +20,7 @@ import { setupWishlistMigration } from "./routes/wishlist-migration.js";
 import { setupWishlistDirect } from "./routes/wishlist-direct.js";
 import { ensureUserExists, createUserFromAuth } from "./auth-hooks";
 import { supabaseServer } from "./supabase";
-import { requireAuth } from "./middleware/auth";
+import { requireAuth, requireAdmin } from "./middleware/auth";
 import multer from "multer";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
@@ -30,8 +30,11 @@ import {
   notifyProAccountActivated,
   notifyListingValidated,
   notifyListingRejected,
-  notifyPaymentSuccess
+  notifyPaymentSuccess,
+  notifyNewReport
 } from "./services/notificationCenter";
+import { insertListingReportSchema } from "../shared/schema";
+import { z } from "zod";
 
 // Configuration multer pour upload en mémoire
 const upload = multer({
@@ -3496,6 +3499,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         error: 'Erreur de connexion au service' 
       });
+    }
+  });
+
+  // ==================== Routes de signalement des annonces ====================
+
+  // GET /api/reports/check/:listingId - Vérifier si l'utilisateur a déjà signalé
+  app.get("/api/reports/check/:listingId", async (req, res) => {
+    const user = (req as any).user;
+    const listingId = req.params.listingId;
+
+    if (!user) {
+      return res.json({ alreadyReported: false });
+    }
+
+    try {
+      const { data: existing } = await supabaseServer
+        .from("listing_reports")
+        .select("id")
+        .eq("listing_id", listingId)
+        .eq("reporter_id", user.id)
+        .maybeSingle();
+
+      res.json({ alreadyReported: !!existing });
+    } catch (error) {
+      console.error("Erreur dans GET /api/reports/check:", error);
+      res.json({ alreadyReported: false });
+    }
+  });
+
+  // POST /api/reports - Créer un signalement (avec ou sans authentification)
+  app.post("/api/reports", async (req, res) => {
+    const user = (req as any).user;
+    const ipAddress = req.headers['x-forwarded-for'] as string || req.ip;
+
+    try {
+      // Rate limiting pour signalements anonymes (1/heure par IP)
+      if (!user) {
+        const { data: rateLimit } = await supabaseServer
+          .from("report_rate_limits")
+          .select("last_report_at")
+          .eq("ip_address", ipAddress)
+          .maybeSingle();
+
+        if (rateLimit) {
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+          const lastReport = new Date(rateLimit.last_report_at);
+
+          if (lastReport > oneHourAgo) {
+            const minutesLeft = Math.ceil((lastReport.getTime() + 60 * 60 * 1000 - Date.now()) / 60000);
+            return res.status(429).json({ 
+              error: `Vous avez déjà signalé une annonce récemment. Veuillez patienter ${minutesLeft} minute(s) avant de signaler à nouveau.`,
+              rateLimitExceeded: true
+            });
+          }
+        }
+      }
+
+      // Validation Zod
+      const reportData = insertListingReportSchema.parse({
+        listingId: req.body.listingId,
+        reporterId: user?.id || null,
+        ipAddress: !user ? ipAddress : null,
+        reason: req.body.reason,
+        description: req.body.description || null,
+        status: "pending",
+      });
+
+      // Vérifier que l'annonce existe
+      const { data: listing, error: listingError } = await supabaseServer
+        .from("annonces")
+        .select("id, title, user_id")
+        .eq("id", reportData.listingId)
+        .single();
+
+      if (listingError || !listing) {
+        return res.status(404).json({ error: "Annonce non trouvée" });
+      }
+
+      // Vérifier si l'utilisateur/IP a déjà signalé cette annonce
+      let existing;
+      if (user) {
+        const { data } = await supabaseServer
+          .from("listing_reports")
+          .select("id")
+          .eq("listing_id", reportData.listingId)
+          .eq("reporter_id", user.id)
+          .maybeSingle();
+        existing = data;
+      } else {
+        const { data } = await supabaseServer
+          .from("listing_reports")
+          .select("id")
+          .eq("listing_id", reportData.listingId)
+          .eq("ip_address", ipAddress)
+          .maybeSingle();
+        existing = data;
+      }
+
+      if (existing) {
+        return res.status(409).json({ 
+          error: "Vous avez déjà signalé cette annonce",
+          alreadyReported: true 
+        });
+      }
+
+      // Créer le signalement avec Drizzle schema
+      const { data: report, error: reportError } = await supabaseServer
+        .from("listing_reports")
+        .insert({
+          listing_id: reportData.listingId,
+          reporter_id: reportData.reporterId,
+          ip_address: reportData.ipAddress,
+          reason: reportData.reason,
+          description: reportData.description,
+          status: reportData.status,
+        })
+        .select()
+        .single();
+
+      if (reportError) {
+        console.error("Erreur lors de la création du signalement:", reportError);
+        return res.status(500).json({ error: "Erreur lors du signalement" });
+      }
+
+      // Mettre à jour le rate limit pour signalements anonymes
+      if (!user) {
+        await supabaseServer
+          .from("report_rate_limits")
+          .upsert({
+            ip_address: ipAddress,
+            last_report_at: new Date().toISOString(),
+            report_count: 1,
+          });
+      }
+
+      // Notification admin pour nouveau signalement
+      try {
+        await notifyNewReport({
+          listingId: reportData.listingId,
+          listingTitle: listing.title,
+          reporterId: user?.id || 'Anonyme',
+          reason: reportData.reason,
+        });
+      } catch (notifError) {
+        console.error("Erreur notification admin:", notifError);
+        // Ne pas bloquer la création du signalement si la notification échoue
+      }
+
+      console.log(`✅ Signalement créé: ${report.id} pour l'annonce ${reportData.listingId} ${user ? `par ${user.id}` : `par IP ${ipAddress}`}`);
+      res.json({ success: true, message: "Signalement enregistré" });
+
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Données invalides", details: error.errors });
+      }
+      console.error("Erreur dans POST /api/reports:", error);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+
+  // GET /api/admin/reports - Lister tous les signalements (admin)
+  app.get("/api/admin/reports", requireAdmin, async (req, res) => {
+    try {
+      const { data: reports, error } = await supabaseServer
+        .from("listing_reports")
+        .select(`
+          id,
+          reason,
+          description,
+          status,
+          admin_comment,
+          created_at,
+          listing_id,
+          reporter_id,
+          annonces!listing_reports_listing_id_fkey (
+            id,
+            title,
+            price,
+            category
+          ),
+          users!listing_reports_reporter_id_fkey (
+            id,
+            name,
+            display_name,
+            email
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erreur lors de la récupération des signalements:", error);
+        return res.status(500).json({ error: "Erreur lors de la récupération" });
+      }
+
+      res.json(reports || []);
+
+    } catch (error) {
+      console.error("Erreur dans GET /api/admin/reports:", error);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+
+  // PATCH /api/admin/reports/:id - Mettre à jour le statut d'un signalement (admin)
+  app.patch("/api/admin/reports/:id", requireAdmin, async (req, res) => {
+    const reportId = req.params.id;
+    const { status, admin_comment } = req.body;
+
+    try {
+      const updateData: any = {};
+      
+      if (status) {
+        updateData.status = status;
+      }
+      
+      if (admin_comment !== undefined) {
+        updateData.admin_comment = admin_comment;
+      }
+
+      updateData.updated_at = new Date().toISOString();
+
+      const { data: updatedReport, error } = await supabaseServer
+        .from("listing_reports")
+        .update(updateData)
+        .eq("id", reportId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Erreur lors de la mise à jour du signalement:", error);
+        return res.status(500).json({ error: "Erreur lors de la mise à jour" });
+      }
+
+      if (!updatedReport) {
+        return res.status(404).json({ error: "Signalement non trouvé" });
+      }
+
+      console.log(`✅ Signalement ${reportId} mis à jour avec le statut: ${status}`);
+      res.json({ success: true, report: updatedReport });
+
+    } catch (error) {
+      console.error("Erreur dans PATCH /api/admin/reports/:id:", error);
+      res.status(500).json({ error: "Erreur serveur" });
     }
   });
 

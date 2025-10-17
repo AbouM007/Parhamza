@@ -26,6 +26,7 @@ import { SafetyTipsPage } from "./pages/SafetyTipsPage";
 import { AdminDashboardClean } from "@/components/AdminDashboardClean";
 import { AdminLogin } from "@/components/AdminLogin";
 import { AdminTest } from "@/components/AdminTest";
+import AdminReportsPage from "./pages/AdminReportsPage";
 import { Messages } from "./pages/Messages";
 import { SearchPage } from "./pages/SearchPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -156,6 +157,15 @@ function AppContent() {
         .catch((err) => console.error("❌ Erreur auto-sélection:", err));
     }
   }, [location, selectedVehicle, setSelectedVehicle]);
+
+  // Gérer l'onglet dashboard via query params
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get("tab");
+    if (tab && location === "/dashboard") {
+      setDashboardTab(tab);
+    }
+  }, [location]);
 
   // Modal création annonce
   React.useEffect(() => {
@@ -375,6 +385,12 @@ function AppContent() {
                 </Route>
                 <Route path="/professional-verification">
                   <ProfessionalVerification />
+                </Route>
+                <Route path="/admin/reports">
+                  {() => {
+                    setLocation("/admin?tab=reports");
+                    return null;
+                  }}
                 </Route>
                 <Route path="/admin">
                   {() => {

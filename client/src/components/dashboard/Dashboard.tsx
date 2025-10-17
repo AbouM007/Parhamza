@@ -7,6 +7,7 @@ import {
   PurchaseHistorySection,
   FavoritesSection,
   PremiumSection,
+  ReportsSection,
 } from "../dashboard";
 
 import {
@@ -45,6 +46,7 @@ import {
   UserPlus,
   ShieldCheck,
   Package,
+  Flag,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -132,7 +134,14 @@ const getDashboardTabs = (
 ): DashboardTab[] => {
   const tabs = [...baseDashboardTabs];
 
-  // Pas d'onglet boutique pro - les infos entreprise sont dans "Mon profil"
+  // Ajouter l'onglet Signalements pour les admins
+  if (userType === "admin") {
+    tabs.push({
+      id: "reports",
+      label: "Signalements",
+      icon: <Flag className="h-5 w-5" />,
+    });
+  }
 
   return tabs;
 };
@@ -3030,6 +3039,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {activeTab === "premium" && (
               <PremiumSection premiumListings={premiumListings} />
+            )}
+
+            {activeTab === "reports" && profile?.type === "admin" && (
+              <ReportsSection />
             )}
           </div>
         </div>
