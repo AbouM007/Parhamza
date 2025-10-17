@@ -397,11 +397,26 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
   };
 
   const updateSpecificDetails = (field: string, value: any) => {
-    // Permettre la saisie libre sans validation immédiate
-    // La validation se fera via les attributs min/max du champ input
+    let validatedValue = value;
+    
+    // Validation de longueur pour éviter les nombres absurdes
+    if (field === "year" && value) {
+      // Année: max 4 chiffres
+      validatedValue = value.toString().slice(0, 4);
+    } else if (field === "mileage" && value) {
+      // Kilométrage: max 6 chiffres (500 000)
+      validatedValue = value.toString().slice(0, 6);
+    } else if (field === "power" && value) {
+      // Puissance: max 4 chiffres (1000)
+      validatedValue = value.toString().slice(0, 4);
+    } else if (field === "fiscalPower" && value) {
+      // Puissance fiscale: max 2 chiffres (30)
+      validatedValue = value.toString().slice(0, 2);
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      specificDetails: { ...prev.specificDetails, [field]: value },
+      specificDetails: { ...prev.specificDetails, [field]: validatedValue },
     }));
   };
   
