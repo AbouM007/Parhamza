@@ -411,26 +411,34 @@ export const CreateListingForm: React.FC<CreateListingFormProps> = ({
     
     if (field === "year") {
       const yearNum = parseInt(value);
-      if (!isNaN(yearNum)) {
+      if (isNaN(yearNum) || yearNum === Infinity || yearNum === -Infinity) {
+        correctedValue = "";
+      } else {
         const currentYear = new Date().getFullYear();
         if (yearNum < 1950) correctedValue = 1950;
         if (yearNum > currentYear) correctedValue = currentYear;
       }
     } else if (field === "mileage") {
       const mileageNum = parseInt(value);
-      if (!isNaN(mileageNum)) {
+      if (isNaN(mileageNum) || mileageNum === Infinity || mileageNum === -Infinity) {
+        correctedValue = "";
+      } else {
         if (mileageNum < 0) correctedValue = 0;
         if (mileageNum > 500000) correctedValue = 500000;
       }
     } else if (field === "power") {
       const powerNum = parseInt(value);
-      if (!isNaN(powerNum)) {
+      if (isNaN(powerNum) || powerNum === Infinity || powerNum === -Infinity) {
+        correctedValue = "";
+      } else {
         if (powerNum < 0) correctedValue = 0;
         if (powerNum > 1000) correctedValue = 1000;
       }
     } else if (field === "fiscalPower") {
       const fiscalNum = parseInt(value);
-      if (!isNaN(fiscalNum)) {
+      if (isNaN(fiscalNum) || fiscalNum === Infinity || fiscalNum === -Infinity) {
+        correctedValue = "";
+      } else {
         if (fiscalNum < 0) correctedValue = 0;
         if (fiscalNum > 30) correctedValue = 30;
       }
