@@ -830,8 +830,9 @@ export const SearchPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile: Afficher uniquement le tri à gauche */}
-          <div className="lg:hidden">
+          {/* Mobile: Tri + Boutons Filtres et Sauvegarder */}
+          <div className="lg:hidden flex items-center justify-between w-full gap-2">
+            {/* Trier par */}
             <div className="flex items-center space-x-2">
               <span className="text-xs font-medium text-gray-700">Trier par:</span>
               <select
@@ -844,6 +845,36 @@ export const SearchPage: React.FC = () => {
                 <option value="price_desc">Prix décroissant</option>
                 <option value="mileage">Kilométrage</option>
               </select>
+            </div>
+
+            {/* Boutons actions mobile */}
+            <div className="flex items-center gap-2">
+              {/* Bouton Filtres avancés */}
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="relative p-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                title="Filtres avancés"
+                data-testid="button-mobile-filters"
+              >
+                <SlidersHorizontal className="h-5 w-5 text-gray-700" />
+                {activeFiltersCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-bolt-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Bouton Sauvegarder (si recherche active et user connecté) */}
+              {profile && hasActiveSearch && (
+                <button
+                  onClick={() => setShowSaveModal(true)}
+                  className="p-2 border border-yellow-500 bg-yellow-500 rounded-lg hover:bg-yellow-600 transition-colors"
+                  title="Sauvegarder cette recherche"
+                  data-testid="button-mobile-save-search"
+                >
+                  <Star className="h-5 w-5 text-white" />
+                </button>
+              )}
             </div>
           </div>
         </div>
