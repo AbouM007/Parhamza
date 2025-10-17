@@ -327,7 +327,31 @@ export const SearchPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header de recherche - masqué sur mobile */}
+      {/* Barre de recherche mobile */}
+      <div className="bg-white border-b border-gray-200 lg:hidden sticky top-0 z-10">
+        <div className="px-4 py-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Rechercher un véhicule, marque, modèle..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="w-full pl-4 pr-10 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+              data-testid="input-search-mobile"
+            />
+            <button 
+              onClick={handleSearch}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 text-gray-400 hover:text-primary-bolt-500 transition-colors"
+              data-testid="button-search-mobile"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Header de recherche - desktop uniquement */}
       <div className="bg-white border-b border-gray-200 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="space-y-6">
@@ -342,10 +366,12 @@ export const SearchPage: React.FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="w-full pl-4 pr-12 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-bolt-500 focus:border-primary-bolt-500 transition-all"
+                    data-testid="input-search-desktop"
                   />
                   <button 
                     onClick={handleSearch}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 hover:text-primary-bolt-500 transition-colors"
+                    data-testid="button-search-desktop"
                   >
                     <Search className="h-6 w-6" />
                   </button>
@@ -402,7 +428,7 @@ export const SearchPage: React.FC = () => {
       </div>
 
       {/* Filtres rapides mobile - scroll horizontal */}
-      <div className="bg-white border-b border-gray-200 lg:hidden sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 lg:hidden sticky top-14 z-10">
         <div className="px-4 py-3">
           <div className="flex overflow-x-auto gap-2 scrollbar-hide -mx-4 px-4">
             {Object.entries(categoryMapping).map(([key, cat]) => (
