@@ -48,6 +48,7 @@ interface User {
 interface Annonce {
   id: string;
   title: string;
+  category?: string;
   user?: {
     name: string;
   };
@@ -132,6 +133,11 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   const [previewAnnonce, setPreviewAnnonce] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [isApproving, setIsApproving] = useState<number | null>(null);
+  
+  // États pour les filtres et tri des annonces
+  const [annonceStatusFilter, setAnnonceStatusFilter] = useState<string>('all');
+  const [annonceCategoryFilter, setAnnonceCategoryFilter] = useState<string>('all');
+  const [annonceSortOrder, setAnnonceSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     loadDashboardData();
@@ -172,6 +178,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
       const annoncesData = vehiclesData.map((vehicle: any) => ({
         id: vehicle.id,
         title: vehicle.title,
+        category: vehicle.category,
         user: vehicle.user,
         status: 'active',
         price: vehicle.price || 0,
@@ -182,6 +189,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
       const deletedAnnoncesData = deletedData.map((annonce: any) => ({
         id: annonce.id,
         title: annonce.title,
+        category: annonce.category,
         user: annonce.users || { name: 'Utilisateur supprimé' },
         status: 'deleted',
         price: annonce.price || 0,
@@ -938,33 +946,120 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
             </div>
           )}
 
-          {activeTab === 'annonces' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Liste des Annonces</h2>
-                <div className="text-sm text-gray-600">
-                  {annonces.length} annonce(s) au total
+          {activeTab === 'annonces' && (() => {
+            // Filtrer et trier les annonces
+            let filteredAnnonces = [...annonces];
+            
+            // Filtre par statut
+            if (annonceStatusFilter !== 'all') {
+              filteredAnnonces = filteredAnnonces.filter(a => a.status === annonceStatusFilter);
+            }
+            
+            // Filtre par catégorie
+            if (annonceCategoryFilter !== 'all') {
+              filteredAnnonces = filteredAnnonces.filter(a => a.category === annonceCategoryFilter);
+            }
+            
+            // Tri par date
+            filteredAnnonces.sort((a, b) => {
+              const dateA = new Date(a.createdAt).getTime();
+              const dateB = new Date(b.createdAt).getTime();
+              return annonceSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+            
+            // Extraire les catégories uniques pour le filtre
+            const uniqueCategories = Array.from(new Set(annonces.map(a => a.category).filter(Boolean)));
+            
+            return (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900">Liste des Annonces</h2>
+                  <div className="text-sm text-gray-600">
+                    {filteredAnnonces.length} / {annonces.length} annonce(s)
+                  </div>
                 </div>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left py-3 px-6 font-medium text-gray-600">Annonce</th>
-                        <th className="text-left py-3 px-6 font-medium text-gray-600">Vendeur</th>
-                        <th className="text-left py-3 px-6 font-medium text-gray-600">Prix</th>
-                        <th className="text-left py-3 px-6 font-medium text-gray-600">Statut</th>
-                        <th className="text-left py-3 px-6 font-medium text-gray-600">Date</th>
-                        <th className="text-left py-3 px-6 font-medium text-gray-600">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {annonces.map((annonce) => (
+                
+                {/* Contrôles de filtrage et tri */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Filtre par statut */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Statut
+                      </label>
+                      <select
+                        value={annonceStatusFilter}
+                        onChange={(e) => setAnnonceStatusFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        data-testid="filter-status"
+                      >
+                        <option value="all">Tous les statuts</option>
+                        <option value="active">Active</option>
+                        <option value="pending">En attente</option>
+                        <option value="deleted">Supprimée</option>
+                      </select>
+                    </div>
+                    
+                    {/* Filtre par catégorie */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Catégorie
+                      </label>
+                      <select
+                        value={annonceCategoryFilter}
+                        onChange={(e) => setAnnonceCategoryFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        data-testid="filter-category"
+                      >
+                        <option value="all">Toutes les catégories</option>
+                        {uniqueCategories.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Tri par date */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tri par date
+                      </label>
+                      <select
+                        value={annonceSortOrder}
+                        onChange={(e) => setAnnonceSortOrder(e.target.value as 'asc' | 'desc')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        data-testid="sort-date"
+                      >
+                        <option value="desc">Date décroissante (récentes d'abord)</option>
+                        <option value="asc">Date croissante (anciennes d'abord)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Annonce</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Catégorie</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Vendeur</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Prix</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Statut</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Date</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-600">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {filteredAnnonces.map((annonce) => (
                         <tr key={annonce.id} className="hover:bg-gray-50">
                           <td className="py-4 px-6">
                             <div className="font-medium text-gray-900">{annonce.title}</div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                              {annonce.category || 'Non spécifié'}
+                            </span>
                           </td>
                           <td className="py-4 px-6 text-sm text-gray-600">
                             {annonce.user?.name || 'N/A'}
@@ -1030,7 +1125,8 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                 </div>
               </div>
             </div>
-          )}
+          );
+        })()}
 
           {activeTab === 'moderation' && (
             <div className="space-y-6">
