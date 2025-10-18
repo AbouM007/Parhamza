@@ -137,6 +137,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   // États pour les filtres et tri des annonces
   const [annonceStatusFilter, setAnnonceStatusFilter] = useState<string>('all');
   const [annonceCategoryFilter, setAnnonceCategoryFilter] = useState<string>('all');
+  const [annonceSellerFilter, setAnnonceSellerFilter] = useState<string>('all');
   const [annonceSortOrder, setAnnonceSortOrder] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
@@ -960,6 +961,11 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
               filteredAnnonces = filteredAnnonces.filter(a => a.category === annonceCategoryFilter);
             }
             
+            // Filtre par vendeur
+            if (annonceSellerFilter !== 'all') {
+              filteredAnnonces = filteredAnnonces.filter(a => a.user?.name === annonceSellerFilter);
+            }
+            
             // Tri par date
             filteredAnnonces.sort((a, b) => {
               const dateA = new Date(a.createdAt).getTime();
@@ -969,6 +975,9 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
             
             // Extraire les catégories uniques pour le filtre
             const uniqueCategories = Array.from(new Set(annonces.map(a => a.category).filter(Boolean)));
+            
+            // Extraire les vendeurs uniques pour le filtre
+            const uniqueSellers = Array.from(new Set(annonces.map(a => a.user?.name).filter(Boolean)));
             
             return (
               <div className="space-y-6">
@@ -981,7 +990,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                 
                 {/* Contrôles de filtrage et tri */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Filtre par statut */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1014,6 +1023,24 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                         <option value="all">Toutes les catégories</option>
                         {uniqueCategories.map(cat => (
                           <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Filtre par vendeur */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vendeur
+                      </label>
+                      <select
+                        value={annonceSellerFilter}
+                        onChange={(e) => setAnnonceSellerFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        data-testid="filter-seller"
+                      >
+                        <option value="all">Tous les vendeurs</option>
+                        {uniqueSellers.map(seller => (
+                          <option key={seller} value={seller}>{seller}</option>
                         ))}
                       </select>
                     </div>
