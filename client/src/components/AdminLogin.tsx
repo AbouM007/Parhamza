@@ -154,14 +154,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }
             </div>
           </form>
 
-          {/* Credentials info for demo */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 text-center">
-              <strong>Identifiants de test :</strong><br />
-              Email : admin@auto2roues.com<br />
-              Mot de passe : admin123
-            </p>
-          </div>
         </div>
       </div>
     </div>
