@@ -1,224 +1,259 @@
+# 🚀 Roadmap de fonctionnalités prioritaires - PassionAuto2Roues
 
-# 🎯 Fonctionnalités principales à ajouter
-
-## 1. Notifications en temps réel ✅ **IMPLÉMENTÉ**
-- **Statut** : Système complet de notifications multi-canal
-- **Fonctionnalités** :
-  - 14 types de notifications in-app fonctionnels
-  - Notifications email avec templates HTML responsives
-  - Notifications pour messages, favoris, validation/rejet annonces, followers, paiements, abonnements
-  - Interface utilisateur avec onglets "Toutes / Non lues / Lues"
-  - Préférences utilisateur pour chaque type (in-app, email, push)
-- **Impact** : Meilleur engagement utilisateur ✅
-
-## 2. Système d'évaluation / avis ❌ **NON IMPLÉMENTÉ**
-- Permettre aux acheteurs de laisser des avis sur les vendeurs
-- Badge de confiance pour les vendeurs bien notés
-- **Impact** : Confiance et transparence accrues
-
-## 3. Historique de prix ❌ **NON IMPLÉMENTÉ**
-- Tracker les modifications de prix d'une annonce
-- Afficher l'évolution du prix pour aider les acheteurs
-- **Impact** : Transparence et aide à la négociation
-
-## 4. Comparateur d'annonces ❌ **NON IMPLÉMENTÉ**
-- Comparer jusqu'à 4 annonces côte à côte
-- Tableau comparatif des caractéristiques
-- **Impact** : Aide à la décision d'achat
-
-## 5. Alertes de recherche sauvegardées ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement** : Table `saved_searches` existe dans le schéma
-- **Manquant** : Notification automatique quand une nouvelle annonce correspond aux critères
-- **Impact** : Réengagement utilisateur
+Ce document liste les fonctionnalités prioritaires à implémenter pour améliorer la plateforme PassionAuto2Roues.
 
 ---
 
-# 📊 Analytics & Statistiques à améliorer
+## 1. Modification du prix d'une annonce ❌ **NON IMPLÉMENTÉ**
+**Catégorie** : Gestion des annonces
 
-## 6. Dashboard vendeur enrichi ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - Compteurs de vues et favoris par annonce ✅
-  - Liste des annonces du vendeur avec statuts ✅
-- **À ajouter** :
-  - Graphiques d'évolution des vues par jour
-  - Taux de conversion (vues → messages)
-  - Comparaison avec annonces similaires
-  - Suggestions d'amélioration (prix, photos, description)
+**Description** :
+- Permettre au vendeur de modifier le prix de ses annonces publiées
+- Interface simple et intuitive depuis le dashboard vendeur
+- Historique des modifications de prix (optionnel)
 
-## 7. Statistiques détaillées par annonce ❌ **NON IMPLÉMENTÉ**
-- Origine des visiteurs (recherche, accueil, catégorie)
-- Temps passé sur l'annonce
-- Actions effectuées (favoris, partage, contact)
+**Impact** : 
+- Flexibilité accrue pour les vendeurs
+- Meilleure réactivité face au marché
+- Augmentation des ventes grâce à l'ajustement des prix
 
 ---
 
-# 🔍 Recherche & Filtres
+## 2. Alertes de recherche sauvegardées ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
+**Catégorie** : Recherche & Engagement
 
-## 8. Recherche par image ❌ **NON IMPLÉMENTÉ**
-- Upload d'une photo de véhicule
-- Trouver des annonces similaires
-- **Impact** : Innovation et différenciation
+**Actuellement implémenté** :
+- Table `saved_searches` existe dans le schéma ✅
 
-## 9. Filtres avancés sauvegardés ❌ **NON IMPLÉMENTÉ**
-- Sauvegarder ses combinaisons de filtres préférées
-- Application rapide des filtres favoris
+**À implémenter** :
+- Interface utilisateur pour sauvegarder des recherches
+- Notification automatique (email + in-app) quand une nouvelle annonce correspond aux critères
+- Gestion des alertes (activer/désactiver, modifier, supprimer)
+- Fréquence de notification configurable
 
-## 10. Tri intelligent ❌ **NON IMPLÉMENTÉ**
-- Pertinence basée sur l'historique de recherche
-- "Recommandé pour vous" basé sur les favoris
-- Tri par "Meilleure affaire" (rapport qualité/prix)
-
----
-
-# 💬 Messagerie & Communication
-
-## 11. Négociation intégrée ❌ **NON IMPLÉMENTÉ**
-- Système d'offres / contre-offres dans les messages
-- Historique des offres
-- Acceptation directe dans l'interface
-
-## 12. Messagerie enrichie ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - Messagerie temps réel avec WebSocket ✅
-  - Conversations persistantes ✅
-- **À ajouter** :
-  - Envoi de photos dans les messages
-  - Indicateur "En ligne / Hors ligne"
-  - Réponses rapides prédéfinies
-
-## 13. Visioconférence ❌ **NON IMPLÉMENTÉ**
-- Option de visite virtuelle du véhicule
-- Intégration d'un système de visio simple
-- **Impact** : Acheteurs éloignés géographiquement
+**Impact** : 
+- Réengagement des utilisateurs
+- Augmentation du trafic récurrent
+- Meilleure expérience d'achat
 
 ---
 
-# 🛡️ Sécurité & Confiance
+## 3. Tri intelligent ❌ **NON IMPLÉMENTÉ**
+**Catégorie** : Recherche & Personnalisation
 
-## 14. Vérification d'identité ❌ **NON IMPLÉMENTÉ**
-- Upload pièce d'identité pour badge vérifié
-- Vérification téléphone par SMS
-- **Impact** : Réduction des arnaques
+**Fonctionnalités** :
+- **Pertinence basée sur l'historique de recherche**
+  - Analyser les recherches précédentes de l'utilisateur
+  - Prioriser les annonces correspondant à ses préférences
+  
+- **"Recommandé pour vous" basé sur les favoris**
+  - Algorithme de recommandation selon les annonces ajoutées aux favoris
+  - Suggestions personnalisées sur la page d'accueil
+  
+- **Tri par "Meilleure affaire"**
+  - Rapport qualité/prix calculé automatiquement
+  - Comparaison avec le marché
 
-## 15. Signalement & modération ✅ **IMPLÉMENTÉ**
-- **Statut** : Système complet de signalement et modération
-- **Fonctionnalités** :
-  - Signalement d'annonces avec formulaire détaillé ✅
-  - Signalement authentifié et anonyme (avec rate-limiting IP) ✅
-  - Dashboard admin avec onglet "Signalements" dédié ✅
-  - Gestion des statuts (pending, in_review, resolved, rejected) ✅
-  - Actions admin (approbation, rejet, suppression d'annonces) ✅
-- **Impact** : Plateforme plus sûre ✅
-
-## 16. Paiement sécurisé ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - Stripe configuré pour abonnements (Starter, Standard, Business) ✅
-  - Paiement de boost d'annonces ✅
-  - Webhooks Stripe pour renouvellements automatiques ✅
-- **Non implémenté** :
-  - Système d'acompte sécurisé pour transactions entre utilisateurs ❌
-  - Paiement avec garantie (escrow) ❌
-- **Impact** : Sécurité des transactions partiellement assurée
+**Impact** : 
+- Expérience utilisateur personnalisée
+- Réduction du temps de recherche
+- Augmentation des conversions
 
 ---
 
-# 📱 UX / UI Mobile
+## 4. Application mobile progressive (PWA) ❌ **NON IMPLÉMENTÉ**
+**Catégorie** : UX / UI Mobile
 
-## 17. Application mobile progressive (PWA) ❌ **NON IMPLÉMENTÉ**
-- Installation sur téléphone
-- Mode hors ligne pour favoris
-- Notifications push
-- **Impact** : Meilleure expérience mobile
+**Fonctionnalités** :
+- Installation de l'application sur téléphone (iOS + Android)
+- Icône sur l'écran d'accueil
+- Expérience app-like (plein écran, sans barre de navigation)
+- Mode hors ligne pour favoris et annonces sauvegardées
+- Notifications push natives
+- Synchronisation automatique en arrière-plan
 
-## 18. Mode hors ligne ❌ **NON IMPLÉMENTÉ**
-- Synchronisation des favoris
-- Consultation des annonces sauvegardées
-- **Impact** : Utilisation sans connexion
+**Technologies** :
+- Service Workers
+- Web App Manifest
+- Cache API
+- Push API
 
----
-
-# 🤖 Intelligence & Automatisation
-
-## 19. Estimation de prix automatique ❌ **NON IMPLÉMENTÉ**
-- Analyser les annonces similaires
-- Suggérer un prix de marché
-- **Impact** : Aide au pricing optimal
-
-## 20. Suggestions de texte ❌ **NON IMPLÉMENTÉ**
-- IA pour améliorer les descriptions
-- Correction orthographique
-- Traduction automatique
-- **Impact** : Annonces de meilleure qualité
-
-## 21. Détection automatique des infos ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - API de recherche de plaque d'immatriculation pour auto-fill des données véhicule ✅
-- **Non implémenté** :
-  - Extraction des données depuis les photos (OCR carte grise) ❌
-  - Reconnaissance automatique de marque / modèle depuis photos ❌
-- **Impact** : Création d'annonce partiellement facilitée
+**Impact** : 
+- Meilleure expérience mobile
+- Engagement accru via notifications push
+- Accès rapide depuis l'écran d'accueil
+- Fonctionnement partiel hors ligne
 
 ---
 
-# 📈 Monétisation
+## 5. Mode hors ligne ❌ **NON IMPLÉMENTÉ**
+**Catégorie** : UX / UI Mobile
 
-## 22. Options publicitaires ❌ **NON IMPLÉMENTÉ**
-- Publicités ciblées pour pros
-- Mise en avant géographique
-- **Impact** : Revenus additionnels
+**Fonctionnalités** :
+- Synchronisation automatique des favoris
+- Consultation des annonces sauvegardées sans connexion
+- Mise en cache intelligente des images
+- Synchronisation en arrière-plan quand la connexion revient
+- Indicateur visuel du statut de connexion
 
-## 23. Services premium avancés ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - Abonnements à 3 niveaux (Starter, Standard, Business) ✅
-  - Boost d'annonces (mise en avant temporaire) ✅
-  - Fonctionnalités premium par plan (limite d'annonces, analytics, etc.) ✅
-- **Non implémenté** :
-  - Rapport d'historique véhicule ❌
-  - Garantie plateforme ❌
-  - Assurance annonce ❌
-- **Impact** : Valeur ajoutée et revenus partiellement assurés
+**Technologies** :
+- IndexedDB pour stockage local
+- Service Workers pour cache
+- Background Sync API
 
----
-
-# 🔧 Améliorations techniques
-
-## 24. Performance ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - Compression d'images avec Sharp (côté serveur) ✅
-  - Compression canvas (côté client) ✅
-  - React Query pour caching ✅
-- **Non implémenté** :
-  - Lazy loading des images optimisé ❌
-  - Cache intelligent avancé ❌
-  - CDN pour assets statiques ❌
-
-## 25. SEO avancé ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
-- **Actuellement implémenté** :
-  - Meta tags de base sur les pages ✅
-  - URLs propres et sémantiques ✅
-- **Non implémenté** :
-  - Meta tags dynamiques par annonce ❌
-  - Sitemap automatique ❌
-  - Rich snippets pour Google ❌
-
-## 26. Exports & Imports ❌ **NON IMPLÉMENTÉ**
-- Export des données vendeur (CSV)
-- Import en masse pour pros
-- API publique pour intégrations
+**Impact** : 
+- Utilisation sans connexion internet
+- Consultation des favoris en déplacement
+- Résilience face aux connexions instables
 
 ---
 
-## 📊 Résumé d'implémentation
+## 6. Estimation de prix automatique ❌ **NON IMPLÉMENTÉ**
+**Catégorie** : Intelligence & Automatisation
 
-**✅ Totalement implémenté** : 2 fonctionnalités (Notifications en temps réel, Signalement & modération)
+**Fonctionnalités** :
+- Analyser les annonces similaires (marque, modèle, année, kilométrage, état)
+- Calculer un prix de marché moyen
+- Suggérer un prix optimal au vendeur lors de la création d'annonce
+- Indicateur de compétitivité du prix (trop cher / bon prix / bonne affaire)
+- Graphique de distribution des prix du marché
 
-**⚠️ Partiellement implémenté** : 8 fonctionnalités (Alertes recherche, Dashboard vendeur, Messagerie enrichie, Paiement sécurisé, Détection auto infos, Services premium, Performance, SEO)
+**Algorithme** :
+- Filtrage des annonces similaires
+- Pondération selon critères (état, kilométrage, options)
+- Calcul de fourchette de prix (min, moyen, max)
 
-**❌ Non implémenté** : 16 fonctionnalités
-
-**Total** : 26 fonctionnalités identifiées pour évolution future
+**Impact** : 
+- Aide au pricing optimal pour vendeurs
+- Prix plus compétitifs = ventes plus rapides
+- Transparence du marché pour acheteurs
+- Réduction des annonces surévaluées
 
 ---
 
-**Dernière mise à jour** : Octobre 2025
-**Statut** : Document de roadmap produit
+## 7. Suggestions de texte IA ❌ **NON IMPLÉMENTÉ**
+**Catégorie** : Intelligence & Automatisation
+
+**Fonctionnalités** :
+- **IA pour améliorer les descriptions**
+  - Suggestions de reformulation pour plus d'impact
+  - Mise en valeur des points forts du véhicule
+  - Optimisation SEO des descriptions
+  
+- **Correction orthographique**
+  - Correction automatique des fautes
+  - Suggestions grammaticales
+  
+- **Traduction automatique**
+  - Traduction FR ↔ EN des annonces
+  - Élargissement de l'audience internationale
+
+**Technologies** :
+- OpenAI API (GPT-4) ou alternatives
+- API de traduction (Google Translate / DeepL)
+
+**Impact** : 
+- Annonces de meilleure qualité
+- Meilleur référencement
+- Audience internationale
+- Gain de temps pour vendeurs
+
+---
+
+## 8. Performance - Lazy loading optimisé ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
+**Catégorie** : Améliorations techniques
+
+**Actuellement implémenté** :
+- Compression d'images avec Sharp (côté serveur) ✅
+- Compression canvas (côté client) ✅
+- React Query pour caching ✅
+
+**À implémenter** :
+- **Lazy loading des images optimisé**
+  - Chargement progressif des images (blur-up)
+  - Intersection Observer pour images visibles uniquement
+  - Images responsive avec srcset
+  - Format WebP avec fallback
+  
+- **Cache intelligent avancé**
+  - Cache HTTP avec headers appropriés
+  - Stratégie de cache pour assets statiques
+  - Préchargement des pages critiques
+  
+- **CDN pour assets statiques**
+  - Distribution via CDN (Cloudflare / Vercel)
+  - Réduction de la latence globale
+
+**Impact** : 
+- Temps de chargement réduit (LCP, FCP)
+- Meilleure performance mobile
+- Expérience utilisateur fluide
+- Réduction de la bande passante
+
+---
+
+## 9. SEO avancé - Meta tags dynamiques ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
+**Catégorie** : Améliorations techniques
+
+**Actuellement implémenté** :
+- Meta tags de base sur les pages ✅
+- URLs propres et sémantiques ✅
+
+**À implémenter** :
+- **Meta tags dynamiques par annonce**
+  - Titre unique par annonce (marque, modèle, prix)
+  - Description optimisée avec détails du véhicule
+  - Open Graph pour partage social (Facebook, WhatsApp)
+  - Twitter Cards
+  
+- **Sitemap automatique**
+  - Génération automatique du sitemap.xml
+  - Mise à jour dynamique lors de nouvelles annonces
+  - Soumission automatique à Google Search Console
+  
+- **Rich snippets pour Google**
+  - Schema.org structured data (Product, Vehicle)
+  - Prix, disponibilité, avis (si implémenté)
+  - Breadcrumbs
+  - FAQ Schema
+
+**Impact** : 
+- Meilleur référencement Google
+- Taux de clic amélioré dans les SERP
+- Partages sociaux optimisés
+- Visibilité accrue
+
+---
+
+## 10. SEO avancé - Sitemap & Rich Snippets ⚠️ **PARTIELLEMENT IMPLÉMENTÉ**
+*(Voir section 9 - SEO avancé ci-dessus)*
+
+---
+
+## 📊 Résumé de la roadmap
+
+| Statut | Nombre | Fonctionnalités |
+|--------|--------|-----------------|
+| ✅ Implémenté | 0 | - |
+| ⚠️ Partiellement implémenté | 3 | Alertes recherche, Performance, SEO avancé |
+| ❌ Non implémenté | 7 | Modification prix, Tri intelligent, PWA, Mode hors ligne, Estimation prix, Suggestions IA, Lazy loading |
+| **Total** | **10** | **Fonctionnalités prioritaires** |
+
+---
+
+## 🎯 Ordre de priorité suggéré
+
+1. **Modification du prix d'une annonce** (rapide à implémenter, forte demande)
+2. **Performance - Lazy loading optimisé** (impact immédiat sur UX)
+3. **SEO avancé** (trafic organique à long terme)
+4. **Alertes de recherche sauvegardées** (réengagement utilisateur)
+5. **Estimation de prix automatique** (valeur ajoutée forte)
+6. **Tri intelligent** (personnalisation)
+7. **Suggestions de texte IA** (qualité des annonces)
+8. **PWA** (engagement mobile)
+9. **Mode hors ligne** (dépend de PWA)
+
+---
+
+**Dernière mise à jour** : Octobre 2025  
+**Statut** : Roadmap de développement prioritaire
