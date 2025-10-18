@@ -44,6 +44,90 @@ import { useCreateListingGuard } from "@/hooks/useCreateListingGuard";
 import { OnboardingEntry } from "@/features/onboarding/OnboardingEntry";
 import { BottomNav } from "@/components/BottomNav";
 import { hasDraft } from "@/utils/formPersistence";
+import { supabase } from "@/lib/supabase";
+
+// Composant de protection pour la route Admin
+function AdminRoute() {
+  const [, setLocation] = useLocation();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isAdminAuth, setIsAdminAuth] = useState(false);
+
+  // Vérifier la session admin au chargement
+  React.useEffect(() => {
+    checkAdminAuth();
+
+    // Écouter les changements d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.id);
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        await checkAdminAuth();
+      } else if (event === 'SIGNED_OUT') {
+        setIsAdminAuth(false);
+        setIsCheckingAuth(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const checkAdminAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        setIsAdminAuth(false);
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      // Vérifier que c'est un admin
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('type')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!error && userData?.type === 'admin') {
+        setIsAdminAuth(true);
+      } else {
+        setIsAdminAuth(false);
+      }
+      setIsCheckingAuth(false);
+    } catch (error) {
+      console.error('Erreur vérification admin:', error);
+      setIsAdminAuth(false);
+      setIsCheckingAuth(false);
+    }
+  };
+
+  // Afficher un loader pendant la vérification
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Vérification de la session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Afficher dashboard ou login selon l'état
+  return isAdminAuth ? (
+    <AdminDashboardClean onBack={() => setLocation("/")} />
+  ) : (
+    <AdminLogin
+      onLoginSuccess={() => {
+        // La redirection sera gérée automatiquement par onAuthStateChange
+        console.log('✅ Login success, waiting for auth state change...');
+      }}
+      onBack={() => setLocation("/")}
+    />
+  );
+}
 
 // Composant de protection pour la route Dashboard
 function DashboardRoute({
@@ -393,18 +477,7 @@ function AppContent() {
                   }}
                 </Route>
                 <Route path="/admin">
-                  {() => {
-                    const isAdminAuth =
-                      localStorage.getItem("admin_authenticated") === "true";
-                    return isAdminAuth ? (
-                      <AdminDashboardClean onBack={() => setLocation("/")} />
-                    ) : (
-                      <AdminLogin
-                        onLoginSuccess={() => setLocation("/admin")}
-                        onBack={() => setLocation("/")}
-                      />
-                    );
-                  }}
+                  <AdminRoute />
                 </Route>
                 <Route path="/success">
                   <StripeSuccess />
