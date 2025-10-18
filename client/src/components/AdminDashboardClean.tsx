@@ -749,6 +749,92 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                 </div>
               </div>
 
+              {/* Notifications & Alertes */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div className="p-6 border-b border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900">Notifications & Alertes</h3>
+                  <p className="text-sm text-gray-500 mt-1">Actions nécessitant votre attention</p>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Carte Signalements */}
+                    <button
+                      onClick={() => setActiveTab('reports')}
+                      className="text-left p-4 rounded-lg border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 group"
+                      data-testid="notification-card-reports"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                          <Flag className="h-5 w-5 text-red-600" />
+                        </div>
+                        {pendingReportsCount > 0 && (
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold text-white bg-red-500 rounded-full">
+                            {pendingReportsCount}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Signalements</h4>
+                      <p className="text-sm text-gray-600">
+                        {pendingReportsCount > 0 
+                          ? `${pendingReportsCount} signalement${pendingReportsCount > 1 ? 's' : ''} à traiter`
+                          : 'Aucun signalement en attente'
+                        }
+                      </p>
+                    </button>
+
+                    {/* Carte Comptes Pro */}
+                    <button
+                      onClick={() => setActiveTab('pro-accounts')}
+                      className="text-left p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group"
+                      data-testid="notification-card-pro-accounts"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                          <Building2 className="h-5 w-5 text-blue-600" />
+                        </div>
+                        {pendingProAccountsCount > 0 && (
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold text-white bg-blue-500 rounded-full">
+                            {pendingProAccountsCount}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Comptes Pro</h4>
+                      <p className="text-sm text-gray-600">
+                        {pendingProAccountsCount > 0 
+                          ? `${pendingProAccountsCount} demande${pendingProAccountsCount > 1 ? 's' : ''} en attente`
+                          : 'Aucune demande en attente'
+                        }
+                      </p>
+                    </button>
+
+                    {/* Carte Modération */}
+                    <button
+                      onClick={() => setActiveTab('moderation')}
+                      className="text-left p-4 rounded-lg border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 group"
+                      data-testid="notification-card-moderation"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="p-2 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
+                          <Shield className="h-5 w-5 text-orange-600" />
+                        </div>
+                        {pendingAnnonces.length > 0 && (
+                          <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold text-white bg-orange-500 rounded-full">
+                            {pendingAnnonces.length}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Modération</h4>
+                      <p className="text-sm text-gray-600">
+                        {pendingAnnonces.length > 0 
+                          ? `${pendingAnnonces.length} annonce${pendingAnnonces.length > 1 ? 's' : ''} à modérer`
+                          : 'Aucune annonce en attente'
+                        }
+                      </p>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Activité récente */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div className="p-6 border-b border-gray-100">
