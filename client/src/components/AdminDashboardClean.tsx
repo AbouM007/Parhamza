@@ -123,6 +123,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   const [professionalAccounts, setProfessionalAccounts] = useState<ProfessionalAccount[]>([]);
   const [selectedProAccount, setSelectedProAccount] = useState<ProfessionalAccount | null>(null);
   const [pendingProAccountsCount, setPendingProAccountsCount] = useState<number>(0);
+  const [pendingReportsCount, setPendingReportsCount] = useState<number>(0);
   const [proAccountDocuments, setProAccountDocuments] = useState<VerificationDocument[]>([]);
   const [verificationAction, setVerificationAction] = useState<{accountId: number, action: 'approve' | 'reject', reason?: string} | null>(null);
   const [globalPurchaseHistory, setGlobalPurchaseHistory] = useState<any[]>([]);
@@ -199,6 +200,9 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
       
       // Charger le count des comptes en attente pour le badge
       loadPendingProAccountsCount();
+      
+      // Charger le count des signalements en attente pour le badge
+      loadPendingReportsCount();
       
       // Toujours charger les annonces en attente pour avoir le bon compteur dans le badge
       loadPendingAnnonces();
@@ -403,6 +407,21 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
       }
     } catch (error) {
       console.error('Erreur chargement count comptes en attente:', error);
+    }
+  };
+
+  const loadPendingReportsCount = async () => {
+    try {
+      console.log('🔢 Chargement nombre signalements en attente...');
+      const response = await fetch('/api/admin/reports');
+      if (response.ok) {
+        const reports = await response.json();
+        const pendingCount = reports.filter((r: any) => r.status === 'pending' || r.status === 'in_review').length;
+        console.log(`📊 ${pendingCount} signalements à traiter trouvés`);
+        setPendingReportsCount(pendingCount);
+      }
+    } catch (error) {
+      console.error('Erreur chargement count signalements en attente:', error);
     }
   };
 
@@ -641,7 +660,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
                 { id: 'users', label: 'Utilisateurs', icon: Users },
                 { id: 'annonces', label: 'Annonces', icon: FileText },
                 { id: 'moderation', label: 'Modération', icon: Shield, badge: pendingAnnonces.length > 0 ? pendingAnnonces.length : undefined },
-                { id: 'reports', label: 'Signalements', icon: Flag },
+                { id: 'reports', label: 'Signalements', icon: Flag, badge: pendingReportsCount > 0 ? pendingReportsCount : undefined },
                 { id: 'payments', label: 'Paiements', icon: CreditCard },
                 { id: 'performance', label: 'Performance', icon: TrendingUp },
                 { id: 'pro-accounts', label: 'Comptes Pro', icon: Building2 },

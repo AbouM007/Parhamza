@@ -72,11 +72,6 @@ export default function ReportsSection() {
     }
   });
 
-  // Calculer le nombre de signalements à traiter
-  const pendingReportsCount = reports.filter(
-    report => report.status === 'pending' || report.status === 'in_review'
-  ).length;
-
   const updateReportMutation = useMutation({
     mutationFn: async ({
       reportId,
@@ -127,14 +122,7 @@ export default function ReportsSection() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div className="hidden lg:block">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-gray-900">Signalements</h1>
-            {pendingReportsCount > 0 && (
-              <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold text-white bg-red-500 rounded-full min-w-[32px] h-8">
-                {pendingReportsCount}
-              </span>
-            )}
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Signalements</h1>
           <p className="text-gray-600 mt-2 text-lg">
             Gérez et modérez les signalements d'annonces
           </p>
