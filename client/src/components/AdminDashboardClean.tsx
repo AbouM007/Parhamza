@@ -414,7 +414,7 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   const loadPendingReportsCount = async () => {
     try {
       console.log('🔢 Chargement nombre signalements en attente...');
-      const reports = await apiRequest<any[]>('/api/admin/reports');
+      const reports: any[] = await apiRequest('/api/admin/reports');
       const pendingCount = reports.filter((r: any) => r.status === 'pending' || r.status === 'in_review').length;
       console.log(`📊 ${pendingCount} signalements à traiter trouvés`);
       setPendingReportsCount(pendingCount);
