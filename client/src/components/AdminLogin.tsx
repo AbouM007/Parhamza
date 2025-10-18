@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -19,19 +20,49 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBack }
     setLoading(true);
 
     try {
-      // Vérification des identifiants admin
-      if (email === 'admin@passionauto2roues.com' && password === 'Admin123456!') {
-        // Stocker la session admin
-        localStorage.setItem('admin_authenticated', 'true');
-        localStorage.setItem('admin_email', email);
-        localStorage.setItem('admin_login_time', new Date().toISOString());
-        
-        onLoginSuccess();
-      } else {
+      // Connexion avec Supabase Auth
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
         setError('Email ou mot de passe incorrect');
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      setError('Erreur de connexion. Veuillez réessayer.');
+
+      if (!data.user) {
+        setError('Erreur de connexion');
+        setLoading(false);
+        return;
+      }
+
+      // Vérifier que c'est bien un admin
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('type')
+        .eq('id', data.user.id)
+        .single();
+
+      if (userError || !userData) {
+        await supabase.auth.signOut();
+        setError('Erreur lors de la vérification du profil');
+        setLoading(false);
+        return;
+      }
+
+      if (userData.type !== 'admin') {
+        await supabase.auth.signOut();
+        setError('Accès non autorisé. Vous devez être administrateur.');
+        setLoading(false);
+        return;
+      }
+
+      // Tout est OK, rediriger vers le dashboard
+      onLoginSuccess();
+    } catch (error: any) {
+      setError(error.message || 'Erreur de connexion. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }

@@ -3,67 +3,9 @@ import { supabase } from '../lib/supabase';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 import { notifyListingValidated, notifyListingRejected } from '../services/notificationCenter';
+import { requireAdmin } from '../middleware/auth';
 
 const router = Router();
-
-// Middleware pour vérifier les droits admin
-const requireAdmin = async (req: any, res: any, next: any) => {
-  const userEmail = req.headers['x-user-email'];
-  const authHeader = req.headers['authorization'];
-  
-  console.log('🔐 Vérification admin pour:', userEmail);
-  
-  // TEMPORAIRE: Accepter directement admin@passionauto2roues.com sans vérifier la table admins
-  // TODO: Migrer vers Supabase Auth
-  if (userEmail === 'admin@passionauto2roues.com' || 
-      authHeader === 'admin:admin@passionauto2roues.com') {
-    console.log('✅ Admin temporaire authentifié');
-    next();
-    return;
-  }
-  
-  if (!userEmail) {
-    console.log('❌ Pas d\'email dans headers');
-    return res.status(401).json({ error: 'Non authentifié' });
-  }
-
-  try {
-    // Vérifier si l'utilisateur est admin (ancienne méthode avec table admins)
-    const { data: user } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', userEmail)
-      .single();
-
-    console.log('👤 User trouvé:', user?.id);
-
-    if (!user) {
-      console.log('❌ Utilisateur non trouvé dans DB');
-      return res.status(404).json({ error: 'Utilisateur non trouvé' });
-    }
-
-    const { data: admin, error: adminError } = await supabase
-      .from('admins')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    console.log('🛡️ Admin trouvé:', admin?.id, 'erreur:', adminError);
-
-    if (!admin) {
-      console.log('❌ Pas de droits admin pour:', userEmail);
-      return res.status(403).json({ error: 'Accès refusé - Droits administrateur requis' });
-    }
-
-    console.log('✅ Admin vérifié:', admin.role);
-    (req as any).admin = admin;
-    (req as any).userId = user.id;
-    next();
-  } catch (error) {
-    console.error('Erreur vérification admin:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-};
 
 // GET /api/admin/users - Récupérer tous les utilisateurs
 router.get('/users', requireAdmin, async (req, res) => {
@@ -146,7 +88,7 @@ router.patch('/users/:id', requireAdmin, async (req, res) => {
     await supabase
       .from('admin_logs')
       .insert({
-        admin_user_id: (req as any).userId,
+        admin_user_id: req.user?.id,
         action: `user_${action}`,
         target_type: 'user',
         target_id: id,
@@ -221,7 +163,7 @@ router.patch('/annonces/:id', requireAdmin, async (req, res) => {
     await supabase
       .from('admin_logs')
       .insert({
-        admin_user_id: (req as any).userId,
+        admin_user_id: req.user?.id,
         action: `annonce_${action}`,
         target_type: 'annonce',
         target_id: id,

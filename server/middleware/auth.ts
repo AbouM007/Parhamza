@@ -120,52 +120,54 @@ export const requireAdmin = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log('🔐 [REQUIRE_ADMIN] Middleware appelé pour:', req.path);
-  console.log('🔐 [REQUIRE_ADMIN] x-user-email:', req.headers["x-user-email"]);
-  console.log('🔐 [REQUIRE_ADMIN] authorization:', req.headers["authorization"]);
-  
-  // TEMPORAIRE: Vérification par headers pour compatibilité avec le système actuel
-  // TODO: Migrer vers Supabase Auth pour une vraie sécurité
-  const adminEmail = req.headers["x-user-email"] as string;
-  const authHeader = req.headers["authorization"] as string;
-  
-  // Vérifier d'abord les headers statiques (système temporaire)
-  if (adminEmail === "admin@passionauto2roues.com" || 
-      authHeader === "admin:admin@passionauto2roues.com") {
-    console.log('✅ [REQUIRE_ADMIN] Admin authentifié avec headers statiques');
-    next();
-    return;
-  }
-  
-  console.log('❌ [REQUIRE_ADMIN] Headers statiques non valides, tentative Supabase...');
-  
-  // Essayer l'authentification Supabase (pour migration future)
-  if (authHeader?.startsWith("Bearer ")) {
-    try {
-      const token = authHeader.substring(7);
-      const { data: { user }, error } = await supabaseServer.auth.getUser(token);
-      
-      if (!error && user) {
-        const { data: profile } = await supabaseServer
-          .from("users")
-          .select("id, email, type")
-          .eq("id", user.id)
-          .single();
-        
-        if (profile?.type === "admin") {
-          req.user = {
-            id: profile.id,
-            email: profile.email,
-            type: profile.type,
-          };
-          next();
-          return;
-        }
-      }
-    } catch (error) {
-      console.error("❌ Erreur vérification admin Supabase:", error);
+  try {
+    console.log('🔐 [REQUIRE_ADMIN] Vérification admin pour:', req.path);
+    
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log('❌ [REQUIRE_ADMIN] Token manquant');
+      return res.status(401).json({ error: "Token d'authentification manquant" });
     }
+    
+    const token = authHeader.substring(7);
+    
+    // Vérifier le token JWT auprès de Supabase
+    const { data: { user }, error } = await supabaseServer.auth.getUser(token);
+    
+    if (error || !user) {
+      console.log('❌ [REQUIRE_ADMIN] Token invalide:', error?.message);
+      return res.status(401).json({ error: "Token invalide" });
+    }
+    
+    // Vérifier que l'utilisateur a le type 'admin'
+    const { data: profile, error: profileError } = await supabaseServer
+      .from("users")
+      .select("id, email, type")
+      .eq("id", user.id)
+      .single();
+    
+    if (profileError || !profile) {
+      console.log('❌ [REQUIRE_ADMIN] Profil non trouvé');
+      return res.status(404).json({ error: "Profil utilisateur non trouvé" });
+    }
+    
+    if (profile.type !== "admin") {
+      console.log('❌ [REQUIRE_ADMIN] Utilisateur non-admin:', profile.email);
+      return res.status(403).json({ error: "Accès réservé aux administrateurs" });
+    }
+    
+    // Tout est OK, attacher l'utilisateur à la requête
+    req.user = {
+      id: profile.id,
+      email: profile.email,
+      type: profile.type,
+    };
+    
+    console.log('✅ [REQUIRE_ADMIN] Admin authentifié:', profile.email);
+    next();
+  } catch (error) {
+    console.error("❌ [REQUIRE_ADMIN] Erreur serveur:", error);
+    return res.status(500).json({ error: "Erreur serveur lors de la vérification admin" });
   }
-  
-  return res.status(403).json({ error: "Accès réservé aux administrateurs" });
 };
