@@ -93,76 +93,12 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) => {
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Vérifier la session admin au chargement
-  useEffect(() => {
-    checkAdminSession();
-  }, []);
-
-  const checkAdminSession = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('❌ Pas de session Supabase');
-        setIsAuthenticated(false);
-        setIsCheckingAuth(false);
-        if (onBack) onBack();
-        return;
-      }
-
-      // Vérifier que c'est un admin
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('type')
-        .eq('id', session.user.id)
-        .single();
-
-      if (error || !userData || userData.type !== 'admin') {
-        console.log('❌ Utilisateur non-admin');
-        await supabase.auth.signOut();
-        setIsAuthenticated(false);
-        setIsCheckingAuth(false);
-        if (onBack) onBack();
-        return;
-      }
-
-      console.log('✅ Admin authentifié:', session.user.email);
-      setIsAuthenticated(true);
-      setIsCheckingAuth(false);
-    } catch (error) {
-      console.error('Erreur vérification session:', error);
-      setIsAuthenticated(false);
-      setIsCheckingAuth(false);
-      if (onBack) onBack();
-    }
-  };
-
   // Déconnexion admin
   const handleLogout = async () => {
     await supabase.auth.signOut();
     if (onBack) onBack();
   };
 
-  // Afficher un loader pendant la vérification
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Vérification de la session...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Ne pas afficher le dashboard si pas authentifié
-  if (!isAuthenticated) {
-    return null;
-  }
-  
   // Lire le paramètre tab de l'URL pour initialiser activeTab
   const getInitialTab = (): 'dashboard' | 'users' | 'annonces' | 'moderation' | 'performance' | 'pro-accounts' | 'payments' | 'reports' => {
     const params = new URLSearchParams(window.location.search);
