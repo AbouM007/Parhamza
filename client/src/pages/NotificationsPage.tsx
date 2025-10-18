@@ -10,7 +10,7 @@ import { MobilePageHeader } from "@/components/MobilePageHeader";
 type FilterType = 'all' | 'unread' | 'read';
 
 export default function NotificationsPage() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, isLoading } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, isLoading } = useNotifications();
   const [, setLocation] = useLocation();
   const [filter, setFilter] = useState<FilterType>('all');
 
@@ -71,9 +71,9 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleDelete = async (e: React.MouseEvent<HTMLButtonElement>, notificationId: number) => {
+  const handleMarkAsReadClick = async (e: React.MouseEvent<HTMLButtonElement>, notificationId: number) => {
     e.stopPropagation();
-    await deleteNotification.mutateAsync(notificationId);
+    await markAsRead.mutateAsync(notificationId);
   };
 
   const handleMarkAllAsRead = async () => {
@@ -246,14 +246,16 @@ export default function NotificationsPage() {
                           </div>
                         </div>
                         
-                        <button
-                          onClick={(e) => handleDelete(e, notification.id)}
-                          className="flex-shrink-0 p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                          title="Supprimer la notification"
-                          data-testid={`button-delete-${notification.id}`}
-                        >
-                          <X className="h-5 w-5 text-gray-500" />
-                        </button>
+                        {!notification.read && (
+                          <button
+                            onClick={(e) => handleMarkAsReadClick(e, notification.id)}
+                            className="flex-shrink-0 p-2 hover:bg-green-100 rounded-lg transition-colors"
+                            title="Marquer comme lue"
+                            data-testid={`button-mark-read-${notification.id}`}
+                          >
+                            <Check className="h-5 w-5 text-green-600" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
