@@ -53,7 +53,8 @@ const statusLabels: Record<string, { label: string; color: string; icon: any }> 
 };
 
 export default function AdminReportsPage() {
-  const { user } = useAuth();
+//  const { user } = useAuth();
+  const { profile } = useAuth();  // ← User (a la propriété type)
   const { toast } = useToast();
   const [selectedReport, setSelectedReport] = useState<ListingReport | null>(null);
   const [newStatus, setNewStatus] = useState<string>("");
@@ -107,7 +108,8 @@ export default function AdminReportsPage() {
     });
   };
 
-  if (!user || user.role !== "admin") {
+//  if (!user || user.role !== "admin") {
+  if (!profile || profile.type !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">

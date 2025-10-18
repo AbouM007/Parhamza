@@ -5,7 +5,7 @@ export interface User {
   displayName?: string;
   phone?: string;
   whatsapp?: string;
-  type: "pending" | "individual" | "professional";
+  type: "pending" | "individual" | "professional" | "admin";
   companyName?: string;
   companyLogo?: string;
   address?: string;
@@ -132,7 +132,11 @@ export interface SearchFilters {
   condition?: string;
   location?: string;
   searchTerm?: string;
-  viewMode?: "categorized" | "categorized-parts" | "categorized-services" | "standard";
+  viewMode?:
+    | "categorized"
+    | "categorized-parts"
+    | "categorized-services"
+    | "standard";
   listing_type?: "sale" | "search";
   sortBy?: "date" | "price_asc" | "price_desc" | "mileage";
   // Nouveaux filtres adaptatifs
