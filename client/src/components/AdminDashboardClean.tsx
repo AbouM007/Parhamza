@@ -24,6 +24,7 @@ import {
   Flag
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { apiRequest } from '@/lib/queryClient';
 import ReportsSection from './dashboard/ReportsSection';
 
 interface AdminStats {
@@ -413,13 +414,10 @@ export const AdminDashboardClean: React.FC<AdminDashboardProps> = ({ onBack }) =
   const loadPendingReportsCount = async () => {
     try {
       console.log('🔢 Chargement nombre signalements en attente...');
-      const response = await fetch('/api/admin/reports');
-      if (response.ok) {
-        const reports = await response.json();
-        const pendingCount = reports.filter((r: any) => r.status === 'pending' || r.status === 'in_review').length;
-        console.log(`📊 ${pendingCount} signalements à traiter trouvés`);
-        setPendingReportsCount(pendingCount);
-      }
+      const reports = await apiRequest<any[]>('/api/admin/reports');
+      const pendingCount = reports.filter((r: any) => r.status === 'pending' || r.status === 'in_review').length;
+      console.log(`📊 ${pendingCount} signalements à traiter trouvés`);
+      setPendingReportsCount(pendingCount);
     } catch (error) {
       console.error('Erreur chargement count signalements en attente:', error);
     }
