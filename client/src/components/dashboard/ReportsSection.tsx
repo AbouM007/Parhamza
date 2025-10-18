@@ -72,6 +72,11 @@ export default function ReportsSection() {
     }
   });
 
+  // Calculer le nombre de signalements à traiter
+  const pendingReportsCount = reports.filter(
+    report => report.status === 'pending' || report.status === 'in_review'
+  ).length;
+
   const updateReportMutation = useMutation({
     mutationFn: async ({
       reportId,
@@ -122,7 +127,14 @@ export default function ReportsSection() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div className="hidden lg:block">
-          <h1 className="text-3xl font-bold text-gray-900">Signalements</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900">Signalements</h1>
+            {pendingReportsCount > 0 && (
+              <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-bold text-white bg-red-500 rounded-full min-w-[32px] h-8">
+                {pendingReportsCount}
+              </span>
+            )}
+          </div>
           <p className="text-gray-600 mt-2 text-lg">
             Gérez et modérez les signalements d'annonces
           </p>
@@ -147,6 +159,7 @@ export default function ReportsSection() {
             const reporterInfo = report.reporter_id 
               ? (report.reporter_email || "Utilisateur") 
               : `Anonyme (${report.ip_address?.slice(0, 12)}...)`;
+            const isAlreadyProcessed = report.status === 'resolved' || report.status === 'rejected';
 
             return (
               <div
@@ -223,18 +236,20 @@ export default function ReportsSection() {
                         Voir l'annonce
                       </button>
                     </a>
-                    <button
-                      onClick={() => {
-                        setSelectedReport(report);
-                        setNewStatus(report.status);
-                        setAdminComment(report.admin_comment || "");
-                      }}
-                      className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-bolt-500 rounded-md hover:bg-primary-bolt-600 transition-colors flex items-center justify-center gap-2"
-                      data-testid={`button-update-report-${report.id}`}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Traiter
-                    </button>
+                    {!isAlreadyProcessed && (
+                      <button
+                        onClick={() => {
+                          setSelectedReport(report);
+                          setNewStatus(report.status);
+                          setAdminComment(report.admin_comment || "");
+                        }}
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-bolt-500 rounded-md hover:bg-primary-bolt-600 transition-colors flex items-center justify-center gap-2"
+                        data-testid={`button-update-report-${report.id}`}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Traiter
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
